@@ -1,0 +1,13 @@
+version: "3.3"
+
+services:
+  core:
+    image: liquid-core
+    volumes:
+      - core-data:/app/var
+    ports:
+      - "8000:8000"
+
+volumes:
+  core-data:
+    driver: local
