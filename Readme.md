@@ -1,4 +1,6 @@
-### Setup
+Experiments to run liquid services in cloud environments
+
+### docker-compose
 ```
 docker-compose up -d
 docker-compose run --rm core ./manage.py createsuperuser
@@ -16,4 +18,11 @@ services:
       - LIQUID_CLIENT_ID=the-client-id-value
       - LIQUID_CLIENT_SECRET=the-client-secret-value
       - SECRET_KEY=some-random-string
+```
+
+### nomad
+```
+nomad agent -dev &
+nomad job run core.nomad
+open http://localhost:10000
 ```
