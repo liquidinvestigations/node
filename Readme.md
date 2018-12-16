@@ -21,8 +21,24 @@ services:
 ```
 
 ### nomad
+Create a configuration file, `nomad-agent.hcl`, with the following content,
+adapted to your machine in case `eth0` is not the main network interface:
+
+```hcl
+advertise {
+  http = "{{ GetInterfaceIP `eth0` }}"
+  serf = "{{ GetInterfaceIP `eth0` }}"
+}
+
+client {
+  enabled = true
+  network_interface = "eth0"
+}
 ```
-nomad agent -dev &
+
+```shell
+consul agent -dev &
+nomad agent -dev -config=nomad-agent.hcl &
 nomad job run core.nomad
-open http://localhost:10000
+open http://$IP # IP address of your machine
 ```
