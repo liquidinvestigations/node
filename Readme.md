@@ -7,6 +7,8 @@ docker-compose run --rm core ./manage.py createsuperuser
 docker-compose run --rm core ./manage.py createoauth2app test http://localhost:5000/__auth/callback
 ```
 
+Add the output from `createoauth2app` as env vars:
+
 `docker-compose.override.yml`:
 ```
 version: "3.3"
@@ -19,6 +21,8 @@ services:
       - LIQUID_CLIENT_SECRET=the-client-secret-value
       - SECRET_KEY=some-random-string
 ```
+
+Reload by running `docker-compose up -d` again
 
 ### nomad
 Create a configuration file, `nomad-agent.hcl`, with the following content,
@@ -39,6 +43,6 @@ client {
 ```shell
 consul agent -dev &
 nomad agent -dev -config=nomad-agent.hcl &
-nomad job run core.nomad
+nomad job run liquid.nomad
 open http://$IP # IP address of your machine
 ```
