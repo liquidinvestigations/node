@@ -82,6 +82,9 @@ job "snoop-testdata" {
         port_map {
           http = 80
         }
+        labels {
+          liquid_task = "snoop-testdata-api",
+        }
       }
       env {
         SECRET_KEY = "TODO random key",

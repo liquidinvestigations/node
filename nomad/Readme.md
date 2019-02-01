@@ -19,3 +19,17 @@ nomad agent -dev -config=nomad-agent.hcl &
 nomad job run liquid.nomad
 open http://$IP # IP address of your machine
 ```
+
+### Hoover
+To start a snoop for the `testdata` collection:
+```shell
+git clone https://github.com/hoover/testdata
+mkdir -p /var/local/liquid/collections
+ln -s $(pwd)/testdata/data /var/local/liquid/collections/testdata
+nomad job run snoop-testdata.nomad
+```
+
+To log into the snoop docker container for testdata:
+```shell
+./crowbar.py shell snoop-testdata-api
+```
