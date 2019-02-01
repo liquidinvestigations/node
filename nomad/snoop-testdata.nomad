@@ -72,7 +72,7 @@ job "snoop-testdata" {
     task "api" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/hoover-snoop2"
+        image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
         volumes = [
           "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
           "/var/local/liquid/volumes/testdata:/opt/hoover/snoop/collection",
