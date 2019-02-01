@@ -8,8 +8,9 @@ def run(cmd):
     return subprocess.check_output(cmd, shell=True).decode('latin1')
 
 
-def run_fg(cmd):
-    subprocess.check_call(cmd, shell=True)
+def run_fg(cmd, **kwargs):
+    kwargs.setdefault('shell', True)
+    subprocess.check_call(cmd, **kwargs)
 
 class Docker:
     def containers(self, labels=[]):
@@ -20,12 +21,13 @@ class Docker:
 docker = Docker()
 
 
-def shell(name):
+def shell(name, *args):
     containers = docker.containers([('liquid_task', name)])
     assert len(containers) == 1, \
         f"Expected exactly one container, got {containers!r}"
     [id] = containers
-    run_fg(f'docker exec -it {id} bash')
+    docker_exec_cmd = ['docker', 'exec', '-it', id] + list(args or ['bash'])
+    run_fg(docker_exec_cmd, shell=False)
 
 
 class SubcommandParser(argparse.ArgumentParser):
