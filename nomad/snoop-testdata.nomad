@@ -68,5 +68,37 @@ job "snoop-testdata" {
         port = "pg"
       }
     }
+
+    task "api" {
+      driver = "docker"
+      config {
+        image = "liquidinvestigations/hoover-snoop2"
+        volumes = [
+          "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
+          "/var/local/liquid/volumes/testdata:/opt/hoover/snoop/collection",
+          "/var/local/liquid/volumes/snoop-testdata-blobs/testdata:/opt/hoover/snoop/blobs",
+          "/var/local/liquid/volumes/search-es-snapshots:/opt/hoover/es-snapshots",
+        ]
+        port_map {
+          http = 80
+        }
+      }
+      env {
+        SECRET_KEY = "TODO random key",
+        DOCKER_HOOVER_SNOOP_SECRET_KEY = "foobar",
+        DOCKER_HOOVER_SNOOP_DEBUG = "true",
+        SNOOP_HTTP_HOSTNAME = "testdata.snoop",
+      }
+      resources {
+        network {
+          port "http" {}
+        }
+      }
+      service {
+        name = "core"
+        tags = ["global", "app"]
+        port = "http"
+      }
+    }
   }
 }
