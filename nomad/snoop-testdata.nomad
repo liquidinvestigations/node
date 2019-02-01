@@ -83,14 +83,14 @@ job "snoop-testdata" {
           http = 80
         }
         labels {
-          liquid_task = "snoop-testdata-api",
+          liquid_task = "snoop-testdata-api"
         }
       }
       env {
-        SECRET_KEY = "TODO random key",
-        DOCKER_HOOVER_SNOOP_SECRET_KEY = "foobar",
-        DOCKER_HOOVER_SNOOP_DEBUG = "true",
-        SNOOP_HTTP_HOSTNAME = "testdata.snoop",
+        SECRET_KEY = "TODO random key"
+        DOCKER_HOOVER_SNOOP_SECRET_KEY = "foobar"
+        DOCKER_HOOVER_SNOOP_DEBUG = "true"
+        SNOOP_HTTP_HOSTNAME = "testdata.snoop"
       }
       resources {
         network {
