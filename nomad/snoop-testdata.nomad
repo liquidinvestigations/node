@@ -92,6 +92,17 @@ job "snoop-testdata" {
         DOCKER_HOOVER_SNOOP_DEBUG = "true"
         SNOOP_HTTP_HOSTNAME = "testdata.snoop"
       }
+      template {
+        data = <<EOF
+            SNOOP_DB = postgresql://snoop:snoop@
+              {{- range service "snoop-testdata-pg" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end -}}
+              /snoop
+          EOF
+        destination = "local/snoop.env"
+        env = true
+      }
       resources {
         network {
           port "http" {}

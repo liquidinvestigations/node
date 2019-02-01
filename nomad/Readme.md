@@ -27,6 +27,8 @@ git clone https://github.com/hoover/testdata
 mkdir -p /var/local/liquid/collections
 ln -s $(pwd)/testdata/data /var/local/liquid/collections/testdata
 nomad job run snoop-testdata.nomad
+# wait a few seconds for the docker containers to spin up
+./crowbar.py shell snoop-testdata-api ./manage.py migrate
 ```
 
 To log into the snoop docker container for testdata:
