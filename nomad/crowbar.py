@@ -6,8 +6,16 @@ A tool for quick-and-dirty actions on a nomad liquid cluster.
 https://half-life.fandom.com/wiki/Crowbar
 """
 
+import os
+import logging
 import subprocess
 import argparse
+
+DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
+
+log = logging.getLogger(__name__)
+log.setLevel(LOG_LEVEL)
 
 
 def run(cmd):
@@ -64,4 +72,9 @@ def main():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=LOG_LEVEL,
+        format='%(asctime)s %(levelname)s %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
     main()
