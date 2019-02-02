@@ -29,17 +29,23 @@ job "liquid" {
       driver = "docker"
       template {
         data = <<EOF
-          server {
-            listen 80;
-            server_name liquid.example.org;
-            location / {
-              proxy_pass http://
-                {{- range service "core" }}
-                  {{- .Address }}:{{ .Port }}
-                {{- end }};
-              proxy_set_header Host $host;
+
+          {{- if service "core" }}
+            upstream core {
+              {{- range service "core" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
             }
-          }
+            server {
+              listen 80;
+              server_name liquid.example.org;
+              location / {
+                proxy_pass http://core;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
           EOF
         destination = "local/core.conf"
       }
