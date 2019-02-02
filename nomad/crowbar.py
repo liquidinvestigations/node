@@ -39,9 +39,13 @@ docker = Docker()
 
 def shell(name, *args):
     containers = docker.containers([('liquid_task', name)])
-    assert len(containers) == 1, \
-        f"Expected exactly one container, got {containers!r}"
-    [id] = containers
+    assert containers, "No containers found"
+    id = containers[0]
+    if len(containers) > 1:
+        log.warning(
+            "Found multiple containers: %r, choosing %r",
+            containers, id,
+        )
     docker_exec_cmd = ['docker', 'exec', '-it', id] + list(args or ['bash'])
     run_fg(docker_exec_cmd, shell=False)
 
