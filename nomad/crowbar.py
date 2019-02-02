@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+"""
+A tool for quick-and-dirty actions on a nomad liquid cluster.
+
+https://half-life.fandom.com/wiki/Crowbar
+"""
+
 import subprocess
 import argparse
 
@@ -12,11 +18,13 @@ def run_fg(cmd, **kwargs):
     kwargs.setdefault('shell', True)
     subprocess.check_call(cmd, **kwargs)
 
+
 class Docker:
     def containers(self, labels=[]):
         label_args = ' '.join(f'-f label={k}={v}' for k, v in labels)
         out = run(f'docker ps -q {label_args}')
         return out.split()
+
 
 docker = Docker()
 
@@ -39,14 +47,15 @@ class SubcommandParser(argparse.ArgumentParser):
             def __call__(self, parser, namespace, values, option_string=None):
                 setattr(namespace, name, subcommands_map[values])
 
-        self.add_argument(name,
+        self.add_argument(
+            name,
             choices=[c.__name__ for c in subcommands],
             action=SubcommandAction,
         )
 
 
 def main():
-    parser = SubcommandParser()
+    parser = SubcommandParser(description=__doc__)
     parser.add_subcommands('cmd', [
         shell,
     ])
