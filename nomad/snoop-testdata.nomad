@@ -87,6 +87,7 @@ job "snoop-testdata" {
       env {
         SECRET_KEY = "TODO random key"
         SNOOP_HTTP_HOSTNAME = "testdata.snoop"
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/snoop/collection"
       }
       template {
         data = <<EOF
@@ -129,6 +130,7 @@ job "snoop-testdata" {
       env {
         SECRET_KEY = "TODO random key"
         SNOOP_HTTP_HOSTNAME = "testdata.snoop"
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/snoop/collection"
       }
       template {
         data = <<EOF
