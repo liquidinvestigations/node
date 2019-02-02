@@ -46,6 +46,22 @@ job "liquid" {
             }
           {{- end }}
 
+          {{- if service "snoop-testdata-api" }}
+            upstream snoop-testdata-api {
+              {{- range service "snoop-testdata-api" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
+            }
+            server {
+              listen 80;
+              server_name testdata.snoop.liquid.example.org;
+              location / {
+                proxy_pass http://snoop-testdata-api;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
           EOF
         destination = "local/core.conf"
       }
