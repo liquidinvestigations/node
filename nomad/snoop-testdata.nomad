@@ -69,6 +69,46 @@ job "snoop-testdata" {
       }
     }
 
+    task "worker" {
+      driver = "docker"
+      config {
+        image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
+        args = ["./manage.py", "runworkers"]
+        volumes = [
+          "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
+          "/var/local/liquid/volumes/testdata:/opt/hoover/snoop/collection",
+          "/var/local/liquid/volumes/snoop-testdata-blobs/testdata:/opt/hoover/snoop/blobs",
+          "/var/local/liquid/volumes/search-es-snapshots:/opt/hoover/es-snapshots",
+        ]
+        labels {
+          liquid_task = "snoop-testdata-worker"
+        }
+      }
+      env {
+        SECRET_KEY = "TODO random key"
+        SNOOP_HTTP_HOSTNAME = "testdata.snoop"
+      }
+      template {
+        data = <<EOF
+            SNOOP_DB = postgresql://snoop:snoop@
+              {{- range service "snoop-testdata-pg" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end -}}
+              /snoop
+            SNOOP_TIKA_URL = http://
+              {{- range service "snoop-testdata-tika" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end -}}
+            SNOOP_AMQP_URL = amqp://
+              {{- range service "snoop-testdata-rabbitmq" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end -}}
+          EOF
+        destination = "local/snoop.env"
+        env = true
+      }
+    }
+
     task "api" {
       driver = "docker"
       config {
