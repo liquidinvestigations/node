@@ -88,8 +88,6 @@ job "snoop-testdata" {
       }
       env {
         SECRET_KEY = "TODO random key"
-        DOCKER_HOOVER_SNOOP_SECRET_KEY = "foobar"
-        DOCKER_HOOVER_SNOOP_DEBUG = "true"
         SNOOP_HTTP_HOSTNAME = "testdata.snoop"
       }
       template {
