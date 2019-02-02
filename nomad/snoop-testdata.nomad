@@ -97,6 +97,14 @@ job "snoop-testdata" {
                 {{ .Address }}:{{ .Port }}
               {{- end -}}
               /snoop
+            SNOOP_TIKA_URL = http://
+              {{- range service "snoop-testdata-tika" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end -}}
+            SNOOP_AMQP_URL = amqp://
+              {{- range service "snoop-testdata-rabbitmq" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end -}}
           EOF
         destination = "local/snoop.env"
         env = true
