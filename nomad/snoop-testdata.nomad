@@ -112,6 +112,9 @@ job "snoop-testdata" {
         destination = "local/snoop.env"
         env = true
       }
+      resources {
+        memory = 512
+      }
     }
   }
 
