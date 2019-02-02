@@ -19,6 +19,7 @@ log.setLevel(LOG_LEVEL)
 
 
 def run(cmd):
+    log.debug("+ %s", cmd)
     return subprocess.check_output(cmd, shell=True).decode('latin1')
 
 
@@ -39,7 +40,9 @@ docker = Docker()
 
 def shell(name, *args):
     containers = docker.containers([('liquid_task', name)])
-    assert containers, "No containers found"
+    if not containers:
+        log.error("No containers found")
+        return
     id = containers[0]
     if len(containers) > 1:
         log.warning(
