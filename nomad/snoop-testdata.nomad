@@ -2,7 +2,7 @@ job "snoop-testdata" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "snoop" {
+  group "snoop-deps" {
     count = 1
 
     task "rabbitmq" {
@@ -68,8 +68,12 @@ job "snoop-testdata" {
         port = "pg"
       }
     }
+  }
 
-    task "worker" {
+  group "snoop-workers" {
+    count = 2
+
+    task "snoop" {
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
@@ -109,8 +113,12 @@ job "snoop-testdata" {
         env = true
       }
     }
+  }
 
-    task "api" {
+  group "snoop-api" {
+    count = 1
+
+    task "snoop" {
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
