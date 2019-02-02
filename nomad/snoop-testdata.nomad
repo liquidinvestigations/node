@@ -89,8 +89,6 @@ job "snoop-testdata" {
         }
       }
       env {
-        SECRET_KEY = "TODO random key"
-        SNOOP_HTTP_HOSTNAME = "testdata.snoop"
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "testdata"
       }
