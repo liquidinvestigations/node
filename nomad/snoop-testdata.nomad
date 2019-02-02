@@ -103,11 +103,11 @@ job "snoop-testdata" {
             SNOOP_TIKA_URL = http://
               {{- range service "snoop-testdata-tika" -}}
                 {{ .Address }}:{{ .Port }}
-              {{- end -}}
+              {{- end }}
             SNOOP_AMQP_URL = amqp://
               {{- range service "snoop-testdata-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
-              {{- end -}}
+              {{- end }}
           EOF
         destination = "local/snoop.env"
         env = true
@@ -150,11 +150,11 @@ job "snoop-testdata" {
             SNOOP_TIKA_URL = http://
               {{- range service "snoop-testdata-tika" -}}
                 {{ .Address }}:{{ .Port }}
-              {{- end -}}
+              {{- end }}
             SNOOP_AMQP_URL = amqp://
               {{- range service "snoop-testdata-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
-              {{- end -}}
+              {{- end }}
           EOF
         destination = "local/snoop.env"
         env = true
