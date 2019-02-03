@@ -81,6 +81,9 @@ job "liquid" {
         volumes = [
           "local/core.conf:/etc/nginx/conf.d/core.conf",
         ]
+        labels {
+          liquid_task = "nginx"
+        }
       }
       resources {
         network {
