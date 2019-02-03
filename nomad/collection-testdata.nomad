@@ -1,4 +1,4 @@
-job "snoop-testdata" {
+job "collection-testdata" {
   datacenters = ["dc1"]
   type = "service"
 
@@ -11,7 +11,7 @@ job "snoop-testdata" {
           amqp = 5672
         }
         labels {
-          liquid_task = "snoop-testdata-rabbitmq"
+          liquid_task = "collection-testdata-rabbitmq"
         }
       }
       resources {
@@ -20,7 +20,7 @@ job "snoop-testdata" {
         }
       }
       service {
-        name = "snoop-testdata-rabbitmq"
+        name = "collection-testdata-rabbitmq"
         port = "amqp"
       }
     }
@@ -33,7 +33,7 @@ job "snoop-testdata" {
           http = 9998
         }
         labels {
-          liquid_task = "snoop-testdata-tika"
+          liquid_task = "collection-testdata-tika"
         }
       }
       resources {
@@ -42,7 +42,7 @@ job "snoop-testdata" {
         }
       }
       service {
-        name = "snoop-testdata-tika"
+        name = "collection-testdata-tika"
         port = "tika"
       }
     }
@@ -52,10 +52,10 @@ job "snoop-testdata" {
       config {
         image = "postgres:9.6"
         volumes = [
-          "/var/local/liquid/volumes/snoop-testdata-pg/data:/var/lib/postgresql/data",
+          "/var/local/liquid/volumes/collection-testdata/pg/data:/var/lib/postgresql/data",
         ]
         labels {
-          liquid_task = "snoop-testdata-pg"
+          liquid_task = "collection-testdata-pg"
         }
         port_map {
           pg = 5432
@@ -71,7 +71,7 @@ job "snoop-testdata" {
         }
       }
       service {
-        name = "snoop-testdata-pg"
+        name = "collection-testdata-pg"
         port = "pg"
       }
     }
@@ -88,10 +88,10 @@ job "snoop-testdata" {
         volumes = [
           "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
           "/var/local/liquid/collections/testdata:/opt/hoover/snoop/collection",
-          "/var/local/liquid/volumes/snoop-testdata-blobs/testdata:/opt/hoover/snoop/blobs",
+          "/var/local/liquid/volumes/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
         ]
         labels {
-          liquid_task = "snoop-testdata-worker"
+          liquid_task = "collection-testdata-worker"
         }
       }
       env {
@@ -101,7 +101,7 @@ job "snoop-testdata" {
       template {
         data = <<EOF
             SNOOP_DB = postgresql://snoop:snoop@
-              {{- range service "snoop-testdata-pg" -}}
+              {{- range service "collection-testdata-pg" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end -}}
               /snoop
@@ -110,11 +110,11 @@ job "snoop-testdata" {
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_TIKA_URL = http://
-              {{- range service "snoop-testdata-tika" -}}
+              {{- range service "collection-testdata-tika" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_AMQP_URL = amqp://
-              {{- range service "snoop-testdata-rabbitmq" -}}
+              {{- range service "collection-testdata-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
           EOF
@@ -135,13 +135,13 @@ job "snoop-testdata" {
         volumes = [
           "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
           "/var/local/liquid/collections/testdata:/opt/hoover/snoop/collection",
-          "/var/local/liquid/volumes/snoop-testdata-blobs/testdata:/opt/hoover/snoop/blobs",
+          "/var/local/liquid/volumes/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
         ]
         port_map {
           http = 80
         }
         labels {
-          liquid_task = "snoop-testdata-api"
+          liquid_task = "collection-testdata-api"
         }
       }
       env {
@@ -153,7 +153,7 @@ job "snoop-testdata" {
       template {
         data = <<EOF
             SNOOP_DB = postgresql://snoop:snoop@
-              {{- range service "snoop-testdata-pg" -}}
+              {{- range service "collection-testdata-pg" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end -}}
               /snoop
@@ -162,11 +162,11 @@ job "snoop-testdata" {
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_TIKA_URL = http://
-              {{- range service "snoop-testdata-tika" -}}
+              {{- range service "collection-testdata-tika" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_AMQP_URL = amqp://
-              {{- range service "snoop-testdata-rabbitmq" -}}
+              {{- range service "collection-testdata-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
           EOF
@@ -179,8 +179,7 @@ job "snoop-testdata" {
         }
       }
       service {
-        name = "snoop-testdata-api"
-        tags = ["global", "app"]
+        name = "collection-testdata"
         port = "http"
       }
     }
