@@ -49,6 +49,22 @@ job "liquid" {
             }
           {{- end }}
 
+          {{- if service "hoover" }}
+            upstream hoover {
+              {{- range service "hoover" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
+            }
+            server {
+              listen 80;
+              server_name hoover.liquid.example.org;
+              location / {
+                proxy_pass http://hoover;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
           {{- if service "snoop-testdata-api" }}
             upstream snoop-testdata-api {
               {{- range service "snoop-testdata-api" }}
