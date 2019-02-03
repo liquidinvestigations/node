@@ -105,4 +105,55 @@ job "hoover" {
       }
     }
   }
+
+  group "collections" {
+    task "nginx" {
+      driver = "docker"
+      template {
+        data = <<EOF
+          server {
+            listen 80;
+
+            {{- range services }}
+              {{- if .Name | regexMatch "^collection-" }}
+                {{- with service .Name }}
+                  {{- with index . 0 }}
+                    location ~ ^/{{ .Name | regexReplaceAll "^(collection-)" "" }}/(.*) {
+                      proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
+                      proxy_set_header Host {{ .Name | regexReplaceAll "^(collection-)" "" }}.snoop.liquid.example.org;
+                    }
+                  {{- end }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+
+          }
+          EOF
+        destination = "local/collections.conf"
+      }
+      config = {
+        image = "nginx"
+        port_map {
+          nginx = 80
+        }
+        volumes = [
+          "local/collections.conf:/etc/nginx/conf.d/collections.conf",
+        ]
+        labels {
+          liquid_task = "hoover-collections-nginx"
+        }
+      }
+      resources {
+        network {
+          port "nginx" {
+            static = 8765
+          }
+        }
+      }
+      service {
+        name = "hoover-collections"
+        port = "nginx"
+      }
+    }
+  }
 }
