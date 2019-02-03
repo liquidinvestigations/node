@@ -9,7 +9,7 @@ https://half-life.fandom.com/wiki/Crowbar
 import os
 import logging
 import subprocess
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 import json
 import argparse
 
@@ -31,6 +31,7 @@ def run_fg(cmd, **kwargs):
 
 
 class Docker:
+
     def containers(self, labels=[]):
         label_args = ' '.join(f'-f label={k}={v}' for k, v in labels)
         out = run(f'docker ps -q {label_args}')
@@ -38,19 +39,41 @@ class Docker:
 
 
 class JsonApi:
+
     def __init__(self, endpoint):
         self.endpoint = endpoint
 
+    def request(self, method, url, data=None):
+        req_url = f'{self.endpoint}{url}'
+        req_headers = {}
+        req_body = None
+
+        if data is not None:
+            req_headers['Content-Type'] = 'application/json'
+            req_body = json.dumps(data).encode('utf8')
+
+        log.debug('%s %r %r', method, req_url, data)
+        req = Request(
+            req_url,
+            req_body,
+            req_headers,
+            method=method,
+        )
+
+        with urlopen(req) as res:
+            res_body = json.load(res)
+            log.debug('response: %r', res_body)
+            return res_body
+
     def get(self, url):
-        full_url = f'{self.endpoint}{url}'
-        log.debug('GET %r', full_url)
-        with urlopen(full_url) as resp:
-            body = json.load(resp)
-            log.debug('response: %r', body)
-            return body
+        return self.request('GET', url)
+
+    def put(self, url, data):
+        return self.request('PUT', url, data)
 
 
 class Nomad(JsonApi):
+
     def __init__(self, endpoint='http://127.0.0.1:4646'):
         super().__init__(endpoint + '/v1/')
 
