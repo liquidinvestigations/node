@@ -128,12 +128,12 @@ job "hoover" {
             {{- end }}
 
             {{- range services }}
-              {{- if .Name | regexMatch "^collection-" }}
+              {{- if .Name | regexMatch "^snoop-" }}
                 {{- with service .Name }}
                   {{- with index . 0 }}
-                    location ~ ^/{{ .Name | regexReplaceAll "^(collection-)" "" }}/(.*) {
+                    location ~ ^/{{ .Name | regexReplaceAll "^(snoop-)" "" }}/(.*) {
                       proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
-                      proxy_set_header Host {{ .Name | regexReplaceAll "^(collection-)" "" }}.snoop.liquid.example.org;
+                      proxy_set_header Host {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.liquid.example.org;
                     }
                   {{- end }}
                 {{- end }}
@@ -143,12 +143,12 @@ job "hoover" {
           }
 
           {{- range services }}
-            {{- if .Name | regexMatch "^collection-" }}
+            {{- if .Name | regexMatch "^snoop-" }}
               {{- with service .Name }}
                 {{- with index . 0 }}
                   server {
                     listen 80;
-                    server_name {{ .Name | regexReplaceAll "^(collection-)" "" }}.snoop.liquid.example.org;
+                    server_name {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.liquid.example.org;
                     location / {
                       proxy_pass http://{{ .Address }}:{{ .Port }};
                       proxy_set_header Host $host;
