@@ -49,5 +49,5 @@ To log into the snoop docker container for testdata:
 
 To dump the nginx configuration:
 ```shell
-nomad alloc fs $(./crowbar.py alloc liquid) nginx/local/core.conf
+nomad alloc fs $(./crowbar.py alloc liquid nginx) nginx/local/core.conf
 ```
