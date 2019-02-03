@@ -43,7 +43,7 @@ job "liquid" {
             }
             server {
               listen 80;
-              server_name liquid.example.org;
+              server_name {{ key "liquid_domain" }};
               location / {
                 proxy_pass http://core;
                 proxy_set_header Host $host;
@@ -59,7 +59,7 @@ job "liquid" {
             }
             server {
               listen 80;
-              server_name hoover.liquid.example.org;
+              server_name hoover.{{ key "liquid_domain" }};
               location / {
                 proxy_pass http://hoover;
                 proxy_set_header Host $host;

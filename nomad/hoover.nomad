@@ -80,7 +80,6 @@ job "hoover" {
       }
       env {
         SECRET_KEY = "TODO change me"
-        HOOVER_HOSTNAME = "hoover.liquid.example.org"
       }
       template {
         data = <<EOF
@@ -93,6 +92,7 @@ job "hoover" {
               {{- range service "hoover-es" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
+            HOOVER_HOSTNAME = hoover.{{ key "liquid_domain" }}
           EOF
         destination = "local/hoover.env"
         env = true
@@ -133,7 +133,7 @@ job "hoover" {
                   {{- with index . 0 }}
                     location ~ ^/{{ .Name | regexReplaceAll "^(snoop-)" "" }}/(.*) {
                       proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
-                      proxy_set_header Host {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.liquid.example.org;
+                      proxy_set_header Host {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.{{ key "liquid_domain" }};
                     }
                   {{- end }}
                 {{- end }}
@@ -148,7 +148,7 @@ job "hoover" {
                 {{- with index . 0 }}
                   server {
                     listen 80;
-                    server_name {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.liquid.example.org;
+                    server_name {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.{{ key "liquid_domain" }};
                     location / {
                       proxy_pass http://{{ .Address }}:{{ .Port }};
                       proxy_set_header Host $host;

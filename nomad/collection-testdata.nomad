@@ -150,7 +150,6 @@ job "collection-testdata" {
       }
       env {
         SECRET_KEY = "TODO random key"
-        SNOOP_HOSTNAME = "testdata.snoop.liquid.example.org"
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "testdata"
         SNOOP_ES_INDEX = "testdata"
@@ -174,6 +173,7 @@ job "collection-testdata" {
               {{- range service "snoop-testdata-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
+            SNOOP_HOSTNAME = testdata.snoop.{{ key "liquid_domain" }}
           EOF
         destination = "local/snoop.env"
         env = true

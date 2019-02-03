@@ -18,16 +18,16 @@ Increase `vm.max_map_count` to at least 262144, to make elasticsearch happy -
 see [the official documentation][] for details.
 [the official documentation]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
 
-
 ```shell
 consul agent -dev &
 nomad agent -dev -config=nomad-agent.hcl &
+./crowbar.py setdomain liquid.example.org
 nomad job run liquid.nomad
 open http://$IP # IP address of your machine
 ```
 
 ## Hoover
-To start a snoop for the `testdata` collection:
+Start a snoop for the `testdata` collection:
 ```shell
 git clone https://github.com/hoover/testdata
 mkdir -p /var/local/liquid/collections
@@ -36,6 +36,12 @@ nomad job run snoop-testdata.nomad
 # wait a few seconds for the docker containers to spin up
 ./crowbar.py shell snoop-testdata-api ./manage.py migrate
 ./crowbar.py shell snoop-testdata-api ./manage.py initcollection
+```
+
+Set up hoover-search and add the `testdata` collection:
+```shell
+nomad job run hoover-ui.nomad
+nomad job run hoover.nomad
 ./crowbar.py shell hoover-search ./manage.py migrate
 ./crowbar.py shell hoover-search ./manage.py createsuperuser
 ./crowbar.py shell hoover-search ./manage.py addcollection testdata --index testdata http://$(./crowbar.py nomad_address):8765/testdata/collection/json --public
