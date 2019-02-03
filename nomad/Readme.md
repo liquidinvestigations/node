@@ -38,6 +38,7 @@ nomad job run snoop-testdata.nomad
 ./crowbar.py shell snoop-testdata-api ./manage.py initcollection
 ./crowbar.py shell hoover-search ./manage.py migrate
 ./crowbar.py shell hoover-search ./manage.py createsuperuser
+./crowbar.py shell hoover-search ./manage.py addcollection testdata --index testdata http://$(./crowbar.py nomad_address):8765/testdata/collection/json --public
 ```
 
 ### Debugging
