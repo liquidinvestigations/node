@@ -112,7 +112,7 @@ job "hoover" {
       template {
         data = <<EOF
           server {
-            listen 80;
+            listen 80 default_server;
 
             {{- if service "hoover-es" }}
               {{- with service "hoover-es" }}
@@ -138,6 +138,23 @@ job "hoover" {
             {{- end }}
 
           }
+
+          {{- range services }}
+            {{- if .Name | regexMatch "^collection-" }}
+              {{- with service .Name }}
+                {{- with index . 0 }}
+                  server {
+                    listen 80;
+                    server_name {{ .Name | regexReplaceAll "^(collection-)" "" }}.snoop.liquid.example.org;
+                    location / {
+                      proxy_pass http://{{ .Address }}:{{ .Port }};
+                      proxy_set_header Host $host;
+                    }
+                  }
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
           EOF
         destination = "local/collections.conf"
       }
