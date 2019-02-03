@@ -3,8 +3,6 @@ job "liquid" {
   type = "service"
 
   group "core" {
-    count = 1
-
     task "core" {
       driver = "docker"
       config {
@@ -27,8 +25,6 @@ job "liquid" {
   }
 
   group "nginx" {
-    count = 1
-
     task "nginx" {
       driver = "docker"
       template {

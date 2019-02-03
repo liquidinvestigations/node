@@ -3,8 +3,6 @@ job "snoop-testdata" {
   type = "service"
 
   group "deps" {
-    count = 1
-
     task "rabbitmq" {
       driver = "docker"
       config {
@@ -118,8 +116,6 @@ job "snoop-testdata" {
   }
 
   group "api" {
-    count = 1
-
     task "snoop" {
       driver = "docker"
       config {
