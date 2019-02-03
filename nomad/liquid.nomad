@@ -62,6 +62,14 @@ job "liquid" {
             }
           {{- end }}
 
+          server {
+            listen 80 default_server;
+            location / {
+              default_type "text/plain";
+              return 404 "Unknown domain $host\n";
+            }
+          }
+
           EOF
         destination = "local/core.conf"
       }
