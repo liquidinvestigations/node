@@ -76,12 +76,16 @@ def shell(name, *args):
     run_fg(docker_exec_cmd, shell=False)
 
 
-def alloc(name):
+def alloc(job, group):
     """
-    Print the ID of the current allocation of the job `name`.
+    Print the ID of the current allocation of the job and group.
     """
-    allocs = nomad.get(f'job/{name}/allocations')
-    running = [a['ID'] for a in allocs if a['ClientStatus'] == 'running']
+    allocs = nomad.get(f'job/{job}/allocations')
+    running = [
+        a['ID'] for a in allocs
+        if a['ClientStatus'] == 'running'
+            and a['TaskGroup'] == group
+    ]
     print(first(running, 'running allocations'))
 
 
