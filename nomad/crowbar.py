@@ -37,17 +37,28 @@ class Docker:
         return out.split()
 
 
-class Nomad:
-    def __init__(self, api='http://127.0.0.1:4646'):
-        self.api = api
+class JsonApi:
+    def __init__(self, endpoint):
+        self.endpoint = endpoint
 
     def get(self, url):
-        full_url = f'{self.api}/v1/{url}'
-        log.debug('nomad api: GET %r', full_url)
+        full_url = f'{self.endpoint}{url}'
+        log.debug('GET %r', full_url)
         with urlopen(full_url) as resp:
             body = json.load(resp)
             log.debug('response: %r', body)
             return body
+
+
+class Nomad(JsonApi):
+    def __init__(self, endpoint='http://127.0.0.1:4646'):
+        super().__init__(endpoint + '/v1/')
+
+    def job_allocations(self, job):
+        return nomad.get(f'job/{job}/allocations')
+
+    def agent_members(self):
+        return self.get('agent/members')['Members']
 
 
 docker = Docker()
@@ -80,7 +91,7 @@ def alloc(job, group):
     """
     Print the ID of the current allocation of the job and group.
     """
-    allocs = nomad.get(f'job/{job}/allocations')
+    allocs = nomad.job_allocations(job)
     running = [
         a['ID'] for a in allocs
         if a['ClientStatus'] == 'running'
@@ -93,8 +104,8 @@ def nomad_address():
     """
     Print the nomad server's address.
     """
-    member = first(nomad.get('agent/members')['Members'], 'members')
-    print(member['Addr'])
+    members = [m['Addr'] for m in nomad.agent_members()]
+    print(first(members, 'members'))
 
 
 class SubcommandParser(argparse.ArgumentParser):
