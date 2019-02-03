@@ -7,6 +7,9 @@ job "hoover" {
       driver = "docker"
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        volumes = [
+          "/var/local/liquid/volumes/hoover/es/data:/usr/share/elasticsearch/data",
+        ]
         port_map {
           es = 9200
         }
@@ -35,7 +38,7 @@ job "hoover" {
       config {
         image = "postgres:9.6"
         volumes = [
-          "/var/local/liquid/volumes/hoover-pg/data:/var/lib/postgresql/data",
+          "/var/local/liquid/volumes/hoover/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "hoover-pg"
@@ -66,7 +69,7 @@ job "hoover" {
       config {
         image = "liquidinvestigations/hoover-search:liquid-nomad"
         volumes = [
-          "/var/local/liquid/volumes/ui/build:/opt/hoover/ui/build",
+          "/var/local/liquid/volumes/hoover-ui/build:/opt/hoover/ui/build",
         ]
         port_map {
           http = 80

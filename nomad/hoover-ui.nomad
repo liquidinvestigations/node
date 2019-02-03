@@ -8,7 +8,7 @@ job "hoover-ui" {
       config {
         image = "liquidinvestigations/hoover-ui"
         volumes = [
-          "/var/local/liquid/volumes/ui/build:/opt/hoover/ui/build",
+          "/var/local/liquid/volumes/hoover-ui/build:/opt/hoover/ui/build",
         ]
         labels {
           liquid_task = "hoover-ui"

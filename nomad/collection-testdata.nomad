@@ -7,6 +7,9 @@ job "collection-testdata" {
       driver = "docker"
       config {
         image = "rabbitmq:3.7.3"
+        volumes = [
+          "/var/local/liquid/volumes/collection-testdata/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+        ]
         port_map {
           amqp = 5672
         }

@@ -7,6 +7,9 @@ job "liquid" {
       driver = "docker"
       config {
         image = "liquidinvestigations/core"
+        volumes = [
+          "/var/local/liquid/volumes/liquid/core/var:/app/var",
+        ]
         labels {
           liquid_task = "liquid-core"
         }
