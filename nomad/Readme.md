@@ -35,6 +35,9 @@ ln -s $(pwd)/testdata/data /var/local/liquid/collections/testdata
 nomad job run snoop-testdata.nomad
 # wait a few seconds for the docker containers to spin up
 ./crowbar.py shell snoop-testdata-api ./manage.py migrate
+./crowbar.py shell snoop-testdata-api ./manage.py initcollection
+./crowbar.py shell hoover-search ./manage.py migrate
+./crowbar.py shell hoover-search ./manage.py createsuperuser
 ```
 
 ### Debugging
