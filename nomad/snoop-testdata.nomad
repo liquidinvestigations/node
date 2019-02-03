@@ -87,9 +87,8 @@ job "snoop-testdata" {
         args = ["./manage.py", "runworkers"]
         volumes = [
           "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
-          "/var/local/liquid/volumes/testdata:/opt/hoover/snoop/collection",
+          "/var/local/liquid/collections/testdata:/opt/hoover/snoop/collection",
           "/var/local/liquid/volumes/snoop-testdata-blobs/testdata:/opt/hoover/snoop/blobs",
-          "/var/local/liquid/volumes/search-es-snapshots:/opt/hoover/es-snapshots",
         ]
         labels {
           liquid_task = "snoop-testdata-worker"
@@ -106,6 +105,10 @@ job "snoop-testdata" {
                 {{ .Address }}:{{ .Port }}
               {{- end -}}
               /snoop
+            SNOOP_ES_URL = http://
+              {{- range service "hoover-es" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end }}
             SNOOP_TIKA_URL = http://
               {{- range service "snoop-testdata-tika" -}}
                 {{ .Address }}:{{ .Port }}
@@ -131,9 +134,8 @@ job "snoop-testdata" {
         image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
         volumes = [
           "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
-          "/var/local/liquid/volumes/testdata:/opt/hoover/snoop/collection",
+          "/var/local/liquid/collections/testdata:/opt/hoover/snoop/collection",
           "/var/local/liquid/volumes/snoop-testdata-blobs/testdata:/opt/hoover/snoop/blobs",
-          "/var/local/liquid/volumes/search-es-snapshots:/opt/hoover/es-snapshots",
         ]
         port_map {
           http = 80
@@ -144,7 +146,7 @@ job "snoop-testdata" {
       }
       env {
         SECRET_KEY = "TODO random key"
-        SNOOP_HTTP_HOSTNAME = "testdata.snoop"
+        SNOOP_HOSTNAME = "testdata.snoop.liquid.example.org"
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "testdata"
       }
@@ -155,6 +157,10 @@ job "snoop-testdata" {
                 {{ .Address }}:{{ .Port }}
               {{- end -}}
               /snoop
+            SNOOP_ES_URL = http://
+              {{- range service "hoover-es" -}}
+                {{ .Address }}:{{ .Port }}
+              {{- end }}
             SNOOP_TIKA_URL = http://
               {{- range service "snoop-testdata-tika" -}}
                 {{ .Address }}:{{ .Port }}
