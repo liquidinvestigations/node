@@ -89,6 +89,14 @@ def alloc(job, group):
     print(first(running, 'running allocations'))
 
 
+def nomad_address():
+    """
+    Print the nomad server's address.
+    """
+    member = first(nomad.get('agent/members')['Members'], 'members')
+    print(member['Addr'])
+
+
 class SubcommandParser(argparse.ArgumentParser):
 
     def add_subcommands(self, name, subcommands):
@@ -110,6 +118,7 @@ def main():
     parser.add_subcommands('cmd', [
         shell,
         alloc,
+        nomad_address,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
