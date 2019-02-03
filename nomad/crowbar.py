@@ -9,6 +9,8 @@ https://half-life.fandom.com/wiki/Crowbar
 import os
 import logging
 import subprocess
+from urllib.request import urlopen
+import json
 import argparse
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
@@ -35,7 +37,21 @@ class Docker:
         return out.split()
 
 
+class Nomad:
+    def __init__(self, api='http://127.0.0.1:4646'):
+        self.api = api
+
+    def get(self, url):
+        full_url = f'{self.api}/v1/{url}'
+        log.debug('nomad api: GET %r', full_url)
+        with urlopen(full_url) as resp:
+            body = json.load(resp)
+            log.debug('response: %r', body)
+            return body
+
+
 docker = Docker()
+nomad = Nomad()
 
 
 def first(items, name_plural='items'):
@@ -60,6 +76,15 @@ def shell(name, *args):
     run_fg(docker_exec_cmd, shell=False)
 
 
+def alloc(name):
+    """
+    Print the ID of the current allocation of the job `name`.
+    """
+    allocs = nomad.get(f'job/{name}/allocations')
+    running = [a['ID'] for a in allocs if a['ClientStatus'] == 'running']
+    print(first(running, 'running allocations'))
+
+
 class SubcommandParser(argparse.ArgumentParser):
 
     def add_subcommands(self, name, subcommands):
@@ -80,6 +105,7 @@ def main():
     parser = SubcommandParser(description=__doc__)
     parser.add_subcommands('cmd', [
         shell,
+        alloc,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
