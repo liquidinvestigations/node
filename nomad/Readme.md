@@ -48,6 +48,11 @@ nomad job run hoover.nomad
 ```
 
 ### Debugging
+Set debug flag in all apps:
+```shell
+./crowbar.py setdebug on
+```
+
 To log into the snoop docker container for testdata:
 ```shell
 ./crowbar.py shell snoop-testdata-api

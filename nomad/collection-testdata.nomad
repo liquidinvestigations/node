@@ -104,6 +104,9 @@ job "collection-testdata" {
       }
       template {
         data = <<EOF
+            {{- if keyExists "liquid_debug" }}
+              DEBUG = {{ key "liquid_debug" }}
+            {{- end }}
             SNOOP_DB = postgresql://snoop:snoop@
               {{- range service "snoop-testdata-pg" -}}
                 {{ .Address }}:{{ .Port }}
@@ -156,6 +159,9 @@ job "collection-testdata" {
       }
       template {
         data = <<EOF
+            {{- if keyExists "liquid_debug" }}
+              DEBUG = {{ key "liquid_debug" }}
+            {{- end }}
             SNOOP_DB = postgresql://snoop:snoop@
               {{- range service "snoop-testdata-pg" -}}
                 {{ .Address }}:{{ .Port }}

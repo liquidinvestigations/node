@@ -149,6 +149,13 @@ def setdomain(domain):
     consul.set_kv('liquid_domain', domain)
 
 
+def setdebug(value='on'):
+    """
+    Set debug flag. Use `on` to enable debugging.
+    """
+    consul.set_kv('liquid_debug', value)
+
+
 class SubcommandParser(argparse.ArgumentParser):
 
     def add_subcommands(self, name, subcommands):
@@ -172,6 +179,7 @@ def main():
         alloc,
         nomad_address,
         setdomain,
+        setdebug,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)

@@ -83,6 +83,9 @@ job "hoover" {
       }
       template {
         data = <<EOF
+            {{- if keyExists "liquid_debug" }}
+              DEBUG = {{ key "liquid_debug" }}
+            {{- end }}
             HOOVER_DB = postgresql://hoover:hoover@
               {{- range service "hoover-pg" -}}
                 {{ .Address }}:{{ .Port }}
