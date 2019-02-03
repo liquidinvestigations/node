@@ -1,3 +1,4 @@
+# Liquid in a Nomad cluster
 Create a configuration file, `nomad-agent.hcl`, with the following content,
 adapted to your machine in case `eth0` is not the main network interface:
 
@@ -20,7 +21,7 @@ nomad job run liquid.nomad
 open http://$IP # IP address of your machine
 ```
 
-### Hoover
+## Hoover
 To start a snoop for the `testdata` collection:
 ```shell
 git clone https://github.com/hoover/testdata
@@ -31,7 +32,13 @@ nomad job run snoop-testdata.nomad
 ./crowbar.py shell snoop-testdata-api ./manage.py migrate
 ```
 
+### Debugging
 To log into the snoop docker container for testdata:
 ```shell
 ./crowbar.py shell snoop-testdata-api
+```
+
+To dump the nginx configuration:
+```shell
+nomad alloc fs $(./crowbar.py alloc liquid) nginx/local/core.conf
 ```
