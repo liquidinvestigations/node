@@ -2,7 +2,7 @@ job "snoop-testdata" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "snoop-deps" {
+  group "deps" {
     count = 1
 
     task "rabbitmq" {
@@ -70,7 +70,7 @@ job "snoop-testdata" {
     }
   }
 
-  group "snoop-workers" {
+  group "workers" {
     count = 2
 
     task "snoop" {
@@ -117,7 +117,7 @@ job "snoop-testdata" {
     }
   }
 
-  group "snoop-api" {
+  group "api" {
     count = 1
 
     task "snoop" {

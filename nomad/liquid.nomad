@@ -2,7 +2,7 @@ job "liquid" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "liquidnode" {
+  group "core" {
     count = 1
 
     task "core" {
@@ -24,6 +24,10 @@ job "liquid" {
         port = "http"
       }
     }
+  }
+
+  group "nginx" {
+    count = 1
 
     task "nginx" {
       driver = "docker"
