@@ -103,9 +103,6 @@ job "hoover" {
         name = "hoover"
         port = "http"
       }
-      meta {
-        version = "6"
-      }
     }
   }
 }
