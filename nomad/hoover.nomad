@@ -114,6 +114,16 @@ job "hoover" {
           server {
             listen 80;
 
+            {{- if service "hoover-es" }}
+              {{- with service "hoover-es" }}
+                {{- with index . 0 }}
+                  location ~ ^/_es/(.*) {
+                    proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
+                  }
+                {{- end }}
+              {{- end }}
+            {{- end }}
+
             {{- range services }}
               {{- if .Name | regexMatch "^collection-" }}
                 {{- with service .Name }}
