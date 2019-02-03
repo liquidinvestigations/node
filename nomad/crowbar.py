@@ -11,6 +11,7 @@ import logging
 import subprocess
 from urllib.request import Request, urlopen
 import json
+from base64 import b64decode
 import argparse
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
@@ -84,8 +85,18 @@ class Nomad(JsonApi):
         return self.get('agent/members')['Members']
 
 
+class Consul(JsonApi):
+
+    def __init__(self, endpoint='http://127.0.0.1:8500'):
+        super().__init__(endpoint + '/v1/')
+
+    def set_kv(self, key, value):
+        assert self.put(f'kv/{key}', value)
+
+
 docker = Docker()
 nomad = Nomad()
+consul = Consul()
 
 
 def first(items, name_plural='items'):
@@ -131,6 +142,13 @@ def nomad_address():
     print(first(members, 'members'))
 
 
+def setdomain(domain):
+    """
+    Set the domain name for the cluster.
+    """
+    consul.set_kv('liquid_domain', domain)
+
+
 class SubcommandParser(argparse.ArgumentParser):
 
     def add_subcommands(self, name, subcommands):
@@ -153,6 +171,7 @@ def main():
         shell,
         alloc,
         nomad_address,
+        setdomain,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
