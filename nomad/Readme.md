@@ -14,6 +14,11 @@ client {
 }
 ```
 
+Increase `vm.max_map_count` to at least 262144, to make elasticsearch happy -
+see [the official documentation][] for details.
+[the official documentation]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+
+
 ```shell
 consul agent -dev &
 nomad agent -dev -config=nomad-agent.hcl &
