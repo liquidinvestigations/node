@@ -50,8 +50,12 @@ class JsonApi:
         req_body = None
 
         if data is not None:
-            req_headers['Content-Type'] = 'application/json'
-            req_body = json.dumps(data).encode('utf8')
+            if isinstance(data, bytes):
+                req_body = data
+
+            else:
+                req_headers['Content-Type'] = 'application/json'
+                req_body = json.dumps(data).encode('utf8')
 
         log.debug('%s %r %r', method, req_url, data)
         req = Request(
@@ -91,7 +95,7 @@ class Consul(JsonApi):
         super().__init__(endpoint + '/v1/')
 
     def set_kv(self, key, value):
-        assert self.put(f'kv/{key}', value)
+        assert self.put(f'kv/{key}', value.encode('latin1'))
 
 
 docker = Docker()
