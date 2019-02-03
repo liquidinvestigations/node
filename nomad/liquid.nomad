@@ -21,7 +21,6 @@ job "liquid" {
       }
       service {
         name = "core"
-        tags = ["global", "app"]
         port = "http"
       }
     }
@@ -79,7 +78,7 @@ job "liquid" {
       config = {
         image = "nginx"
         port_map {
-          http = 80
+          nginx = 80
         }
         volumes = [
           "local/core.conf:/etc/nginx/conf.d/core.conf",
@@ -90,15 +89,14 @@ job "liquid" {
       }
       resources {
         network {
-          port "http" {
+          port "nginx" {
             static = 80
           }
         }
       }
       service {
-        name = "nginx"
-        tags = ["global"]
-        port = "http"
+        name = "ingress"
+        port = "nginx"
       }
     }
   }
