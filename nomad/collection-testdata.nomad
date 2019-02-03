@@ -97,6 +97,7 @@ job "collection-testdata" {
       env {
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "testdata"
+        SNOOP_ES_INDEX = "testdata"
       }
       template {
         data = <<EOF
@@ -149,6 +150,7 @@ job "collection-testdata" {
         SNOOP_HOSTNAME = "testdata.snoop.liquid.example.org"
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "testdata"
+        SNOOP_ES_INDEX = "testdata"
       }
       template {
         data = <<EOF
