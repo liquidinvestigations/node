@@ -168,7 +168,7 @@ job "snoop-testdata" {
         }
       }
       service {
-        name = "core"
+        name = "snoop-testdata-api"
         tags = ["global", "app"]
         port = "http"
       }
