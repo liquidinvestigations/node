@@ -38,17 +38,24 @@ class Docker:
 docker = Docker()
 
 
-def shell(name, *args):
-    containers = docker.containers([('liquid_task', name)])
-    if not containers:
-        log.error("No containers found")
-        return
-    id = containers[0]
-    if len(containers) > 1:
+def first(items, name_plural='items'):
+    assert items, f"No {name_plural} found"
+
+    if len(items) > 1:
         log.warning(
-            "Found multiple containers: %r, choosing %r",
-            containers, id,
+            f"Found multiple {name_plural}: %r, choosing the first one",
+            items,
         )
+
+    return items[0]
+
+
+def shell(name, *args):
+    """
+    Open a shell in a docker container tagged with liquid_task=`name`
+    """
+    containers = docker.containers([('liquid_task', name)])
+    id = first(containers, 'containers')
     docker_exec_cmd = ['docker', 'exec', '-it', id] + list(args or ['bash'])
     run_fg(docker_exec_cmd, shell=False)
 
