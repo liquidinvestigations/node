@@ -65,6 +65,9 @@ job "hoover" {
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-search:liquid-nomad"
+        volumes = [
+          "/var/local/liquid/volumes/ui/build:/opt/hoover/ui/build",
+        ]
         port_map {
           http = 80
         }
