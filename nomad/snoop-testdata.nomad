@@ -10,6 +10,9 @@ job "snoop-testdata" {
         port_map {
           amqp = 5672
         }
+        labels {
+          liquid_task = "snoop-testdata-rabbitmq"
+        }
       }
       resources {
         network {
@@ -28,6 +31,9 @@ job "snoop-testdata" {
         image = "logicalspark/docker-tikaserver"
         port_map {
           http = 9998
+        }
+        labels {
+          liquid_task = "snoop-testdata-tika"
         }
       }
       resources {
@@ -48,6 +54,9 @@ job "snoop-testdata" {
         volumes = [
           "/var/local/liquid/volumes/snoop-testdata-pg/data:/var/lib/postgresql/data",
         ]
+        labels {
+          liquid_task = "snoop-testdata-pg"
+        }
         port_map {
           pg = 5432
         }

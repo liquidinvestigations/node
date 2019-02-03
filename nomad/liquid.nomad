@@ -7,6 +7,9 @@ job "liquid" {
       driver = "docker"
       config {
         image = "liquidinvestigations/core"
+        labels {
+          liquid_task = "liquid-core"
+        }
         port_map {
           http = 8000
         }
@@ -82,7 +85,7 @@ job "liquid" {
           "local/core.conf:/etc/nginx/conf.d/core.conf",
         ]
         labels {
-          liquid_task = "nginx"
+          liquid_task = "liquid-nginx"
         }
       }
       resources {
