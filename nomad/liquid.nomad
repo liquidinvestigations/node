@@ -2,13 +2,17 @@ job "liquid" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "liquidnode" {
-    count = 1
-
+  group "core" {
     task "core" {
       driver = "docker"
       config {
         image = "liquidinvestigations/core"
+        volumes = [
+          "/var/local/liquid/volumes/liquid/core/var:/app/var",
+        ]
+        labels {
+          liquid_task = "liquid-core"
+        }
         port_map {
           http = 8000
         }
@@ -20,46 +24,82 @@ job "liquid" {
       }
       service {
         name = "core"
-        tags = ["global", "app"]
         port = "http"
       }
     }
+  }
 
+  group "nginx" {
     task "nginx" {
       driver = "docker"
       template {
         data = <<EOF
-server {
-  listen 80;
-  server_name liquid.example.org;
-  location / {
-    proxy_pass http://{{range service "core"}}{{.Address}}:{{.Port}}{{end}};
-    proxy_set_header Host $host;
-  }
-}
-EOF
+
+          {{- if service "core" }}
+            upstream core {
+              {{- range service "core" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
+            }
+            server {
+              listen 80;
+              server_name {{ key "liquid_domain" }};
+              location / {
+                proxy_pass http://core;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
+          {{- if service "hoover" }}
+            upstream hoover {
+              {{- range service "hoover" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
+            }
+            server {
+              listen 80;
+              server_name hoover.{{ key "liquid_domain" }};
+              location / {
+                proxy_pass http://hoover;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
+          server {
+            listen 80 default_server;
+            location / {
+              default_type "text/plain";
+              return 404 "Unknown domain $host\n";
+            }
+          }
+
+          EOF
         destination = "local/core.conf"
       }
       config = {
         image = "nginx"
         port_map {
-          http = 80
+          nginx = 80
         }
         volumes = [
           "local/core.conf:/etc/nginx/conf.d/core.conf",
         ]
+        labels {
+          liquid_task = "liquid-nginx"
+        }
       }
       resources {
         network {
-          port "http" {
+          port "nginx" {
             static = 80
           }
         }
       }
       service {
-        name = "nginx"
-        tags = ["global"]
-        port = "http"
+        name = "ingress"
+        port = "nginx"
       }
     }
   }
