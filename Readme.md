@@ -42,6 +42,8 @@ Start `hoover` and `hoover-ui`:
 Set up hoover-search:
 
 ```shell
+mkdir -p volumes/hoover/es/data
+sudo chown -R 1000:1000 volumes/hoover/es/data
 ./liquid.py shell hoover-search ./manage.py migrate
 ./liquid.py shell hoover-search ./manage.py createsuperuser
 ```
