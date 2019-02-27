@@ -148,6 +148,34 @@ collection:
 ./liquid initcollection testdata
 ```
 
+### Nextcloud
+
+First, make directories:
+```shell
+sudo ./makedirs.sh
+```  
+The Paths for `makedirs` are stored in `./nc_setup/nextcloud.cfg` 
+
+Next, tell liquid we want to run nextcloud and nc_sync jobs in `liquid.ini`:
+
+```ini
+[extra_jobs]
+collection-ncsync = collection-ncsync.nomad
+nextcloud = nextcloud.nomad
+```
+
+and deploy with  
+```shell
+./liquid.py deploy
+```  
+
+afterwards, run 
+
+```shell
+sudo ./nextcloud_setup.sh
+```  
+Nextcloud runs on the subdomain nextcloud.<liquid_domain>
+
 ### Debugging
 Set the debug flag in `liquid.ini`:
 ```ini
