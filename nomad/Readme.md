@@ -18,6 +18,8 @@ Increase `vm.max_map_count` to at least 262144, to make elasticsearch happy -
 see [the official documentation][] for details.
 [the official documentation]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
 
+Make sure you have Python >= 3.7 installed.
+
 ```shell
 consul agent -dev &
 nomad agent -dev -config=nomad-agent.hcl &
@@ -27,23 +29,32 @@ open http://$IP # IP address of your machine
 ```
 
 ## Hoover
-Start a snoop for the `testdata` collection:
-```shell
-git clone https://github.com/hoover/testdata
-mkdir -p /var/local/liquid/collections
-ln -s $(pwd)/testdata/data /var/local/liquid/collections/testdata
-nomad job run snoop-testdata.nomad
-# wait a few seconds for the docker containers to spin up
-./crowbar.py shell snoop-testdata-api ./manage.py migrate
-./crowbar.py shell snoop-testdata-api ./manage.py initcollection
-```
 
-Set up hoover-search and add the `testdata` collection:
+Start `hoover and `hoover-ui`:
+
+Set up hoover-search:
+
 ```shell
 nomad job run hoover-ui.nomad
 nomad job run hoover.nomad
 ./crowbar.py shell hoover-search ./manage.py migrate
 ./crowbar.py shell hoover-search ./manage.py createsuperuser
+```
+
+...and the `testdata` collection:
+
+```shell
+git clone https://github.com/hoover/testdata
+mkdir -p /var/local/liquid/collections
+ln -s $(pwd)/testdata/data /var/local/liquid/collections/testdata
+nomad job run collection-testdata.nomad
+# wait a few seconds for the docker containers to spin up
+./crowbar.py shell snoop-testdata-api ./manage.py migrate
+./crowbar.py shell snoop-testdata-api ./manage.py initcollection
+```
+
+Add the the `testdata` collection to `hoover-search`:
+```shell
 ./crowbar.py shell hoover-search ./manage.py addcollection testdata --index testdata http://$(./crowbar.py nomad_address):8765/testdata/collection/json --public
 ```
 
