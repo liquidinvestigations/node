@@ -30,7 +30,7 @@ open http://$IP # IP address of your machine
 
 ## Hoover
 
-Start `hoover and `hoover-ui`:
+Start `hoover` and `hoover-ui`:
 
 Set up hoover-search:
 
