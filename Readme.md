@@ -74,3 +74,28 @@ To dump the nginx configuration:
 ```shell
 nomad alloc fs $(./liquid.py alloc liquid nginx) nginx/local/core.conf
 ```
+
+### Vagrant
+You can run a full Liquid cluster in a local virtual machine using [Vagrant][].
+The configuration has been tested with the [libvirt driver][] but should work
+with the default VirtualBox driver as well.
+
+After [installing vagrant][], run `vagrant up` to download, start and provision
+the VM. It will expose port `80` as `1380` (the main website) and `4646` as
+`14646` (Nomad's UI, useful for debugging). Then, log into the VM and deploy
+some containers:
+
+```shell
+vagrant ssh
+# opens a shell inside the VM
+
+cd /vagrant
+./liquid.py setdebug on
+./liquid.py setdomain liquid.example.org
+nomad job run liquid.nomad
+# ...
+```
+
+[Vagrant]: https://www.vagrantup.com
+[libvirt driver]: https://github.com/vagrant-libvirt/vagrant-libvirt
+[installing vagrant]: https://www.vagrantup.com/docs/installation/
