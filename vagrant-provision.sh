@@ -68,3 +68,11 @@ EOF
 set -x
 supervisorctl update
 )
+
+echo "Increasing vm.max_map_count"
+(
+set -x
+cd /etc/sysctl.d
+echo "vm.max_map_count=262144" > liquid.conf
+echo 262144 > /proc/sys/vm/max_map_count
+)
