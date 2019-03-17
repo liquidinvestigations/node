@@ -19,10 +19,10 @@ job "hoover" {
       }
       env {
         cluster.name = "hoover"
-        # TODO https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#_notes_for_production_use_and_defaults
+        ES_JAVA_OPTS = "-Xms192m -Xmx192m"
       }
       resources {
-        memory = 1536
+        memory = 500
         network {
           port "es" {}
         }
@@ -52,6 +52,7 @@ job "hoover" {
         POSTGRES_DATABASE = "hoover"
       }
       resources {
+        memory = 100
         network {
           port "pg" {}
         }
@@ -101,6 +102,7 @@ job "hoover" {
         env = true
       }
       resources {
+        memory = 200
         network {
           port "http" {}
         }
@@ -177,6 +179,7 @@ job "hoover" {
         }
       }
       resources {
+        memory = 50
         network {
           port "nginx" {
             static = 8765
