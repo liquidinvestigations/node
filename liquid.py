@@ -2,8 +2,6 @@
 
 """
 A tool for quick-and-dirty actions on a nomad liquid cluster.
-
-https://half-life.fandom.com/wiki/Crowbar
 """
 
 import os
