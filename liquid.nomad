@@ -18,6 +18,7 @@ job "liquid" {
         }
       }
       resources {
+        memory = 200
         network {
           port "http" {}
         }
@@ -91,6 +92,7 @@ job "liquid" {
         }
       }
       resources {
+        memory = 50
         network {
           port "nginx" {
             static = 80

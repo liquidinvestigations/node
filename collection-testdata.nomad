@@ -21,6 +21,7 @@ job "collection-testdata" {
         network {
           port "amqp" {}
         }
+        memory = 250
       }
       service {
         name = "snoop-testdata-rabbitmq"
@@ -72,6 +73,7 @@ job "collection-testdata" {
         network {
           port "pg" {}
         }
+        memory = 100
       }
       service {
         name = "snoop-testdata-pg"
@@ -129,7 +131,7 @@ job "collection-testdata" {
         env = true
       }
       resources {
-        memory = 512
+        memory = 500
       }
     }
   }
@@ -185,6 +187,7 @@ job "collection-testdata" {
         env = true
       }
       resources {
+        memory = 200
         network {
           port "http" {}
         }
