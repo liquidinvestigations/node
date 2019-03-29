@@ -6,7 +6,7 @@ job "hoover" {
     task "es" {
       driver = "docker"
       config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch:6.2.4"
+        image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4"
         volumes = [
           "/var/local/liquid/volumes/hoover/es/data:/usr/share/elasticsearch/data",
         ]
