@@ -103,6 +103,10 @@ class JsonApi:
     def get(self, url):
         return self.request('GET', url)
 
+    def post(self, url, data):
+        return self.request('POST', url, data)
+
+
     def put(self, url, data):
         return self.request('PUT', url, data)
 
@@ -111,6 +115,10 @@ class Nomad(JsonApi):
 
     def __init__(self, endpoint):
         super().__init__(endpoint + '/v1/')
+
+    def run(self, hcl):
+        spec = self.post(f'jobs/parse', {'JobHCL': hcl})
+        return self.post(f'jobs', {'job': spec})
 
     def job_allocations(self, job):
         return nomad.get(f'job/{job}/allocations')
@@ -190,6 +198,15 @@ def setdebug(value='on'):
     consul.set_kv('liquid_debug', value)
 
 
+def deploy():
+    """ Run all the jobs in nomad. """
+    for file in Path(__file__).parent.iterdir():
+        if file.name.endswith('.nomad'):
+            with file.open() as f:
+                hcl = f.read()
+            nomad.run(hcl)
+
+
 class SubcommandParser(argparse.ArgumentParser):
 
     def add_subcommands(self, name, subcommands):
@@ -214,6 +231,7 @@ def main():
         nomad_address,
         setdomain,
         setdebug,
+        deploy,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
