@@ -190,13 +190,6 @@ def nomad_address():
     print(first(members, 'members'))
 
 
-def setdomain(domain):
-    """
-    Set the domain name for the cluster.
-    """
-    consul.set_kv('liquid_domain', domain)
-
-
 def setdebug(value='on'):
     """
     Set debug flag. Use `on` to enable debugging.
@@ -207,7 +200,7 @@ def setdebug(value='on'):
 def deploy():
     """ Run all the jobs in nomad. """
 
-    setdomain(liquid_domain)
+    consul.set_kv('liquid_domain', liquid_domain)
 
     for file in Path(__file__).parent.iterdir():
         if file.name.endswith('.nomad'):
@@ -238,7 +231,6 @@ def main():
         shell,
         alloc,
         nomad_address,
-        setdomain,
         setdebug,
         deploy,
     ])
