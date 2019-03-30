@@ -50,6 +50,12 @@ consul_url = get_config(
     'http://127.0.0.1:8500',
 )
 
+liquid_domain = get_config(
+    'LIQUID_DOMAIN',
+    'liquid:domain',
+    'localhost',
+)
+
 
 def run(cmd):
     log.debug("+ %s", cmd)
@@ -200,6 +206,9 @@ def setdebug(value='on'):
 
 def deploy():
     """ Run all the jobs in nomad. """
+
+    setdomain(liquid_domain)
+
     for file in Path(__file__).parent.iterdir():
         if file.name.endswith('.nomad'):
             with file.open() as f:
