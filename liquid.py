@@ -11,12 +11,44 @@ from urllib.request import Request, urlopen
 import json
 from base64 import b64decode
 import argparse
+from pathlib import Path
+import configparser
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 
 log = logging.getLogger(__name__)
 log.setLevel(LOG_LEVEL)
+
+config = configparser.ConfigParser()
+config.read('liquid.ini')
+
+
+def get_config(env_key, ini_path, default):
+    value = os.environ.get(env_key)
+    if value is not None:
+        return value
+
+    (section_name, key) = ini_path.split(':')
+    if section_name in config:
+        section = config[section_name]
+        if key in section:
+            return section[key]
+
+    return default
+
+
+nomad_url = get_config(
+    'NOMAD_URL',
+    'cluster:nomad_url',
+    'http://127.0.0.1:4646',
+)
+
+consul_url = get_config(
+    'CONSUL_URL',
+    'cluster:consul_url',
+    'http://127.0.0.1:8500',
+)
 
 
 def run(cmd):
@@ -77,7 +109,7 @@ class JsonApi:
 
 class Nomad(JsonApi):
 
-    def __init__(self, endpoint='http://127.0.0.1:4646'):
+    def __init__(self, endpoint):
         super().__init__(endpoint + '/v1/')
 
     def job_allocations(self, job):
@@ -89,7 +121,7 @@ class Nomad(JsonApi):
 
 class Consul(JsonApi):
 
-    def __init__(self, endpoint='http://127.0.0.1:8500'):
+    def __init__(self, endpoint):
         super().__init__(endpoint + '/v1/')
 
     def set_kv(self, key, value):
@@ -97,8 +129,8 @@ class Consul(JsonApi):
 
 
 docker = Docker()
-nomad = Nomad()
-consul = Consul()
+nomad = Nomad(nomad_url)
+consul = Consul(consul_url)
 
 
 def first(items, name_plural='items'):
