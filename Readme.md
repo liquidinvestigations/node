@@ -24,8 +24,14 @@ Make sure you have Python >= 3.7 installed.
 ```shell
 consul agent -dev &
 nomad agent -dev -config=nomad-agent.hcl &
-./liquid.py setdomain liquid.example.org
-nomad job run liquid.nomad
+
+cat > liquid.ini <<EOF
+[liquid]
+domain = liquid.example.org
+EOF
+
+./liquid.py deploy
+
 open http://$IP # IP address of your machine
 ```
 
