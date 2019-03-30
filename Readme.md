@@ -66,10 +66,13 @@ Add the the `testdata` collection to `hoover-search`:
 ```
 
 ### Debugging
-Set debug flag in all apps:
-```shell
-./liquid.py setdebug on
+Set the debug flag in `liquid.ini`:
+```ini
+[liquid]
+debug = on
 ```
+
+Then redeploy (`./liquid.py deploy`).
 
 To log into the snoop docker container for testdata:
 ```shell

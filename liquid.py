@@ -56,6 +56,12 @@ liquid_domain = get_config(
     'localhost',
 )
 
+liquid_debug = get_config(
+    'LIQUID_DEBUG',
+    'liquid:debug',
+    '',
+)
+
 
 def run(cmd):
     log.debug("+ %s", cmd)
@@ -190,17 +196,11 @@ def nomad_address():
     print(first(members, 'members'))
 
 
-def setdebug(value='on'):
-    """
-    Set debug flag. Use `on` to enable debugging.
-    """
-    consul.set_kv('liquid_debug', value)
-
-
 def deploy():
     """ Run all the jobs in nomad. """
 
     consul.set_kv('liquid_domain', liquid_domain)
+    consul.set_kv('liquid_debug', liquid_debug)
 
     for file in Path(__file__).parent.iterdir():
         if file.name.endswith('.nomad'):
@@ -231,7 +231,6 @@ def main():
         shell,
         alloc,
         nomad_address,
-        setdebug,
         deploy,
     ])
     (options, extra_args) = parser.parse_known_args()
