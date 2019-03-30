@@ -62,6 +62,18 @@ liquid_debug = get_config(
     '',
 )
 
+liquid_volumes = get_config(
+    'LIQUID_VOLUMES',
+    'liquid:volumes',
+    str(Path(__file__).parent.resolve() / 'volumes'),
+)
+
+liquid_collections = get_config(
+    'LIQUID_COLLECTIONS',
+    'liquid:collections',
+    str(Path(__file__).parent.resolve() / 'collections'),
+)
+
 
 def run(cmd):
     log.debug("+ %s", cmd)
@@ -196,6 +208,16 @@ def nomad_address():
     print(first(members, 'members'))
 
 
+def runjob(hcl_path):
+    with hcl_path.open() as f:
+        hcl = f.read()
+
+    hcl = hcl.replace('__LIQUID_VOLUMES__', liquid_volumes)
+    hcl = hcl.replace('__LIQUID_COLLECTIONS__', liquid_collections)
+
+    nomad.run(hcl)
+
+
 def deploy():
     """ Run all the jobs in nomad. """
 
@@ -204,9 +226,7 @@ def deploy():
 
     for file in Path(__file__).parent.iterdir():
         if file.name.endswith('.nomad'):
-            with file.open() as f:
-                hcl = f.read()
-            nomad.run(hcl)
+            runjob(file)
 
 
 class SubcommandParser(argparse.ArgumentParser):
