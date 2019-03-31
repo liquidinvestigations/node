@@ -36,10 +36,7 @@ open http://$IP # IP address of your machine
 ```
 
 ## Hoover
-
-Start `hoover` and `hoover-ui`:
-
-Set up hoover-search:
+Set up `hoover-search`:
 
 ```shell
 mkdir -p volumes/hoover/es/data
