@@ -23,11 +23,15 @@ log.setLevel(LOG_LEVEL)
 
 JOBS = [
     (job, Path(f'{job}.nomad'))
-    for job in ['hoover', 'hoover-ui', 'liquid', 'collection-testdata']
+    for job in ['hoover', 'hoover-ui', 'liquid']
 ]
 
 config = configparser.ConfigParser()
 config.read('liquid.ini')
+
+if 'extra_jobs' in config:
+    for job, path in config['extra_jobs'].items():
+        JOBS.append((job, Path(path)))
 
 
 def get_config(env_key, ini_path, default):
