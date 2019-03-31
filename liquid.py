@@ -8,6 +8,7 @@ import os
 import logging
 import subprocess
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 import json
 from base64 import b64decode
 import argparse
@@ -124,10 +125,15 @@ class JsonApi:
             method=method,
         )
 
-        with urlopen(req) as res:
-            res_body = json.load(res)
-            log.debug('response: %r', res_body)
-            return res_body
+        try:
+            with urlopen(req) as res:
+                res_body = json.load(res)
+                log.debug('response: %r', res_body)
+                return res_body
+
+        except HTTPError as e:
+            log.error("Error %r: %r", e, e.file.read())
+            raise
 
     def get(self, url):
         return self.request('GET', url)
