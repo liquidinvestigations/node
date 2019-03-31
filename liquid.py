@@ -141,9 +141,11 @@ class JsonApi:
     def post(self, url, data):
         return self.request('POST', url, data)
 
-
     def put(self, url, data):
         return self.request('PUT', url, data)
+
+    def delete(self, url):
+        return self.request('DELETE', url)
 
 
 class Nomad(JsonApi):
@@ -160,6 +162,9 @@ class Nomad(JsonApi):
 
     def agent_members(self):
         return self.get('agent/members')['Members']
+
+    def stop(self, job):
+        return self.delete(f'job/{job}')
 
 
 class Consul(JsonApi):
@@ -239,6 +244,13 @@ def deploy():
         runjob(path)
 
 
+def halt():
+    """ Stop all the jobs in nomad. """
+
+    for job, _ in JOBS:
+        nomad.stop(job)
+
+
 class SubcommandParser(argparse.ArgumentParser):
 
     def add_subcommands(self, name, subcommands):
@@ -262,6 +274,7 @@ def main():
         alloc,
         nomad_address,
         deploy,
+        halt,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
