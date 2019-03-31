@@ -8,7 +8,7 @@ job "collection-testdata" {
       config {
         image = "rabbitmq:3.7.3"
         volumes = [
-          "/var/local/liquid/volumes/collection-testdata/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "__LIQUID_VOLUMES__/collection-testdata/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
         port_map {
           amqp = 5672
@@ -56,7 +56,7 @@ job "collection-testdata" {
       config {
         image = "postgres:9.6"
         volumes = [
-          "/var/local/liquid/volumes/collection-testdata/pg/data:/var/lib/postgresql/data",
+          "__LIQUID_VOLUMES__/collection-testdata/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "snoop-testdata-pg"
@@ -91,9 +91,9 @@ job "collection-testdata" {
         image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
         args = ["./manage.py", "runworkers"]
         volumes = [
-          "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
-          "/var/local/liquid/collections/testdata:/opt/hoover/snoop/collection",
-          "/var/local/liquid/volumes/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
+          "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
+          "__LIQUID_COLLECTIONS__/testdata/data:/opt/hoover/snoop/collection",
+          "__LIQUID_VOLUMES__/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
         ]
         labels {
           liquid_task = "snoop-testdata-worker"
@@ -142,9 +142,9 @@ job "collection-testdata" {
       config {
         image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
         volumes = [
-          "/var/local/liquid/volumes/gnupg:/opt/hoover/gnupg",
-          "/var/local/liquid/collections/testdata:/opt/hoover/snoop/collection",
-          "/var/local/liquid/volumes/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
+          "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
+          "__LIQUID_COLLECTIONS__/testdata/data:/opt/hoover/snoop/collection",
+          "__LIQUID_VOLUMES__/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
         ]
         port_map {
           http = 80

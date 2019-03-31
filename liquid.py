@@ -1,22 +1,86 @@
 #!/usr/bin/env python3
 
-"""
-A tool for quick-and-dirty actions on a nomad liquid cluster.
-"""
+""" Manage liquid on a nomad cluster. """
 
 import os
 import logging
 import subprocess
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 import json
 from base64 import b64decode
 import argparse
+from pathlib import Path
+import configparser
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 
 log = logging.getLogger(__name__)
 log.setLevel(LOG_LEVEL)
+
+JOBS = [
+    (job, Path(f'{job}.nomad'))
+    for job in ['hoover', 'hoover-ui', 'liquid']
+]
+
+config = configparser.ConfigParser()
+config.read('liquid.ini')
+
+if 'extra_jobs' in config:
+    for job, path in config['extra_jobs'].items():
+        JOBS.append((job, Path(path)))
+
+
+def get_config(env_key, ini_path, default):
+    value = os.environ.get(env_key)
+    if value is not None:
+        return value
+
+    (section_name, key) = ini_path.split(':')
+    if section_name in config:
+        section = config[section_name]
+        if key in section:
+            return section[key]
+
+    return default
+
+
+nomad_url = get_config(
+    'NOMAD_URL',
+    'cluster:nomad_url',
+    'http://127.0.0.1:4646',
+)
+
+consul_url = get_config(
+    'CONSUL_URL',
+    'cluster:consul_url',
+    'http://127.0.0.1:8500',
+)
+
+liquid_domain = get_config(
+    'LIQUID_DOMAIN',
+    'liquid:domain',
+    'localhost',
+)
+
+liquid_debug = get_config(
+    'LIQUID_DEBUG',
+    'liquid:debug',
+    '',
+)
+
+liquid_volumes = get_config(
+    'LIQUID_VOLUMES',
+    'liquid:volumes',
+    str(Path(__file__).parent.resolve() / 'volumes'),
+)
+
+liquid_collections = get_config(
+    'LIQUID_COLLECTIONS',
+    'liquid:collections',
+    str(Path(__file__).parent.resolve() / 'collections'),
+)
 
 
 def run(cmd):
@@ -63,22 +127,37 @@ class JsonApi:
             method=method,
         )
 
-        with urlopen(req) as res:
-            res_body = json.load(res)
-            log.debug('response: %r', res_body)
-            return res_body
+        try:
+            with urlopen(req) as res:
+                res_body = json.load(res)
+                log.debug('response: %r', res_body)
+                return res_body
+
+        except HTTPError as e:
+            log.error("Error %r: %r", e, e.file.read())
+            raise
 
     def get(self, url):
         return self.request('GET', url)
 
+    def post(self, url, data):
+        return self.request('POST', url, data)
+
     def put(self, url, data):
         return self.request('PUT', url, data)
+
+    def delete(self, url):
+        return self.request('DELETE', url)
 
 
 class Nomad(JsonApi):
 
-    def __init__(self, endpoint='http://127.0.0.1:4646'):
+    def __init__(self, endpoint):
         super().__init__(endpoint + '/v1/')
+
+    def run(self, hcl):
+        spec = self.post(f'jobs/parse', {'JobHCL': hcl})
+        return self.post(f'jobs', {'job': spec})
 
     def job_allocations(self, job):
         return nomad.get(f'job/{job}/allocations')
@@ -86,10 +165,13 @@ class Nomad(JsonApi):
     def agent_members(self):
         return self.get('agent/members')['Members']
 
+    def stop(self, job):
+        return self.delete(f'job/{job}')
+
 
 class Consul(JsonApi):
 
-    def __init__(self, endpoint='http://127.0.0.1:8500'):
+    def __init__(self, endpoint):
         super().__init__(endpoint + '/v1/')
 
     def set_kv(self, key, value):
@@ -97,8 +179,8 @@ class Consul(JsonApi):
 
 
 docker = Docker()
-nomad = Nomad()
-consul = Consul()
+nomad = Nomad(nomad_url)
+consul = Consul(consul_url)
 
 
 def first(items, name_plural='items'):
@@ -144,18 +226,31 @@ def nomad_address():
     print(first(members, 'members'))
 
 
-def setdomain(domain):
-    """
-    Set the domain name for the cluster.
-    """
-    consul.set_kv('liquid_domain', domain)
+def runjob(hcl_path):
+    with hcl_path.open() as f:
+        hcl = f.read()
+
+    hcl = hcl.replace('__LIQUID_VOLUMES__', liquid_volumes)
+    hcl = hcl.replace('__LIQUID_COLLECTIONS__', liquid_collections)
+
+    nomad.run(hcl)
 
 
-def setdebug(value='on'):
-    """
-    Set debug flag. Use `on` to enable debugging.
-    """
-    consul.set_kv('liquid_debug', value)
+def deploy():
+    """ Run all the jobs in nomad. """
+
+    consul.set_kv('liquid_domain', liquid_domain)
+    consul.set_kv('liquid_debug', liquid_debug)
+
+    for _, path in JOBS:
+        runjob(path)
+
+
+def halt():
+    """ Stop all the jobs in nomad. """
+
+    for job, _ in JOBS:
+        nomad.stop(job)
 
 
 class SubcommandParser(argparse.ArgumentParser):
@@ -180,8 +275,8 @@ def main():
         shell,
         alloc,
         nomad_address,
-        setdomain,
-        setdebug,
+        deploy,
+        halt,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
