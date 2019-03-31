@@ -20,6 +20,11 @@ LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 log = logging.getLogger(__name__)
 log.setLevel(LOG_LEVEL)
 
+JOBS = [
+    (job, Path(f'{job}.nomad'))
+    for job in ['hoover', 'hoover-ui', 'liquid', 'collection-testdata']
+]
+
 config = configparser.ConfigParser()
 config.read('liquid.ini')
 
@@ -224,9 +229,8 @@ def deploy():
     consul.set_kv('liquid_domain', liquid_domain)
     consul.set_kv('liquid_debug', liquid_debug)
 
-    for file in Path(__file__).parent.iterdir():
-        if file.name.endswith('.nomad'):
-            runjob(file)
+    for _, path in JOBS:
+        runjob(path)
 
 
 class SubcommandParser(argparse.ArgumentParser):
