@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-"""
-A tool for quick-and-dirty actions on a nomad liquid cluster.
-"""
+""" Manage liquid on a nomad cluster. """
 
 import os
 import logging
