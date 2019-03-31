@@ -42,26 +42,33 @@ Start `hoover` and `hoover-ui`:
 Set up hoover-search:
 
 ```shell
-nomad job run hoover-ui.nomad
-nomad job run hoover.nomad
 ./liquid.py shell hoover-search ./manage.py migrate
 ./liquid.py shell hoover-search ./manage.py createsuperuser
 ```
 
-...and the `testdata` collection:
+### Testdata
+Set up the `testdata` collection. First download the data:
 
 ```shell
-git clone https://github.com/hoover/testdata
-mkdir -p /var/local/liquid/collections
-ln -s $(pwd)/testdata/data /var/local/liquid/collections/testdata
-nomad job run collection-testdata.nomad
-# wait a few seconds for the docker containers to spin up
-./liquid.py shell snoop-testdata-api ./manage.py migrate
-./liquid.py shell snoop-testdata-api ./manage.py initcollection
+mkdir -p collections
+git clone https://github.com/hoover/testdata collections/testdata
 ```
 
-Add the the `testdata` collection to `hoover-search`:
+Next, tell liquid we want to run the `collection-testdata` job in `liquid.ini`:
+
+```ini
+[extra_jobs]
+collection-testdata = collection-testdata.nomad
+```
+
+Then redeploy liquid, run migrations, and tell `hoover-search` about the new
+collection:
+
 ```shell
+./liquid.py deploy
+# ... wait for the containers to spin up
+./liquid.py shell snoop-testdata-api ./manage.py migrate
+./liquid.py shell snoop-testdata-api ./manage.py initcollection
 ./liquid.py shell hoover-search ./manage.py addcollection testdata --index testdata http://$(./liquid.py nomad_address):8765/testdata/collection/json --public
 ```
 
@@ -95,14 +102,19 @@ the VM. It will expose port `80` as `1380` (the main website) and `4646` as
 some containers:
 
 ```shell
-vagrant ssh
-# opens a shell inside the VM
+cat > liquid.ini <<EOF
+[liquid]
+domain = liquid.example.org
+EOF
 
+vagrant up
+vagrant ssh # opens a shell inside the VM
+```
+
+Then, inside the VM:
+```shell
 cd /vagrant
-./liquid.py setdebug on
-./liquid.py setdomain liquid.example.org
-nomad job run liquid.nomad
-# ...
+./liquid.py deploy
 ```
 
 [Vagrant]: https://www.vagrantup.com
