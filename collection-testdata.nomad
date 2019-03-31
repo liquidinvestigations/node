@@ -92,7 +92,7 @@ job "collection-testdata" {
         args = ["./manage.py", "runworkers"]
         volumes = [
           "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
-          "__LIQUID_COLLECTIONS__/testdata:/opt/hoover/snoop/collection",
+          "__LIQUID_COLLECTIONS__/testdata/data:/opt/hoover/snoop/collection",
           "__LIQUID_VOLUMES__/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
         ]
         labels {
@@ -143,7 +143,7 @@ job "collection-testdata" {
         image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
         volumes = [
           "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
-          "__LIQUID_COLLECTIONS__/testdata:/opt/hoover/snoop/collection",
+          "__LIQUID_COLLECTIONS__/testdata/data:/opt/hoover/snoop/collection",
           "__LIQUID_VOLUMES__/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
         ]
         port_map {
