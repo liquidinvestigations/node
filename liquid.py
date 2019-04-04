@@ -283,6 +283,10 @@ def halt():
     for job, _ in JOBS:
         nomad.stop(job)
 
+    collections = get_config(None, 'collection:')
+    for name, _ in collections:
+        nomad.stop(name)
+
 
 class SubcommandParser(argparse.ArgumentParser):
 
