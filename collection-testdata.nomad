@@ -88,7 +88,7 @@ job "collection-testdata" {
     task "snoop" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
+        image = "liquidinvestigations/hoover-snoop2"
         args = ["./manage.py", "runworkers"]
         volumes = [
           "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
@@ -140,7 +140,7 @@ job "collection-testdata" {
     task "snoop" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/hoover-snoop2:liquid-nomad"
+        image = "liquidinvestigations/hoover-snoop2"
         volumes = [
           "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
           "__LIQUID_COLLECTIONS__/testdata/data:/opt/hoover/snoop/collection",

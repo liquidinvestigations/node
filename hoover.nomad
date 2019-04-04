@@ -68,7 +68,7 @@ job "hoover" {
     task "search" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/hoover-search:liquid-nomad"
+        image = "liquidinvestigations/hoover-search"
         volumes = [
           "__LIQUID_VOLUMES__/hoover-ui/build:/opt/hoover/ui/build",
         ]
