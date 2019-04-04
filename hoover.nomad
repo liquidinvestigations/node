@@ -71,6 +71,7 @@ job "hoover" {
       config {
         image = "liquidinvestigations/hoover-search"
         volumes = [
+          ${hoover_search_repo}
           "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
         ]
         port_map {
