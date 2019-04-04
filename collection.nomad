@@ -14,7 +14,7 @@ job "collection-${collection_name}" {
           amqp = 5672
         }
         labels {
-          liquid_task = "snoop-rabbitmq"
+          liquid_task = "snoop-${collection_name}-rabbitmq"
         }
       }
       resources {
@@ -37,7 +37,7 @@ job "collection-${collection_name}" {
           http = 9998
         }
         labels {
-          liquid_task = "snoop-tika"
+          liquid_task = "snoop-${collection_name}-tika"
         }
       }
       resources {
@@ -59,7 +59,7 @@ job "collection-${collection_name}" {
           "__LIQUID_VOLUMES__/collections/${collection_name}/pg/data:/var/lib/postgresql/data",
         ]
         labels {
-          liquid_task = "snoop-pg"
+          liquid_task = "snoop-${collection_name}-pg"
         }
         port_map {
           pg = 5432
