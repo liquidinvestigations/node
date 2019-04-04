@@ -266,11 +266,13 @@ def deploy():
     consul.set_kv('liquid_domain', liquid_domain)
     consul.set_kv('liquid_debug', liquid_debug)
 
-    for _, path in JOBS:
+    for job, path in JOBS:
+        print(f'Starting {job}...')
         runjob(path)
 
     collections = get_config(None, 'collection:')
     for name, settings in collections:
+        print(f'Starting collection-{name}...')
         run_collection_job(name, settings)
 
 
@@ -278,11 +280,13 @@ def halt():
     """ Stop all the jobs in nomad. """
 
     for job, _ in JOBS:
+        print(f'Stopping {job}...')
         nomad.stop(job)
 
     collections = get_config(None, 'collection:')
     for name, _ in collections:
-        nomad.stop(name)
+        print(f'Stopping collection-{name}...')
+        nomad.stop(f'collection-{name}')
 
 
 class SubcommandParser(argparse.ArgumentParser):
