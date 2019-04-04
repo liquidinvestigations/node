@@ -250,7 +250,7 @@ def run_collection_job(name, settings):
         hcl = template.substitute(settings)
         hcl = set_hcl_paths(hcl)
 
-        with open(name + '.nomad', 'w') as collection_file:
+        with open('collection-' + name + '.nomad', 'w') as collection_file:
             collection_file.write(hcl)
 
         nomad.run(hcl)

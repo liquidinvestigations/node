@@ -24,7 +24,7 @@ job "collection-${collection_name}" {
         memory = 250
       }
       service {
-        name = "snoop-rabbitmq"
+        name = "snoop-${collection_name}-rabbitmq"
         port = "amqp"
       }
     }
@@ -46,7 +46,7 @@ job "collection-${collection_name}" {
         }
       }
       service {
-        name = "snoop-tika"
+        name = "snoop-${collection_name}-tika"
         port = "tika"
       }
     }
@@ -76,7 +76,7 @@ job "collection-${collection_name}" {
         memory = 100
       }
       service {
-        name = "snoop-pg"
+        name = "snoop-${collection_name}-pg"
         port = "pg"
       }
     }
