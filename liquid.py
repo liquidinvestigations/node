@@ -8,10 +8,10 @@ import subprocess
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 import json
-from base64 import b64decode
 import argparse
 from pathlib import Path
 import configparser
+from string import Template
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
@@ -27,58 +27,63 @@ JOBS = [
 config = configparser.ConfigParser()
 config.read('liquid.ini')
 
+
 if 'extra_jobs' in config:
     for job, path in config['extra_jobs'].items():
         JOBS.append((job, Path(path)))
 
 
-def get_config(env_key, ini_path, default):
-    value = os.environ.get(env_key)
-    if value is not None:
-        return value
+def get_config(env_key, ini_path, default=None):
+    if env_key and os.environ.get(env_key):
+        return os.environ[env_key]
 
-    (section_name, key) = ini_path.split(':')
-    if section_name in config:
-        section = config[section_name]
-        if key in section:
-            return section[key]
+    if ini_path.endswith(':'):
+        sections = []
+        for section_name in config:
+            if section_name.startswith(ini_path):
+                sections.append((section_name[len(ini_path):], config[section_name]))
+        return sections
+
+    (section_name, key) = ini_path.split('.')
+    if section_name in config and key in config[section_name]:
+        return config[section_name][key]
 
     return default
 
 
 nomad_url = get_config(
     'NOMAD_URL',
-    'cluster:nomad_url',
+    'cluster.nomad_url',
     'http://127.0.0.1:4646',
 )
 
 consul_url = get_config(
     'CONSUL_URL',
-    'cluster:consul_url',
+    'cluster.consul_url',
     'http://127.0.0.1:8500',
 )
 
 liquid_domain = get_config(
     'LIQUID_DOMAIN',
-    'liquid:domain',
+    'liquid.domain',
     'localhost',
 )
 
 liquid_debug = get_config(
     'LIQUID_DEBUG',
-    'liquid:debug',
+    'liquid.debug',
     '',
 )
 
 liquid_volumes = get_config(
     'LIQUID_VOLUMES',
-    'liquid:volumes',
+    'liquid.volumes',
     str(Path(__file__).parent.resolve() / 'volumes'),
 )
 
 liquid_collections = get_config(
     'LIQUID_COLLECTIONS',
-    'liquid:collections',
+    'liquid.collections',
     str(Path(__file__).parent.resolve() / 'collections'),
 )
 
@@ -200,8 +205,8 @@ def shell(name, *args):
     Open a shell in a docker container tagged with liquid_task=`name`
     """
     containers = docker.containers([('liquid_task', name)])
-    id = first(containers, 'containers')
-    docker_exec_cmd = ['docker', 'exec', '-it', id] + list(args or ['bash'])
+    container_id = first(containers, 'containers')
+    docker_exec_cmd = ['docker', 'exec', '-it', container_id] + list(args or ['bash'])
     run_fg(docker_exec_cmd, shell=False)
 
 
@@ -226,14 +231,36 @@ def nomad_address():
     print(first(members, 'members'))
 
 
+def set_collection_defaults(name, settings):
+    settings['collection_name'] = name
+    settings.setdefault('workers', 2)
+
+
+def set_hcl_paths(hcl):
+    hcl = hcl.replace('__LIQUID_VOLUMES__', liquid_volumes)
+    return hcl.replace('__LIQUID_COLLECTIONS__', liquid_collections)
+
+
+def run_collection_job(name, settings):
+    set_collection_defaults(name, settings)
+
+    with open('collection.nomad') as collection_file:
+        template = Template(collection_file.read())
+
+        hcl = template.substitute(settings)
+        hcl = set_hcl_paths(hcl)
+
+        with open(name + '.nomad', 'w') as collection_file:
+            collection_file.write(hcl)
+
+        nomad.run(hcl)
+
+
 def runjob(hcl_path):
     with hcl_path.open() as f:
         hcl = f.read()
 
-    hcl = hcl.replace('__LIQUID_VOLUMES__', liquid_volumes)
-    hcl = hcl.replace('__LIQUID_COLLECTIONS__', liquid_collections)
-
-    nomad.run(hcl)
+    nomad.run(set_hcl_paths(hcl))
 
 
 def deploy():
@@ -244,6 +271,10 @@ def deploy():
 
     for _, path in JOBS:
         runjob(path)
+
+    collections = get_config(None, 'collection:')
+    for name, settings in collections:
+        run_collection_job(name, settings)
 
 
 def halt():
