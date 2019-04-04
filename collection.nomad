@@ -8,7 +8,7 @@ job "collection-${collection_name}" {
       config {
         image = "rabbitmq:3.7.3"
         volumes = [
-          "__LIQUID_VOLUMES__/snoop/${collection_name}/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "__LIQUID_VOLUMES__/collections/${collection_name}/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
         port_map {
           amqp = 5672
@@ -56,7 +56,7 @@ job "collection-${collection_name}" {
       config {
         image = "postgres:9.6"
         volumes = [
-          "__LIQUID_VOLUMES__/snoop/${collection_name}/pg/data:/var/lib/postgresql/data",
+          "__LIQUID_VOLUMES__/collections/${collection_name}/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "snoop-pg"
@@ -93,7 +93,7 @@ job "collection-${collection_name}" {
         volumes = [
           "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
           "__LIQUID_COLLECTIONS__/${collection_name}/data:/opt/hoover/snoop/collection",
-          "__LIQUID_VOLUMES__/snoop/${collection_name}/blobs:/opt/hoover/snoop/blobs",
+          "__LIQUID_VOLUMES__/collections/${collection_name}/blobs:/opt/hoover/snoop/blobs",
         ]
         labels {
           liquid_task = "snoop-${collection_name}-worker"
@@ -144,7 +144,7 @@ job "collection-${collection_name}" {
         volumes = [
           "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
           "__LIQUID_COLLECTIONS__/${collection_name}/data:/opt/hoover/snoop/collection",
-          "__LIQUID_VOLUMES__/snoop/${collection_name}/blobs:/opt/hoover/snoop/blobs",
+          "__LIQUID_VOLUMES__/collections/${collection_name}/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
           http = 80
