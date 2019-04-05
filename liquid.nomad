@@ -8,7 +8,7 @@ job "liquid" {
       config {
         image = "liquidinvestigations/core"
         volumes = [
-          "__LIQUID_VOLUMES__/liquid/core/var:/app/var",
+          "${liquid_volumes}/liquid/core/var:/app/var",
         ]
         labels {
           liquid_task = "liquid-core"

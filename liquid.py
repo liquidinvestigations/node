@@ -12,6 +12,7 @@ import argparse
 from pathlib import Path
 import configparser
 from string import Template
+from copy import copy
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
@@ -33,16 +34,22 @@ if 'extra_jobs' in config:
         JOBS.append((job, Path(path)))
 
 
+def get_collections():
+    sections = []
+    for section_name in config:
+        if ':' not in section_name:
+            continue
+
+        (label, collection_name) = section_name.split(':')
+        if label == 'collection' and collection_name:
+            sections.append((collection_name, config[section_name]))
+
+    return sections
+
+
 def get_config(env_key, ini_path, default=None):
     if env_key and os.environ.get(env_key):
         return os.environ[env_key]
-
-    if ini_path.endswith(':'):
-        sections = []
-        for section_name in config:
-            if section_name.startswith(ini_path):
-                sections.append((section_name[len(ini_path):], config[section_name]))
-        return sections
 
     (section_name, key) = ini_path.split('.')
     if section_name in config and key in config[section_name]:
@@ -232,32 +239,32 @@ def nomad_address():
 
 
 def set_collection_defaults(name, settings):
-    settings['collection_name'] = name
+    settings['name'] = name
     settings.setdefault('workers', 2)
 
 
-def set_hcl_paths(hcl):
-    hcl = hcl.replace('__LIQUID_VOLUMES__', liquid_volumes)
-    return hcl.replace('__LIQUID_COLLECTIONS__', liquid_collections)
+def set_volumes_paths(substitutions={}):
+    substitutions['liquid_volumes'] = liquid_volumes
+    substitutions['liquid_collections'] = liquid_collections
+    return substitutions
 
 
-def run_collection_job(name, settings):
-    set_collection_defaults(name, settings)
+def get_collection_job(name, settings):
+    substitutions = copy(settings)
+    set_collection_defaults(name, substitutions)
+    set_volumes_paths(substitutions)
 
     with open('collection.nomad') as collection_file:
         template = Template(collection_file.read())
 
-        hcl = template.substitute(settings)
-        hcl = set_hcl_paths(hcl)
-
-        nomad.run(hcl)
+        return template.substitute(substitutions)
 
 
-def runjob(hcl_path):
-    with hcl_path.open() as f:
-        hcl = f.read()
+def get_job(hcl_path):
+    with hcl_path.open() as job_file:
+        template = Template(job_file.read())
 
-    nomad.run(set_hcl_paths(hcl))
+    return template.safe_substitute(set_volumes_paths())
 
 
 def deploy():
@@ -266,27 +273,22 @@ def deploy():
     consul.set_kv('liquid_domain', liquid_domain)
     consul.set_kv('liquid_debug', liquid_debug)
 
-    for job, path in JOBS:
-        print(f'Starting {job}...')
-        runjob(path)
+    jobs = [(job, get_job(path)) for job, path in JOBS]
+    jobs.extend([(f'collection-{name}', get_collection_job(name, settings))
+                 for name, settings in get_collections()])
 
-    collections = get_config(None, 'collection:')
-    for name, settings in collections:
-        print(f'Starting collection-{name}...')
-        run_collection_job(name, settings)
+    for job, hcl in jobs:
+        log.info('Starting %s...', job)
+        nomad.run(hcl)
 
 
 def halt():
     """ Stop all the jobs in nomad. """
 
-    for job, _ in JOBS:
-        print(f'Stopping {job}...')
+    jobs = [j for j, _ in JOBS] + [f'collection-{name}' for name, _ in get_collections()]
+    for job in jobs:
+        log.info('Stopping %s...', job)
         nomad.stop(job)
-
-    collections = get_config(None, 'collection:')
-    for name, _ in collections:
-        print(f'Stopping collection-{name}...')
-        nomad.stop(f'collection-{name}')
 
 
 class SubcommandParser(argparse.ArgumentParser):
