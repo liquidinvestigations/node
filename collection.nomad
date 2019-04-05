@@ -1,4 +1,4 @@
-job "collection-testdata" {
+job "collection-${name}" {
   datacenters = ["dc1"]
   type = "service"
 
@@ -8,13 +8,13 @@ job "collection-testdata" {
       config {
         image = "rabbitmq:3.7.3"
         volumes = [
-          "__LIQUID_VOLUMES__/collection-testdata/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "${liquid_volumes}/collections/${name}/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
         port_map {
           amqp = 5672
         }
         labels {
-          liquid_task = "snoop-testdata-rabbitmq"
+          liquid_task = "snoop-${name}-rabbitmq"
         }
       }
       resources {
@@ -24,7 +24,7 @@ job "collection-testdata" {
         memory = 250
       }
       service {
-        name = "snoop-testdata-rabbitmq"
+        name = "snoop-${name}-rabbitmq"
         port = "amqp"
       }
     }
@@ -37,7 +37,7 @@ job "collection-testdata" {
           tika = 9998
         }
         labels {
-          liquid_task = "snoop-testdata-tika"
+          liquid_task = "snoop-${name}-tika"
         }
       }
       resources {
@@ -46,7 +46,7 @@ job "collection-testdata" {
         }
       }
       service {
-        name = "snoop-testdata-tika"
+        name = "snoop-${name}-tika"
         port = "tika"
       }
     }
@@ -56,10 +56,10 @@ job "collection-testdata" {
       config {
         image = "postgres:9.6"
         volumes = [
-          "__LIQUID_VOLUMES__/collection-testdata/pg/data:/var/lib/postgresql/data",
+          "${liquid_volumes}/collections/${name}/pg/data:/var/lib/postgresql/data",
         ]
         labels {
-          liquid_task = "snoop-testdata-pg"
+          liquid_task = "snoop-${name}-pg"
         }
         port_map {
           pg = 5432
@@ -76,14 +76,14 @@ job "collection-testdata" {
         memory = 100
       }
       service {
-        name = "snoop-testdata-pg"
+        name = "snoop-${name}-pg"
         port = "pg"
       }
     }
   }
 
   group "workers" {
-    count = 2
+    count = $workers
 
     task "snoop" {
       driver = "docker"
@@ -91,18 +91,18 @@ job "collection-testdata" {
         image = "liquidinvestigations/hoover-snoop2"
         args = ["./manage.py", "runworkers"]
         volumes = [
-          "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
-          "__LIQUID_COLLECTIONS__/testdata/data:/opt/hoover/snoop/collection",
-          "__LIQUID_VOLUMES__/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
+          "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
+          "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
+          "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         labels {
-          liquid_task = "snoop-testdata-worker"
+          liquid_task = "snoop-${name}-worker"
         }
       }
       env {
         SNOOP_COLLECTION_ROOT = "collection"
-        SNOOP_TASK_PREFIX = "testdata"
-        SNOOP_ES_INDEX = "testdata"
+        SNOOP_TASK_PREFIX = "${name}"
+        SNOOP_ES_INDEX = "${name}"
       }
       template {
         data = <<EOF
@@ -110,7 +110,7 @@ job "collection-testdata" {
               DEBUG = {{ key "liquid_debug" }}
             {{- end }}
             SNOOP_DB = postgresql://snoop:snoop@
-              {{- range service "snoop-testdata-pg" -}}
+              {{- range service "snoop-${name}-pg" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end -}}
               /snoop
@@ -119,11 +119,11 @@ job "collection-testdata" {
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_TIKA_URL = http://
-              {{- range service "snoop-testdata-tika" -}}
+              {{- range service "snoop-${name}-tika" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_AMQP_URL = amqp://
-              {{- range service "snoop-testdata-rabbitmq" -}}
+              {{- range service "snoop-${name}-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
           EOF
@@ -142,22 +142,22 @@ job "collection-testdata" {
       config {
         image = "liquidinvestigations/hoover-snoop2"
         volumes = [
-          "__LIQUID_VOLUMES__/gnupg:/opt/hoover/gnupg",
-          "__LIQUID_COLLECTIONS__/testdata/data:/opt/hoover/snoop/collection",
-          "__LIQUID_VOLUMES__/collection-testdata/blobs/testdata:/opt/hoover/snoop/blobs",
+          "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
+          "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
+          "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
           http = 80
         }
         labels {
-          liquid_task = "snoop-testdata-api"
+          liquid_task = "snoop-${name}-api"
         }
       }
       env {
         SECRET_KEY = "TODO random key"
         SNOOP_COLLECTION_ROOT = "collection"
-        SNOOP_TASK_PREFIX = "testdata"
-        SNOOP_ES_INDEX = "testdata"
+        SNOOP_TASK_PREFIX = "${name}"
+        SNOOP_ES_INDEX = "${name}"
       }
       template {
         data = <<EOF
@@ -165,7 +165,7 @@ job "collection-testdata" {
               DEBUG = {{ key "liquid_debug" }}
             {{- end }}
             SNOOP_DB = postgresql://snoop:snoop@
-              {{- range service "snoop-testdata-pg" -}}
+              {{- range service "snoop-${name}-pg" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end -}}
               /snoop
@@ -174,14 +174,14 @@ job "collection-testdata" {
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_TIKA_URL = http://
-              {{- range service "snoop-testdata-tika" -}}
+              {{- range service "snoop-${name}-tika" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_AMQP_URL = amqp://
-              {{- range service "snoop-testdata-rabbitmq" -}}
+              {{- range service "snoop-${name}-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
-            SNOOP_HOSTNAME = testdata.snoop.{{ key "liquid_domain" }}
+            SNOOP_HOSTNAME = ${name}.snoop.{{ key "liquid_domain" }}
           EOF
         destination = "local/snoop.env"
         env = true
@@ -193,7 +193,7 @@ job "collection-testdata" {
         }
       }
       service {
-        name = "snoop-testdata"
+        name = "snoop-${name}"
         port = "http"
       }
     }

@@ -8,10 +8,11 @@ import subprocess
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 import json
-from base64 import b64decode
 import argparse
 from pathlib import Path
 import configparser
+from string import Template
+from copy import copy
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
@@ -27,58 +28,69 @@ JOBS = [
 config = configparser.ConfigParser()
 config.read('liquid.ini')
 
+
 if 'extra_jobs' in config:
     for job, path in config['extra_jobs'].items():
         JOBS.append((job, Path(path)))
 
 
-def get_config(env_key, ini_path, default):
-    value = os.environ.get(env_key)
-    if value is not None:
-        return value
+def get_collections():
+    sections = []
+    for section_name in config:
+        if ':' not in section_name:
+            continue
 
-    (section_name, key) = ini_path.split(':')
-    if section_name in config:
-        section = config[section_name]
-        if key in section:
-            return section[key]
+        (label, collection_name) = section_name.split(':')
+        if label == 'collection' and collection_name:
+            sections.append((collection_name, config[section_name]))
+
+    return sections
+
+
+def get_config(env_key, ini_path, default=None):
+    if env_key and os.environ.get(env_key):
+        return os.environ[env_key]
+
+    (section_name, key) = ini_path.split('.')
+    if section_name in config and key in config[section_name]:
+        return config[section_name][key]
 
     return default
 
 
 nomad_url = get_config(
     'NOMAD_URL',
-    'cluster:nomad_url',
+    'cluster.nomad_url',
     'http://127.0.0.1:4646',
 )
 
 consul_url = get_config(
     'CONSUL_URL',
-    'cluster:consul_url',
+    'cluster.consul_url',
     'http://127.0.0.1:8500',
 )
 
 liquid_domain = get_config(
     'LIQUID_DOMAIN',
-    'liquid:domain',
+    'liquid.domain',
     'localhost',
 )
 
 liquid_debug = get_config(
     'LIQUID_DEBUG',
-    'liquid:debug',
+    'liquid.debug',
     '',
 )
 
 liquid_volumes = get_config(
     'LIQUID_VOLUMES',
-    'liquid:volumes',
+    'liquid.volumes',
     str(Path(__file__).parent.resolve() / 'volumes'),
 )
 
 liquid_collections = get_config(
     'LIQUID_COLLECTIONS',
-    'liquid:collections',
+    'liquid.collections',
     str(Path(__file__).parent.resolve() / 'collections'),
 )
 
@@ -200,8 +212,8 @@ def shell(name, *args):
     Open a shell in a docker container tagged with liquid_task=`name`
     """
     containers = docker.containers([('liquid_task', name)])
-    id = first(containers, 'containers')
-    docker_exec_cmd = ['docker', 'exec', '-it', id] + list(args or ['bash'])
+    container_id = first(containers, 'containers')
+    docker_exec_cmd = ['docker', 'exec', '-it', container_id] + list(args or ['bash'])
     run_fg(docker_exec_cmd, shell=False)
 
 
@@ -226,14 +238,29 @@ def nomad_address():
     print(first(members, 'members'))
 
 
-def runjob(hcl_path):
-    with hcl_path.open() as f:
-        hcl = f.read()
+def set_collection_defaults(name, settings):
+    settings['name'] = name
+    settings.setdefault('workers', 2)
 
-    hcl = hcl.replace('__LIQUID_VOLUMES__', liquid_volumes)
-    hcl = hcl.replace('__LIQUID_COLLECTIONS__', liquid_collections)
 
-    nomad.run(hcl)
+def set_volumes_paths(substitutions={}):
+    substitutions['liquid_volumes'] = liquid_volumes
+    substitutions['liquid_collections'] = liquid_collections
+    return substitutions
+
+
+def get_collection_job(name, settings):
+    substitutions = copy(settings)
+    set_collection_defaults(name, substitutions)
+
+    return get_job('collection.nomad', substitutions)
+
+
+def get_job(hcl_path, substitutions={}):
+    with hcl_path.open() as job_file:
+        template = Template(job_file.read())
+
+    return template.safe_substitute(set_volumes_paths(substitutions))
 
 
 def deploy():
@@ -242,14 +269,21 @@ def deploy():
     consul.set_kv('liquid_domain', liquid_domain)
     consul.set_kv('liquid_debug', liquid_debug)
 
-    for _, path in JOBS:
-        runjob(path)
+    jobs = [(job, get_job(path)) for job, path in JOBS]
+    jobs.extend([(f'collection-{name}', get_collection_job(name, settings))
+                 for name, settings in get_collections()])
+
+    for job, hcl in jobs:
+        log.info('Starting %s...', job)
+        nomad.run(hcl)
 
 
 def halt():
     """ Stop all the jobs in nomad. """
 
-    for job, _ in JOBS:
+    jobs = [j for j, _ in JOBS] + [f'collection-{name}' for name, _ in get_collections()]
+    for job in jobs:
+        log.info('Stopping %s...', job)
         nomad.stop(job)
 
 
