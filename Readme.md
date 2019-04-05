@@ -1,16 +1,22 @@
 # Liquid in a Nomad cluster
+
+Use the instructions in [the cluster repository](https://github.com/liquidinvestigations/cluster) to get a working setup with nomad and consul. This will only work for x64 Linux machines, so for MacOS read the next section.
+
+
+## Setting up nomad and consul without [cluster](https://github.com/liquidinvestigations/cluster)
+
 Create a configuration file, `nomad-agent.hcl`, with the following content,
-adapted to your machine in case `eth0` is not the main network interface:
+adapted to your machine in case `en0` is not the main network interface:
 
 ```hcl
 advertise {
-  http = "{{ GetInterfaceIP `eth0` }}"
-  serf = "{{ GetInterfaceIP `eth0` }}"
+  http = "{{ GetInterfaceIP `en0` }}"
+  serf = "{{ GetInterfaceIP `en0` }}"
 }
 
 client {
   enabled = true
-  network_interface = "eth0"
+  network_interface = "en0"
 }
 ```
 
@@ -24,7 +30,13 @@ Make sure you have Python >= 3.7 installed.
 ```shell
 consul agent -dev &
 nomad agent -dev -config=nomad-agent.hcl &
+```
 
+# Setup
+
+The Liquid Investigations cluster configuration is read from `liquid.ini`. Start with the following:
+
+```shell
 cat > liquid.ini <<EOF
 [liquid]
 domain = liquid.example.org
@@ -40,7 +52,6 @@ Set up `hoover-search`:
 
 ```shell
 mkdir -p volumes/hoover/es/data
-sudo chown -R 1000:1000 volumes/hoover/es/data
 ./liquid.py shell hoover-search ./manage.py migrate
 ./liquid.py shell hoover-search ./manage.py createsuperuser
 ```
@@ -56,8 +67,8 @@ git clone https://github.com/hoover/testdata collections/testdata
 Next, tell liquid we want to run the `collection-testdata` job in `liquid.ini`:
 
 ```ini
-[extra_jobs]
-collection-testdata = collection-testdata.nomad
+[collection:testdata]
+workers = 3
 ```
 
 Then redeploy liquid, run migrations, and tell `hoover-search` about the new
@@ -90,7 +101,10 @@ To dump the nginx configuration:
 nomad alloc fs $(./liquid.py alloc liquid nginx) nginx/local/core.conf
 ```
 
-### Vagrant
+### Vagrant (out of date)
+
+__Warning__: Scripts are out of date. These need to be updated to use [cluster](https://github.com/liquidinvestigations/cluster) inside the virtual machine.
+
 You can run a full Liquid cluster in a local virtual machine using [Vagrant][].
 The configuration has been tested with the [libvirt driver][] but should work
 with the default VirtualBox driver as well.
