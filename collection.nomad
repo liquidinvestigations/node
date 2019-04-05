@@ -34,7 +34,7 @@ job "collection-${name}" {
       config {
         image = "logicalspark/docker-tikaserver"
         port_map {
-          http = 9998
+          tika = 9998
         }
         labels {
           liquid_task = "snoop-${name}-tika"

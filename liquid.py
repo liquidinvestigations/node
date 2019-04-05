@@ -252,19 +252,15 @@ def set_volumes_paths(substitutions={}):
 def get_collection_job(name, settings):
     substitutions = copy(settings)
     set_collection_defaults(name, substitutions)
-    set_volumes_paths(substitutions)
 
-    with open('collection.nomad') as collection_file:
-        template = Template(collection_file.read())
-
-        return template.substitute(substitutions)
+    return get_job('collection.nomad', substitutions)
 
 
-def get_job(hcl_path):
+def get_job(hcl_path, substitutions={}):
     with hcl_path.open() as job_file:
         template = Template(job_file.read())
 
-    return template.safe_substitute(set_volumes_paths())
+    return template.safe_substitute(set_volumes_paths(substitutions))
 
 
 def deploy():
