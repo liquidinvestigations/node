@@ -68,6 +68,22 @@ job "liquid" {
             }
           {{- end }}
 
+          {{- if service "reup" }}
+            upstream reup {
+              {{- range service "reup" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
+            }
+            server {
+              listen 80;
+              server_name reup.{{ key "liquid_domain" }};
+              location / {
+                proxy_pass http://reup;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
           server {
             listen 80 default_server;
             location / {
