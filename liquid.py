@@ -253,7 +253,7 @@ def get_collection_job(name, settings):
     substitutions = copy(settings)
     set_collection_defaults(name, substitutions)
 
-    return get_job('collection.nomad', substitutions)
+    return get_job(Path('collection.nomad'), substitutions)
 
 
 def get_job(hcl_path, substitutions={}):
