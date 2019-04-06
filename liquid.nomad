@@ -8,6 +8,7 @@ job "liquid" {
       config {
         image = "liquidinvestigations/core"
         volumes = [
+          ${liquidinvestigations_core_repo}
           "${liquid_volumes}/liquid/core/var:/app/var",
         ]
         labels {

@@ -93,6 +93,7 @@ job "collection-${name}" {
         image = "liquidinvestigations/hoover-snoop2"
         args = ["./manage.py", "runworkers"]
         volumes = [
+          ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
           "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
@@ -144,6 +145,7 @@ job "collection-${name}" {
       config {
         image = "liquidinvestigations/hoover-snoop2"
         volumes = [
+          ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
           "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",

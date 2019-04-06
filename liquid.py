@@ -82,6 +82,12 @@ liquid_debug = get_config(
     '',
 )
 
+mount_local_repos = 'false' != get_config(
+    'LIQUID_MOUNT_LOCAL_REPOS',
+    'liquid.mount_local_repos',
+    'false',
+)
+
 liquid_volumes = get_config(
     'LIQUID_VOLUMES',
     'liquid.volumes',
@@ -246,6 +252,21 @@ def set_collection_defaults(name, settings):
 def set_volumes_paths(substitutions={}):
     substitutions['liquid_volumes'] = liquid_volumes
     substitutions['liquid_collections'] = liquid_collections
+
+    pwd = os.path.realpath(os.path.dirname(__file__))
+    repos = [
+        ('hoover', 'snoop2', '/opt/hoover/snoop'),
+        ('hoover', 'search', '/opt/hoover/search'),
+        ('liquidinvestigations', 'core', '/app'),
+    ]
+    for (org, repo, target_path) in repos:
+        repo_path = os.path.join(pwd, 'repos', org, repo)
+        repo_volume_line = (f'"{repo_path}:{target_path}",\n')
+        key = f'{org}_{repo}_repo'
+        if mount_local_repos:
+            substitutions[key] = repo_volume_line
+        else:
+            substitutions[key] = ''
     return substitutions
 
 

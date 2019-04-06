@@ -133,3 +133,22 @@ cd /vagrant
 [Vagrant]: https://www.vagrantup.com
 [libvirt driver]: https://github.com/vagrant-libvirt/vagrant-libvirt
 [installing vagrant]: https://www.vagrantup.com/docs/installation/
+
+
+# Working on components
+
+In order to work on Hoover Search, Hoover Snoop, or Liquid Core, first clone the repositories:
+```shell
+cd repos
+./clone.sh https  # or ./clone.sh ssh, based on preference
+```
+
+After that, set this flag in your configuration:
+
+```ini
+[liquid]
+...
+mount_local_repos = true
+```
+
+Be sure to clone 
