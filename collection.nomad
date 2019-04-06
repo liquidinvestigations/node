@@ -21,7 +21,8 @@ job "collection-${name}" {
         network {
           port "amqp" {}
         }
-        memory = 500
+        memory = 1024
+
       }
       service {
         name = "snoop-${name}-rabbitmq"
@@ -44,6 +45,7 @@ job "collection-${name}" {
         network {
           port "tika" {}
         }
+	memory = 1024
       }
       service {
         name = "snoop-${name}-tika"
@@ -73,7 +75,7 @@ job "collection-${name}" {
         network {
           port "pg" {}
         }
-        memory = 100
+        memory = 1024
       }
       service {
         name = "snoop-${name}-pg"
@@ -131,7 +133,7 @@ job "collection-${name}" {
         env = true
       }
       resources {
-        memory = 500
+        memory = 1024
       }
     }
   }
@@ -187,7 +189,7 @@ job "collection-${name}" {
         env = true
       }
       resources {
-        memory = 200
+        memory = 512
         network {
           port "http" {}
         }
