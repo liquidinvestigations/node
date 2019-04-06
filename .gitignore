@@ -1,1 +1,5 @@
 /.vagrant
+/liquid.ini
+/volumes
+/collections
+/nomad-agent.hcl
