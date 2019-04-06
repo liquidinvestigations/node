@@ -13,8 +13,11 @@ job "hoover" {
           "${liquid_volumes}/hoover/es/data:/usr/share/elasticsearch/data",
 =======
           "__LIQUID_VOLUMES__/hoover/es/data:/usr/share/elasticsearch/data",
+<<<<<<< HEAD
 
 >>>>>>> bf5e55b... added nextcloud.nomad
+=======
+>>>>>>> 2ab2a44... removed that one line
         ]
         port_map {
           es = 9200

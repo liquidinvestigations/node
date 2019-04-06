@@ -150,13 +150,7 @@ collection:
 
 ### Nextcloud
 
-First, make directories:
-```shell
-sudo ./makedirs.sh
-```  
-The Paths for `makedirs` are stored in `./nc_setup/nextcloud.cfg` 
-
-Next, tell liquid we want to run nextcloud and nc_sync jobs in `liquid.ini`:
+Tell liquid we want to run nextcloud and nc_sync jobs in `liquid.ini`:
 
 ```ini
 [extra_jobs]
@@ -172,7 +166,7 @@ and deploy with
 afterwards, run 
 
 ```shell
-sudo ./nextcloud_setup.sh
+./liquid.py shell nextcloud /setup.sh
 ```  
 Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 

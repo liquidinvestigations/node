@@ -8,8 +8,8 @@ job "nextcloud" {
       config {
         image = "liquidinvestigations/liquid-nextcloud"
         volumes = [
-          "__LIQUID_VOLUMES__/nextcloud/nextcloud:/var/www/html",
-          "__LIQUID_COLLECTIONS__/ncsync:/var/www/html/data/ncsync/files",
+          "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
+          "${liquid_collections}/ncsync/data:/var/www/html/data/ncsync/files",
         ]
         args = ["/bin/sh", "-c", "chown -R 33:33 /var/www/html/ && echo chown done && /entrypoint.sh apache2-foreground"]
         port_map {
@@ -30,7 +30,7 @@ job "nextcloud" {
             NEXTCLOUD_ADMIN_PASSWORD="admin"
             NEXTCLOUD_POSTGRES_DB="nextcloud"
             NEXTCLOUD_POSTGRES_USER="postgres"
-            NEXTCLOUD_POSTGRES_PASSWORD="secret"
+            NEXTCLOUD_POSTGRES_PASSWORD="a_very_good_secret"
             OC_PASS="secret"
           EOF
         destination = "local/nextcloud.env"
@@ -55,7 +55,7 @@ job "nextcloud" {
       config {
         image = "postgres:9.6"
         volumes = [
-          "__LIQUID_VOLUMES__/nextcloud/nextcloud-pg/data:/var/lib/postgresql/data",
+          "${liquid_volumes}/nextcloud/nextcloud-pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "nextcloud-pg"
