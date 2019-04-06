@@ -4,9 +4,9 @@ set -ex
 for repo in hoover/snoop2 hoover/search liquidinvestigations/core; do
     echo $repo
     mkdir -p $repo
-    if [ $1 -eq 'ssh' ]; then
+    if [ "$1" == 'ssh' ]; then
             git clone "https://github.com/$repo.git" $repo
-    elif [ $1 -eq 'https' ]; then
+    elif [ "$1" == 'https' ]; then
             git clone "git@github.com:$repo.git" $repo
     else
             set +x
