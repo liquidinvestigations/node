@@ -129,6 +129,9 @@ job "collection-${name}" {
               {{- range service "snoop-${name}-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
+            {{ range service "zipkin" -}}
+              TRACING_URL = http://{{ .Address }}:{{ .Port }}
+            {{- end }}
           EOF
         destination = "local/snoop.env"
         env = true
@@ -186,6 +189,9 @@ job "collection-${name}" {
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_HOSTNAME = ${name}.snoop.{{ key "liquid_domain" }}
+            {{- range service "zipkin" -}}
+              TRACING_URL = http://{{ .Address }}:{{ .Port }}
+            {{- end }}
           EOF
         destination = "local/snoop.env"
         env = true

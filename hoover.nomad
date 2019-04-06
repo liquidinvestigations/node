@@ -165,6 +165,21 @@ job "hoover" {
               {{- end }}
             {{- end }}
           {{- end }}
+
+          {{- if service "zipkin" }}
+            {{- with service "zipkin" }}
+              {{- with index . 0 }}
+                server {
+                  listen 80;
+                  server_name zipkin.{{ key "liquid_domain" }};
+                  location / {
+                    proxy_pass http://{{ .Address }}:{{ .Port }};
+                    proxy_set_header Host $host;
+                  }
+                }
+              {{- end }}
+            {{- end }}
+          {{- end }}
           EOF
         destination = "local/collections.conf"
       }
