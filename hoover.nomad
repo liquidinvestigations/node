@@ -20,10 +20,10 @@ job "hoover" {
       }
       env {
         cluster.name = "hoover"
-        ES_JAVA_OPTS = "-Xms192m -Xmx192m"
+        ES_JAVA_OPTS = "-Xms1536m -Xmx1536m"
       }
       resources {
-        memory = 500
+        memory = 2048
         network {
           port "es" {}
         }
@@ -53,7 +53,7 @@ job "hoover" {
         POSTGRES_DATABASE = "hoover"
       }
       resources {
-        memory = 100
+        memory = 1024
         network {
           port "pg" {}
         }
@@ -103,7 +103,7 @@ job "hoover" {
         env = true
       }
       resources {
-        memory = 200
+        memory = 512
         network {
           port "http" {}
         }
@@ -180,7 +180,7 @@ job "hoover" {
         }
       }
       resources {
-        memory = 50
+        memory = 256
         network {
           port "nginx" {
             static = 8765
