@@ -21,7 +21,7 @@ job "collection-${name}" {
         network {
           port "amqp" {}
         }
-        memory = 250
+        memory = 500
       }
       service {
         name = "snoop-${name}-rabbitmq"
