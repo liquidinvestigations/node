@@ -240,7 +240,7 @@ def nomad_address():
 
 def set_collection_defaults(name, settings):
     settings['name'] = name
-    settings.setdefault('workers', 2)
+    settings.setdefault('workers', '2')
 
 
 def set_volumes_paths(substitutions={}):
