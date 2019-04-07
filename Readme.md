@@ -135,7 +135,21 @@ cd /vagrant
 [installing vagrant]: https://www.vagrantup.com/docs/installation/
 
 
-# Working on components
+### Running custom jobs
+You can deploy your own jobs on the cluster. First, create a nomad job file,
+you can use one of the existing `.nomad` files as a starting point. Save it in
+the `local` folder, or outside the repository, so that it doesn't interfere
+with updates. Then add the job to `liquid.ini`:
+
+```ini
+[job:foo]
+template = local/foo.nomad
+```
+
+Afterwards, run `./liquid deploy`, which will send your job `foo` to nomad.
+
+
+### Working on components
 
 In order to work on Hoover Search, Hoover Snoop, or Liquid Core, first clone the repositories:
 ```shell

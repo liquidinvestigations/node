@@ -32,10 +32,6 @@ class Configuration:
         self.ini = configparser.ConfigParser()
         self.ini.read('liquid.ini')
 
-        if 'extra_jobs' in self.ini:
-            for job, path in self.ini['extra_jobs'].items():
-                self.jobs.append((job, Path(path)))
-
         self.nomad_url = self.get(
             'NOMAD_URL',
             'cluster.nomad_url',
@@ -87,6 +83,10 @@ class Configuration:
 
             if cls == 'collection':
                 self.collections.append((name, self.ini[key]))
+
+            elif cls == 'job':
+                job_config = self.ini[key]
+                self.jobs.append((name, Path(job_config['template'])))
 
     def get(self, env_key, ini_path, default=None):
         if env_key and os.environ.get(env_key):
