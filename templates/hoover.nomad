@@ -9,15 +9,7 @@ job "hoover" {
         image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
-<<<<<<< HEAD
           "${liquid_volumes}/hoover/es/data:/usr/share/elasticsearch/data",
-=======
-          "__LIQUID_VOLUMES__/hoover/es/data:/usr/share/elasticsearch/data",
-<<<<<<< HEAD
-
->>>>>>> bf5e55b... added nextcloud.nomad
-=======
->>>>>>> 2ab2a44... removed that one line
         ]
         port_map {
           es = 9200

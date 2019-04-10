@@ -30,14 +30,11 @@ job "nextcloud" {
             NEXTCLOUD_ADMIN_PASSWORD="admin"
             NEXTCLOUD_POSTGRES_DB="nextcloud"
             NEXTCLOUD_POSTGRES_USER="postgres"
-            NEXTCLOUD_POSTGRES_PASSWORD="a_very_good_secret"
-            OC_PASS="secret"
+            NEXTCLOUD_POSTGRES_PASSWORD="secret"
+            OC_PASS="a_very_good_secret"
           EOF
         destination = "local/nextcloud.env"
         env = true
-      }
-      env {
-
       }
       resources {
         network {
