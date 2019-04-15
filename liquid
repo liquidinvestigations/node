@@ -1,0 +1,13 @@
+#!/bin/bash
+set -e
+
+# cd to file
+cd "$(dirname ${BASH_SOURCE[0]})"
+
+# create venv if needed
+if [ ! -d ./venv ]; then
+        python3 -m venv venv.tmp
+        ./venv.tmp/bin/pip install -r requirements.txt
+        mv venv.tmp venv
+fi
+exec ./venv/bin/python liquid.py $@

@@ -42,7 +42,7 @@ cat > liquid.ini <<EOF
 domain = liquid.example.org
 EOF
 
-./liquid.py deploy
+./liquid deploy
 
 open http://$IP # IP address of your machine
 ```
@@ -52,8 +52,8 @@ Set up `hoover-search`:
 
 ```shell
 mkdir -p volumes/hoover/es/data
-./liquid.py shell hoover-search ./manage.py migrate
-./liquid.py shell hoover-search ./manage.py createsuperuser
+./liquid shell hoover-search ./manage.py migrate
+./liquid shell hoover-search ./manage.py createsuperuser
 ```
 
 ### Testdata
@@ -75,11 +75,11 @@ Then redeploy liquid, run migrations, and tell `hoover-search` about the new
 collection:
 
 ```shell
-./liquid.py deploy
+./liquid deploy
 # ... wait for the containers to spin up
-./liquid.py shell snoop-testdata-api ./manage.py migrate
-./liquid.py shell snoop-testdata-api ./manage.py initcollection
-./liquid.py shell hoover-search ./manage.py addcollection testdata --index testdata http://$(./liquid.py nomad_address):8765/testdata/collection/json --public
+./liquid shell snoop-testdata-api ./manage.py migrate
+./liquid shell snoop-testdata-api ./manage.py initcollection
+./liquid shell hoover-search ./manage.py addcollection testdata --index testdata http://$(./liquid nomad_address):8765/testdata/collection/json --public
 ```
 
 ### Debugging
@@ -89,16 +89,16 @@ Set the debug flag in `liquid.ini`:
 debug = on
 ```
 
-Then redeploy (`./liquid.py deploy`).
+Then redeploy (`./liquid deploy`).
 
 To log into the snoop docker container for testdata:
 ```shell
-./liquid.py shell snoop-testdata-api
+./liquid shell snoop-testdata-api
 ```
 
 To dump the nginx configuration:
 ```shell
-nomad alloc fs $(./liquid.py alloc liquid nginx) nginx/local/core.conf
+nomad alloc fs $(./liquid alloc liquid nginx) nginx/local/core.conf
 ```
 
 ### Vagrant (out of date)
@@ -127,9 +127,42 @@ vagrant ssh # opens a shell inside the VM
 Then, inside the VM:
 ```shell
 cd /vagrant
-./liquid.py deploy
+./liquid deploy
 ```
 
 [Vagrant]: https://www.vagrantup.com
 [libvirt driver]: https://github.com/vagrant-libvirt/vagrant-libvirt
 [installing vagrant]: https://www.vagrantup.com/docs/installation/
+
+
+### Running custom jobs
+You can deploy your own jobs on the cluster. First, create a nomad job file,
+you can use one of the existing `.nomad` files as a starting point. Save it in
+the `local` folder, or outside the repository, so that it doesn't interfere
+with updates. Then add the job to `liquid.ini`:
+
+```ini
+[job:foo]
+template = local/foo.nomad
+```
+
+Afterwards, run `./liquid deploy`, which will send your job `foo` to nomad.
+
+
+### Working on components
+
+In order to work on Hoover Search, Hoover Snoop, or Liquid Core, first clone the repositories:
+```shell
+cd repos
+./clone.sh https  # or ./clone.sh ssh, based on preference
+```
+
+After that, set this flag in your configuration:
+
+```ini
+[liquid]
+...
+mount_local_repos = true
+```
+
+Be sure to clone 

@@ -20,79 +20,86 @@ LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 log = logging.getLogger(__name__)
 log.setLevel(LOG_LEVEL)
 
-JOBS = [
-    (job, Path(f'{job}.nomad'))
-    for job in ['hoover', 'hoover-ui', 'liquid']
-]
 
-config = configparser.ConfigParser()
-config.read('liquid.ini')
+class Configuration:
+
+    def __init__(self):
+        self.jobs = [
+            (job, Path(f'{job}.nomad'))
+            for job in ['hoover', 'hoover-ui', 'liquid']
+        ]
+
+        self.ini = configparser.ConfigParser()
+        self.ini.read('liquid.ini')
+
+        self.nomad_url = self.get(
+            'NOMAD_URL',
+            'cluster.nomad_url',
+            'http://127.0.0.1:4646',
+        )
+
+        self.consul_url = self.get(
+            'CONSUL_URL',
+            'cluster.consul_url',
+            'http://127.0.0.1:8500',
+        )
+
+        self.liquid_domain = self.get(
+            'LIQUID_DOMAIN',
+            'liquid.domain',
+            'localhost',
+        )
+
+        self.liquid_debug = self.get(
+            'LIQUID_DEBUG',
+            'liquid.debug',
+            '',
+        )
+
+        self.mount_local_repos = 'false' != self.get(
+            'LIQUID_MOUNT_LOCAL_REPOS',
+            'liquid.mount_local_repos',
+            'false',
+        )
+
+        self.liquid_volumes = self.get(
+            'LIQUID_VOLUMES',
+            'liquid.volumes',
+            str(Path(__file__).parent.resolve() / 'volumes'),
+        )
+
+        self.liquid_collections = self.get(
+            'LIQUID_COLLECTIONS',
+            'liquid.collections',
+            str(Path(__file__).parent.resolve() / 'collections'),
+        )
+
+        self.collections = []
+        for key in self.ini:
+            if ':' not in key:
+                continue
+
+            (cls, name) = key.split(':')
+
+            if cls == 'collection':
+                self.collections.append((name, self.ini[key]))
+
+            elif cls == 'job':
+                job_config = self.ini[key]
+                self.jobs.append((name, Path(job_config['template'])))
+
+    def get(self, env_key, ini_path, default=None):
+        if env_key and os.environ.get(env_key):
+            return os.environ[env_key]
+
+        (section_name, key) = ini_path.split('.')
+        if section_name in self.ini and key in self.ini[section_name]:
+            return self.ini[section_name][key]
+
+        return default
 
 
-if 'extra_jobs' in config:
-    for job, path in config['extra_jobs'].items():
-        JOBS.append((job, Path(path)))
-
-
-def get_collections():
-    sections = []
-    for section_name in config:
-        if ':' not in section_name:
-            continue
-
-        (label, collection_name) = section_name.split(':')
-        if label == 'collection' and collection_name:
-            sections.append((collection_name, config[section_name]))
-
-    return sections
-
-
-def get_config(env_key, ini_path, default=None):
-    if env_key and os.environ.get(env_key):
-        return os.environ[env_key]
-
-    (section_name, key) = ini_path.split('.')
-    if section_name in config and key in config[section_name]:
-        return config[section_name][key]
-
-    return default
-
-
-nomad_url = get_config(
-    'NOMAD_URL',
-    'cluster.nomad_url',
-    'http://127.0.0.1:4646',
-)
-
-consul_url = get_config(
-    'CONSUL_URL',
-    'cluster.consul_url',
-    'http://127.0.0.1:8500',
-)
-
-liquid_domain = get_config(
-    'LIQUID_DOMAIN',
-    'liquid.domain',
-    'localhost',
-)
-
-liquid_debug = get_config(
-    'LIQUID_DEBUG',
-    'liquid.debug',
-    '',
-)
-
-liquid_volumes = get_config(
-    'LIQUID_VOLUMES',
-    'liquid.volumes',
-    str(Path(__file__).parent.resolve() / 'volumes'),
-)
-
-liquid_collections = get_config(
-    'LIQUID_COLLECTIONS',
-    'liquid.collections',
-    str(Path(__file__).parent.resolve() / 'collections'),
-)
+config = Configuration()
 
 
 def run(cmd):
@@ -191,8 +198,8 @@ class Consul(JsonApi):
 
 
 docker = Docker()
-nomad = Nomad(nomad_url)
-consul = Consul(consul_url)
+nomad = Nomad(config.nomad_url)
+consul = Consul(config.consul_url)
 
 
 def first(items, name_plural='items'):
@@ -240,12 +247,27 @@ def nomad_address():
 
 def set_collection_defaults(name, settings):
     settings['name'] = name
-    settings.setdefault('workers', 2)
+    settings.setdefault('workers', '1')
 
 
 def set_volumes_paths(substitutions={}):
-    substitutions['liquid_volumes'] = liquid_volumes
-    substitutions['liquid_collections'] = liquid_collections
+    substitutions['liquid_volumes'] = config.liquid_volumes
+    substitutions['liquid_collections'] = config.liquid_collections
+
+    pwd = os.path.realpath(os.path.dirname(__file__))
+    repos = [
+        ('hoover', 'snoop2', '/opt/hoover/snoop'),
+        ('hoover', 'search', '/opt/hoover/search'),
+        ('liquidinvestigations', 'core', '/app'),
+    ]
+    for (org, repo, target_path) in repos:
+        repo_path = os.path.join(pwd, 'repos', org, repo)
+        repo_volume_line = (f'"{repo_path}:{target_path}",\n')
+        key = f'{org}_{repo}_repo'
+        if config.mount_local_repos:
+            substitutions[key] = repo_volume_line
+        else:
+            substitutions[key] = ''
     return substitutions
 
 
@@ -266,12 +288,14 @@ def get_job(hcl_path, substitutions={}):
 def deploy():
     """ Run all the jobs in nomad. """
 
-    consul.set_kv('liquid_domain', liquid_domain)
-    consul.set_kv('liquid_debug', liquid_debug)
+    consul.set_kv('liquid_domain', config.liquid_domain)
+    consul.set_kv('liquid_debug', config.liquid_debug)
 
-    jobs = [(job, get_job(path)) for job, path in JOBS]
-    jobs.extend([(f'collection-{name}', get_collection_job(name, settings))
-                 for name, settings in get_collections()])
+    jobs = [(job, get_job(path)) for job, path in config.jobs]
+    jobs.extend(
+        (f'collection-{name}', get_collection_job(name, settings))
+        for name, settings in config.collections
+    )
 
     for job, hcl in jobs:
         log.info('Starting %s...', job)
@@ -281,7 +305,8 @@ def deploy():
 def halt():
     """ Stop all the jobs in nomad. """
 
-    jobs = [j for j, _ in JOBS] + [f'collection-{name}' for name, _ in get_collections()]
+    jobs = [j for j, _ in config.jobs]
+    jobs.extend(f'collection-{name}' for name, _ in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
         nomad.stop(job)

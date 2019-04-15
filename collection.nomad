@@ -21,7 +21,8 @@ job "collection-${name}" {
         network {
           port "amqp" {}
         }
-        memory = 500
+        memory = 1024
+
       }
       service {
         name = "snoop-${name}-rabbitmq"
@@ -44,6 +45,7 @@ job "collection-${name}" {
         network {
           port "tika" {}
         }
+	memory = 1024
       }
       service {
         name = "snoop-${name}-tika"
@@ -73,7 +75,7 @@ job "collection-${name}" {
         network {
           port "pg" {}
         }
-        memory = 100
+        memory = 1024
       }
       service {
         name = "snoop-${name}-pg"
@@ -91,6 +93,7 @@ job "collection-${name}" {
         image = "liquidinvestigations/hoover-snoop2"
         args = ["./manage.py", "runworkers"]
         volumes = [
+          ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
           "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
@@ -126,12 +129,15 @@ job "collection-${name}" {
               {{- range service "snoop-${name}-rabbitmq" -}}
                 {{ .Address }}:{{ .Port }}
               {{- end }}
+            {{ range service "zipkin" -}}
+              TRACING_URL = http://{{ .Address }}:{{ .Port }}
+            {{- end }}
           EOF
         destination = "local/snoop.env"
         env = true
       }
       resources {
-        memory = 500
+        memory = 1024
       }
     }
   }
@@ -142,6 +148,7 @@ job "collection-${name}" {
       config {
         image = "liquidinvestigations/hoover-snoop2"
         volumes = [
+          ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
           "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
@@ -182,12 +189,15 @@ job "collection-${name}" {
                 {{ .Address }}:{{ .Port }}
               {{- end }}
             SNOOP_HOSTNAME = ${name}.snoop.{{ key "liquid_domain" }}
+            {{- range service "zipkin" -}}
+              TRACING_URL = http://{{ .Address }}:{{ .Port }}
+            {{- end }}
           EOF
         destination = "local/snoop.env"
         env = true
       }
       resources {
-        memory = 200
+        memory = 512
         network {
           port "http" {}
         }
