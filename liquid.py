@@ -14,6 +14,7 @@ import configparser
 from string import Template
 from copy import copy
 
+
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 
@@ -60,6 +61,18 @@ class Configuration:
             'LIQUID_MOUNT_LOCAL_REPOS',
             'liquid.mount_local_repos',
             'false',
+        )
+
+        self.mount_hoover_path = self.get(
+            'LIQUID_MOUNT_HOOVER_PATH',
+            'liquid.mount_hoover_path',
+            None,
+        )
+
+        self.mount_li_path = self.get(
+            'LIQUID_MOUNT_LI_PATH',
+            'liquid.mount_li_path',
+            None,
         )
 
         self.liquid_volumes = self.get(
@@ -254,20 +267,42 @@ def set_volumes_paths(substitutions={}):
     substitutions['liquid_volumes'] = config.liquid_volumes
     substitutions['liquid_collections'] = config.liquid_collections
 
-    pwd = os.path.realpath(os.path.dirname(__file__))
-    repos = [
-        ('hoover', 'snoop2', '/opt/hoover/snoop'),
-        ('hoover', 'search', '/opt/hoover/search'),
-        ('liquidinvestigations', 'core', '/app'),
-    ]
-    for (org, repo, target_path) in repos:
-        repo_path = os.path.join(pwd, 'repos', org, repo)
-        repo_volume_line = (f'"{repo_path}:{target_path}",\n')
-        key = f'{org}_{repo}_repo'
+    repos_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'repos')
+    repos = {
+        'snoop2': {
+            'org': 'hoover',
+            'local': os.path.join(repos_path, 'hoover'),
+            'target': '/opt/hoover/snoop'
+        },
+        'search': {
+            'org': 'hoover',
+            'local': os.path.join(repos_path, 'hoover'),
+            'target': '/opt/hoover/search'
+        },
+        'core': {
+            'org': 'liquidinvestigations',
+            'local': os.path.join(repos_path, 'liquidinvestigations'),
+            'target': '/app'
+        }
+    }
+
+    if config.mount_hoover_path:
+        repos['snoop2']['local'] = os.path.abspath(config.mount_hoover_path)
+        repos['search']['local'] = os.path.abspath(config.mount_hoover_path)
+    if config.mount_li_path:
+        repos['core']['local'] = os.path.abspath(config.mount_li_path)
+
+    for repo, repo_config in repos.items():
+        repo_path = os.path.join(repo_config['local'], repo)
+
+        repo_volume_line = (f"\"{repo_path}:{repo_config['target']}\",\n")
+        key = f"{repo_config['org']}_{repo}_repo"
+
         if config.mount_local_repos:
             substitutions[key] = repo_volume_line
         else:
             substitutions[key] = ''
+
     return substitutions
 
 
