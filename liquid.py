@@ -87,6 +87,12 @@ class Configuration:
             str(Path(__file__).parent.resolve() / 'collections'),
         )
 
+        self.liquid_http_port = self.get(
+            'LIQUID_HTTP_PORT',
+            'liquid.http_port',
+            '80',
+        )
+
         self.collections = []
         for key in self.ini:
             if ':' not in key:
@@ -266,6 +272,7 @@ def set_collection_defaults(name, settings):
 def set_volumes_paths(substitutions={}):
     substitutions['liquid_volumes'] = config.liquid_volumes
     substitutions['liquid_collections'] = config.liquid_collections
+    substitutions['liquid_http_port'] = config.liquid_http_port
 
     repos_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'repos')
     repos = {
