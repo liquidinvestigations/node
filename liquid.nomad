@@ -96,7 +96,7 @@ job "liquid" {
         memory = 50
         network {
           port "nginx" {
-            static = 80
+            static = ${liquid_http_port}
           }
         }
       }
