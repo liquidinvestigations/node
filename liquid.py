@@ -63,15 +63,15 @@ class Configuration:
             'false',
         )
 
-        self.mount_hoover_path = self.get(
-            'LIQUID_MOUNT_HOOVER_PATH',
-            'liquid.mount_hoover_path',
+        self.hoover_repos_path = self.get(
+            'LIQUID_HOOVER_REPOS_PATH',
+            'liquid.hoover_repos_path',
             None,
         )
 
-        self.mount_li_path = self.get(
-            'LIQUID_MOUNT_LI_PATH',
-            'liquid.mount_li_path',
+        self.liquidinvestigations_repos_path = self.get(
+            'LIQUID_LIQUIDINVESTIGATIONS_REPOS_PATH',
+            'liquid.liquidinvestigations_repos_path',
             None,
         )
 
@@ -286,11 +286,11 @@ def set_volumes_paths(substitutions={}):
         }
     }
 
-    if config.mount_hoover_path:
-        repos['snoop2']['local'] = os.path.abspath(config.mount_hoover_path)
-        repos['search']['local'] = os.path.abspath(config.mount_hoover_path)
-    if config.mount_li_path:
-        repos['core']['local'] = os.path.abspath(config.mount_li_path)
+    if config.hoover_repos_path:
+        repos['snoop2']['local'] = os.path.abspath(config.hoover_repos_path)
+        repos['search']['local'] = os.path.abspath(config.hoover_repos_path)
+    if config.liquidinvestigations_repos_path:
+        repos['core']['local'] = os.path.abspath(config.liquidinvestigations_repos_path)
 
     for repo, repo_config in repos.items():
         repo_path = os.path.join(repo_config['local'], repo)
