@@ -13,11 +13,10 @@ from pathlib import Path
 import configparser
 from string import Template
 from copy import copy
-from functools import reduce
 from subprocess import CalledProcessError
-import re
 import sys
 import shutil
+from collections import OrderedDict
 
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
@@ -100,7 +99,7 @@ class Configuration:
             '80',
         )
 
-        self.collections = []
+        self.collections = OrderedDict()
         for key in self.ini:
             if ':' not in key:
                 continue
@@ -108,7 +107,7 @@ class Configuration:
             (cls, name) = key.split(':')
 
             if cls == 'collection':
-                self.collections.append((name, self.ini[key]))
+                self.collections[name] = self.ini[key]
 
             elif cls == 'job':
                 job_config = self.ini[key]
@@ -244,9 +243,10 @@ def first(items, name_plural='items'):
     return items[0]
 
 
-def shell_cmd(name, *args):
-    """
-    Open a shell in a docker container tagged with liquid_task=`name`
+def docker_exec(name, *args):
+    """Open a shell in a docker container tagged with liquid_task=`name`
+    
+    Return the output of the command as a string
     """
     containers = docker.containers([('liquid_task', name)])
     container_id = first(containers, 'containers')
@@ -256,11 +256,9 @@ def shell_cmd(name, *args):
 
 
 def shell(name, *args):
-    """
-    Open a shell in a docker container tagged with liquid_task=`name`
-    """
+    """Open a shell in a docker container tagged with liquid_task=`name`"""
     try:
-        shell_cmd(name, *args)
+        print(docker_exec(name, *args))
     except CalledProcessError as e:
         print(e.output.decode(), file=sys.stderr)
         raise
@@ -282,8 +280,7 @@ def alloc(job, group):
 def collection_exists(name):
     """Returns true if the collection with the given name was declared in the ini file."""
 
-    names = dict(config.collections).keys()
-    return reduce(lambda exists, curr_name: exists or curr_name.lower() == name.lower(), names, False)
+    return any(name.lower() == coll.lower() for coll in config.collections)
 
 
 def initcollection(name):
@@ -297,25 +294,21 @@ def initcollection(name):
     if not collection_exists(name):
         raise RuntimeError('Collection %s does not exist in the liquid.ini file.', name)
 
-    container = f'snoop-{name}-api'
+    snoop_nomad_service_name = f'snoop-{name}-api'
 
     try:
-        shell_cmd(container, './manage.py', 'initcollection')
+        existing_collections = docker_exec('hoover-search', './manage.py', 'listcollections').split()
+        if name in existing_collections:
+            log.info(f'Collection "{name}" was already initialized.')
+            return
     except CalledProcessError as e:
-        if not re.search(f'index \[{name}/[^\]]+] already exists', e.output.decode()):
-            log.error(e.output.decode())
-            raise
-        log.info(f'Index {name} already exists.')
+        print(e.output.decode(), file=sys.stderr)
+        raise
 
-    try:
-        snoop_url = first(nomad.agent_members())['Addr'] + f':8765/{name}/collection/json'
-        shell_cmd('hoover-search', './manage.py', 'addcollection', name, '--index',
-                  name.lower(), snoop_url, '--public')
-    except CalledProcessError as e:
-        if not re.search('IntegrityError: duplicate keyy', e.output.decode()):
-            log.error(e.output.decode())
-            raise
-        log.info(f'Collection {name} already added to hoover search.')
+    shell(snoop_nomad_service_name, './manage.py', 'initcollection')
+
+    shell('hoover-search', './manage.py', 'addcollection', name, '--index',
+          name.lower(), f'{get_nomad_address()}:8765/{name}/collection/json', '--public')
 
 
 def get_nomad_address():
@@ -396,13 +389,12 @@ def get_job(hcl_path, substitutions={}):
 def gc():
     """Stop collections jobs that are no longer declared in the ini file."""
 
-    collections = dict(config.collections)
     nomad_jobs = nomad.jobs()
 
     for job in nomad_jobs:
         if job['ID'].startswith('collection-'):
             collection_name = job['ID'][len('collection-'):]
-            if collection_name not in collections:
+            if collection_name not in config.collections and job['Status'] == 'running':
                 log.info('Stopping %s...', job['ID'])
                 nomad.stop(job['ID'])
 
@@ -410,10 +402,11 @@ def gc():
 def get_collections_to_purge():
     """Returns a set of collections to purge."""
 
-    ini_collections = set(dict(config.collections))
+    ini_collections = set(config.collections.keys())
 
-    with os.scandir(os.path.join(config.liquid_volumes, 'collections')) as scan:
-        volumes = set([entry.name for entry in scan if entry.is_dir()])
+    collections_dir = Path(config.liquid_volumes) / 'collections'
+    volumes = set([subdir.name for subdir in collections_dir.iterdir() if subdir.is_dir()])
+
     return volumes - ini_collections
 
 
@@ -421,15 +414,16 @@ def purge_collection(name):
     """Purge data for the given collection, remove it from hoover search."""
 
     try:
-        shell_cmd('hoover-search', './manage.py', 'removecollection', name)
-        log.info(f'Collection {name} was removed from hoover search.')
+        existing_collections = docker_exec('hoover-search', './manage.py', 'listcollections').split()
     except CalledProcessError as e:
-        if not re.search('DoesNotExist', e.output.decode()):
-            raise
-        log.info(f'No index was found in hoover search for collection {name}.')
+        print(e.output.decode(), file=sys.stderr)
 
-    collection_volume = os.path.join(config.liquid_volumes, 'collections', name)
-    if os.path.isdir(collection_volume):
+    if name in existing_collections:
+        shell('hoover-search', './manage.py', 'removecollection', name)
+        log.info(f'Collection {name} was removed from hoover search.')
+
+    collection_volume = Path(config.liquid_volumes) / 'collections' / name
+    if collection_volume.is_dir():
         shutil.rmtree(collection_volume)
     log.info(f'Collection {name} data was purged.')
 
@@ -443,11 +437,14 @@ def purge(force=False):
 
     to_purge = get_collections_to_purge()
     if not to_purge:
-        print('No collections need purging.')
+        print('No collections to purge.')
         return
 
     if to_purge:
-        print('The following collections will be purged:\n-', '\n- '.join(to_purge))
+        print('The following collections will be purged:')
+        for coll in to_purge:
+            print(' - ', coll)
+        print('')
 
     if not force:
         confirm = None
@@ -476,7 +473,7 @@ def deploy():
     jobs = [(job, get_job(path)) for job, path in config.jobs]
     jobs.extend(
         (f'collection-{name}', get_collection_job(name, settings))
-        for name, settings in config.collections
+        for name, settings in config.collections.items()
     )
 
     for job, hcl in jobs:
@@ -488,7 +485,7 @@ def halt():
     """ Stop all the jobs in nomad. """
 
     jobs = [j for j, _ in config.jobs]
-    jobs.extend(f'collection-{name}' for name, _ in config.collections)
+    jobs.extend(f'collection-{name}' for name in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
         nomad.stop(job)
@@ -518,7 +515,6 @@ def main():
         nomad_address,
         deploy,
         halt,
-        gc,
         initcollection,
         purge,
     ])
