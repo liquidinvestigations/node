@@ -149,6 +149,6 @@ def initializevault():
 def unsealvault():
     """ Unseal the Vault. """
 
-    key = getpass()
+    key = config.vault_key or getpass()
     status = vault.unseal(key)
     print('Vault is now', 'sealed' if status['sealed'] else 'unsealed')

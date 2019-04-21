@@ -30,6 +30,12 @@ class Configuration:
             'http://127.0.0.1:8200',
         )
 
+        self.vault_key = self.get(
+            'VAULT_KEY',
+            'cluster.vault_key',
+            None,
+        )
+
         self.nomad_url = self.get(
             'NOMAD_URL',
             'cluster.nomad_url',
