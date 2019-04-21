@@ -1,5 +1,7 @@
 import logging
 from getpass import getpass
+import os
+import base64
 
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
@@ -14,12 +16,26 @@ from .vault import vault
 
 log = logging.getLogger(__name__)
 
+random_secret_keys = [
+    ('core', 'secret_key'),
+]
+
+
+def random_secret():
+    """ Generate a crypto-quality 256-bit random string. """
+    return str(base64.b16encode(os.urandom(32)), 'latin1').lower()
+
 
 def deploy():
     """Run all the jobs in nomad."""
 
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', config.liquid_debug)
+
+    for path, key in random_secret_keys:
+        if not vault.read(path):
+            log.info(f"Generating secrets for {path}")
+            vault.set(path, {key: random_secret()})
 
     jobs = [(job, get_job(path)) for job, path in config.jobs]
     jobs.extend(

@@ -36,6 +36,12 @@ class Configuration:
             None,
         )
 
+        self.vault_token = self.get(
+            'VAULT_TOKEN',
+            'cluster.vault_token',
+            None,
+        )
+
         self.nomad_url = self.get(
             'NOMAD_URL',
             'cluster.nomad_url',

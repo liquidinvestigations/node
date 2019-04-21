@@ -18,6 +18,17 @@ job "liquid" {
           http = 8000
         }
       }
+      template {
+        data = <<EOF
+          DEBUG = {{key "liquid_debug"}}
+          HTTP_HOST = {{key "liquid_domain"}}
+          {{with secret "liquid/core"}}
+            SECRET_KEY = {{.Data.secret_key}}
+          {{end}}
+        EOF
+        destination = "local/docker.env"
+        env = true
+      }
       resources {
         memory = 200
         network {

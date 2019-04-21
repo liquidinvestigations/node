@@ -11,7 +11,7 @@ class JsonApi:
     def __init__(self, endpoint):
         self.endpoint = endpoint
 
-    def request(self, method, url, data=None):
+    def request(self, method, url, data=None, headers=None):
         """Makes a request against the JSON endpoint
 
         :param method: the request method
@@ -20,7 +20,7 @@ class JsonApi:
         :type data: bytes|str
         """
         req_url = f'{self.endpoint}{url}'
-        req_headers = {}
+        req_headers = dict(headers or {})
         req_body = None
 
         if data is not None:
@@ -40,9 +40,10 @@ class JsonApi:
         )
 
         with urlopen(req) as res:
-            res_body = json.load(res)
-            log.debug('response: %r', res_body)
-            return res_body
+            if res.status == 200:
+                res_body = json.load(res)
+                log.debug('response: %r', res_body)
+                return res_body
 
     def get(self, url):
         return self.request('GET', url)
