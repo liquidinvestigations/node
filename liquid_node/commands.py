@@ -1,4 +1,5 @@
 import logging
+from getpass import getpass
 
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
@@ -143,3 +144,11 @@ def initializevault():
     resp = vault.init()
     print('Keys:', resp['keys'])
     print('Root token:', resp['root_token'])
+
+
+def unsealvault():
+    """ Unseal the Vault. """
+
+    key = getpass()
+    status = vault.unseal(key)
+    print('Vault is now', 'sealed' if status['sealed'] else 'unsealed')

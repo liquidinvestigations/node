@@ -13,5 +13,8 @@ class Vault(JsonApi):
             'secret_threshold': 1,
         })
 
+    def unseal(self, key):
+        return self.put('sys/unseal', {'key': key})
+
 
 vault = Vault(config.vault_url)

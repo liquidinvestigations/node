@@ -45,6 +45,7 @@ def main():
         commands.initcollection,
         commands.purge,
         commands.initializevault,
+        commands.unsealvault,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
