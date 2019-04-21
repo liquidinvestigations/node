@@ -8,6 +8,7 @@ from .nomad import nomad
 from .util import first
 from .collections import get_search_collections
 from .docker import docker
+from .vault import vault
 
 
 log = logging.getLogger(__name__)
@@ -134,3 +135,11 @@ def shell(name, *args):
     """Open a shell in a docker container tagged with liquid_task=`name`"""
 
     docker.shell(name, *args)
+
+
+def initializevault():
+    """ Initializes the Vault. """
+
+    resp = vault.init()
+    print('Keys:', resp['keys'])
+    print('Root token:', resp['root_token'])
