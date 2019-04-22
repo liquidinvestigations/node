@@ -26,17 +26,6 @@ log = logging.getLogger(__name__)
 log.setLevel(LOG_LEVEL)
 
 
-class InvalidCollectionName(RuntimeError):
-    """Exception raised for invalid collection names"""
-
-    def __init__(self, name):
-        super().__init__(f'''Invalid collection name "{name}"!
-
-Collection names must start with lower case letters and must contain only
-lower case letters and digits.
-''')
-
-
 class Configuration:
 
     def __init__(self):
@@ -137,7 +126,11 @@ class Configuration:
 
     def validate_collection_name(self, name):
         if not name.islower():
-            raise InvalidCollectionName(name)
+            raise ValueError(f'''Invalid collection name "{name}"!
+
+Collection names must start with lower case letters and must contain only
+lower case letters and digits.
+''')
 
 
 config = Configuration()
