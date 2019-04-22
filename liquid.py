@@ -26,6 +26,17 @@ log = logging.getLogger(__name__)
 log.setLevel(LOG_LEVEL)
 
 
+class InvalidCollectionName(RuntimeError):
+    """Exception raised for invalid collection names"""
+
+    def __init__(self, name):
+        super().__init__(f'''Invalid collection name "{name}"!
+
+Collection names must start with lower case letters and must contain only
+lower case letters and digits.
+''')
+
+
 class Configuration:
 
     def __init__(self):
@@ -107,6 +118,7 @@ class Configuration:
             (cls, name) = key.split(':')
 
             if cls == 'collection':
+                self.validate_collection_name(name)
                 self.collections[name] = self.ini[key]
 
             elif cls == 'job':
@@ -122,6 +134,10 @@ class Configuration:
             return self.ini[section_name][key]
 
         return default
+
+    def validate_collection_name(self, name):
+        if not name.islower():
+            raise InvalidCollectionName(name)
 
 
 config = Configuration()
@@ -277,12 +293,6 @@ def alloc(job, group):
     print(first(running, 'running allocations'))
 
 
-def collection_exists(name):
-    """Returns true if the collection with the given name was declared in the ini file."""
-
-    return any(name.lower() == coll.lower() for coll in config.collections)
-
-
 def initcollection(name):
     """Initialize collection with given name.
     
@@ -291,7 +301,7 @@ def initcollection(name):
     
     :param name: the collection name
     """
-    if not collection_exists(name):
+    if name not in config.collections:
         raise RuntimeError('Collection %s does not exist in the liquid.ini file.', name)
 
     snoop_nomad_service_name = f'snoop-{name}-api'
@@ -308,7 +318,7 @@ def initcollection(name):
     shell(snoop_nomad_service_name, './manage.py', 'initcollection')
 
     shell('hoover-search', './manage.py', 'addcollection', name, '--index',
-          name.lower(), f'{get_nomad_address()}:8765/{name}/collection/json', '--public')
+          name, f'{get_nomad_address()}:8765/{name}/collection/json', '--public')
 
 
 def get_nomad_address():
