@@ -29,8 +29,6 @@ log.setLevel(LOG_LEVEL)
 class Configuration:
 
     def __init__(self):
-        self.default_workers_no = 1
-
         self.jobs = [
             (job, Path(f'{job}.nomad'))
             for job in ['hoover', 'hoover-ui', 'liquid']
@@ -107,7 +105,7 @@ class Configuration:
             (cls, name) = key.split(':')
 
             if cls == 'collection':
-                self.validate_collection_name(name)
+                Configuration._validate_collection_name(name)
                 self.collections[name] = self.ini[key]
 
             elif cls == 'job':
@@ -124,7 +122,8 @@ class Configuration:
 
         return default
 
-    def validate_collection_name(self, name):
+    @classmethod
+    def _validate_collection_name(self, name):
         if not name.islower():
             raise ValueError(f'''Invalid collection name "{name}"!
 
@@ -286,6 +285,14 @@ def alloc(job, group):
     print(first(running, 'running allocations'))
 
 
+def get_search_collections():
+    try:
+        return docker_exec('hoover-search', './manage.py', 'listcollections').split()
+    except CalledProcessError as e:
+        print(e.output.decode(), file=sys.stderr)
+        raise
+
+
 def initcollection(name):
     """Initialize collection with given name.
     
@@ -297,18 +304,11 @@ def initcollection(name):
     if name not in config.collections:
         raise RuntimeError('Collection %s does not exist in the liquid.ini file.', name)
 
-    snoop_nomad_service_name = f'snoop-{name}-api'
+    if name in get_search_collections():
+        log.info(f'Collection "{name}" was already initialized.')
+        return
 
-    try:
-        existing_collections = docker_exec('hoover-search', './manage.py', 'listcollections').split()
-        if name in existing_collections:
-            log.info(f'Collection "{name}" was already initialized.')
-            return
-    except CalledProcessError as e:
-        print(e.output.decode(), file=sys.stderr)
-        raise
-
-    shell(snoop_nomad_service_name, './manage.py', 'initcollection')
+    shell(f'snoop-{name}-api', './manage.py', 'initcollection')
 
     shell('hoover-search', './manage.py', 'addcollection', name, '--index',
           name, f'{get_nomad_address()}:8765/{name}/collection/json', '--public')
@@ -328,7 +328,7 @@ def nomad_address():
 
 def set_collection_defaults(name, settings):
     settings['name'] = name
-    settings.setdefault('workers', config.default_workers_no)
+    settings.setdefault('workers', 1)
 
 
 def set_volumes_paths(substitutions={}):
@@ -416,12 +416,7 @@ def get_collections_to_purge():
 def purge_collection(name):
     """Purge data for the given collection, remove it from hoover search."""
 
-    try:
-        existing_collections = docker_exec('hoover-search', './manage.py', 'listcollections').split()
-    except CalledProcessError as e:
-        print(e.output.decode(), file=sys.stderr)
-
-    if name in existing_collections:
+    if name in get_search_collections():
         shell('hoover-search', './manage.py', 'removecollection', name)
         log.info(f'Collection {name} was removed from hoover search.')
 
@@ -467,8 +462,6 @@ def purge(force=False):
 
 def deploy():
     """ Run all the jobs in nomad. """
-
-    gc()
 
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', config.liquid_debug)
@@ -517,6 +510,7 @@ def main():
         alloc,
         nomad_address,
         deploy,
+        gc,
         halt,
         initcollection,
         purge,
