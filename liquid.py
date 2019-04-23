@@ -143,7 +143,7 @@ def run(cmd):
 def run_fg(cmd, **kwargs):
     kwargs.setdefault('shell', True)
     kwargs.setdefault('stderr', subprocess.STDOUT)
-    return subprocess.check_output(cmd, **kwargs).decode()
+    return subprocess.check_output(cmd, **kwargs).decode('latin1')
 
 
 class Docker:
@@ -268,7 +268,7 @@ def shell(name, *args):
     try:
         print(docker_exec(name, *args))
     except CalledProcessError as e:
-        print(e.output.decode(), file=sys.stderr)
+        print(e.output.decode('latin1'), file=sys.stderr)
         raise
 
 
@@ -289,7 +289,7 @@ def get_search_collections():
     try:
         return docker_exec('hoover-search', './manage.py', 'listcollections').split()
     except CalledProcessError as e:
-        print(e.output.decode(), file=sys.stderr)
+        print(e.output.decode('latin1'), file=sys.stderr)
         raise
 
 
@@ -328,7 +328,7 @@ def nomad_address():
 
 def set_collection_defaults(name, settings):
     settings['name'] = name
-    settings.setdefault('workers', 1)
+    settings.setdefault('workers', '1')
 
 
 def set_volumes_paths(substitutions={}):
