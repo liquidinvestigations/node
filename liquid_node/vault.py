@@ -1,7 +1,10 @@
 from urllib.error import HTTPError
+import logging
 
 from .configuration import config
 from .jsonapi import JsonApi
+
+log = logging.getLogger(__name__)
 
 
 class Vault(JsonApi):
@@ -24,6 +27,12 @@ class Vault(JsonApi):
 
     def unseal(self, key):
         return self.put('sys/unseal', {'key': key})
+
+    def ensure_engine(self):
+        mounts = self.get('sys/mounts')
+        if 'liquid/' not in mounts['data']:
+            log.info("Creating kv secrets engine `liquid`")
+            self.post(f'sys/mounts/liquid', {'type': 'kv'})
 
     def read(self, path):
         try:

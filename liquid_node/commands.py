@@ -32,6 +32,8 @@ def deploy():
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', config.liquid_debug)
 
+    vault.ensure_engine()
+
     for path, key in random_secret_keys:
         if not vault.read(path):
             log.info(f"Generating secrets for {path}")
