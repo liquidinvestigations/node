@@ -13,6 +13,10 @@ from pathlib import Path
 import configparser
 from string import Template
 from copy import copy
+from subprocess import CalledProcessError
+import sys
+import shutil
+from collections import OrderedDict
 
 
 DEBUG = os.environ.get('DEBUG', '').lower() in ['on', 'true']
@@ -93,7 +97,7 @@ class Configuration:
             '80',
         )
 
-        self.collections = []
+        self.collections = OrderedDict()
         for key in self.ini:
             if ':' not in key:
                 continue
@@ -101,7 +105,8 @@ class Configuration:
             (cls, name) = key.split(':')
 
             if cls == 'collection':
-                self.collections.append((name, self.ini[key]))
+                Configuration._validate_collection_name(name)
+                self.collections[name] = self.ini[key]
 
             elif cls == 'job':
                 job_config = self.ini[key]
@@ -117,13 +122,24 @@ class Configuration:
 
         return default
 
+    @classmethod
+    def _validate_collection_name(self, name):
+        if not name.islower():
+            raise ValueError(f'''Invalid collection name "{name}"!
+
+Collection names must start with lower case letters and must contain only
+lower case letters and digits.
+''')
+
 
 config = Configuration()
 
 
-def run(cmd):
+def run(cmd, **kwargs):
     log.debug("+ %s", cmd)
-    return subprocess.check_output(cmd, shell=True).decode('latin1')
+    kwargs.setdefault('shell', True)
+    kwargs.setdefault('stderr', subprocess.STDOUT)
+    return subprocess.check_output(cmd, **kwargs).decode('latin1')
 
 
 def run_fg(cmd, **kwargs):
@@ -197,6 +213,9 @@ class Nomad(JsonApi):
         spec = self.post(f'jobs/parse', {'JobHCL': hcl})
         return self.post(f'jobs', {'job': spec})
 
+    def jobs(self):
+        return nomad.get(f'jobs')
+
     def job_allocations(self, job):
         return nomad.get(f'job/{job}/allocations')
 
@@ -233,14 +252,27 @@ def first(items, name_plural='items'):
     return items[0]
 
 
-def shell(name, *args):
-    """
-    Open a shell in a docker container tagged with liquid_task=`name`
+def docker_exec_command(name, *args, tty=False):
+    """Prepare and return the command to run in a docker container tagged with
+    liquid_task=`name`
+
+    :param name: the value of the liquid_task tag
+    :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
     """
     containers = docker.containers([('liquid_task', name)])
     container_id = first(containers, 'containers')
-    docker_exec_cmd = ['docker', 'exec', '-it', container_id] + list(args or ['bash'])
-    run_fg(docker_exec_cmd, shell=False)
+
+    docker_exec_cmd = ['docker', 'exec']
+    if tty:
+        docker_exec_cmd += ['-it']
+    docker_exec_cmd += [container_id] + list(args or ['bash'] if tty else [])
+
+    return docker_exec_cmd
+
+
+def shell(name, *args):
+    """Open a shell in a docker container tagged with liquid_task=`name`"""
+    run_fg(docker_exec_command(name, *args, tty=True), shell=False)
 
 
 def alloc(job, group):
@@ -256,12 +288,46 @@ def alloc(job, group):
     print(first(running, 'running allocations'))
 
 
-def nomad_address():
+def get_search_collections():
+    try:
+        return run(docker_exec_command('hoover-search', './manage.py', 'listcollections'),
+                   shell=False).split()
+    except CalledProcessError as e:
+        print(e.output.decode('latin1'), file=sys.stderr)
+        raise
+
+
+def initcollection(name):
+    """Initialize collection with given name.
+    
+    Create the snoop database, create the search index, run dispatcher, add collection
+    to search.
+    
+    :param name: the collection name
+    """
+    if name not in config.collections:
+        raise RuntimeError('Collection %s does not exist in the liquid.ini file.', name)
+
+    if name in get_search_collections():
+        log.info(f'Collection "{name}" was already initialized.')
+        return
+
+    shell(f'snoop-{name}-api', './manage.py', 'initcollection')
+
+    shell('hoover-search', './manage.py', 'addcollection', name, '--index',
+          name, f'{get_nomad_address()}:8765/{name}/collection/json', '--public')
+
+
+def get_nomad_address():
     """
     Print the nomad server's address.
     """
     members = [m['Addr'] for m in nomad.agent_members()]
-    print(first(members, 'members'))
+    return first(members, 'members')
+
+
+def nomad_address():
+    print(get_nomad_address())
 
 
 def set_collection_defaults(name, settings):
@@ -327,6 +393,77 @@ def get_job(hcl_path, substitutions={}):
     return template.safe_substitute(set_volumes_paths(substitutions))
 
 
+def gc():
+    """Stop collections jobs that are no longer declared in the ini file."""
+
+    nomad_jobs = nomad.jobs()
+
+    for job in nomad_jobs:
+        if job['ID'].startswith('collection-'):
+            collection_name = job['ID'][len('collection-'):]
+            if collection_name not in config.collections and job['Status'] == 'running':
+                log.info('Stopping %s...', job['ID'])
+                nomad.stop(job['ID'])
+
+
+def get_collections_to_purge():
+    """Returns a set of collections to purge."""
+
+    ini_collections = set(config.collections.keys())
+
+    collections_dir = Path(config.liquid_volumes) / 'collections'
+    volumes = set([subdir.name for subdir in collections_dir.iterdir() if subdir.is_dir()])
+
+    return volumes - ini_collections
+
+
+def purge_collection(name):
+    """Purge data for the given collection, remove it from hoover search."""
+
+    if name in get_search_collections():
+        shell('hoover-search', './manage.py', 'removecollection', name)
+        log.info(f'Collection {name} was removed from hoover search.')
+
+    collection_volume = Path(config.liquid_volumes) / 'collections' / name
+    if collection_volume.is_dir():
+        shutil.rmtree(collection_volume)
+    log.info(f'Collection {name} data was purged.')
+
+
+def purge(force=False):
+    """Purge collections no longer declared in the ini file
+
+    Remove the residual data and the hoover search index for collections that are no
+    longer declared in the ini file.
+    """
+
+    to_purge = get_collections_to_purge()
+    if not to_purge:
+        print('No collections to purge.')
+        return
+
+    if to_purge:
+        print('The following collections will be purged:')
+        for coll in to_purge:
+            print(' - ', coll)
+        print('')
+
+    if not force:
+        confirm = None
+        while confirm not in ['y', 'n']:
+            print('Please confirm collections purge [y/n]: ', end='')
+            confirm = input().lower()
+            if confirm not in ['y', 'n']:
+                print(f'Invalid input: {confirm}')
+
+    if force or confirm == 'y':
+        for coll in to_purge:
+            print(f'Purging collection {coll}...')
+            purge_collection(coll)
+    else:
+        print('No collections will be purged')
+
+
 def deploy():
     """ Run all the jobs in nomad. """
 
@@ -336,7 +473,7 @@ def deploy():
     jobs = [(job, get_job(path)) for job, path in config.jobs]
     jobs.extend(
         (f'collection-{name}', get_collection_job(name, settings))
-        for name, settings in config.collections
+        for name, settings in config.collections.items()
     )
 
     for job, hcl in jobs:
@@ -348,7 +485,7 @@ def halt():
     """ Stop all the jobs in nomad. """
 
     jobs = [j for j, _ in config.jobs]
-    jobs.extend(f'collection-{name}' for name, _ in config.collections)
+    jobs.extend(f'collection-{name}' for name in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
         nomad.stop(job)
@@ -377,7 +514,10 @@ def main():
         alloc,
         nomad_address,
         deploy,
+        gc,
         halt,
+        initcollection,
+        purge,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
