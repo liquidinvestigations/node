@@ -265,7 +265,7 @@ def docker_exec_command(name, *args, tty=False):
     docker_exec_cmd = ['docker', 'exec']
     if tty:
         docker_exec_cmd += ['-it']
-    docker_exec_cmd += [container_id] + list(args or ['bash'] if tty else [])
+    docker_exec_cmd += [container_id] + list(args or (['bash'] if tty else []))
 
     return docker_exec_cmd
 
