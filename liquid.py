@@ -3,6 +3,7 @@
 """ Manage liquid on a nomad cluster. """
 
 import os
+import sys
 import logging
 import subprocess
 from urllib.request import Request, urlopen
@@ -181,15 +182,10 @@ class JsonApi:
             method=method,
         )
 
-        try:
-            with urlopen(req) as res:
-                res_body = json.load(res)
-                log.debug('response: %r', res_body)
-                return res_body
-
-        except HTTPError as e:
-            log.error("Error %r: %r", e, e.file.read())
-            raise
+        with urlopen(req) as res:
+            res_body = json.load(res)
+            log.debug('response: %r', res_body)
+            return res_body
 
     def get(self, url):
         return self.request('GET', url)
@@ -529,4 +525,9 @@ if __name__ == '__main__':
         format='%(asctime)s %(levelname)s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
     )
-    main()
+
+    try:
+        main()
+    except HTTPError as e:
+        log.exception("HTTP Error %r: %r", e, e.file.read())
+        sys.exit(1)
