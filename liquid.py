@@ -262,8 +262,6 @@ def docker_exec_command(name, *args, tty=False):
     containers = docker.containers([('liquid_task', name)])
     container_id = first(containers, 'containers')
 
-    args = [arg.replace('__nomad_address__', get_nomad_address()) for arg in args]
-
     docker_exec_cmd = ['docker', 'exec']
     if tty:
         docker_exec_cmd += ['-it']
