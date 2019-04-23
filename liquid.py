@@ -135,15 +135,16 @@ lower case letters and digits.
 config = Configuration()
 
 
-def run(cmd):
+def run(cmd, **kwargs):
     log.debug("+ %s", cmd)
-    return subprocess.check_output(cmd, shell=True).decode('latin1')
+    kwargs.setdefault('shell', True)
+    kwargs.setdefault('stderr', subprocess.STDOUT)
+    return subprocess.check_output(cmd, **kwargs).decode('latin1')
 
 
 def run_fg(cmd, **kwargs):
     kwargs.setdefault('shell', True)
-    kwargs.setdefault('stderr', subprocess.STDOUT)
-    return subprocess.check_output(cmd, **kwargs).decode('latin1')
+    subprocess.check_call(cmd, **kwargs)
 
 
 class Docker:
@@ -251,25 +252,29 @@ def first(items, name_plural='items'):
     return items[0]
 
 
-def docker_exec(name, *args):
-    """Open a shell in a docker container tagged with liquid_task=`name`
-    
-    Return the output of the command as a string
+def prepare_command(name, *args, tty=False):
+    """Prepare and return the command to run in a docker container tagged with
+    liquid_task=`name`
+
+    :param name: the value of the liquid_task tag
+    :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
     """
     containers = docker.containers([('liquid_task', name)])
     container_id = first(containers, 'containers')
+
     args = [arg.replace('__nomad_address__', get_nomad_address()) for arg in args]
-    docker_exec_cmd = ['docker', 'exec', container_id] + list(args or ['bash'])
-    return run_fg(docker_exec_cmd, shell=False)
+
+    docker_exec_cmd = ['docker', 'exec']
+    if tty:
+        docker_exec_cmd += ['-it']
+    docker_exec_cmd += [container_id] + list(args or ['bash'])
+
+    return docker_exec_cmd
 
 
 def shell(name, *args):
     """Open a shell in a docker container tagged with liquid_task=`name`"""
-    try:
-        print(docker_exec(name, *args))
-    except CalledProcessError as e:
-        print(e.output.decode('latin1'), file=sys.stderr)
-        raise
+    run_fg(prepare_command(name, *args, tty=True), shell=False)
 
 
 def alloc(job, group):
@@ -287,7 +292,7 @@ def alloc(job, group):
 
 def get_search_collections():
     try:
-        return docker_exec('hoover-search', './manage.py', 'listcollections').split()
+        return run(prepare_command('hoover-search', './manage.py', 'listcollections'), shell=False).split()
     except CalledProcessError as e:
         print(e.output.decode('latin1'), file=sys.stderr)
         raise
