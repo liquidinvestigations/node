@@ -252,7 +252,7 @@ def first(items, name_plural='items'):
     return items[0]
 
 
-def prepare_command(name, *args, tty=False):
+def docker_exec_command(name, *args, tty=False):
     """Prepare and return the command to run in a docker container tagged with
     liquid_task=`name`
 
@@ -267,14 +267,14 @@ def prepare_command(name, *args, tty=False):
     docker_exec_cmd = ['docker', 'exec']
     if tty:
         docker_exec_cmd += ['-it']
-    docker_exec_cmd += [container_id] + list(args or ['bash'])
+    docker_exec_cmd += [container_id] + list(args or ['bash'] if tty else [])
 
     return docker_exec_cmd
 
 
 def shell(name, *args):
     """Open a shell in a docker container tagged with liquid_task=`name`"""
-    run_fg(prepare_command(name, *args, tty=True), shell=False)
+    run_fg(docker_exec_command(name, *args, tty=True), shell=False)
 
 
 def alloc(job, group):
@@ -292,7 +292,8 @@ def alloc(job, group):
 
 def get_search_collections():
     try:
-        return run(prepare_command('hoover-search', './manage.py', 'listcollections'), shell=False).split()
+        return run(docker_exec_command('hoover-search', './manage.py', 'listcollections'),
+                   shell=False).split()
     except CalledProcessError as e:
         print(e.output.decode('latin1'), file=sys.stderr)
         raise
