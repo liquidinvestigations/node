@@ -2,12 +2,14 @@ import logging
 from getpass import getpass
 import os
 import base64
+import json
 
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
 from .jobs import get_job, get_collection_job
 from .nomad import nomad
+from .process import run
 from .util import first
 from .collections import get_search_collections
 from .docker import docker
@@ -16,14 +18,24 @@ from .vault import vault
 
 log = logging.getLogger(__name__)
 
-random_secret_keys = [
-    ('core', 'secret_key'),
+core_auth_apps = [
+    {
+        'name': 'authdemo',
+        'vault_path': 'authdemo.coreauth',
+        'callback': f'http://authdemo.{config.liquid_domain}/__auth/callback',
+    },
 ]
 
 
 def random_secret():
     """ Generate a crypto-quality 256-bit random string. """
     return str(base64.b16encode(os.urandom(32)), 'latin1').lower()
+
+
+def ensure_secret_key(path):
+    if not vault.read(path):
+        log.info(f"Generating secrets for {path}")
+        vault.set(path, {'secret_key': random_secret()})
 
 
 def deploy():
@@ -34,10 +46,13 @@ def deploy():
 
     vault.ensure_engine()
 
-    for path, key in random_secret_keys:
-        if not vault.read(path):
-            log.info(f"Generating secrets for {path}")
-            vault.set(path, {key: random_secret()})
+    vault_secret_keys = [
+        'core',
+        'authdemo',
+    ]
+
+    for path in vault_secret_keys:
+        ensure_secret_key(path)
 
     jobs = [(job, get_job(path)) for job, path in config.jobs]
     jobs.extend(
@@ -48,6 +63,15 @@ def deploy():
     for job, hcl in jobs:
         log.info('Starting %s...', job)
         nomad.run(hcl)
+
+    for app in core_auth_apps:
+        log.info('Auth %s -> %s', app['name'], app['callback'])
+        cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
+        containers = docker.containers([('liquid_task', 'liquid-core')])
+        container_id = first(containers, 'containers')
+        docker_exec_cmd = ['docker', 'exec', '-it', container_id] + cmd
+        tokens = json.loads(run(docker_exec_cmd, shell=False))
+        vault.set(app['vault_path'], tokens)
 
 
 def halt():

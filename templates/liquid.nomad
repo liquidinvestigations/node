@@ -64,6 +64,22 @@ job "liquid" {
             }
           {{- end }}
 
+          {{- if service "authdemo" }}
+            upstream authdemo {
+              {{- range service "authdemo" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
+            }
+            server {
+              listen 80;
+              server_name authdemo.{{ key "liquid_domain" }};
+              location / {
+                proxy_pass http://authdemo;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
           {{- if service "hoover" }}
             upstream hoover {
               {{- range service "hoover" }}
