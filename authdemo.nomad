@@ -39,22 +39,22 @@ job "authdemo" {
       }
       template {
         data = <<EOF
-          {{range service "authdemo-app"}}
+          {{- range service "authdemo-app" }}
             UPSTREAM_APP_URL = http://{{.Address}}:{{.Port}}
-          {{end}}
+          {{- end }}
           DEBUG = {{key "liquid_debug"}}
           USER_HEADER_TEMPLATE = {}
-          {{range service "core"}}
+          {{- range service "core" }}
             LIQUID_INTERNAL_URL = http://{{.Address}}:{{.Port}}
-          {{end}}
+          {{- end }}
           LIQUID_PUBLIC_URL = http://{{key "liquid_domain"}}
-          {{with secret "liquid/authdemo"}}
+          {{- with secret "liquid/authdemo/auth.django" }}
             SECRET_KEY = {{.Data.secret_key}}
-          {{end}}
-          {{with secret "liquid/authdemo.coreauth"}}
+          {{- end }}
+          {{- with secret "liquid/authdemo/auth.oauth2" }}
             LIQUID_CLIENT_ID = {{.Data.client_id}}
             LIQUID_CLIENT_SECRET = {{.Data.client_secret}}
-          {{end}}
+          {{- end }}
         EOF
         destination = "local/docker.env"
         env = true

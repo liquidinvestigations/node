@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 core_auth_apps = [
     {
         'name': 'authdemo',
-        'vault_path': 'authdemo.coreauth',
+        'vault_path': 'authdemo/auth.oauth2',
         'callback': f'http://authdemo.{config.liquid_domain}/__auth/callback',
     },
 ]
@@ -47,18 +47,20 @@ def deploy():
     vault.ensure_engine()
 
     vault_secret_keys = [
-        'core',
-        'authdemo',
+        'liquid/core.django',
+        'hoover/search.django',
+        'authdemo/auth.django',
     ]
 
     for path in vault_secret_keys:
         ensure_secret_key(path)
 
     jobs = [(job, get_job(path)) for job, path in config.jobs]
-    jobs.extend(
-        (f'collection-{name}', get_collection_job(name, settings))
-        for name, settings in config.collections.items()
-    )
+
+    for name, settings in config.collections.items():
+        job = get_collection_job(name, settings)
+        jobs.append((f'collection-{name}', job))
+        ensure_secret_key(f'collections/{name}/snoop.django')
 
     for job, hcl in jobs:
         log.info('Starting %s...', job)

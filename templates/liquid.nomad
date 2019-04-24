@@ -22,9 +22,9 @@ job "liquid" {
         data = <<EOF
           DEBUG = {{key "liquid_debug"}}
           HTTP_HOST = {{key "liquid_domain"}}
-          {{with secret "liquid/core"}}
+          {{- with secret "liquid/liquid/core.django" }}
             SECRET_KEY = {{.Data.secret_key}}
-          {{end}}
+          {{- end }}
         EOF
         destination = "local/docker.env"
         env = true

@@ -81,25 +81,22 @@ job "hoover" {
           liquid_task = "hoover-search"
         }
       }
-      env {
-        SECRET_KEY = "TODO change me"
-      }
       template {
         data = <<EOF
-            {{- if keyExists "liquid_debug" }}
-              DEBUG = {{ key "liquid_debug" }}
-            {{- end }}
-            HOOVER_DB = postgresql://hoover:hoover@
-              {{- range service "hoover-pg" -}}
-                {{ .Address }}:{{ .Port }}
-              {{- end -}}
-              /hoover
-            HOOVER_ES_URL = http://
-              {{- range service "hoover-es" -}}
-                {{ .Address }}:{{ .Port }}
-              {{- end }}
-            HOOVER_HOSTNAME = hoover.{{ key "liquid_domain" }}
-          EOF
+          {{- if keyExists "liquid_debug" }}
+            DEBUG = {{key "liquid_debug"}}
+          {{- end }}
+          {{- with secret "liquid/hoover/search.django" }}
+            SECRET_KEY = {{.Data.secret_key}}
+          {{- end }}
+          {{- range service "hoover-pg" }}
+            HOOVER_DB = postgresql://hoover:hoover@{{.Address}}:{{.Port}}/hoover
+          {{- end }}
+          {{- range service "hoover-es" }}
+            HOOVER_ES_URL = http://{{.Address}}:{{.Port}}
+          {{- end }}
+          HOOVER_HOSTNAME = hoover.{{ key "liquid_domain" }}
+        EOF
         destination = "local/hoover.env"
         env = true
       }
