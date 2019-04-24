@@ -95,7 +95,15 @@ job "hoover" {
           {{- range service "hoover-es" }}
             HOOVER_ES_URL = http://{{.Address}}:{{.Port}}
           {{- end }}
-          HOOVER_HOSTNAME = hoover.{{ key "liquid_domain" }}
+          HOOVER_HOSTNAME = hoover.{{key "liquid_domain"}}
+          {{- with secret "liquid/hoover/search.oauth2" }}
+            LIQUID_AUTH_PUBLIC_URL = http://{{key "liquid_domain"}}
+            {{- range service "core" }}
+              LIQUID_AUTH_INTERNAL_URL = http://{{.Address}}:{{.Port}}
+            {{- end }}
+            LIQUID_AUTH_CLIENT_ID = {{.Data.client_id}}
+            LIQUID_AUTH_CLIENT_SECRET = {{.Data.client_secret}}
+          {{- end }}
         EOF
         destination = "local/hoover.env"
         env = true

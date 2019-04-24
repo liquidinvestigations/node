@@ -24,6 +24,14 @@ core_auth_apps = [
         'vault_path': 'authdemo/auth.oauth2',
         'callback': f'http://authdemo.{config.liquid_domain}/__auth/callback',
     },
+    {
+        'name': 'hoover',
+        'vault_path': 'hoover/search.oauth2',
+        'callback': (
+            f'http://hoover.{config.liquid_domain}'
+            '/accounts/oauth2-exchange/'
+        ),
+    },
 ]
 
 
