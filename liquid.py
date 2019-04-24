@@ -3,6 +3,7 @@
 """ Manage liquid on a nomad cluster. """
 
 import os
+import sys
 import logging
 import subprocess
 from urllib.request import Request, urlopen
@@ -37,16 +38,16 @@ class Configuration:
         self.ini = configparser.ConfigParser()
         self.ini.read('liquid.ini')
 
-        self.nomad_url = self.get(
-            'NOMAD_URL',
-            'cluster.nomad_url',
-            'http://127.0.0.1:4646',
-        )
-
         self.consul_url = self.get(
             'CONSUL_URL',
             'cluster.consul_url',
             'http://127.0.0.1:8500',
+        )
+
+        self.nomad_url = self.get(
+            'NOMAD_URL',
+            'cluster.nomad_url',
+            'http://127.0.0.1:4646',
         )
 
         self.liquid_domain = self.get(
@@ -181,15 +182,10 @@ class JsonApi:
             method=method,
         )
 
-        try:
-            with urlopen(req) as res:
-                res_body = json.load(res)
-                log.debug('response: %r', res_body)
-                return res_body
-
-        except HTTPError as e:
-            log.error("Error %r: %r", e, e.file.read())
-            raise
+        with urlopen(req) as res:
+            res_body = json.load(res)
+            log.debug('response: %r', res_body)
+            return res_body
 
     def get(self, url):
         return self.request('GET', url)
@@ -202,6 +198,15 @@ class JsonApi:
 
     def delete(self, url):
         return self.request('DELETE', url)
+
+
+class Consul(JsonApi):
+
+    def __init__(self, endpoint):
+        super().__init__(endpoint + '/v1/')
+
+    def set_kv(self, key, value):
+        assert self.put(f'kv/{key}', value.encode('latin1'))
 
 
 class Nomad(JsonApi):
@@ -226,18 +231,9 @@ class Nomad(JsonApi):
         return self.delete(f'job/{job}')
 
 
-class Consul(JsonApi):
-
-    def __init__(self, endpoint):
-        super().__init__(endpoint + '/v1/')
-
-    def set_kv(self, key, value):
-        assert self.put(f'kv/{key}', value.encode('latin1'))
-
-
 docker = Docker()
-nomad = Nomad(config.nomad_url)
 consul = Consul(config.consul_url)
+nomad = Nomad(config.nomad_url)
 
 
 def first(items, name_plural='items'):
@@ -529,4 +525,9 @@ if __name__ == '__main__':
         format='%(asctime)s %(levelname)s %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
     )
-    main()
+
+    try:
+        main()
+    except HTTPError as e:
+        log.exception("HTTP Error %r: %r", e, e.file.read())
+        sys.exit(1)
