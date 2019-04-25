@@ -17,6 +17,7 @@ def run_fg(cmd, **kwargs):
     kwargs.setdefault('shell', True)
     subprocess.check_call(cmd, **kwargs)
 
+
 def run_shell(name, *args):
     from .docker import docker
     run_fg(docker.exec_command(name, *args, tty=True), shell=False)

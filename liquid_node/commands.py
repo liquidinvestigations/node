@@ -64,8 +64,7 @@ def alloc(job, group):
     allocs = nomad.job_allocations(job)
     running = [
         a['ID'] for a in allocs
-        if a['ClientStatus'] == 'running'
-            and a['TaskGroup'] == group
+        if a['ClientStatus'] == 'running' and a['TaskGroup'] == group
     ]
     print(first(running, 'running allocations'))
 
