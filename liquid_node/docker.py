@@ -19,7 +19,7 @@ class Docker:
         """
 
         containers = self.containers([('liquid_task', name)])
-        container_id = first(containers, 'containers')
+        container_id = first(containers, f'{name} containers')
 
         docker_exec_cmd = ['docker', 'exec']
         if tty:
