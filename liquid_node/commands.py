@@ -1,5 +1,4 @@
 import logging
-from getpass import getpass
 import os
 import base64
 import json
@@ -193,19 +192,3 @@ def shell(name, *args):
     """Open a shell in a docker container tagged with liquid_task=`name`"""
 
     docker.shell(name, *args)
-
-
-def initializevault():
-    """ Initializes the Vault. """
-
-    resp = vault.init()
-    print('Keys:', resp['keys'])
-    print('Root token:', resp['root_token'])
-
-
-def unsealvault():
-    """ Unseal the Vault. """
-
-    key = config.vault_key or getpass()
-    status = vault.unseal(key)
-    print('Vault is now', 'sealed' if status['sealed'] else 'unsealed')

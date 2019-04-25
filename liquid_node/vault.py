@@ -19,15 +19,6 @@ class Vault(JsonApi):
             headers['X-Vault-Token'] = self.token
         return super().request(*args, headers=headers, **kwargs)
 
-    def init(self):
-        return self.put('sys/init', {
-            'secret_shares': 1,
-            'secret_threshold': 1,
-        })
-
-    def unseal(self, key):
-        return self.put('sys/unseal', {'key': key})
-
     def ensure_engine(self):
         mounts = self.get('sys/mounts')
         if 'liquid/' not in mounts['data']:

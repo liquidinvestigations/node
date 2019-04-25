@@ -34,12 +34,16 @@ nomad agent -dev -config=nomad-agent.hcl &
 
 # Setup
 
-The Liquid Investigations cluster configuration is read from `liquid.ini`. Start with the following:
+The Liquid Investigations cluster configuration is read from `liquid.ini`.
+Start with the following:
 
 ```shell
 cat > liquid.ini <<EOF
 [liquid]
 domain = liquid.example.org
+
+[cluster]
+vault_secrets = /opt/cluster/var/vault-secrets.ini
 EOF
 
 ./liquid deploy
