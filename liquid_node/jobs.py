@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from string import Template
 
 from .configuration import config

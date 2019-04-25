@@ -6,7 +6,7 @@ import os
 import sys
 import logging
 import argparse
-from src.commands import shell, alloc, deploy, halt, purge, gc, nomad_address,\
+from liquid_node.commands import shell, alloc, deploy, halt, purge, gc, nomad_address,\
     initcollection
 from urllib.error import HTTPError
 

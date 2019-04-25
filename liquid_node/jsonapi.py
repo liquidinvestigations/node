@@ -1,6 +1,5 @@
 import json
 import logging
-from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
