@@ -30,17 +30,23 @@ class Configuration:
             'http://127.0.0.1:8200',
         )
 
-        self.vault_key = self.get(
-            'VAULT_KEY',
-            'cluster.vault_key',
-            None,
-        )
+        def read_vault_secrets():
+            vault_secrets_path = self.get(
+                'VAULT_SECRETS_PATH',
+                'cluster.vault_secrets',
+                None,
+            )
+
+            if vault_secrets_path:
+                secrets = configparser.ConfigParser()
+                secrets.read(vault_secrets_path)
+                return secrets.get('vault', 'root_token', fallback=None)
 
         self.vault_token = self.get(
             'VAULT_TOKEN',
             'cluster.vault_token',
             None,
-        )
+        ) or read_vault_secrets()
 
         self.nomad_url = self.get(
             'NOMAD_URL',
