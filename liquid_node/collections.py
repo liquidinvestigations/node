@@ -6,13 +6,15 @@ import sys
 
 from .configuration import config
 from .docker import docker
-from .process import run, run_shell
+from .process import run
 
 
 log = logging.getLogger(__name__)
 
 
 def get_search_collections():
+    """Returns a list of collections found in hoover search."""
+
     try:
         return run(docker.exec_command('hoover-search', './manage.py', 'listcollections'),
                    shell=False).split()
@@ -36,7 +38,7 @@ def purge_collection(name):
     """Purge data for the given collection, remove it from hoover search."""
 
     if name in get_search_collections():
-        run_shell('hoover-search', './manage.py', 'removecollection', name)
+        docker.shell('hoover-search', './manage.py', 'removecollection', name)
         log.info(f'Collection {name} was removed from hoover search.')
 
     collection_volume = Path(config.liquid_volumes) / 'collections' / name

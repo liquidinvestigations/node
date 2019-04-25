@@ -1,5 +1,6 @@
 from .process import run
 from .util import first
+from liquid_node.process import run_fg
 
 
 class Docker:
@@ -16,6 +17,7 @@ class Docker:
         :param name: the value of the liquid_task tag
         :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
         """
+
         containers = self.containers([('liquid_task', name)])
         container_id = first(containers, 'containers')
 
@@ -25,6 +27,13 @@ class Docker:
         docker_exec_cmd += [container_id] + list(args or (['bash'] if tty else []))
 
         return docker_exec_cmd
+
+    def shell(self, name, *args):
+        """Run the given command in a docker container tagged with liquid_task=`name`.
+
+        The command output is redirected to the standard output and a tty is opened.
+        """
+        run_fg(self.exec_command(name, *args, tty=True), shell=False)
 
 
 docker = Docker()
