@@ -18,6 +18,17 @@ job "liquid" {
           http = 8000
         }
       }
+      template {
+        data = <<EOF
+          DEBUG = {{key "liquid_debug"}}
+          HTTP_HOST = {{key "liquid_domain"}}
+          {{- with secret "liquid/liquid/core.django" }}
+            SECRET_KEY = {{.Data.secret_key}}
+          {{- end }}
+        EOF
+        destination = "local/docker.env"
+        env = true
+      }
       resources {
         memory = 200
         network {
@@ -48,6 +59,22 @@ job "liquid" {
               server_name {{ key "liquid_domain" }};
               location / {
                 proxy_pass http://core;
+                proxy_set_header Host $host;
+              }
+            }
+          {{- end }}
+
+          {{- if service "authdemo" }}
+            upstream authdemo {
+              {{- range service "authdemo" }}
+                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
+              {{- end }}
+            }
+            server {
+              listen 80;
+              server_name authdemo.{{ key "liquid_domain" }};
+              location / {
+                proxy_pass http://authdemo;
                 proxy_set_header Host $host;
               }
             }

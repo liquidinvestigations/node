@@ -6,8 +6,7 @@ import os
 import sys
 import logging
 import argparse
-from liquid_node.commands import shell, alloc, deploy, halt, purge, gc, nomad_address,\
-    initcollection
+from liquid_node import commands
 from urllib.error import HTTPError
 
 
@@ -37,14 +36,16 @@ class SubcommandParser(argparse.ArgumentParser):
 def main():
     parser = SubcommandParser(description=__doc__)
     parser.add_subcommands('cmd', [
-        shell,
-        alloc,
-        nomad_address,
-        deploy,
-        gc,
-        halt,
-        initcollection,
-        purge,
+        commands.shell,
+        commands.alloc,
+        commands.nomad_address,
+        commands.deploy,
+        commands.gc,
+        commands.halt,
+        commands.initcollection,
+        commands.purge,
+        commands.initializevault,
+        commands.unsealvault,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)

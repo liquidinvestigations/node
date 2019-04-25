@@ -24,6 +24,24 @@ class Configuration:
             'http://127.0.0.1:8500',
         )
 
+        self.vault_url = self.get(
+            'VAULT_URL',
+            'cluster.vault_url',
+            'http://127.0.0.1:8200',
+        )
+
+        self.vault_key = self.get(
+            'VAULT_KEY',
+            'cluster.vault_key',
+            None,
+        )
+
+        self.vault_token = self.get(
+            'VAULT_TOKEN',
+            'cluster.vault_token',
+            None,
+        )
+
         self.nomad_url = self.get(
             'NOMAD_URL',
             'cluster.nomad_url',
