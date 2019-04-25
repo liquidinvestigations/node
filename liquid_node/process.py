@@ -6,6 +6,8 @@ log = logging.getLogger(__name__)
 
 
 def run(cmd, **kwargs):
+    """Run the given command in a subprocess and return the captured output."""
+
     log.debug("+ %s", cmd)
     kwargs.setdefault('shell', True)
     kwargs.setdefault('stderr', subprocess.STDOUT)
@@ -13,11 +15,11 @@ def run(cmd, **kwargs):
 
 
 def run_fg(cmd, **kwargs):
+    """Run the given command in a subprocess.
+
+    The command output is redirected to the standard output and a tty is opened.
+    """
+
     log.debug("+ %s", cmd)
     kwargs.setdefault('shell', True)
     subprocess.check_call(cmd, **kwargs)
-
-
-def run_shell(name, *args):
-    from .docker import docker
-    run_fg(docker.exec_command(name, *args, tty=True), shell=False)

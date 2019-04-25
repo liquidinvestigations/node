@@ -12,6 +12,13 @@ class JsonApi:
         self.endpoint = endpoint
 
     def request(self, method, url, data=None):
+        """Makes a request against the JSON endpoint
+
+        :param method: the request method
+        :param url: the path in the JSON API
+        :param data: the request body
+        :type data: bytes|str
+        """
         req_url = f'{self.endpoint}{url}'
         req_headers = {}
         req_body = None

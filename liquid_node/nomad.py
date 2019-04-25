@@ -25,7 +25,8 @@ class Nomad(JsonApi):
         return self.delete(f'job/{job}')
 
     def get_address(self):
-        """Print the nomad server's address."""
+        """Return the nomad server's address."""
+
         members = [m['Addr'] for m in self.agent_members()]
         return first(members, 'members')
 

@@ -5,11 +5,24 @@ from .configuration import config
 
 
 def set_collection_defaults(name, settings):
+    """Sets the collection job default options
+
+    :param name: collection name
+    :param settings: dictionary containing the collection job options
+    """
+
     settings['name'] = name
     settings.setdefault('workers', '1')
 
 
 def set_volumes_paths(substitutions={}):
+    """Sets the volumes paths in the job options
+
+    :param substitutions: dictionary containing the job options
+    :returns: the job options
+    :rtype: dict
+    """
+
     substitutions['liquid_volumes'] = config.liquid_volumes
     substitutions['liquid_collections'] = config.liquid_collections
     substitutions['liquid_http_port'] = config.liquid_http_port
@@ -54,6 +67,14 @@ def set_volumes_paths(substitutions={}):
 
 
 def get_collection_job(name, settings):
+    """Return the collection job description
+
+    :param name: collection name
+    :param settings: dictionary containing the collection job options
+    :returns: collection job description
+    :rtype: str
+    """
+
     substitutions = dict(settings)
     set_collection_defaults(name, substitutions)
 
@@ -61,6 +82,14 @@ def get_collection_job(name, settings):
 
 
 def get_job(hcl_path, substitutions={}):
+    """Return the job description generated from the given template
+
+    :param hcl_path: the path to the hcl template file
+    :param substitutions: dictionary containing the job options
+    :returns: the job description
+    :rtype: str
+    """
+
     with hcl_path.open() as job_file:
         template = Template(job_file.read())
 
