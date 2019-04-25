@@ -12,6 +12,21 @@ class Nomad(JsonApi):
         spec = self.post(f'jobs/parse', {'JobHCL': hcl})
         return self.post(f'jobs', {'job': spec})
 
+    def get_health_checks(self, hcl):
+        """Generates (service, check_name_list) tuples for the supplied job"""
+
+        def name(check):
+            assert check['Name'], (
+                f'Service check for service "{service["Name"]}" should have a name'
+            )
+            return check['Name']
+
+        spec = self.post(f'jobs/parse', {'JobHCL': hcl})
+        for group in spec['TaskGroups'] or []:
+            for task in group['Tasks'] or []:
+                for service in task['Services'] or []:
+                    yield service['Name'], [name(check) for check in service['Checks'] or []]
+
     def jobs(self):
         return self.get(f'jobs')
 

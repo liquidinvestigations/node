@@ -12,7 +12,7 @@ class Configuration:
 
         self.jobs = [
             (job, self.templates / f'{job}.nomad')
-            for job in ['hoover', 'hoover-ui', 'liquid']
+            for job in ['liquid', 'hoover', 'hoover-ui']
         ]
 
         self.ini = configparser.ConfigParser()

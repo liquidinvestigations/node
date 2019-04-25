@@ -27,6 +27,13 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}-rabbitmq"
         port = "amqp"
+        check {
+          name = "rabbitmq alive on tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "10s"
+          timeout = "5s"
+        }
       }
     }
 
@@ -50,6 +57,14 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}-tika"
         port = "tika"
+        check {
+          name = "tika alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/version"
+          interval = "10s"
+          timeout = "5s"
+        }
       }
     }
 
@@ -80,6 +95,13 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}-pg"
         port = "pg"
+        check {
+          name = "snoop-${name}-pg alive on tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "10s"
+          timeout = "5s"
+        }
       }
     }
   }
@@ -197,6 +219,17 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}"
         port = "http"
+        check {
+          name = "snoop-${name} alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/collection/json"
+          interval = "10s"
+          timeout = "5s"
+          header {
+            Host = ["${name}.snoop.${liquid_domain}"]
+          }
+        }
       }
     }
   }
