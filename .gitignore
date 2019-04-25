@@ -4,3 +4,4 @@
 /collections
 /nomad-agent.hcl
 /venv
+__pycache__
