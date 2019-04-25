@@ -146,8 +146,13 @@ def initcollection(name):
 
     shell(f'snoop-{name}-api', './manage.py', 'initcollection')
 
-    shell('hoover-search', './manage.py', 'addcollection', name, '--index',
-          name, f'{nomad.get_address()}:8765/{name}/collection/json', '--public')
+    shell(
+        'hoover-search',
+        './manage.py', 'addcollection', name,
+        '--index', name,
+        f'http://{nomad.get_address()}:8765/{name}/collection/json',
+        '--public',
+    )
 
 
 def purge(force=False):

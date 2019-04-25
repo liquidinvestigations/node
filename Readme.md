@@ -53,7 +53,7 @@ Set up `hoover-search`:
 ```shell
 mkdir -p volumes/hoover/es/data
 ./liquid shell hoover-search ./manage.py migrate
-./liquid shell hoover-search ./manage.py createsuperuser
+./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
 ### Testdata
