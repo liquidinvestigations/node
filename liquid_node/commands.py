@@ -49,6 +49,9 @@ def ensure_secret_key(path):
 def deploy():
     """Run all the jobs in nomad."""
 
+    if vault.seal_status()['sealed'] and config.vault_key:
+        unsealvault()
+
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', config.liquid_debug)
 
@@ -206,6 +209,7 @@ def initializevault():
 def unsealvault():
     """ Unseal the Vault. """
 
+    log.info("Unsealing Vault ...")
     key = config.vault_key or getpass()
     status = vault.unseal(key)
-    print('Vault is now', 'sealed' if status['sealed'] else 'unsealed')
+    log.info(f"Vault is now {'sealed' if status['sealed'] else 'unsealed'}")

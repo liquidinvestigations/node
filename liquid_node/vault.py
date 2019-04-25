@@ -25,6 +25,9 @@ class Vault(JsonApi):
             'secret_threshold': 1,
         })
 
+    def seal_status(self):
+        return self.get('sys/seal-status')
+
     def unseal(self, key):
         return self.put('sys/unseal', {'key': key})
 
