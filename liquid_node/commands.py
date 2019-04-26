@@ -46,8 +46,7 @@ def ensure_secret_key(path):
         vault.set(path, {'secret_key': random_secret()})
 
 
-def wait_for_service_health_checks(health_checks, \
-        max_wait_sec=300, poll_interval=1, green_count=10):
+def wait_for_service_health_checks(health_checks):
     """Waits health checks to become green for green_count times in a row. """
 
 
@@ -70,9 +69,9 @@ def wait_for_service_health_checks(health_checks, \
 
     t0 = time.time()
     greens = 0
-    timeout = t0 + max_wait_sec + poll_interval * green_count
+    timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
     while time.time() < timeout:
-        time.sleep(poll_interval)
+        time.sleep(config.wait_interval)
         failed = sorted(get_failed_checks())
 
         if not failed:
@@ -80,11 +79,12 @@ def wait_for_service_health_checks(health_checks, \
         else:
             greens = 0
 
-        if greens >= green_count:
+        if greens >= config.wait_green_count:
             return
 
         # No chance to get enough greens
-        if greens == 0 and time.time() >= timeout - poll_interval * green_count:
+        no_chance_timestamp = timeout - config.wait_interval * config.wait_green_count
+        if greens == 0 and time.time() >= no_chance_timestamp:
             break
 
         failed_text = ''

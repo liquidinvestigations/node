@@ -48,6 +48,13 @@ class Configuration:
 
         self.liquid_http_port = self.ini.get('liquid', 'http_port', fallback='80')
 
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
+        self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
+        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
+
         self.collections = OrderedDict()
         for key in self.ini:
             if ':' not in key:

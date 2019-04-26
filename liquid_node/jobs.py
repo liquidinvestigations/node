@@ -27,6 +27,8 @@ def set_volumes_paths(substitutions={}):
     substitutions['liquid_volumes'] = config.liquid_volumes
     substitutions['liquid_collections'] = config.liquid_collections
     substitutions['liquid_http_port'] = config.liquid_http_port
+    substitutions['check_interval'] = config.check_interval
+    substitutions['check_timeout'] = config.check_timeout
 
     repos_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'repos')
     repos = {

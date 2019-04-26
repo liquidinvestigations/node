@@ -36,8 +36,8 @@ job "hoover" {
           initial_status = "critical"
           type = "http"
           path = "/_cluster/health"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
@@ -73,8 +73,8 @@ job "hoover" {
           name = "hoover-pg alive on tcp"
           initial_status = "critical"
           type = "tcp"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
@@ -137,8 +137,8 @@ job "hoover" {
           initial_status = "critical"
           type = "http"
           path = "/_ping"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
           header {
             Host = ["hoover.${liquid_domain}"]
           }
@@ -242,8 +242,8 @@ job "hoover" {
           initial_status = "critical"
           type = "http"
           path = "/_es/_cluster/health/"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }

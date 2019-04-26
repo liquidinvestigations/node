@@ -43,8 +43,8 @@ job "liquid" {
           initial_status = "critical"
           type = "http"
           path = "/"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
@@ -143,8 +143,8 @@ job "liquid" {
           initial_status = "critical"
           type = "http"
           path = "/_ping"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
           header {
             Host = ["hoover.${liquid_domain}"]
           }
@@ -154,8 +154,8 @@ job "liquid" {
           initial_status = "critical"
           type = "http"
           path = "/"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
           header {
             Host = ["${liquid_domain}"]
           }

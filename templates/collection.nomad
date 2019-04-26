@@ -31,8 +31,8 @@ job "collection-${name}" {
           name = "rabbitmq alive on tcp"
           initial_status = "critical"
           type = "tcp"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
@@ -62,8 +62,8 @@ job "collection-${name}" {
           initial_status = "critical"
           type = "http"
           path = "/version"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
@@ -96,11 +96,11 @@ job "collection-${name}" {
         name = "snoop-${name}-pg"
         port = "pg"
         check {
-          name = "snoop-${name}-pg alive on tcp"
+          name = "postgres alive on tcp"
           initial_status = "critical"
           type = "tcp"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
@@ -220,12 +220,12 @@ job "collection-${name}" {
         name = "snoop-${name}"
         port = "http"
         check {
-          name = "snoop-${name} alive on http"
+          name = "snoop alive on http"
           initial_status = "critical"
           type = "http"
           path = "/collection/json"
-          interval = "10s"
-          timeout = "5s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
           header {
             Host = ["${name}.snoop.${liquid_domain}"]
           }
