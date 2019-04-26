@@ -49,7 +49,6 @@ def ensure_secret_key(path):
 def wait_for_service_health_checks(health_checks):
     """Waits health checks to become green for green_count times in a row. """
 
-
     def get_failed_checks():
         """Generates a list of (service, check, status)
         for all failing checks after checking with Consul"""
@@ -58,8 +57,6 @@ def wait_for_service_health_checks(health_checks):
         for service in health_checks:
             for s in consul.get(f'/health/checks/{service}'):
                 consul_status[(service, s['Name'])] = s['Status']
-
-        failing = []
 
         for service, checks in health_checks.items():
             for check in checks:
@@ -74,10 +71,10 @@ def wait_for_service_health_checks(health_checks):
         time.sleep(config.wait_interval)
         failed = sorted(get_failed_checks())
 
-        if not failed:
-            greens += 1
-        else:
+        if failed:
             greens = 0
+        else:
+            greens += 1
 
         if greens >= config.wait_green_count:
             return
@@ -90,7 +87,9 @@ def wait_for_service_health_checks(health_checks):
         failed_text = ''
         for service, check, status in failed:
             failed_text += f'\n - {service}: check "{check}" is {status}'
-        log.info(f'greens = {greens}, failed = {len(failed)}{failed_text}\n')
+        if failed:
+            failed_text += '\n'
+        log.info(f'greens = {greens}, failed = {len(failed)}{failed_text}')
 
     raise RuntimeError(f'Checks are failing: \n - {failed_text}')
 
