@@ -60,7 +60,7 @@ def set_volumes_paths(substitutions={}):
     return substitutions
 
 
-def get_collection_job(name, settings):
+def get_collection_job(name, settings, template='collection.nomad'):
     """Return the collection job description
 
     :param name: collection name
@@ -72,7 +72,7 @@ def get_collection_job(name, settings):
     substitutions = dict(settings)
     set_collection_defaults(name, substitutions)
 
-    return get_job(config.templates / 'collection.nomad', substitutions)
+    return get_job(config.templates / template, substitutions)
 
 
 def get_job(hcl_path, substitutions={}):
