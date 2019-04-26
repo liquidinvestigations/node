@@ -26,17 +26,18 @@ cd /opt/cluster
 cat > cluster.ini <<EOF
 [nomad]
 address = 0.0.0.0
-[vault]
-disable_mlock = true
+
+[supervisor]
+autostart = true
 EOF
 
 ./cluster.py install
+sudo setcap cap_ipc_lock=+ep bin/vault
 ./cluster.py configure
 sudo ln -s `pwd`/etc/supervisor-cluster.conf /etc/supervisor/conf.d/cluster.conf
 sudo supervisorctl update
 
-sudo supervisorctl start cluster:consul cluster:vault
 ./cluster.py autovault
-sudo supervisorctl start cluster:nomad
+sudo supervisorctl restart cluster:nomad
 
 echo "Cluster provisioned successfully."
