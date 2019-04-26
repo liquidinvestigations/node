@@ -18,89 +18,37 @@ class Configuration:
         self.ini = configparser.ConfigParser()
         self.ini.read(self.root / 'liquid.ini')
 
-        self.consul_url = self.get(
-            'CONSUL_URL',
-            'cluster.consul_url',
-            'http://127.0.0.1:8500',
-        )
+        self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
 
-        self.vault_url = self.get(
-            'VAULT_URL',
-            'cluster.vault_url',
-            'http://127.0.0.1:8200',
-        )
+        self.vault_url = self.ini.get('cluster', 'vault_url', fallback='http://127.0.0.1:8200')
 
         def read_vault_secrets():
-            vault_secrets_path = self.get(
-                'VAULT_SECRETS_PATH',
-                'cluster.vault_secrets',
-                None,
-            )
+            vault_secrets_path = self.ini.get('cluster', 'vault_secrets', fallback=None)
 
             if vault_secrets_path:
                 secrets = configparser.ConfigParser()
                 secrets.read(vault_secrets_path)
                 return secrets.get('vault', 'root_token', fallback=None)
 
-        self.vault_token = self.get(
-            'VAULT_TOKEN',
-            'cluster.vault_token',
-            None,
-        ) or read_vault_secrets()
+        self.vault_token = self.ini.get('cluster', 'vault_token', fallback=None) or read_vault_secrets()
 
-        self.nomad_url = self.get(
-            'NOMAD_URL',
-            'cluster.nomad_url',
-            'http://127.0.0.1:4646',
-        )
+        self.nomad_url = self.ini.get('cluster', 'nomad_url', fallback='http://127.0.0.1:4646')
 
-        self.liquid_domain = self.get(
-            'LIQUID_DOMAIN',
-            'liquid.domain',
-            'localhost',
-        )
+        self.liquid_domain = self.ini.get('liquid', 'domain', fallback='localhost')
 
-        self.liquid_debug = self.get(
-            'LIQUID_DEBUG',
-            'liquid.debug',
-            '',
-        )
+        self.liquid_debug = self.ini.getboolean('liquid', 'debug', fallback=False)
 
-        self.mount_local_repos = 'false' != self.get(
-            'LIQUID_MOUNT_LOCAL_REPOS',
-            'liquid.mount_local_repos',
-            'false',
-        )
+        self.mount_local_repos = self.ini.getboolean('liquid', 'mount_local_repos', fallback=False)
 
-        self.hoover_repos_path = self.get(
-            'LIQUID_HOOVER_REPOS_PATH',
-            'liquid.hoover_repos_path',
-            None,
-        )
+        self.hoover_repos_path = self.ini.get('liquid', 'hoover_repos_path', fallback=None)
 
-        self.liquidinvestigations_repos_path = self.get(
-            'LIQUID_LIQUIDINVESTIGATIONS_REPOS_PATH',
-            'liquid.liquidinvestigations_repos_path',
-            None,
-        )
+        self.liquidinvestigations_repos_path = self.ini.get('liquid', 'liquidinvestigations_repos_path', fallback=None)
 
-        self.liquid_volumes = self.get(
-            'LIQUID_VOLUMES',
-            'liquid.volumes',
-            str(self.root / 'volumes'),
-        )
+        self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
 
-        self.liquid_collections = self.get(
-            'LIQUID_COLLECTIONS',
-            'liquid.collections',
-            str(self.root / 'collections'),
-        )
+        self.liquid_collections = self.ini.get('liquid', 'collections', fallback=str(self.root / 'collections'))
 
-        self.liquid_http_port = self.get(
-            'LIQUID_HTTP_PORT',
-            'liquid.http_port',
-            '80',
-        )
+        self.liquid_http_port = self.ini.get('liquid', 'http_port', fallback='80')
 
         self.collections = OrderedDict()
         for key in self.ini:
@@ -116,16 +64,6 @@ class Configuration:
             elif cls == 'job':
                 job_config = self.ini[key]
                 self.jobs.append((name, self.root / job_config['template']))
-
-    def get(self, env_key, ini_path, default=None):
-        if env_key and os.environ.get(env_key):
-            return os.environ[env_key]
-
-        (section_name, key) = ini_path.split('.')
-        if section_name in self.ini and key in self.ini[section_name]:
-            return self.ini[section_name][key]
-
-        return default
 
     @classmethod
     def _validate_collection_name(self, name):

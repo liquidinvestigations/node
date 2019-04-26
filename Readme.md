@@ -35,22 +35,23 @@ nomad agent -dev -config=nomad-agent.hcl &
 ## Setup
 
 The Liquid Investigations cluster configuration is read from `liquid.ini`.
-Start with the following:
+Start with the example configuration file:
 
+```shell
+cp examples/liquid.ini .
+vim liquid.ini
+```
+
+We need a way to access Vault. The simplest way is to use:
 ```ini
 [liquid]
 domain = liquid.example.org
-# debug = true
+debug = true
 
-[cluster]
-# consul_url = http://127.0.0.1:8500
-# vault_url = http://127.0.0.1:8200
-# nomad_url = http://127.0.0.1:4646
 vault_secrets = /opt/cluster/var/vault-secrets.ini
 
-## The testdata collection
-# [collection:testdata]
-# workers = 1
+[collection:testdata]
+workers = 1
 ```
 
 This assumes the `vault-secrets.ini` file exists and contains a vault token. It
@@ -68,8 +69,9 @@ Then deploy to the cluster:
 ./liquid deploy
 ```
 
-The liquid instance will listen on port 80 on the local machine. If you don't
-have a DNS domain pointing to the macine, you can add entries to `/etc/hosts`:
+The liquid instance will listen by default on port 80 on the local machine. If
+you don't have a DNS domain pointing to the macine, you can add entries to
+`/etc/hosts`:
 
 ```
 10.0.0.1 liquid.example.com
@@ -193,4 +195,3 @@ After that, set this flag in your configuration:
 mount_local_repos = true
 ```
 
-Be sure to clone 

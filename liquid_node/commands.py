@@ -49,7 +49,7 @@ def deploy():
     """Run all the jobs in nomad."""
 
     consul.set_kv('liquid_domain', config.liquid_domain)
-    consul.set_kv('liquid_debug', config.liquid_debug)
+    consul.set_kv('liquid_debug', 'true' if config.liquid_debug else '')
 
     vault.ensure_engine()
 
