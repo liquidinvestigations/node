@@ -22,15 +22,13 @@ class Configuration:
 
         self.vault_url = self.ini.get('cluster', 'vault_url', fallback='http://127.0.0.1:8200')
 
-        def read_vault_secrets():
-            vault_secrets_path = self.ini.get('cluster', 'vault_secrets', fallback=None)
+        self.vault_token = None
 
-            if vault_secrets_path:
-                secrets = configparser.ConfigParser()
-                secrets.read(vault_secrets_path)
-                return secrets.get('vault', 'root_token', fallback=None)
-
-        self.vault_token = self.ini.get('cluster', 'vault_token', fallback=None) or read_vault_secrets()
+        vault_secrets_path = self.ini.get('cluster', 'vault_secrets', fallback=None)
+        if vault_secrets_path:
+            secrets = configparser.ConfigParser()
+            secrets.read(self.root / vault_secrets_path)
+            self.vault_token = secrets.get('vault', 'root_token', fallback=None)
 
         self.nomad_url = self.ini.get('cluster', 'nomad_url', fallback='http://127.0.0.1:4646')
 
