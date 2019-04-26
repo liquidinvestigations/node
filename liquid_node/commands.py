@@ -56,7 +56,11 @@ def wait_for_service_health_checks(health_checks):
         consul_status = {}
         for service in health_checks:
             for s in consul.get(f'/health/checks/{service}'):
-                consul_status[(service, s['Name'])] = s['Status']
+                key = service, s['Name']
+                if key in consul_status:
+                    consul_status[key] = 'appears twice. Maybe halt, restart Consul and try again?'
+                    continue
+                consul_status[key] = s['Status']
 
         for service, checks in health_checks.items():
             for check in checks:
