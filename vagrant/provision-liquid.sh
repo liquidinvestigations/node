@@ -21,7 +21,6 @@ debug = true
 vault_secrets = ../cluster/var/vault-secrets.ini
 EOF
 
-mkdir -p volumes/hoover/es/data
-sudo chown -R 1000:1000 volumes/hoover/es/data
+./liquid deploy
 
-until ./liquid deploy; do sleep 10; done
+echo "Liquid provisioned successfully."
