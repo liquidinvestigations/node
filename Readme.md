@@ -53,7 +53,7 @@ Set up `hoover-search`:
 ```shell
 mkdir -p volumes/hoover/es/data
 ./liquid shell hoover-search ./manage.py migrate
-./liquid shell hoover-search ./manage.py createsuperuser
+./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
 ### Testdata
@@ -68,7 +68,7 @@ Next, tell liquid we want to run the `collection-testdata` job in `liquid.ini`:
 
 ```ini
 [collection:testdata]
-workers = 3
+workers = 1
 ```
 
 Then redeploy liquid, run migrations, and tell `hoover-search` about the new
@@ -77,9 +77,7 @@ collection:
 ```shell
 ./liquid deploy
 # ... wait for the containers to spin up
-./liquid shell snoop-testdata-api ./manage.py migrate
-./liquid shell snoop-testdata-api ./manage.py initcollection
-./liquid shell hoover-search ./manage.py addcollection testdata --index testdata http://$(./liquid nomad_address):8765/testdata/collection/json --public
+./liquid initcollection testdata
 ```
 
 ### Debugging
