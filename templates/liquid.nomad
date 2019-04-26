@@ -38,6 +38,14 @@ job "liquid" {
       service {
         name = "core"
         port = "http"
+        check {
+          name = "liquid-core alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
@@ -130,6 +138,28 @@ job "liquid" {
       service {
         name = "ingress"
         port = "nginx"
+        check {
+          name = "nginx ingress forwards hoover /_ping"
+          initial_status = "critical"
+          type = "http"
+          path = "/_ping"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["hoover.${liquid_domain}"]
+          }
+        }
+        check {
+          name = "nginx ingress forwards liquid-core /"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["${liquid_domain}"]
+          }
+        }
       }
     }
   }

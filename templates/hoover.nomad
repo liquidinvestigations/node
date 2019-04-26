@@ -31,6 +31,14 @@ job "hoover" {
       service {
         name = "hoover-es"
         port = "es"
+        check {
+          name = "hoover-es alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/_cluster/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
 
@@ -61,6 +69,13 @@ job "hoover" {
       service {
         name = "hoover-pg"
         port = "pg"
+        check {
+          name = "hoover-pg alive on tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
@@ -117,6 +132,17 @@ job "hoover" {
       service {
         name = "hoover"
         port = "http"
+        check {
+          name = "hoover /_ping succeeds"
+          initial_status = "critical"
+          type = "http"
+          path = "/_ping"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["hoover.${liquid_domain}"]
+          }
+        }
       }
     }
   }
@@ -211,6 +237,14 @@ job "hoover" {
       service {
         name = "hoover-collections"
         port = "nginx"
+        check {
+          name = "hoover-collections nginx on :8765 forwards elasticsearch"
+          initial_status = "critical"
+          type = "http"
+          path = "/_es/_cluster/health/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

@@ -1,3 +1,4 @@
+import time
 import logging
 import os
 import base64
@@ -45,6 +46,54 @@ def ensure_secret_key(path):
         vault.set(path, {'secret_key': random_secret()})
 
 
+def wait_for_service_health_checks(health_checks):
+    """Waits health checks to become green for green_count times in a row. """
+
+    def get_failed_checks():
+        """Generates a list of (service, check, status)
+        for all failing checks after checking with Consul"""
+
+        consul_status = {}
+        for service in health_checks:
+            for s in consul.get(f'/health/checks/{service}'):
+                consul_status[(service, s['Name'])] = s['Status']
+
+        for service, checks in health_checks.items():
+            for check in checks:
+                status = consul_status.get((service, check), 'missing')
+                if status != 'passing':
+                    yield service, check, status
+
+    t0 = time.time()
+    greens = 0
+    timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
+    while time.time() < timeout:
+        time.sleep(config.wait_interval)
+        failed = sorted(get_failed_checks())
+
+        if failed:
+            greens = 0
+        else:
+            greens += 1
+
+        if greens >= config.wait_green_count:
+            return
+
+        # No chance to get enough greens
+        no_chance_timestamp = timeout - config.wait_interval * config.wait_green_count
+        if greens == 0 and time.time() >= no_chance_timestamp:
+            break
+
+        failed_text = ''
+        for service, check, status in failed:
+            failed_text += f'\n - {service}: check "{check}" is {status}'
+        if failed:
+            failed_text += '\n'
+        log.info(f'greens = {greens}, failed = {len(failed)}{failed_text}')
+
+    raise RuntimeError(f'Checks are failing: \n - {failed_text}')
+
+
 def deploy():
     """Run all the jobs in nomad."""
 
@@ -69,9 +118,18 @@ def deploy():
         jobs.append((f'collection-{name}', job))
         ensure_secret_key(f'collections/{name}/snoop.django')
 
+    health_checks = {}
     for job, hcl in jobs:
         log.info('Starting %s...', job)
         nomad.run(hcl)
+        for service, checks in nomad.get_health_checks(hcl):
+            if not checks:
+                log.warn(f'service {service} has no health checks')
+                continue
+            health_checks[service] = checks
+
+    # Wait liquid-core in order to setup the auth
+    wait_for_service_health_checks({'core': health_checks['core']})
 
     for app in core_auth_apps:
         log.info('Auth %s -> %s', app['name'], app['callback'])
@@ -82,6 +140,8 @@ def deploy():
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
 
+    # Wait for everything else
+    wait_for_service_health_checks(health_checks)
 
 def halt():
     """Stop all the jobs in nomad."""
