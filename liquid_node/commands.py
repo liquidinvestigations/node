@@ -78,7 +78,7 @@ def deploy():
         cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
         containers = docker.containers([('liquid_task', 'liquid-core')])
         container_id = first(containers, 'liquid-core containers')
-        docker_exec_cmd = ['docker', 'exec', '-it', container_id] + cmd
+        docker_exec_cmd = ['docker', 'exec', container_id] + cmd
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
 
