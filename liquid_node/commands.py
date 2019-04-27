@@ -118,6 +118,8 @@ def deploy():
     jobs = [(job, get_job(path)) for job, path in config.jobs]
 
     for name, settings in config.collections.items():
+        migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
+        jobs.append((f'collection-{name}-migrate', migrate_job))
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
         ensure_secret_key(f'collections/{name}/snoop.django')

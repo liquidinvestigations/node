@@ -230,6 +230,15 @@ job "collection-${name}" {
             Host = ["${name}.snoop.${liquid_domain}"]
           }
         }
+        check {
+          name = "snoop healthcheck script"
+          initial_status = "warning"
+          type = "script"
+          command = "python"
+          args = ["manage.py", "healthcheck"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
