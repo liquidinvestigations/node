@@ -1,4 +1,4 @@
-import time
+from time import time, sleep
 import logging
 import os
 import base64
@@ -68,11 +68,14 @@ def wait_for_service_health_checks(health_checks):
                 if status != 'passing':
                     yield service, check, status
 
-    t0 = time.time()
+    services = sorted(health_checks.keys())
+    log.info(f"Waiting for health checks on {services}")
+
+    t0 = time()
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
-    while time.time() < timeout:
-        time.sleep(config.wait_interval)
+    while time() < timeout:
+        sleep(config.wait_interval)
         failed = sorted(get_failed_checks())
 
         if failed:
@@ -81,11 +84,12 @@ def wait_for_service_health_checks(health_checks):
             greens += 1
 
         if greens >= config.wait_green_count:
+            log.info("Checks green %s after %.02fs", services, time() - t0)
             return
 
         # No chance to get enough greens
         no_chance_timestamp = timeout - config.wait_interval * config.wait_green_count
-        if greens == 0 and time.time() >= no_chance_timestamp:
+        if greens == 0 and time() >= no_chance_timestamp:
             break
 
         failed_text = ''
@@ -93,9 +97,10 @@ def wait_for_service_health_checks(health_checks):
             failed_text += f'\n - {service}: check "{check}" is {status}'
         if failed:
             failed_text += '\n'
-        log.info(f'greens = {greens}, failed = {len(failed)}{failed_text}')
+        log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
 
-    raise RuntimeError(f'Checks are failing: \n - {failed_text}')
+    msg = f'Checks are failing after %.02fs: \n - {failed_text}' %  time() - t0
+    raise RuntimeError(msg)
 
 
 def deploy():
@@ -206,7 +211,7 @@ def initcollection(name):
         raise RuntimeError('Collection %s does not exist in the liquid.ini file.', name)
 
     if name in get_search_collections():
-        log.info(f'Collection "{name}" was already initialized.')
+        log.warning(f'Collection "{name}" was already initialized.')
         return
 
     shell(f'snoop-{name}-api', './manage.py', 'initcollection')
