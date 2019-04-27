@@ -30,35 +30,26 @@ def set_volumes_paths(substitutions={}):
     substitutions['check_interval'] = config.check_interval
     substitutions['check_timeout'] = config.check_timeout
 
-    repos_path = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'repos')
     repos = {
         'snoop2': {
             'org': 'hoover',
-            'local': os.path.join(repos_path, 'hoover'),
+            'local': os.path.join(config.hoover_repos_path, 'snoop2'),
             'target': '/opt/hoover/snoop'
         },
         'search': {
             'org': 'hoover',
-            'local': os.path.join(repos_path, 'hoover'),
+            'local': os.path.join(config.hoover_repos_path, 'search'),
             'target': '/opt/hoover/search'
         },
         'core': {
             'org': 'liquidinvestigations',
-            'local': os.path.join(repos_path, 'liquidinvestigations'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'core'),
             'target': '/app'
         }
     }
 
-    if config.hoover_repos_path:
-        repos['snoop2']['local'] = os.path.abspath(config.hoover_repos_path)
-        repos['search']['local'] = os.path.abspath(config.hoover_repos_path)
-    if config.liquidinvestigations_repos_path:
-        repos['core']['local'] = os.path.abspath(config.liquidinvestigations_repos_path)
-
     for repo, repo_config in repos.items():
-        repo_path = os.path.join(repo_config['local'], repo)
-
-        repo_volume_line = (f"\"{repo_path}:{repo_config['target']}\",\n")
+        repo_volume_line = (f"\"{repo_config['local']}:{repo_config['target']}\",\n")
         key = f"{repo_config['org']}_{repo}_repo"
 
         if config.mount_local_repos:

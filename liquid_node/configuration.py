@@ -38,9 +38,17 @@ class Configuration:
 
         self.mount_local_repos = self.ini.getboolean('liquid', 'mount_local_repos', fallback=False)
 
-        self.hoover_repos_path = self.ini.get('liquid', 'hoover_repos_path', fallback=None)
+        self.hoover_repos_path = self.ini.get(
+            'liquid',
+            'hoover_repos_path',
+            fallback=str((self.root / 'repos' / 'hoover').resolve())
+        )
 
-        self.liquidinvestigations_repos_path = self.ini.get('liquid', 'liquidinvestigations_repos_path', fallback=None)
+        self.liquidinvestigations_repos_path = self.ini.get(
+            'liquid',
+            'liquidinvestigations_repos_path',
+            fallback=str((self.root / 'repos' / 'liquidinvestigations').resolve())
+        )
 
         self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
 
