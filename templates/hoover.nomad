@@ -143,6 +143,26 @@ job "hoover" {
             Host = ["hoover.${liquid_domain}"]
           }
         }
+        check {
+          name = "hoover alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["hoover.${liquid_domain}"]
+          }
+        }
+        check {
+          name = "hoover healthcheck script"
+          initial_status = "warning"
+          type = "script"
+          command = "python"
+          args = ["manage.py", "healthcheck"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
