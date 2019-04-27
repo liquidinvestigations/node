@@ -1,0 +1,17 @@
+#!/bin/bash -ex
+
+VAGRANT_VERSION=2.2.4
+
+# travis encrypt LIQUID_VAGRANT_SSHKEY="$(cat liquid-vagrant-sshkey)" DO_TOKEN="$DO_TOKEN" DO_REGION="$DO_REGION"
+
+env
+ls -la
+
+echo "$LIQUID_VAGRANT_SSHKEY" > liquid-vagrant-sshkey
+ssh-keygen -e -f liquid-vagrant-sshkey > liquid-vagrant-sshkey.pub
+export DO_PRIVATE_KEY_PATH=liquid-vagrant-sshkey
+
+curl -OL https://releases.hashicorp.com/vagrant/${VAGRANT_VERSION}/vagrant_${VAGRANT_VERSION}_x86_64.deb
+sudo dpkg -i vagrant_${VAGRANT_VERSION}_x86_64.deb
+vagrant plugin install vagrant-digitalocean
+vagrant up
