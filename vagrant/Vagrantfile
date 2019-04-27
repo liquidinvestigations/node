@@ -7,12 +7,12 @@ Vagrant.configure("2") do |config|
   config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
   config.nfs.functional = false
 
-  config.ssh.private_key_path = ENV['DO_PRIVATE_KEY_PATH']
+  config.ssh.private_key_path = 'id_rsa'
 
   config.vm.provider :digital_ocean do |provider|
     provider.token = ENV['DO_TOKEN']
     provider.region = ENV['DO_REGION']
-    provider.ssh_key_name = 'liquid-vagrant-sshkey'
+    provider.ssh_key_name = 'travis'
     provider.image = 'ubuntu-18-04-x64'
     provider.size = 'g-2vcpu-8gb'
   end
