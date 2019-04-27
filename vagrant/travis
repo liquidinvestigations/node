@@ -1,17 +1,24 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
+echo "Vagrant"
 VAGRANT_VERSION=2.2.4
+(set -x
+  curl -OL https://releases.hashicorp.com/vagrant/${VAGRANT_VERSION}/vagrant_${VAGRANT_VERSION}_x86_64.deb
+  sudo dpkg -i vagrant_${VAGRANT_VERSION}_x86_64.deb
+  vagrant plugin install vagrant-digitalocean
+)
 
-# travis encrypt LIQUID_VAGRANT_SSHKEY="$(cat liquid-vagrant-sshkey)" DO_TOKEN="$DO_TOKEN" DO_REGION="$DO_REGION"
-
-env
-ls -la
-
-echo "$LIQUID_VAGRANT_SSHKEY" > liquid-vagrant-sshkey
-ssh-keygen -e -f liquid-vagrant-sshkey > liquid-vagrant-sshkey.pub
+echo "Decrypting private ssh key"
+# travis encrypt-file liquid-vagrant-sshkey
 export DO_PRIVATE_KEY_PATH=liquid-vagrant-sshkey
+(set -x
+  openssl aes-256-cbc -K $encrypted_45612634ba13_key -iv $encrypted_45612634ba13_iv -in $DO_PRIVATE_KEY_PATH.enc -out $DO_PRIVATE_KEY_PATH -d
+  chmod 600 $DO_PRIVATE_KEY_PATH
+  ssh-keygen -e -f $DO_PRIVATE_KEY_PATH > $DO_PRIVATE_KEY_PATH.pub
+)
 
-curl -OL https://releases.hashicorp.com/vagrant/${VAGRANT_VERSION}/vagrant_${VAGRANT_VERSION}_x86_64.deb
-sudo dpkg -i vagrant_${VAGRANT_VERSION}_x86_64.deb
-vagrant plugin install vagrant-digitalocean
-vagrant up
+echo "Running Vagrant"
+# travis encrypt DO_TOKEN="$DO_TOKEN" DO_REGION="$DO_REGION" --add
+(set -x
+  vagrant up
+)
