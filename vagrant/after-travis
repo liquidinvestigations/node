@@ -1,0 +1,6 @@
+#!/bin/bash -e
+
+echo "Destroying Vagrant"
+(set -x
+  vagrant destroy
+)

@@ -7,6 +7,9 @@ install:
 script:
 - cd vagrant && ./travis
 
+after_script:
+  - cd vagrant && ./after-travis
+
 env:
   global:
   - secure: Br4lSoSxtdr2ACARL65bEs0SPkREeNKzC7HgfVvgIrd/L5MUzVPD2yWS9pwnHa1Ejzkf4GAr81cFbMGyQIITDkcjCsb6pQ7cLhDsdeaJMnvcPQwHyibsfVC2o++KnHWfhqu666vMtWeU1mEJT7xGqzNdS1C/fq/2MjzIb3vUoIdpetEcPbzFk1JzsXprO7LjIOzdN92FuzWp910LRR9RgvZhf3bKAI4/azv624u6fBpUiiAWJpKVi1NllRNypobrgBG7Db7FsBzjBwjQIYo8zZrBcEc1mnm079rQOgVW6iaZOOgM/QKKiCpsOXwNVbH1LywDI5uLSKHZlzsMlobeKUxrBMAdSUvDLco5uZzzFS80a3w9vrvfrrNcX0pd2zbp6q2BHBZ7q+lONGZvFc4ok4w9DX7gupuK7XyITnruW904msjlsO4NlPUfdVcQNIq2aY8hzo72YPbhBTiimaAHvXzH6+sUtABzutPFLXOQ15fIFqGYMaelMeQss5//xsvnT7V48H+wpof67AU9rBiSK+5NsKR4Op/B5maXQBLpmYHnNelxcaiOT0f5bKB/UE8wTSmW3hh5U6VWZTbF43RPv7s6xl6qzxVaVfH/31Sh8wDB2D19QB3Xs2wg0u7g2UwTwKNeiGcfuN+xGKay+e2OMiVHZ4/sercbpRwP3NP9SDI=
