@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
 echo "Destroying Vagrant"
 (set -x
   vagrant destroy

@@ -5,10 +5,10 @@ install:
 - pip install -r requirements.txt
 
 script:
-- cd vagrant && ./travis
+- vagrant/travis
 
 after_script:
-  - cd vagrant && ./after-travis
+- vagrant/after-travis
 
 env:
   global:

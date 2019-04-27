@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
 echo "Vagrant"
 VAGRANT_VERSION=2.2.4
 (set -x
