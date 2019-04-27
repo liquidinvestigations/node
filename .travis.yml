@@ -5,7 +5,6 @@ install:
 - pip install -r requirements.txt
 
 script:
-- flake8
 - cd vagrant && ./travis
 
 env:
