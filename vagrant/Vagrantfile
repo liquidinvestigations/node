@@ -6,6 +6,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "digital_ocean"
   config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
   config.nfs.functional = false
+  config.vm.hostname = ENV['TRAVIS_JOB_NUMBER'] or 'default'
 
   config.ssh.private_key_path = 'id_rsa'
 
@@ -15,7 +16,6 @@ Vagrant.configure("2") do |config|
     provider.ssh_key_name = 'travis'
     provider.image = 'ubuntu-18-04-x64'
     provider.size = 's-4vcpu-8gb'
-    provider.name = ENV['TRAVIS_JOB_NUMBER'] or 'default'
   end
 
   config.vm.synced_folder "..", "/opt/node", type: "rsync",
