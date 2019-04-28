@@ -6,7 +6,9 @@ Vagrant.configure("2") do |config|
   config.vm.box = "digital_ocean"
   config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
   config.nfs.functional = false
-  config.vm.hostname = ENV['TRAVIS_JOB_NUMBER'] or 'default'
+
+  build_name = ENV['TRAVIS_JOB_NUMBER'] or 'default'
+  config.vm.define build_name
 
   config.ssh.private_key_path = 'id_rsa'
 
