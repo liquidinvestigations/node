@@ -2,6 +2,7 @@
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
+export DO_BUILD_NAME="liquid-node-travis-$TRAVIS_JOB_NUMBER"
 
 case "$1" in
   prepare)
