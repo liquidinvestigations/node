@@ -6,7 +6,7 @@ if [ $EUID -eq 0 ]; then
   exec sudo -iu vagrant $0
 fi
 
-echo "Hello, my name is $(whoami)."
+echo "Hello, my name is $(whoami), PID=$$."
 
 echo "Preparing the system"
 
