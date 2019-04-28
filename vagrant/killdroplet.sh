@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-sleep_time=90
+sleep_time=900
 
 echo "Getting droplet ID ..."
 droplet_address="$(ip route get 8.8.8.8 | awk '{ print $7; exit }')"
