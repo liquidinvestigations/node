@@ -2,9 +2,6 @@
 
 sleep_time=90
 
-sudo apt-get update -qq
-sudo apt-get install -yqq jq
-
 echo "Getting droplet ID ..."
 droplet_address="$(ip route get 8.8.8.8 | awk '{ print $7; exit }')"
 droplet_id="$(
