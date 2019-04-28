@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+sleep_time=90
+
 sudo apt-get update -qq
 sudo apt-get install -yqq jq
 
@@ -14,8 +16,8 @@ curl \
 )"
 echo "Droplet ID is $droplet_id"
 
-echo "Sleeping 900 seconds"
-sleep 900 # 15 minutes
+echo "Sleeping $sleep_time seconds"
+sleep $sleep_time # 15 minutes
 
 echo "Woke up, killing self"
 curl \
