@@ -1,31 +1,46 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-do_build_name = ENV['DO_BUILD_NAME'] || 'default'
-do_token = ENV['DO_TOKEN']
-do_region = ENV['DO_REGION']
-
 Vagrant.configure("2") do |config|
 
-  config.vm.box = "digital_ocean"
-  config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
-  config.nfs.functional = false
-  config.vm.define do_build_name
-  config.ssh.private_key_path = 'id_rsa'
+  config.vm.box = "generic/ubuntu1804"
 
-  config.vm.provider :digital_ocean do |provider|
-    provider.token = do_token
-    provider.region = do_region
-    provider.ssh_key_name = 'vagrant'
-    provider.image = 'ubuntu-18-04-x64'
-    provider.size = 's-4vcpu-8gb'
+  config.vm.provider :libvirt do |libvirt|
+    libvirt.memory = 8192
+    libvirt.cpus = 2
   end
+
+  do_token = ENV['DO_TOKEN']
+  if do_token
+    config.vm.provider :digital_ocean do |provider|
+      do_build_name = ENV['DO_BUILD_NAME'] || 'default'
+      do_region = ENV['DO_REGION']
+
+      config.vm.box = "digital_ocean"
+      config.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+      config.nfs.functional = false
+      config.vm.define do_build_name
+      config.ssh.private_key_path = 'id_rsa'
+
+      provider.token = do_token
+      provider.region = do_region
+      provider.ssh_key_name = 'vagrant'
+      provider.image = 'ubuntu-18-04-x64'
+      provider.size = 's-4vcpu-8gb'
+
+      config.vm.provision :shell, path: "provision-do.sh", env: {"DO_TOKEN" => do_token}
+    end
+  end
+
+  config.vm.network :forwarded_port, guest: 80, host: 1380, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 4646, host: 14646, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 8500, host: 18500, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 8200, host: 18200, host_ip: "127.0.0.1"
 
   config.vm.synced_folder "..", "/opt/node", type: "rsync",
     rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
                      "liquid.ini", "venv/", "volumes/", "collections/"]
 
-  config.vm.provision :shell, path: "provision-do.sh", env: {"DO_TOKEN" => do_token}
   config.vm.provision :shell, path: "provision-cluster.sh"
   config.vm.provision :shell, path: "provision-liquid.sh"
 
