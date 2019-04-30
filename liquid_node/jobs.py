@@ -1,6 +1,7 @@
 import logging
 import os
-from string import Template
+
+import jinja2
 
 from .configuration import config
 
@@ -79,6 +80,17 @@ def get_collection_job(name, settings, template='collection.nomad'):
     return get_job(config.templates / template, substitutions)
 
 
+
+
+def render(template, subs):
+    print(subs)
+    env = jinja2.Environment(
+        variable_start_string="${",
+        variable_end_string="}",
+    )
+    return env.from_string(template).render(subs)
+
+
 def get_job(hcl_path, substitutions={}):
     """Return the job description generated from the given template
 
@@ -87,10 +99,9 @@ def get_job(hcl_path, substitutions={}):
     :returns: the job description
     :rtype: str
     """
-
     with hcl_path.open() as job_file:
-        template = Template(job_file.read())
+        template = job_file.read()
 
-    output = template.safe_substitute(set_volumes_paths(substitutions))
+    output = render(template, set_volumes_paths(substitutions))
     log.debug(f'{hcl_path}\n{output}')
     return output
