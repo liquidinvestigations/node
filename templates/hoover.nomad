@@ -133,7 +133,7 @@ job "hoover" {
         name = "hoover"
         port = "http"
         tags = [
-          "traefik.frontend.rule=Host:hoover.${liquid_domain}",
+          "traefik-ingress.frontend.rule=Host:hoover.${liquid_domain}",
         ]
         check {
           name = "hoover /_ping succeeds"
