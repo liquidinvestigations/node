@@ -3,6 +3,7 @@
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 export MACHINE_NAME="travis-$TRAVIS_JOB_NUMBER"
+export DO_SSH_PRIVATE_KEY_PATH='/tmp/vagrant-id_rsa'
 
 case "$1" in
   prepare)
@@ -22,10 +23,10 @@ case "$1" in
         -K $encrypted_ec501d2f76a5_key \
         -iv $encrypted_ec501d2f76a5_iv \
         -in id_rsa.enc \
-        -out id_rsa \
+        -out /tmp/vagrant-id_rsa \
         -d
-      chmod 600 id_rsa
-      ssh-keygen -y -f id_rsa > id_rsa.pub
+      chmod 600 /tmp/vagrant-id_rsa
+      ssh-keygen -y -f /tmp/vagrant-id_rsa > /tmp/vagrant-id_rsa.pub
     )
     ;;
 
