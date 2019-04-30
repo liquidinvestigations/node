@@ -169,14 +169,14 @@ job "hoover" {
       }
     }
   }
-  group "traefik-internal" {
-    task "traefik-internal" {
+  group "internal" {
+    task "traefik" {
       driver = "docker"
       config {
         image = "traefik:1.7"
         port_map {
           http = 80
-          api = 8080
+          admin = 8080
         }
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml:ro",
@@ -189,20 +189,17 @@ job "hoover" {
           defaultEntryPoints = ["http"]
 
           [api]
-          entryPoint = "api"
+          entryPoint = "admin"
 
           [entryPoints]
             [entryPoints.http]
             address = ":80"
-            [entryPoints.api]
+            [entryPoints.admin]
             address = ":8080"
 
           [consulCatalog]
           endpoint = "unix:///consul.sock"
           prefix = "traefik-internal"
-
-          [frontends]
-            [frontends.frontend-consul]
 
           [consul]
           endpoint = "unix:///consul.sock"
@@ -215,7 +212,7 @@ job "hoover" {
           port "http" {
             static = 8765
           }
-          port "api" {}
+          port "admin" {}
         }
       }
       service {
@@ -223,10 +220,10 @@ job "hoover" {
         port = "http"
       }
       service {
-        name = "traefik-internal-webui"
-        port = "api"
+        name = "traefik-internal-admin"
+        port = "admin"
         check {
-          name = "traefik alive on http webui"
+          name = "traefik alive on http admin"
           initial_status = "critical"
           type = "http"
           path = "/"
