@@ -1,7 +1,10 @@
+import logging
 import os
 from string import Template
 
 from .configuration import config
+
+log = logging.getLogger(__name__)
 
 
 def set_collection_defaults(name, settings):
@@ -29,6 +32,7 @@ def set_volumes_paths(substitutions={}):
     substitutions['liquid_http_port'] = config.liquid_http_port
     substitutions['check_interval'] = config.check_interval
     substitutions['check_timeout'] = config.check_timeout
+    substitutions['consul_socket'] = os.path.realpath(config.consul_socket)
 
     repos = {
         'snoop2': {
@@ -87,4 +91,6 @@ def get_job(hcl_path, substitutions={}):
     with hcl_path.open() as job_file:
         template = Template(job_file.read())
 
-    return template.safe_substitute(set_volumes_paths(substitutions))
+    output = template.safe_substitute(set_volumes_paths(substitutions))
+    log.debug(f'{hcl_path}\n{output}')
+    return output

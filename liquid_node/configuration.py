@@ -19,6 +19,7 @@ class Configuration:
         self.ini.read(self.root / 'liquid.ini')
 
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
+        self.consul_socket = self.ini.get('cluster', 'consul_socket')
 
         self.vault_url = self.ini.get('cluster', 'vault_url', fallback='http://127.0.0.1:8200')
 

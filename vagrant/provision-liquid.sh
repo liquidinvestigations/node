@@ -13,14 +13,7 @@ echo "Installing liquid"
 cd /opt/node
 sudo chown -R vagrant: .
 
-cat > liquid.ini <<EOF
-[liquid]
-domain = liquid.example.com
-debug = true
-
-[cluster]
-vault_secrets = ../cluster/var/vault-secrets.ini
-EOF
+cp vagrant/ci-liquid.ini liquid.ini
 
 ./liquid deploy
 

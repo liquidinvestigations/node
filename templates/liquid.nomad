@@ -38,6 +38,9 @@ job "liquid" {
       service {
         name = "core"
         port = "http"
+        tags = [
+          "traefik-ingress.frontend.rule=Host:${liquid_domain}",
+        ]
         check {
           name = "liquid-core alive on http"
           initial_status = "critical"
@@ -50,107 +53,57 @@ job "liquid" {
     }
   }
 
-  group "nginx" {
-    task "nginx" {
+  group "ingress" {
+    task "traefik" {
       driver = "docker"
-      template {
-        data = <<EOF
-
-          {{- if service "core" }}
-            upstream core {
-              {{- range service "core" }}
-                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
-              {{- end }}
-            }
-            server {
-              listen 80;
-              server_name {{ key "liquid_domain" }};
-              location / {
-                proxy_pass http://core;
-                proxy_set_header Host $host;
-              }
-            }
-          {{- end }}
-
-          {{- if service "authdemo" }}
-            upstream authdemo {
-              {{- range service "authdemo" }}
-                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
-              {{- end }}
-            }
-            server {
-              listen 80;
-              server_name authdemo.{{ key "liquid_domain" }};
-              location / {
-                proxy_pass http://authdemo;
-                proxy_set_header Host $host;
-              }
-            }
-          {{- end }}
-
-          {{- if service "hoover" }}
-            upstream hoover {
-              {{- range service "hoover" }}
-                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
-              {{- end }}
-            }
-            server {
-              listen 80;
-              server_name hoover.{{ key "liquid_domain" }};
-              location / {
-                proxy_pass http://hoover;
-                proxy_set_header Host $host;
-              }
-            }
-          {{- end }}
-
-          server {
-            listen 80 default_server;
-            location / {
-              default_type "text/plain";
-              return 404 "Unknown domain $host\n";
-            }
-          }
-
-          EOF
-        destination = "local/core.conf"
-      }
-      config = {
-        image = "nginx"
+      config {
+        image = "traefik:1.7"
         port_map {
-          nginx = 80
+          http = 80
+          admin = 8080
         }
         volumes = [
-          "local/core.conf:/etc/nginx/conf.d/core.conf",
+          "local/traefik.toml:/etc/traefik/traefik.toml:ro",
+          "${consul_socket}:/consul.sock:ro",
         ]
-        labels {
-          liquid_task = "liquid-nginx"
-        }
+      }
+      template {
+        data = <<-EOF
+          debug = {{ key "liquid_debug" }}
+          defaultEntryPoints = ["http"]
+
+          [api]
+          entryPoint = "admin"
+
+          [entryPoints]
+            [entryPoints.http]
+            address = ":80"
+            [entryPoints.admin]
+            address = ":8080"
+
+          [consulCatalog]
+          endpoint = "unix:///consul.sock"
+          prefix = "traefik-ingress"
+
+          [consul]
+          endpoint = "unix:///consul.sock"
+          prefix = "traefik-ingress"
+        EOF
+        destination = "local/traefik.toml"
       }
       resources {
-        memory = 50
         network {
-          port "nginx" {
+          port "http" {
             static = ${liquid_http_port}
           }
+          port "admin" {}
         }
       }
       service {
-        name = "ingress"
-        port = "nginx"
+        name = "trafik-ingress-http"
+        port = "http"
         check {
-          name = "nginx ingress forwards hoover /_ping"
-          initial_status = "critical"
-          type = "http"
-          path = "/_ping"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-          header {
-            Host = ["hoover.${liquid_domain}"]
-          }
-        }
-        check {
-          name = "nginx ingress forwards liquid-core /"
+          name = "traefik alive on home page"
           initial_status = "critical"
           type = "http"
           path = "/"
@@ -159,6 +112,18 @@ job "liquid" {
           header {
             Host = ["${liquid_domain}"]
           }
+        }
+      }
+      service {
+        name = "trafik-ingress-admin"
+        port = "admin"
+        check {
+          name = "traefik alive on http admin"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
