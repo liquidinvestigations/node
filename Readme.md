@@ -1,39 +1,80 @@
-# Liquid in a Nomad cluster
+# Liquid Investigations Node
 
-Use the instructions in [the cluster repository](https://github.com/liquidinvestigations/cluster) to get a working setup with nomad and consul. This will only work for x64 Linux machines, so for MacOS read the next section.
+Scripts and configuration to run a Liquid Node
+
+[![Build Status](https://travis-ci.org/liquidinvestigations/node.svg?branch=master)](https://travis-ci.org/liquidinvestigations/node)
 
 
-## Setting up nomad and consul without [cluster](https://github.com/liquidinvestigations/cluster)
+## Requirements
+Liquid Node requires a Nomad + Consul + Vault cluster where the software will
+be deployed. There are a few options:
 
-Create a configuration file, `nomad-agent.hcl`, with the following content,
-adapted to your machine in case `en0` is not the main network interface:
+* [Install a Cluster Manually](#install-a-cluster-manually) - for production or
+  barebones development setups
+* [Install the Liquid Cluster](#install-the-liquid-cluster) - automated
+  single-machine cluster, read the instructions before using in production
+* [Use Vagrant](#use-vagrant) - run `vagrant up` and be happy
 
-```hcl
-advertise {
-  http = "{{ GetInterfaceIP `en0` }}"
-  serf = "{{ GetInterfaceIP `en0` }}"
-}
 
-client {
-  enabled = true
-  network_interface = "en0"
-}
-```
+Whichever option you choose, you will also need to:
 
-Increase `vm.max_map_count` to at least `262144`, to make elasticsearch happy -
-see [the official documentation][] for details.
+* Increase `vm.max_map_count` to at least `262144`, to make elasticsearch
+  happy - see the docs about [elasticsearch in docker][] for details.
+* Make sure you have Python >= 3.7 installed.
 
-[the official documentation]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
+[elasticsearch in docker]: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html#docker-cli-run-prod-mode
 
-Make sure you have Python >= 3.7 installed.
+
+### Install a Cluster Manually
+Download Consul, Vault and Nomad. For production environments follow their
+manuals. For development run them all in `-dev` mode:
 
 ```shell
-consul agent -dev &
-nomad agent -dev -config=nomad-agent.hcl &
+./consul agent -dev &
+./vault agent -dev &
+./nomad agent -dev &
 ```
 
-## Setup
+### Install the Liquid Cluster
+[liquidinvestigations/cluster][cluster] is a self-configuring cluster of Consul
++ Vault + Nomad. It's optimised for local development, testing, and
+demo/staging servers.
 
+[cluster]: https://github.com/liquidinvestigations/cluster
+
+### Use Vagrant
+You can run a full Liquid cluster in a local virtual machine using [Vagrant][].
+The configuration has been tested with the [libvirt driver][] but should work
+with the default VirtualBox driver as well.
+
+1. [Install vagrant][]
+2. `cd` to the `vagrant` subfolder, everything Vagrant-related happens in here:
+    ```shell
+    cd vagrant/
+    ```
+3. Start the VM:
+    ```shell
+    vagrant up
+    ```
+
+You can log into the vm using `vagrant ssh`. Optionally, install
+[vagrant-env][], and set environment variables in an `.env` local file that
+will be ignored by git.
+
+Vagrant will forward the following http ports:
+  * `guest: 80, host: 1380` - public web server
+  * `guest: 8765, host: 18765` - internal web server
+  * `guest: 8500, host: 18500` - consul
+  * `guest: 8200, host: 18200` - vault
+  * `guest: 4646, host: 14646` - nomad
+
+[Vagrant]: https://www.vagrantup.com
+[libvirt driver]: https://github.com/vagrant-libvirt/vagrant-libvirt
+[Install vagrant]: https://www.vagrantup.com/docs/installation/
+[vagrant-env]: https://github.com/gosuri/vagrant-env
+
+
+## Configuration
 The Liquid Investigations cluster configuration is read from `liquid.ini`.
 Start with the example configuration file:
 
@@ -79,12 +120,8 @@ you don't have a DNS domain pointing to the macine, you can add entries to
 ...
 ```
 
-## Hoover
-Set up `hoover-search`:
-
+Create an initial admin user:
 ```shell
-mkdir -p volumes/hoover/es/data
-./liquid shell hoover-search ./manage.py migrate
 ./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
@@ -108,7 +145,6 @@ collection:
 
 ```shell
 ./liquid deploy
-# ... wait for the containers to spin up
 ./liquid initcollection testdata
 ```
 
@@ -131,56 +167,7 @@ To dump the nginx configuration:
 nomad alloc fs $(./liquid alloc liquid nginx) nginx/local/core.conf
 ```
 
-### Vagrant
-
-You can run a full Liquid cluster in a local virtual machine using [Vagrant][].
-The configuration has been tested with the [libvirt driver][] but should work
-with the default VirtualBox driver as well.
-
-1. [Installing vagrant][]
-2. `cd` to the `vagrant` subfolder, everything Vagrant-related happens in here:
-    ```shell
-    cd vagrant/
-    ```
-3. Start the VM:
-    ```shell
-    vagrant up
-    ```
-
-You can log into the vm using `vagrant ssh`.
-
-Optionally, install [vagrant-env][], and set environment variables in an `.env`
-local file that will be ignored by git.
-
-Vagrant will forward the following ports:
-  * `80` `1380` (the main website), `4646` as
-  * `guest: 80, host: 1380` - public web server (http)
-  * `guest: 8765, host: 18765` - internal web server
-  * `guest: 8500, host: 18500` - consul
-  * `guest: 8200, host: 18200` - vault
-  * `guest: 4646, host: 14646` - nomad
-
-[Vagrant]: https://www.vagrantup.com
-[libvirt driver]: https://github.com/vagrant-libvirt/vagrant-libvirt
-[Installing vagrant]: https://www.vagrantup.com/docs/installation/
-[vagrant-env]: https://github.com/gosuri/vagrant-env
-
-
-### Running custom jobs
-You can deploy your own jobs on the cluster. First, create a nomad job file,
-you can use one of the existing `.nomad` files as a starting point. Save it in
-the `local` folder, or outside the repository, so that it doesn't interfere
-with updates. Then add the job to `liquid.ini`:
-
-```ini
-[job:foo]
-template = local/foo.nomad
-```
-
-Afterwards, run `./liquid deploy`, which will send your job `foo` to nomad.
-
-
-### Working on components
+#### Working on components
 
 In order to work on Hoover Search, Hoover Snoop, or Liquid Core, first clone the repositories:
 ```shell
@@ -196,3 +183,15 @@ After that, set this flag in your configuration:
 mount_local_repos = true
 ```
 
+#### Running custom jobs
+You can deploy your own jobs on the cluster. First, create a nomad job file,
+you can use one of the existing `.nomad` files as a starting point. Save it in
+the `local` folder, or outside the repository, so that it doesn't interfere
+with updates. Then add the job to `liquid.ini`:
+
+```ini
+[job:foo]
+template = local/foo.nomad
+```
+
+Afterwards, run `./liquid deploy`, which will send your job `foo` to nomad.
