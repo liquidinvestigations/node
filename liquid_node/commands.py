@@ -84,7 +84,7 @@ def wait_for_service_health_checks(health_checks):
             greens += 1
 
         if greens >= config.wait_green_count:
-            log.info("Checks green %s after %.02fs", services, time() - t0)
+            log.info("Checks green {services} after {time() - t0:.02f}s", services, time() - t0)
             return
 
         # No chance to get enough greens
@@ -99,7 +99,7 @@ def wait_for_service_health_checks(health_checks):
             failed_text += '\n'
         log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
 
-    msg = f'Checks are failing after %.02fs: \n - {failed_text}' %  time() - t0
+    msg = f'Checks are failing after {time() - t0:.02f}s: \n - {failed_text}'
     raise RuntimeError(msg)
 
 
