@@ -61,16 +61,24 @@ job "liquid" {
         port_map {
           http = 80
           admin = 8080
+          {%- if https_enabled %}
+          https = 443
+          {%- endif %}
         }
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml:ro",
           "${consul_socket}:/consul.sock:ro",
+          "${liquid_volumes}/acme.json:/acme.json",
         ]
       }
       template {
         data = <<-EOF
           debug = {{ key "liquid_debug" }}
+          {%- if https_enabled %}
           defaultEntryPoints = ["http"]
+          {%- else %}
+          defaultEntryPoints = ["http", "https"]
+          {%- endif %}
 
           [api]
           entryPoint = "admin"
@@ -80,6 +88,24 @@ job "liquid" {
             address = ":80"
             [entryPoints.admin]
             address = ":8080"
+
+            {%- if https_enabled %}
+            [entryPoints.https]
+            address = ":443"
+              [entryPoints.https.tls]
+            {%- endif %}
+
+          {%- if https_enabled %}
+          [acme]
+            email = "${acme_email}"
+            entryPoint = "https"
+            storage = "/acme.json"
+            onHostRule = true
+            caServer = "${acme_caServer}"
+            [acme.httpChallenge]
+              entryPoint = "http"
+          {%- endif %}
+
 
           [consulCatalog]
           endpoint = "unix:///consul.sock"
@@ -97,13 +123,19 @@ job "liquid" {
             static = ${liquid_http_port}
           }
           port "admin" {}
+
+          {%- if https_enabled %}
+          port "https" {
+            static = ${liquid_https_port}
+          }
+          {%- endif %}
         }
       }
       service {
         name = "trafik-ingress-http"
         port = "http"
         check {
-          name = "traefik alive on home page"
+          name = "traefik alive on http - home page"
           initial_status = "critical"
           type = "http"
           path = "/"
@@ -114,6 +146,26 @@ job "liquid" {
           }
         }
       }
+
+      {%- if https_enabled %}
+      service {
+        name = "trafik-ingress-https"
+        port = "https"
+        check {
+          name = "traefik alive on https - home page"
+          initial_status = "critical"
+          type = "http"
+          protocol = "https"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["${liquid_domain}"]
+          }
+        }
+      }
+      {%- endif %}
+
       service {
         name = "trafik-ingress-admin"
         port = "admin"

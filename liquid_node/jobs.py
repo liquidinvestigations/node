@@ -35,6 +35,12 @@ def set_volumes_paths(substitutions={}):
     substitutions['check_timeout'] = config.check_timeout
     substitutions['consul_socket'] = os.path.realpath(config.consul_socket)
 
+    substitutions['https_enabled'] = config.https_enabled
+    if config.https_enabled:
+        substitutions['liquid_https_port'] = config.liquid_https_port
+        substitutions['acme_email'] = config.https_acme_email
+        substitutions['acme_caServer'] = config.https_acme_caServer
+
     repos = {
         'snoop2': {
             'org': 'hoover',
