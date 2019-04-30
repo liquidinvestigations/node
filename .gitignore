@@ -2,6 +2,5 @@
 /liquid.ini
 /volumes
 /collections
-/nomad-agent.hcl
 /venv
 __pycache__
