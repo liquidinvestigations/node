@@ -13,11 +13,13 @@ Vagrant.configure("2") do |config|
     virtualbox.cpus = 2
   end
 
+  machine_name = ENV['MACHINE_NAME'] || ("liquid-vagrant-" + `hostname`.strip)
+  config.vm.define machine_name
+
   config.vm.provider :digital_ocean do |digital_ocean, override|
     do_token = ENV['DO_TOKEN'] || abort("need DO_TOKEN in your environment")
     do_region = ENV['DO_REGION'] || "fra1"
     do_seppuku = ENV['DO_SEPPUKU']
-    do_box_name = ENV['DO_BOX_NAME'] || ("liquid-vagrant-" + `hostname`.strip)
 
     override.vm.box = "digital_ocean"
     override.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
@@ -33,7 +35,6 @@ Vagrant.configure("2") do |config|
     digital_ocean.ssh_key_name = 'vagrant'
     digital_ocean.image = 'ubuntu-18-04-x64'
     digital_ocean.size = 's-4vcpu-8gb'
-    digital_ocean.name = do_box_name
   end
 
   config.vm.provider :libvirt do |libvirt, override|
