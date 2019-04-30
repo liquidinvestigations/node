@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-sleep_time=900
-
 echo "Getting droplet ID ..."
 droplet_address="$(ip route get 8.8.8.8 | awk '{ print $7; exit }')"
 droplet_id="$(
@@ -13,8 +11,8 @@ curl \
 )"
 echo "Droplet ID is $droplet_id"
 
-echo "Sleeping $sleep_time seconds"
-sleep $sleep_time # 15 minutes
+echo "Sleeping $DO_SEPPUKU seconds from $(date) ..."
+sleep $DO_SEPPUKU
 
 echo "Woke up, killing self"
 curl \
