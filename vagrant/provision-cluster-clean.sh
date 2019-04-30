@@ -16,30 +16,20 @@ sudo apt-get install -yqq git python3 unzip docker.io supervisor python3-venv
 echo 'vm.max_map_count=262144' | sudo tee -a /etc/sysctl.d/es.conf
 sudo sysctl --system
 sudo adduser vagrant docker
-sg docker newgrp `id -gn`
 sudo chown vagrant /opt
 
 
-echo "Installing the nomad cluster" > /dev/null
+echo "Installing the cluster" > /dev/null
 
-git clone https://github.com/liquidinvestigations/cluster /opt/cluster
+if [ ! -d /opt/cluster ]; then
+  git clone https://github.com/liquidinvestigations/cluster /opt/cluster
+else
+  sudo supervisorctl stop cluster: || true
+  rm -rf /opt/cluster/var
+fi
 cd /opt/cluster
 
-cat > cluster.ini <<EOF
-[nomad]
-address = 0.0.0.0
+echo "Stop any existing docker containers" > /dev/null
 
-[supervisor]
-autostart = true
-EOF
-
-./cluster.py install
-sudo setcap cap_ipc_lock=+ep bin/vault
-./cluster.py configure
-sudo ln -s `pwd`/etc/supervisor-cluster.conf /etc/supervisor/conf.d/cluster.conf
-sudo supervisorctl update
-
-./cluster.py autovault
-sudo supervisorctl restart cluster:nomad
-
-echo "Cluster provisioned successfully." > /dev/null
+docker kill $(docker ps -q) || true
+docker rm $(docker ps -aq) || true
