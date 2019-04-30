@@ -16,6 +16,19 @@ Vagrant.configure("2") do |config|
   machine_name = ENV['MACHINE_NAME'] || ("liquid-vagrant-" + `hostname`.strip)
   config.vm.define machine_name
 
+  config.vm.synced_folder "..", "/opt/node", type: "rsync",
+    rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
+                     "liquid.ini", "venv/", "volumes/", "collections/"]
+
+  config.vm.provision 'provider', type: 'shell', inline: "/bin/true"
+  config.vm.provision :shell, path: "provision-cluster.sh"
+  config.vm.provision :shell, path: "provision-liquid.sh"
+
+  config.vm.network :forwarded_port, guest: 80, host: 1380, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 4646, host: 14646, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 8500, host: 18500, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 8200, host: 18200, host_ip: "127.0.0.1"
+
   config.vm.provider :digital_ocean do |digital_ocean, override|
     do_token = ENV['DO_TOKEN'] || abort("need DO_TOKEN in your environment")
     do_region = ENV['DO_REGION'] || "fra1"
@@ -23,10 +36,16 @@ Vagrant.configure("2") do |config|
 
     override.vm.box = "digital_ocean"
     override.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
-    override.vm.provision :shell, path: "provision-do.sh", env: {
-      'DO_SEPPUKU' => do_seppuku,
-      'DO_TOKEN' => do_seppuku ? do_token : '',
-    }
+    override.vm.provision(
+      'provider',
+      preserve_order: true,
+      type: 'shell',
+      path: "provision-do.sh",
+        env: {
+        'DO_SEPPUKU' => do_seppuku,
+        'DO_TOKEN' => do_seppuku ? do_token : '',
+      },
+    )
     override.nfs.functional = false
     override.ssh.private_key_path = ENV['DO_SSH_PRIVATE_KEY_PATH'] || '~/.ssh/id_rsa'
 
@@ -42,18 +61,5 @@ Vagrant.configure("2") do |config|
     libvirt.memory = 8192
     libvirt.cpus = 2
   end
-
-  config.vm.network :forwarded_port, guest: 80, host: 1380, host_ip: "127.0.0.1"
-  config.vm.network :forwarded_port, guest: 4646, host: 14646, host_ip: "127.0.0.1"
-  config.vm.network :forwarded_port, guest: 8500, host: 18500, host_ip: "127.0.0.1"
-  config.vm.network :forwarded_port, guest: 8200, host: 18200, host_ip: "127.0.0.1"
-
-
-  config.vm.synced_folder "..", "/opt/node", type: "rsync",
-    rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
-                     "liquid.ini", "venv/", "volumes/", "collections/"]
-
-  config.vm.provision :shell, path: "provision-cluster.sh"
-  config.vm.provision :shell, path: "provision-liquid.sh"
 
 end
