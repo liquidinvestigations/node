@@ -2,13 +2,13 @@
 
 if [ $EUID -eq 0 ]; then
   chmod 755 $0
-  echo "I'm root, switching to vagrant."
+  echo "I'm root, switching to vagrant." > /dev/null
   exec sudo -iu vagrant $0
 fi
 
-echo "Hello, my name is $(whoami), PID=$$."
+echo "Hello, my name is $(whoami), PID=$$." > /dev/null
 
-echo "Preparing the system"
+echo "Preparing the system" > /dev/null
 
 export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update -qq
@@ -20,7 +20,7 @@ sg docker newgrp `id -gn`
 sudo chown vagrant /opt
 
 
-echo "Installing the nomad cluster"
+echo "Installing the nomad cluster" > /dev/null
 
 git clone https://github.com/liquidinvestigations/cluster /opt/cluster
 cd /opt/cluster
@@ -42,4 +42,4 @@ sudo supervisorctl update
 ./cluster.py autovault
 sudo supervisorctl restart cluster:nomad
 
-echo "Cluster provisioned successfully."
+echo "Cluster provisioned successfully." > /dev/null
