@@ -3,6 +3,7 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/bionic64"
+  config.vm.define(ENV['DO_BUILD_NAME'] || ("liquid-vagrant-" + `hostname`.strip))
 
   config.vm.provider :virtualbox do |virtualbox, override|
     virtualbox.memory = 8192
@@ -11,13 +12,11 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider :digital_ocean do |provider, override|
     do_token = ENV['DO_TOKEN'] || abort("need DO_TOKEN in your environment")
-    do_build_name = ENV['DO_BUILD_NAME'] || "liquid-" + `hostname`
     do_region = ENV['DO_REGION'] || "fra1"
 
     override.vm.box = "digital_ocean"
     override.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
     override.vm.provision :shell, path: "provision-do.sh", env: {"DO_TOKEN" => do_token}
-    override.vm.define do_build_name
     override.nfs.functional = false
     override.ssh.private_key_path = ENV['DO_SSH_PRIVATE_KEY_PATH'] || '~/.ssh/id_rsa'
 
