@@ -83,7 +83,6 @@ def get_collection_job(name, settings, template='collection.nomad'):
 
 
 def render(template, subs):
-    print(subs)
     env = jinja2.Environment(
         variable_start_string="${",
         variable_end_string="}",

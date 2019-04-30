@@ -84,7 +84,7 @@ def wait_for_service_health_checks(health_checks):
             greens += 1
 
         if greens >= config.wait_green_count:
-            log.info("Checks green {services} after {time() - t0:.02f}s", services, time() - t0)
+            log.info(f"Checks green {services} after {time() - t0:.02f}s")
             return
 
         # No chance to get enough greens
