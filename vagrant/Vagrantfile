@@ -49,6 +49,7 @@ Vagrant.configure("2") do |config|
       preserve_order: true,
       type: 'shell',
       path: "provision-do.sh",
+      inline: nil,
       env: do_provision_env,
     )
 
