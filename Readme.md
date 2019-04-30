@@ -137,8 +137,22 @@ You can run a full Liquid cluster in a local virtual machine using [Vagrant][].
 The configuration has been tested with the [libvirt driver][] but should work
 with the default VirtualBox driver as well.
 
-After [installing vagrant][], run `vagrant up` to download, start and provision
-the VM. It will forward the following ports:
+1. [Installing vagrant][]
+2. `cd` to the `vagrant` subfolder, everything Vagrant-related happens in here:
+    ```shell
+    cd vagrant/
+    ```
+3. Start the VM:
+    ```shell
+    vagrant up
+    ```
+
+You can log into the vm using `vagrant ssh`.
+
+Optionally, install [vagrant-env][], and set environment variables in an `.env`
+local file that will be ignored by git.
+
+Vagrant will forward the following ports:
   * `80` `1380` (the main website), `4646` as
   * `guest: 80, host: 1380` - public web server (http)
   * `guest: 8765, host: 18765` - internal web server
@@ -148,7 +162,8 @@ the VM. It will forward the following ports:
 
 [Vagrant]: https://www.vagrantup.com
 [libvirt driver]: https://github.com/vagrant-libvirt/vagrant-libvirt
-[installing vagrant]: https://www.vagrantup.com/docs/installation/
+[Installing vagrant]: https://www.vagrantup.com/docs/installation/
+[vagrant-env]: https://github.com/gosuri/vagrant-env
 
 
 ### Running custom jobs
