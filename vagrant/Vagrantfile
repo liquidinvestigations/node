@@ -36,18 +36,21 @@ Vagrant.configure("2") do |config|
 
     override.vm.box = "digital_ocean"
     override.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+    override.nfs.functional = false
+    override.ssh.private_key_path = ENV['DO_SSH_PRIVATE_KEY_PATH'] || '~/.ssh/id_rsa'
+
+    do_provision_env = {}
+    if do_seppuku
+      do_provision_env['DO_SEPPUKU'] = do_seppuku
+      do_provision_env['DO_TOKEN'] = do_token
+    end
     override.vm.provision(
       'provider',
       preserve_order: true,
       type: 'shell',
       path: "provision-do.sh",
-        env: {
-        'DO_SEPPUKU' => do_seppuku,
-        'DO_TOKEN' => do_seppuku ? do_token : '',
-      },
+      env: do_provision_env,
     )
-    override.nfs.functional = false
-    override.ssh.private_key_path = ENV['DO_SSH_PRIVATE_KEY_PATH'] || '~/.ssh/id_rsa'
 
     digital_ocean.token = do_token
     digital_ocean.region = do_region
