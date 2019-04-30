@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 echo "Hello, my name is $(whoami)."
 
