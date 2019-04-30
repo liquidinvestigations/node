@@ -1,8 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 if [ $EUID -eq 0 ]; then
   echo "I'm root, switching to vagrant."
-  exec sudo -iu vagrant bash $0
+  exec sudo -iu vagrant $0
 fi
 
 echo "Hello, my name is $(whoami)."
