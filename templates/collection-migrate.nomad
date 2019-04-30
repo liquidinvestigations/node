@@ -3,8 +3,6 @@ job "collection-${name}-migrate" {
   type = "batch"
 
   group "snoop" {
-    count = $workers
-
     task "migrate" {
       driver = "docker"
       config {

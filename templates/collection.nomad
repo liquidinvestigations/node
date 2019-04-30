@@ -107,7 +107,7 @@ job "collection-${name}" {
   }
 
   group "workers" {
-    count = $workers
+    count = ${workers}
 
     task "snoop" {
       driver = "docker"
