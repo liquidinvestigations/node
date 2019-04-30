@@ -4,6 +4,7 @@ echo "Hello, my name is $(whoami)."
 
 echo "Preparing the DigitalOcean droplet"
 
+export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update -qq
 sudo apt-get install -yqq jq
 
