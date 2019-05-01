@@ -61,7 +61,7 @@ class Configuration:
         if self.https_enabled:
             self.liquid_https_port = self.ini.get('https', 'https_port', fallback='443')
             self.https_acme_email = self.ini.get('https', 'acme_email')
-            self.https_acme_caServer = self.ini.get('https', 'acme_email',
+            self.https_acme_caServer = self.ini.get('https', 'acme_caServer',
                 fallback="https://acme-staging-v02.api.letsencrypt.org/directory")
 
 
