@@ -75,9 +75,9 @@ job "liquid" {
         data = <<-EOF
           debug = {{ key "liquid_debug" }}
           {%- if https_enabled %}
-          defaultEntryPoints = ["http"]
-          {%- else %}
           defaultEntryPoints = ["http", "https"]
+          {%- else %}
+          defaultEntryPoints = ["http"]
           {%- endif %}
 
           [api]
