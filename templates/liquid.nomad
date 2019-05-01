@@ -39,6 +39,7 @@ job "liquid" {
         name = "core"
         port = "http"
         tags = [
+          "traefik.enable=true",
           "traefik.frontend.rule=Host:${liquid_domain}",
         ]
         check {

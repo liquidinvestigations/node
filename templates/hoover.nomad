@@ -133,6 +133,7 @@ job "hoover" {
         name = "hoover"
         port = "http"
         tags = [
+          "traefik.enable=true",
           "traefik.frontend.rule=Host:hoover.${liquid_domain}",
         ]
         check {
