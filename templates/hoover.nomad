@@ -63,6 +63,7 @@ job "hoover" {
         POSTGRES_DATABASE = "hoover"
       }
       resources {
+        cpu = 500
         memory = 150
         network {
           port "pg" {}

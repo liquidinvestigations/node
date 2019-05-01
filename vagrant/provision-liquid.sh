@@ -13,15 +13,17 @@ echo "Installing liquid" > /dev/null
 cd /opt/node
 sudo chown -R vagrant: .
 
-if [ ! -f volumes ]; then
+if ! [ -e volumes ]; then
   mkdir -p /opt/var/node/volumes
   ln -s /opt/var/node/volumes
 fi
 
-if [ ! -f collections ]; then
+if ! [ -e collections ]; then
   mkdir -p /opt/var/node/collections
   ln -s /opt/var/node/collections
 fi
+
+sudo mv /tmp/vagrant-liquid.ini liquid.ini
 
 ./liquid deploy
 

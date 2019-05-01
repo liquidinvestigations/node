@@ -1,6 +1,10 @@
+{% from '_lib.hcl' import migration_reschedule %}
+
 job "hoover-migrate" {
   datacenters = ["dc1"]
   type = "batch"
+
+  ${ migration_reschedule() }
 
   group "search" {
     task "migrate" {

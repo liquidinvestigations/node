@@ -68,7 +68,9 @@ job "collection-${name}" {
         }
       }
     }
+  }
 
+  group "db" {
     task "pg" {
       driver = "docker"
       config {
@@ -88,6 +90,7 @@ job "collection-${name}" {
         POSTGRES_DATABASE = "snoop"
       }
       resources {
+        cpu = 1000
         memory = 500
         network {
           port "pg" {}

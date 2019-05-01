@@ -92,6 +92,7 @@ def render(template, subs):
     env = jinja2.Environment(
         variable_start_string="${",
         variable_end_string="}",
+        loader=jinja2.FileSystemLoader(str(config.templates)),
     )
     return env.from_string(template).render(subs)
 

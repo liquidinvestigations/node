@@ -19,15 +19,14 @@ Vagrant.configure("2") do |config|
   config.vm.provision 'provider', type: 'shell', inline: '/bin/true'
 
   # liquid cluster
-  config.vm.provision :shell, path: 'provision-cluster-clean.sh'
-  config.vm.provision :file, source: cluster_ini, destination: '/opt/cluster/cluster.ini'
+  config.vm.provision :file, source: cluster_ini, destination: '/tmp/vagrant-cluster.ini'
   config.vm.provision :shell, path: 'provision-cluster-up.sh'
 
   # liquid node
   config.vm.synced_folder "..", "/opt/node", type: "rsync",
     rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
                      "liquid.ini", "venv/", "volumes/", "collections/"]
-  config.vm.provision :file, source: liquid_ini, destination: '/opt/node/liquid.ini'
+  config.vm.provision :file, source: liquid_ini, destination: '/tmp/vagrant-liquid.ini'
   config.vm.provision :shell, path: 'provision-liquid.sh'
 
   if custom_sh

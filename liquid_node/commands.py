@@ -120,6 +120,17 @@ def deploy():
     for path in vault_secret_keys:
         ensure_secret_key(path)
 
+    def start(job, hcl):
+        log.info('Starting %s...', job)
+        nomad.run(hcl)
+        job_checks = {}
+        for service, checks in nomad.get_health_checks(hcl):
+            if not checks:
+                log.warn(f'service {service} has no health checks')
+                continue
+            job_checks[service] = checks
+        return job_checks
+
     jobs = [(job, get_job(path)) for job, path in config.jobs]
 
     for name, settings in config.collections.items():
@@ -129,18 +140,9 @@ def deploy():
         jobs.append((f'collection-{name}', job))
         ensure_secret_key(f'collections/{name}/snoop.django')
 
-    health_checks = {}
-    for job, hcl in jobs:
-        log.info('Starting %s...', job)
-        nomad.run(hcl)
-        for service, checks in nomad.get_health_checks(hcl):
-            if not checks:
-                log.warn(f'service {service} has no health checks')
-                continue
-            health_checks[service] = checks
-
-    # Wait liquid-core in order to setup the auth
-    wait_for_service_health_checks({'core': health_checks['core']})
+    # Start liquid-core in order to setup the auth
+    liquid_checks = start('liquid', dict(jobs)['liquid'])
+    wait_for_service_health_checks({'core': liquid_checks['core']})
 
     for app in core_auth_apps:
         log.info('Auth %s -> %s', app['name'], app['callback'])
@@ -150,6 +152,11 @@ def deploy():
         docker_exec_cmd = ['docker', 'exec', container_id] + cmd
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
+
+    health_checks = {}
+    for job, hcl in jobs:
+        job_checks = start(job, hcl)
+        health_checks.update(job_checks)
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
