@@ -68,7 +68,7 @@ job "liquid" {
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml:ro",
           "${consul_socket}:/consul.sock:ro",
-          "${liquid_volumes}/acme.json:/acme.json",
+          "${liquid_volumes}/traefik-acme:/traefik-acme",
         ]
       }
       template {
@@ -86,6 +86,12 @@ job "liquid" {
           [entryPoints]
             [entryPoints.http]
             address = ":80"
+
+              {%- if https_enabled %}
+              [entryPoints.http.redirect]
+              entryPoint = "https"
+              {%- endif %}
+
             [entryPoints.admin]
             address = ":8080"
 
@@ -99,7 +105,7 @@ job "liquid" {
           [acme]
             email = "${acme_email}"
             entryPoint = "https"
-            storage = "/acme.json"
+            storage = "/traefik-acme/acme.json"
             onHostRule = true
             caServer = "${acme_caServer}"
             [acme.httpChallenge]
@@ -132,7 +138,7 @@ job "liquid" {
         }
       }
       service {
-        name = "trafik-ingress-http"
+        name = "traefik-ingress-http"
         port = "http"
         check {
           name = "traefik alive on http - home page"
@@ -149,7 +155,7 @@ job "liquid" {
 
       {%- if https_enabled %}
       service {
-        name = "trafik-ingress-https"
+        name = "traefik-ingress-https"
         port = "https"
         check {
           name = "traefik alive on https - home page"
@@ -167,7 +173,7 @@ job "liquid" {
       {%- endif %}
 
       service {
-        name = "trafik-ingress-admin"
+        name = "traefik-ingress-admin"
         port = "admin"
         check {
           name = "traefik alive on http admin"
