@@ -133,7 +133,7 @@ job "hoover" {
         name = "hoover"
         port = "http"
         tags = [
-          "traefik-ingress.frontend.rule=Host:hoover.${liquid_domain}",
+          "traefik.frontend.rule=Host:hoover.${liquid_domain}",
         ]
         check {
           name = "hoover /_ping succeeds"
@@ -169,64 +169,103 @@ job "hoover" {
       }
     }
   }
-  group "internal" {
-    task "traefik" {
+
+
+  group "collections" {
+    task "nginx" {
       driver = "docker"
-      config {
-        image = "traefik:1.7"
+      template {
+        data = <<EOF
+          server {
+            listen 80 default_server;
+
+            {{- if service "hoover-es" }}
+              {{- with service "hoover-es" }}
+                {{- with index . 0 }}
+                  location ~ ^/_es/(.*) {
+                    proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
+                  }
+                {{- end }}
+              {{- end }}
+            {{- end }}
+
+            {{- range services }}
+              {{- if .Name | regexMatch "^snoop-" }}
+                {{- with service .Name }}
+                  {{- with index . 0 }}
+                    location ~ ^/{{ .Name | regexReplaceAll "^(snoop-)" "" }}/(.*) {
+                      proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
+                      proxy_set_header Host {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.{{ key "liquid_domain" }};
+                    }
+                  {{- end }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+
+          }
+
+          {{- range services }}
+            {{- if .Name | regexMatch "^snoop-" }}
+              {{- with service .Name }}
+                {{- with index . 0 }}
+                  server {
+                    listen 80;
+                    server_name {{ .Name | regexReplaceAll "^(snoop-)" "" }}.snoop.{{ key "liquid_domain" }};
+                    location / {
+                      proxy_pass http://{{ .Address }}:{{ .Port }};
+                      proxy_set_header Host $host;
+                    }
+                  }
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+
+          {{- if service "zipkin" }}
+            {{- with service "zipkin" }}
+              {{- with index . 0 }}
+                server {
+                  listen 80;
+                  server_name zipkin.{{ key "liquid_domain" }};
+                  location / {
+                    proxy_pass http://{{ .Address }}:{{ .Port }};
+                    proxy_set_header Host $host;
+                  }
+                }
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          EOF
+        destination = "local/collections.conf"
+      }
+      config = {
+        image = "nginx"
         port_map {
-          http = 80
-          admin = 8080
+          nginx = 80
         }
         volumes = [
-          "local/traefik.toml:/etc/traefik/traefik.toml:ro",
-          "${consul_socket}:/consul.sock:ro",
+          "local/collections.conf:/etc/nginx/conf.d/collections.conf",
         ]
-      }
-      template {
-        data = <<-EOF
-          debug = {{ key "liquid_debug" }}
-          defaultEntryPoints = ["http"]
-
-          [api]
-          entryPoint = "admin"
-
-          [entryPoints]
-            [entryPoints.http]
-            address = ":80"
-            [entryPoints.admin]
-            address = ":8080"
-
-          [consulCatalog]
-          endpoint = "unix:///consul.sock"
-          prefix = "traefik-internal"
-
-          [consul]
-          endpoint = "unix:///consul.sock"
-          prefix = "traefik-internal"
-        EOF
-        destination = "local/traefik.toml"
+        labels {
+          liquid_task = "hoover-collections-nginx"
+        }
       }
       resources {
+        memory = 256
         network {
-          port "http" {
+          port "nginx" {
             static = 8765
           }
-          port "admin" {}
         }
       }
       service {
-        name = "traefik-internal-http"
-        port = "http"
-      }
-      service {
-        name = "traefik-internal-admin"
-        port = "admin"
+        name = "hoover-collections"
+        port = "nginx"
         check {
-          name = "traefik alive on http admin"
+          name = "hoover-collections nginx on :8765 forwards elasticsearch"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/_es/_cluster/health/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }

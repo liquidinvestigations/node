@@ -219,9 +219,6 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}"
         port = "http"
-        tags = [
-          "traefik-internal.frontend.rule=Host:${name}.snoop.${liquid_domain}",
-        ]
         check {
           name = "snoop alive on http"
           initial_status = "critical"

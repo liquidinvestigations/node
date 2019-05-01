@@ -39,7 +39,7 @@ job "liquid" {
         name = "core"
         port = "http"
         tags = [
-          "traefik-ingress.frontend.rule=Host:${liquid_domain}",
+          "traefik.frontend.rule=Host:${liquid_domain}",
         ]
         check {
           name = "liquid-core alive on http"
@@ -68,7 +68,7 @@ job "liquid" {
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml:ro",
           "${consul_socket}:/consul.sock:ro",
-          "${liquid_volumes}/traefik-acme:/traefik-acme",
+          "${liquid_volumes}/liquid/traefik/acme:/etc/traefik/acme",
         ]
       }
       template {
@@ -105,7 +105,7 @@ job "liquid" {
           [acme]
             email = "${acme_email}"
             entryPoint = "https"
-            storage = "/traefik-acme/acme.json"
+            storage = "acme.json"
             onHostRule = true
             caServer = "${acme_caServer}"
             [acme.httpChallenge]
@@ -115,11 +115,12 @@ job "liquid" {
 
           [consulCatalog]
           endpoint = "unix:///consul.sock"
-          prefix = "traefik-ingress"
+          prefix = "traefik"
+          exposedByDefault = false
 
           [consul]
           endpoint = "unix:///consul.sock"
-          prefix = "traefik-ingress"
+          prefix = "traefik"
         EOF
         destination = "local/traefik.toml"
       }
@@ -138,7 +139,7 @@ job "liquid" {
         }
       }
       service {
-        name = "traefik-ingress-http"
+        name = "traefik-http"
         port = "http"
         check {
           name = "traefik alive on http - home page"
@@ -155,7 +156,7 @@ job "liquid" {
 
       {%- if https_enabled %}
       service {
-        name = "traefik-ingress-https"
+        name = "traefik-https"
         port = "https"
         check {
           name = "traefik alive on https - home page"
@@ -173,7 +174,7 @@ job "liquid" {
       {%- endif %}
 
       service {
-        name = "traefik-ingress-admin"
+        name = "traefik-admin"
         port = "admin"
         check {
           name = "traefik alive on http admin"
