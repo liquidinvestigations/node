@@ -9,15 +9,30 @@ Vagrant.configure("2") do |config|
   end
 
   machine_name = ENV['MACHINE_NAME'] || ("liquid-vagrant-" + `hostname`.strip)
+  cluster_ini = ENV['PROVISION_CLUSTER_INI'] || 'cluster.ini'
+  liquid_ini = ENV['PROVISION_LIQUID_INI'] || 'liquid.ini'
+  custom_sh = ENV['PROVISION_SH']
+
   config.vm.define machine_name
 
+  # blank provisioner that can be overridden by providers
+  config.vm.provision 'provider', type: 'shell', inline: '/bin/true'
+
+  # liquid cluster
+  config.vm.provision :shell, path: 'provision-cluster-clean.sh'
+  config.vm.provision :file, source: cluster_ini, destination: '/opt/cluster/cluster.ini'
+  config.vm.provision :shell, path: 'provision-cluster-up.sh'
+
+  # liquid node
   config.vm.synced_folder "..", "/opt/node", type: "rsync",
     rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
                      "liquid.ini", "venv/", "volumes/", "collections/"]
+  config.vm.provision :file, source: liquid_ini, destination: '/opt/node/liquid.ini'
+  config.vm.provision :shell, path: 'provision-liquid.sh'
 
-  config.vm.provision 'provider', type: 'shell', inline: "/bin/true"
-  config.vm.provision :shell, path: "provision-cluster.sh"
-  config.vm.provision :shell, path: "provision-liquid.sh"
+  if custom_sh
+    config.vm.provision :shell, path: custom_sh
+  end
 
   config.vm.network :forwarded_port, guest: 80, host: 1380, host_ip: "127.0.0.1"
   config.vm.network :forwarded_port, guest: 4646, host: 14646, host_ip: "127.0.0.1"

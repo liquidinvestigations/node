@@ -2,7 +2,7 @@ job "collection-${name}" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "deps" {
+  group "queue" {
     task "rabbitmq" {
       driver = "docker"
       config {
@@ -18,11 +18,10 @@ job "collection-${name}" {
         }
       }
       resources {
+        memory = 1000
         network {
           port "amqp" {}
         }
-        memory = 1024
-
       }
       service {
         name = "snoop-${name}-rabbitmq"
@@ -36,7 +35,9 @@ job "collection-${name}" {
         }
       }
     }
+  }
 
+  group "tika" {
     task "tika" {
       driver = "docker"
       config {
@@ -49,10 +50,10 @@ job "collection-${name}" {
         }
       }
       resources {
+        memory = 1000
         network {
           port "tika" {}
         }
-	memory = 1024
       }
       service {
         name = "snoop-${name}-tika"
@@ -87,10 +88,10 @@ job "collection-${name}" {
         POSTGRES_DATABASE = "snoop"
       }
       resources {
+        memory = 500
         network {
           port "pg" {}
         }
-        memory = 1024
       }
       service {
         name = "snoop-${name}-pg"
@@ -154,7 +155,7 @@ job "collection-${name}" {
         env = true
       }
       resources {
-        memory = 1024
+        memory = 500
       }
     }
   }
@@ -211,7 +212,7 @@ job "collection-${name}" {
         env = true
       }
       resources {
-        memory = 512
+        memory = 500
         network {
           port "http" {}
         }

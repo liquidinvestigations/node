@@ -71,6 +71,9 @@ job "liquid" {
           "${consul_socket}:/consul.sock:ro",
           "${liquid_volumes}/liquid/traefik/acme:/etc/traefik/acme",
         ]
+        labels {
+          liquid_task = "liquid-ingress"
+        }
       }
       template {
         data = <<-EOF
@@ -106,9 +109,10 @@ job "liquid" {
           [acme]
             email = "${acme_email}"
             entryPoint = "https"
-            storage = "acme.json"
+            storage = "liquid/traefik/acme"
             onHostRule = true
             caServer = "${acme_caServer}"
+            acmeLogging = true
             [acme.httpChallenge]
               entryPoint = "http"
           {%- endif %}
@@ -126,6 +130,7 @@ job "liquid" {
         destination = "local/traefik.toml"
       }
       resources {
+        memory = 100
         network {
           port "http" {
             static = ${liquid_http_port}
@@ -142,6 +147,7 @@ job "liquid" {
       service {
         name = "traefik-http"
         port = "http"
+        {%- if not https_enabled %}
         check {
           name = "traefik alive on http - home page"
           initial_status = "critical"
@@ -153,6 +159,7 @@ job "liquid" {
             Host = ["${liquid_domain}"]
           }
         }
+        {%- endif %}
       }
 
       {%- if https_enabled %}
@@ -167,6 +174,7 @@ job "liquid" {
           path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
+          tls_skip_verify = true
           header {
             Host = ["${liquid_domain}"]
           }

@@ -2,7 +2,7 @@ job "hoover" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "deps" {
+  group "index" {
     task "es" {
       driver = "docker"
       config {
@@ -23,7 +23,7 @@ job "hoover" {
         ES_JAVA_OPTS = "-Xms1536m -Xmx1536m"
       }
       resources {
-        memory = 2048
+        memory = 2000
         network {
           port "es" {}
         }
@@ -41,7 +41,9 @@ job "hoover" {
         }
       }
     }
+  }
 
+  group "db" {
     task "pg" {
       driver = "docker"
       config {
@@ -61,7 +63,7 @@ job "hoover" {
         POSTGRES_DATABASE = "hoover"
       }
       resources {
-        memory = 1024
+        memory = 150
         network {
           port "pg" {}
         }
@@ -124,7 +126,7 @@ job "hoover" {
         env = true
       }
       resources {
-        memory = 512
+        memory = 300
         network {
           port "http" {}
         }
@@ -170,7 +172,6 @@ job "hoover" {
       }
     }
   }
-
 
   group "collections" {
     task "nginx" {
@@ -252,7 +253,7 @@ job "hoover" {
         }
       }
       resources {
-        memory = 256
+        memory = 100
         network {
           port "nginx" {
             static = 8765

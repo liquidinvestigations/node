@@ -48,7 +48,7 @@ job "collection-${name}-migrate" {
         env = true
       }
       resources {
-        memory = 512
+        memory = 500
       }
     }
   }
