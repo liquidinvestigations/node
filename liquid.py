@@ -33,6 +33,7 @@ def main():
     parser = SubcommandParser(description=__doc__)
     parser.add_subcommands('cmd', [
         commands.shell,
+        commands.dockerexec,
         commands.alloc,
         commands.nomad_address,
         commands.deploy,

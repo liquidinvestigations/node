@@ -270,3 +270,9 @@ def shell(name, *args):
     """Open a shell in a docker container tagged with liquid_task=`name`"""
 
     docker.shell(name, *args)
+
+
+def dockerexec(name, *args):
+    """Run `docker exec` in a container tagged with liquid_task=`name`"""
+
+    docker.exec_(name, *args)

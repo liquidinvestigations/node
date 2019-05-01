@@ -35,5 +35,8 @@ class Docker:
         """
         run_fg(self.exec_command(name, *args, tty=True), shell=False)
 
+    def exec_(self, name, *args):
+        run_fg(self.exec_command(name, *args), shell=False)
+
 
 docker = Docker()
