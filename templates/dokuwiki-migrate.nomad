@@ -24,6 +24,11 @@ job "dokuwiki-migrate" {
         data = <<EOF
           set -ex
           doku=/bitnami/dokuwiki
+          if ! [ -e $doku/conf/local.php ]; then
+            echo "Dokuwiki not ready, aborting in 5s ..."
+            sleep 5
+            exit 1
+          fi
           cp /local/conf-local.php $doku/conf/local.php
           mkdir -p $doku/lib/plugins/liquid
           cp /local/liquid-auth.php $doku/lib/plugins/liquid/auth.php
