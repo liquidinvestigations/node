@@ -20,7 +20,7 @@ Vagrant.configure("2") do |config|
 
   # liquid cluster
   config.vm.provision :file, source: cluster_ini, destination: '/tmp/vagrant-cluster.ini'
-  config.vm.provision :shell, path: 'provision-cluster-up.sh'
+  config.vm.provision :shell, path: 'provision-cluster.sh'
 
   # liquid node
   config.vm.synced_folder "..", "/opt/node", type: "rsync",

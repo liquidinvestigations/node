@@ -23,7 +23,7 @@ if ! [ -e collections ]; then
   ln -s /opt/var/node/collections
 fi
 
-sudo mv /tmp/vagrant-liquid.ini liquid.ini
+cp /tmp/vagrant-liquid.ini liquid.ini
 
 ./liquid deploy
 

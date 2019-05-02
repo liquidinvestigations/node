@@ -26,12 +26,23 @@ if ! [ -d /opt/cluster ]; then
 fi
 cd /opt/cluster
 
+echo "Setting up the network" > /dev/null
+cat > /tmp/vagrant-boot-cluster.conf <<EOF
+[program:boot]
+user = root
+command = /opt/cluster/examples/network.sh
+autorestart = false
+EOF
+sudo cp /tmp/vagrant-boot-cluster.conf /etc/supervisor/conf.d/boot-cluster.conf
+
+sudo supervisorctl update
+
 if ! [ -e var ]; then
   mkdir -p /opt/var/cluster/var
   ln -s /opt/var/cluster/var
 fi
 
-sudo mv /tmp/vagrant-cluster.ini cluster.ini
+cp /tmp/vagrant-cluster.ini cluster.ini
 
 if ! [ -e bin ]; then
   ./cluster.py install
@@ -41,16 +52,18 @@ fi
 ./cluster.py configure
 
 echo "Installing the cluster in supervisor" > /dev/null
-etc_cluster_conf=etc/supervisor/conf.d/cluster.conf
+etc_cluster_conf=/etc/supervisor/conf.d/cluster.conf
 if ! [ -e $etc_cluster_conf ]; then
   sudo ln -s `pwd`/etc/supervisor-cluster.conf $etc_cluster_conf
 fi
 sudo supervisorctl update
 
-echo "Reticulating splines" > /dev/null
+if ! [ -e var/vault-secrets.ini ]; then
+  echo "Reticulating splines" > /dev/null
 
-sudo supervisorctl restart cluster:consul cluster:vault
-./cluster.py autovault
-sudo supervisorctl restart cluster:nomad
+  sudo supervisorctl restart cluster:consul cluster:vault
+  ./cluster.py autovault
+  sudo supervisorctl restart cluster:nomad
+fi
 
 echo "Cluster provisioned successfully." > /dev/null
