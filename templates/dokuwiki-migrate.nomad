@@ -40,14 +40,13 @@ job "dokuwiki-migrate" {
            */
           define('DOKU_AUTH', dirname(__FILE__));
           define('AUTH_USERFILE', DOKU_CONF.'users.auth.php');
-          class auth_plugin_liquid extends DokuWiki_Auth_Plugin  {
+          class auth_plugin_liquid extends DokuWiki_Auth_Plugin {
             function auth_plugin_liquid(){
               global $config_cascade;
               $this->cando['external'] = true;
-              $this->cando['logout'] = false;
               $this->success = true;
             }
-            function trustExternal($user,$pass,$sticky=false){
+            function trustExternal($user) {
               global $USERINFO;
               if (isset($_SERVER['HTTP_X_FORWARDED_USER'])) {
                 $userid = $_SERVER['HTTP_X_FORWARDED_USER'];
@@ -58,6 +57,9 @@ job "dokuwiki-migrate" {
                 return true;
               }
               return false;
+            }
+            function logOff() {
+              send_redirect('/__auth/logout');
             }
           }
         EOF
