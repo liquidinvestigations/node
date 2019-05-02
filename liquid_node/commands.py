@@ -221,9 +221,9 @@ def initcollection(name):
         log.warning(f'Collection "{name}" was already initialized.')
         return
 
-    shell(f'snoop-{name}-api', './manage.py', 'initcollection')
+    docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
 
-    shell(
+    docker.exec_(
         'hoover-search',
         './manage.py', 'addcollection', name,
         '--index', name,
