@@ -32,6 +32,11 @@ core_auth_apps = [
             '/accounts/oauth2-exchange/'
         ),
     },
+    {
+        'name': 'dokuwiki',
+        'vault_path': 'dokuwiki/auth.oauth2',
+        'callback': f'http://dokuwiki.{config.liquid_domain}/__auth/callback',
+    },
 ]
 
 
@@ -115,6 +120,7 @@ def deploy():
         'liquid/core.django',
         'hoover/search.django',
         'authdemo/auth.django',
+        'dokuwiki/auth.django',
     ]
 
     for path in vault_secret_keys:
