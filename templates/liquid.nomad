@@ -135,7 +135,9 @@ job "liquid" {
           port "http" {
             static = ${liquid_http_port}
           }
-          port "admin" {}
+          port "admin" {
+            static = 8766
+          }
 
           {%- if https_enabled %}
           port "https" {
