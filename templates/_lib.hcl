@@ -31,7 +31,7 @@
           {{- range service "core" }}
             LIQUID_INTERNAL_URL = http://{{.Address}}:{{.Port}}
           {{- end }}
-          LIQUID_PUBLIC_URL = http://{{key "liquid_domain"}}
+          LIQUID_PUBLIC_URL = ${liquid_http}://{{key "liquid_domain"}}
           {{- with secret "liquid/${name}/auth.django" }}
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}
