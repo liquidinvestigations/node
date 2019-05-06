@@ -117,7 +117,7 @@ job "collection-${name}" {
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-snoop2"
-        args = ["./manage.py", "runworkers" $sync]
+        args = ["./manage.py", "runworkers"]
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
@@ -132,6 +132,7 @@ job "collection-${name}" {
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
+        SYNC_FILES = "${SYNC_FILES}"
       }
       template {
         data = <<EOF
