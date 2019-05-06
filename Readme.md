@@ -153,21 +153,19 @@ collection:
 Tell liquid we want to run nextcloud and nc_sync jobs in `liquid.ini`:
 
 ```ini
-[extra_jobs]
-collection-ncsync = collection-ncsync.nomad
-nextcloud = nextcloud.nomad
-```
+[job:nextcloud]
+template = templates/nextcloud.nomad
 
+[collection:ncsync]
+workers = 1
+sync = true
+```
+ 
 and deploy with  
 ```shell
 ./liquid.py deploy
 ```  
 
-afterwards, run 
-
-```shell
-./liquid.py shell nextcloud /setup.sh
-```  
 Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 
 ### Debugging

@@ -132,7 +132,7 @@ job "collection-${name}" {
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
-        SYNC_FILES = "${SYNC_FILES}"
+        SYNC_FILES = "${sync}"
       }
       template {
         data = <<EOF
