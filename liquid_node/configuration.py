@@ -12,89 +12,65 @@ class Configuration:
 
         self.jobs = [
             (job, self.templates / f'{job}.nomad')
-            for job in ['hoover', 'hoover-ui', 'liquid']
+            for job in ['liquid', 'hoover-ui', 'hoover-migrate', 'hoover', 'hoover-ui']
         ]
 
         self.ini = configparser.ConfigParser()
         self.ini.read(self.root / 'liquid.ini')
 
-        self.consul_url = self.get(
-            'CONSUL_URL',
-            'cluster.consul_url',
-            'http://127.0.0.1:8500',
+        self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
+        self.consul_socket = self.ini.get('cluster', 'consul_socket')
+
+        self.vault_url = self.ini.get('cluster', 'vault_url', fallback='http://127.0.0.1:8200')
+
+        self.vault_token = None
+
+        vault_secrets_path = self.ini.get('cluster', 'vault_secrets', fallback=None)
+        if vault_secrets_path:
+            secrets = configparser.ConfigParser()
+            secrets.read(self.root / vault_secrets_path)
+            self.vault_token = secrets.get('vault', 'root_token', fallback=None)
+
+        self.nomad_url = self.ini.get('cluster', 'nomad_url', fallback='http://127.0.0.1:4646')
+
+        self.liquid_domain = self.ini.get('liquid', 'domain', fallback='localhost')
+
+        self.liquid_debug = self.ini.getboolean('liquid', 'debug', fallback=False)
+
+        self.mount_local_repos = self.ini.getboolean('liquid', 'mount_local_repos', fallback=False)
+
+        self.hoover_repos_path = self.ini.get(
+            'liquid',
+            'hoover_repos_path',
+            fallback=str((self.root / 'repos' / 'hoover').resolve())
         )
 
-        self.vault_url = self.get(
-            'VAULT_URL',
-            'cluster.vault_url',
-            'http://127.0.0.1:8200',
+        self.liquidinvestigations_repos_path = self.ini.get(
+            'liquid',
+            'liquidinvestigations_repos_path',
+            fallback=str((self.root / 'repos' / 'liquidinvestigations').resolve())
         )
 
-        self.vault_key = self.get(
-            'VAULT_KEY',
-            'cluster.vault_key',
-            None,
-        )
+        self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
 
-        self.vault_token = self.get(
-            'VAULT_TOKEN',
-            'cluster.vault_token',
-            None,
-        )
+        self.liquid_collections = self.ini.get('liquid', 'collections', fallback=str(self.root / 'collections'))
 
-        self.nomad_url = self.get(
-            'NOMAD_URL',
-            'cluster.nomad_url',
-            'http://127.0.0.1:4646',
-        )
+        self.liquid_http_port = self.ini.get('liquid', 'http_port', fallback='80')
 
-        self.liquid_domain = self.get(
-            'LIQUID_DOMAIN',
-            'liquid.domain',
-            'localhost',
-        )
+        self.https_enabled = 'https' in self.ini
+        if self.https_enabled:
+            self.liquid_https_port = self.ini.get('https', 'https_port', fallback='443')
+            self.https_acme_email = self.ini.get('https', 'acme_email')
+            self.https_acme_caServer = self.ini.get('https', 'acme_caServer',
+                fallback="https://acme-staging-v02.api.letsencrypt.org/directory")
 
-        self.liquid_debug = self.get(
-            'LIQUID_DEBUG',
-            'liquid.debug',
-            '',
-        )
 
-        self.mount_local_repos = 'false' != self.get(
-            'LIQUID_MOUNT_LOCAL_REPOS',
-            'liquid.mount_local_repos',
-            'false',
-        )
-
-        self.hoover_repos_path = self.get(
-            'LIQUID_HOOVER_REPOS_PATH',
-            'liquid.hoover_repos_path',
-            None,
-        )
-
-        self.liquidinvestigations_repos_path = self.get(
-            'LIQUID_LIQUIDINVESTIGATIONS_REPOS_PATH',
-            'liquid.liquidinvestigations_repos_path',
-            None,
-        )
-
-        self.liquid_volumes = self.get(
-            'LIQUID_VOLUMES',
-            'liquid.volumes',
-            str(self.root / 'volumes'),
-        )
-
-        self.liquid_collections = self.get(
-            'LIQUID_COLLECTIONS',
-            'liquid.collections',
-            str(self.root / 'collections'),
-        )
-
-        self.liquid_http_port = self.get(
-            'LIQUID_HTTP_PORT',
-            'liquid.http_port',
-            '80',
-        )
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
+        self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
+        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
 
         self.collections = OrderedDict()
         for key in self.ini:
@@ -110,16 +86,6 @@ class Configuration:
             elif cls == 'job':
                 job_config = self.ini[key]
                 self.jobs.append((name, self.root / job_config['template']))
-
-    def get(self, env_key, ini_path, default=None):
-        if env_key and os.environ.get(env_key):
-            return os.environ[env_key]
-
-        (section_name, key) = ini_path.split('.')
-        if section_name in self.ini and key in self.ini[section_name]:
-            return self.ini[section_name][key]
-
-        return default
 
     @classmethod
     def _validate_collection_name(self, name):

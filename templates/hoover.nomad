@@ -2,7 +2,7 @@ job "hoover" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "deps" {
+  group "index" {
     task "es" {
       driver = "docker"
       config {
@@ -23,7 +23,7 @@ job "hoover" {
         ES_JAVA_OPTS = "-Xms1536m -Xmx1536m"
       }
       resources {
-        memory = 2048
+        memory = 2000
         network {
           port "es" {}
         }
@@ -31,9 +31,19 @@ job "hoover" {
       service {
         name = "hoover-es"
         port = "es"
+        check {
+          name = "hoover-es alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/_cluster/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
+  }
 
+  group "db" {
     task "pg" {
       driver = "docker"
       config {
@@ -53,7 +63,8 @@ job "hoover" {
         POSTGRES_DATABASE = "hoover"
       }
       resources {
-        memory = 1024
+        cpu = 500
+        memory = 150
         network {
           port "pg" {}
         }
@@ -61,6 +72,13 @@ job "hoover" {
       service {
         name = "hoover-pg"
         port = "pg"
+        check {
+          name = "hoover-pg alive on tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
@@ -109,7 +127,7 @@ job "hoover" {
         env = true
       }
       resources {
-        memory = 512
+        memory = 300
         network {
           port "http" {}
         }
@@ -117,6 +135,41 @@ job "hoover" {
       service {
         name = "hoover"
         port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:hoover.${liquid_domain}",
+        ]
+        check {
+          name = "hoover /_ping succeeds"
+          initial_status = "critical"
+          type = "http"
+          path = "/_ping"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["hoover.${liquid_domain}"]
+          }
+        }
+        check {
+          name = "hoover alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["hoover.${liquid_domain}"]
+          }
+        }
+        check {
+          name = "hoover healthcheck script"
+          initial_status = "warning"
+          type = "script"
+          command = "python"
+          args = ["manage.py", "healthcheck"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
@@ -201,7 +254,7 @@ job "hoover" {
         }
       }
       resources {
-        memory = 256
+        memory = 100
         network {
           port "nginx" {
             static = 8765
@@ -211,6 +264,14 @@ job "hoover" {
       service {
         name = "hoover-collections"
         port = "nginx"
+        check {
+          name = "hoover-collections nginx on :8765 forwards elasticsearch"
+          initial_status = "critical"
+          type = "http"
+          path = "/_es/_cluster/health/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

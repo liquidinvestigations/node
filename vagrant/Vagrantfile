@@ -1,0 +1,83 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+
+  if Vagrant.has_plugin?('vagrant-env')
+    config.env.enable
+  end
+
+  machine_name = ENV['MACHINE_NAME'] || ("liquid-vagrant-" + `hostname`.strip)
+  cluster_ini = ENV['PROVISION_CLUSTER_INI'] || 'cluster.ini'
+  liquid_ini = ENV['PROVISION_LIQUID_INI'] || 'liquid.ini'
+  custom_sh = ENV['PROVISION_SH']
+
+  config.vm.define machine_name
+
+  # blank provisioner that can be overridden by providers
+  config.vm.provision 'provider', type: 'shell', inline: '/bin/true'
+
+  # liquid cluster
+  config.vm.provision :file, source: cluster_ini, destination: '/tmp/vagrant-cluster.ini'
+  config.vm.provision :shell, path: 'provision-cluster.sh'
+
+  # liquid node
+  config.vm.synced_folder "..", "/opt/node", type: "rsync",
+    rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
+                     "liquid.ini", "venv/", "volumes/", "collections/"]
+  config.vm.provision :file, source: liquid_ini, destination: '/tmp/vagrant-liquid.ini'
+  config.vm.provision :shell, path: 'provision-liquid.sh'
+
+  if custom_sh
+    config.vm.provision :shell, path: custom_sh
+  end
+
+  config.vm.network :forwarded_port, guest: 80, host: 1380, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 4646, host: 14646, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 8500, host: 18500, host_ip: "127.0.0.1"
+  config.vm.network :forwarded_port, guest: 8200, host: 18200, host_ip: "127.0.0.1"
+
+  config.vm.provider :virtualbox do |virtualbox, override|
+    virtualbox.memory = 8192
+    virtualbox.cpus = 2
+  end
+
+  config.vm.provider :digital_ocean do |digital_ocean, override|
+    do_token = ENV['DO_TOKEN']
+    do_region = ENV['DO_REGION'] || "fra1"
+    do_seppuku = ENV['DO_SEPPUKU']
+
+    override.vm.box = "digital_ocean"
+    override.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
+    override.nfs.functional = false
+    override.ssh.private_key_path = ENV['DO_SSH_PRIVATE_KEY_PATH'] || '~/.ssh/id_rsa'
+
+    do_provision_env = {}
+    if do_seppuku
+      do_provision_env['DO_SEPPUKU'] = do_seppuku
+      do_provision_env['DO_TOKEN'] = do_token
+    end
+    override.vm.provision(
+      'provider',
+      preserve_order: true,
+      type: 'shell',
+      path: "provision-do.sh",
+      inline: nil,
+      env: do_provision_env,
+    )
+
+    digital_ocean.token = do_token
+    digital_ocean.region = do_region
+    digital_ocean.ssh_key_name = 'vagrant'
+    digital_ocean.image = 'ubuntu-18-04-x64'
+    digital_ocean.size = 's-4vcpu-8gb'
+  end
+
+  config.vm.provider :libvirt do |libvirt, override|
+    override.vm.box = "generic/ubuntu1804"
+    libvirt.memory = 8192
+    libvirt.cpus = 2
+  end
+
+end

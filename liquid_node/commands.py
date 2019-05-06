@@ -1,5 +1,5 @@
+from time import time, sleep
 import logging
-from getpass import getpass
 import os
 import base64
 import json
@@ -46,11 +46,68 @@ def ensure_secret_key(path):
         vault.set(path, {'secret_key': random_secret()})
 
 
+def wait_for_service_health_checks(health_checks):
+    """Waits health checks to become green for green_count times in a row. """
+
+    def get_failed_checks():
+        """Generates a list of (service, check, status)
+        for all failing checks after checking with Consul"""
+
+        consul_status = {}
+        for service in health_checks:
+            for s in consul.get(f'/health/checks/{service}'):
+                key = service, s['Name']
+                if key in consul_status:
+                    consul_status[key] = 'appears twice. Maybe halt, restart Consul and try again?'
+                    continue
+                consul_status[key] = s['Status']
+
+        for service, checks in health_checks.items():
+            for check in checks:
+                status = consul_status.get((service, check), 'missing')
+                if status != 'passing':
+                    yield service, check, status
+
+    services = sorted(health_checks.keys())
+    log.info(f"Waiting for health checks on {services}")
+
+    t0 = time()
+    greens = 0
+    timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
+    while time() < timeout:
+        sleep(config.wait_interval)
+        failed = sorted(get_failed_checks())
+
+        if failed:
+            greens = 0
+        else:
+            greens += 1
+
+        if greens >= config.wait_green_count:
+            log.info(f"Checks green {services} after {time() - t0:.02f}s")
+            return
+
+        # No chance to get enough greens
+        no_chance_timestamp = timeout - config.wait_interval * config.wait_green_count
+        if greens == 0 and time() >= no_chance_timestamp:
+            break
+
+        failed_text = ''
+        for service, check, status in failed:
+            failed_text += f'\n - {service}: check "{check}" is {status}'
+        if failed:
+            failed_text += '\n'
+        log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
+
+    msg = f'Checks are failing after {time() - t0:.02f}s: \n - {failed_text}'
+    raise RuntimeError(msg)
+
+
 def deploy():
     """Run all the jobs in nomad."""
 
     consul.set_kv('liquid_domain', config.liquid_domain)
-    consul.set_kv('liquid_debug', config.liquid_debug)
+    consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
 
     vault.ensure_engine()
 
@@ -63,26 +120,46 @@ def deploy():
     for path in vault_secret_keys:
         ensure_secret_key(path)
 
+    def start(job, hcl):
+        log.info('Starting %s...', job)
+        nomad.run(hcl)
+        job_checks = {}
+        for service, checks in nomad.get_health_checks(hcl):
+            if not checks:
+                log.warn(f'service {service} has no health checks')
+                continue
+            job_checks[service] = checks
+        return job_checks
+
     jobs = [(job, get_job(path)) for job, path in config.jobs]
 
     for name, settings in config.collections.items():
+        migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
+        jobs.append((f'collection-{name}-migrate', migrate_job))
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
         ensure_secret_key(f'collections/{name}/snoop.django')
 
-    for job, hcl in jobs:
-        log.info('Starting %s...', job)
-        nomad.run(hcl)
+    # Start liquid-core in order to setup the auth
+    liquid_checks = start('liquid', dict(jobs)['liquid'])
+    wait_for_service_health_checks({'core': liquid_checks['core']})
 
     for app in core_auth_apps:
         log.info('Auth %s -> %s', app['name'], app['callback'])
         cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
         containers = docker.containers([('liquid_task', 'liquid-core')])
-        container_id = first(containers, 'containers')
-        docker_exec_cmd = ['docker', 'exec', '-it', container_id] + cmd
+        container_id = first(containers, 'liquid-core containers')
+        docker_exec_cmd = ['docker', 'exec', container_id] + cmd
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
 
+    health_checks = {}
+    for job, hcl in jobs:
+        job_checks = start(job, hcl)
+        health_checks.update(job_checks)
+
+    # Wait for everything else
+    wait_for_service_health_checks(health_checks)
 
 def halt():
     """Stop all the jobs in nomad."""
@@ -141,12 +218,12 @@ def initcollection(name):
         raise RuntimeError('Collection %s does not exist in the liquid.ini file.', name)
 
     if name in get_search_collections():
-        log.info(f'Collection "{name}" was already initialized.')
+        log.warning(f'Collection "{name}" was already initialized.')
         return
 
-    shell(f'snoop-{name}-api', './manage.py', 'initcollection')
+    docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
 
-    shell(
+    docker.exec_(
         'hoover-search',
         './manage.py', 'addcollection', name,
         '--index', name,
@@ -195,17 +272,7 @@ def shell(name, *args):
     docker.shell(name, *args)
 
 
-def initializevault():
-    """ Initializes the Vault. """
+def dockerexec(name, *args):
+    """Run `docker exec` in a container tagged with liquid_task=`name`"""
 
-    resp = vault.init()
-    print('Keys:', resp['keys'])
-    print('Root token:', resp['root_token'])
-
-
-def unsealvault():
-    """ Unseal the Vault. """
-
-    key = config.vault_key or getpass()
-    status = vault.unseal(key)
-    print('Vault is now', 'sealed' if status['sealed'] else 'unsealed')
+    docker.exec_(name, *args)

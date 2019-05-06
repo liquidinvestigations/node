@@ -38,98 +38,163 @@ job "liquid" {
       service {
         name = "core"
         port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:${liquid_domain}",
+        ]
+        check {
+          name = "liquid-core alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
 
-  group "nginx" {
-    task "nginx" {
+  group "ingress" {
+    task "traefik" {
       driver = "docker"
-      template {
-        data = <<EOF
-
-          {{- if service "core" }}
-            upstream core {
-              {{- range service "core" }}
-                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
-              {{- end }}
-            }
-            server {
-              listen 80;
-              server_name {{ key "liquid_domain" }};
-              location / {
-                proxy_pass http://core;
-                proxy_set_header Host $host;
-              }
-            }
-          {{- end }}
-
-          {{- if service "authdemo" }}
-            upstream authdemo {
-              {{- range service "authdemo" }}
-                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
-              {{- end }}
-            }
-            server {
-              listen 80;
-              server_name authdemo.{{ key "liquid_domain" }};
-              location / {
-                proxy_pass http://authdemo;
-                proxy_set_header Host $host;
-              }
-            }
-          {{- end }}
-
-          {{- if service "hoover" }}
-            upstream hoover {
-              {{- range service "hoover" }}
-                server {{ .Address }}:{{ .Port }} fail_timeout=1s;
-              {{- end }}
-            }
-            server {
-              listen 80;
-              server_name hoover.{{ key "liquid_domain" }};
-              location / {
-                proxy_pass http://hoover;
-                proxy_set_header Host $host;
-              }
-            }
-          {{- end }}
-
-          server {
-            listen 80 default_server;
-            location / {
-              default_type "text/plain";
-              return 404 "Unknown domain $host\n";
-            }
-          }
-
-          EOF
-        destination = "local/core.conf"
-      }
-      config = {
-        image = "nginx"
+      config {
+        image = "traefik:1.7"
         port_map {
-          nginx = 80
+          http = 80
+          admin = 8080
+          {%- if https_enabled %}
+          https = 443
+          {%- endif %}
         }
         volumes = [
-          "local/core.conf:/etc/nginx/conf.d/core.conf",
+          "local/traefik.toml:/etc/traefik/traefik.toml:ro",
+          "${consul_socket}:/consul.sock:ro",
+          "${liquid_volumes}/liquid/traefik/acme:/etc/traefik/acme",
         ]
         labels {
-          liquid_task = "liquid-nginx"
+          liquid_task = "liquid-ingress"
         }
       }
+      template {
+        data = <<-EOF
+          debug = {{ key "liquid_debug" }}
+          {%- if https_enabled %}
+          defaultEntryPoints = ["http", "https"]
+          {%- else %}
+          defaultEntryPoints = ["http"]
+          {%- endif %}
+
+          [api]
+          entryPoint = "admin"
+
+          [entryPoints]
+            [entryPoints.http]
+            address = ":80"
+
+              {%- if https_enabled %}
+              [entryPoints.http.redirect]
+              entryPoint = "https"
+              {%- endif %}
+
+            [entryPoints.admin]
+            address = ":8080"
+
+            {%- if https_enabled %}
+            [entryPoints.https]
+            address = ":443"
+              [entryPoints.https.tls]
+            {%- endif %}
+
+          {%- if https_enabled %}
+          [acme]
+            email = "${acme_email}"
+            entryPoint = "https"
+            storage = "liquid/traefik/acme"
+            onHostRule = true
+            caServer = "${acme_caServer}"
+            acmeLogging = true
+            [acme.httpChallenge]
+              entryPoint = "http"
+          {%- endif %}
+
+
+          [consulCatalog]
+          endpoint = "unix:///consul.sock"
+          prefix = "traefik"
+          exposedByDefault = false
+
+          [consul]
+          endpoint = "unix:///consul.sock"
+          prefix = "traefik"
+        EOF
+        destination = "local/traefik.toml"
+      }
       resources {
-        memory = 50
+        memory = 100
         network {
-          port "nginx" {
+          port "http" {
             static = ${liquid_http_port}
           }
+          port "admin" {
+            static = 8766
+          }
+
+          {%- if https_enabled %}
+          port "https" {
+            static = ${liquid_https_port}
+          }
+          {%- endif %}
         }
       }
       service {
-        name = "ingress"
-        port = "nginx"
+        name = "traefik-http"
+        port = "http"
+        {%- if not https_enabled %}
+        check {
+          name = "traefik alive on http - home page"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["${liquid_domain}"]
+          }
+        }
+        {%- endif %}
+      }
+
+      {%- if https_enabled %}
+      service {
+        name = "traefik-https"
+        port = "https"
+        check {
+          name = "traefik alive on https - home page"
+          initial_status = "critical"
+          type = "http"
+          protocol = "https"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          tls_skip_verify = true
+          header {
+            Host = ["${liquid_domain}"]
+          }
+        }
+      }
+      {%- endif %}
+
+      service {
+        name = "traefik-admin"
+        port = "admin"
+        check {
+          name = "traefik alive on http admin"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

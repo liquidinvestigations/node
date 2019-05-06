@@ -19,7 +19,7 @@ class Docker:
         """
 
         containers = self.containers([('liquid_task', name)])
-        container_id = first(containers, 'containers')
+        container_id = first(containers, f'{name} containers')
 
         docker_exec_cmd = ['docker', 'exec']
         if tty:
@@ -34,6 +34,9 @@ class Docker:
         The command output is redirected to the standard output and a tty is opened.
         """
         run_fg(self.exec_command(name, *args, tty=True), shell=False)
+
+    def exec_(self, name, *args):
+        run_fg(self.exec_command(name, *args), shell=False)
 
 
 docker = Docker()

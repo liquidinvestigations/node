@@ -31,7 +31,7 @@ class JsonApi:
                 req_headers['Content-Type'] = 'application/json'
                 req_body = json.dumps(data).encode('utf8')
 
-        log.debug('%s %r %r', method, req_url, data)
+        log.debug('%s %r', method, req_url)
         req = Request(
             req_url,
             req_body,
@@ -42,7 +42,6 @@ class JsonApi:
         with urlopen(req) as res:
             if res.status == 200:
                 res_body = json.load(res)
-                log.debug('response: %r', res_body)
                 return res_body
 
     def get(self, url):

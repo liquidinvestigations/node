@@ -1,0 +1,52 @@
+#!/bin/bash -e
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+export MACHINE_NAME="travis-$TRAVIS_JOB_NUMBER"
+export DO_SSH_PRIVATE_KEY_PATH='/tmp/vagrant-id_rsa'
+
+case "$1" in
+  prepare)
+    echo "Installing Vagrant"
+    (set -x
+      vagrant_download=https://releases.hashicorp.com/vagrant
+      vagrant_version=2.2.4
+      deb=vagrant_${vagrant_version}_x86_64.deb
+      curl -OL $vagrant_download/${vagrant_version}/$deb
+      sudo dpkg -i $deb
+      vagrant plugin install vagrant-digitalocean
+    )
+
+    echo "Decrypting private ssh key"
+    (set -x
+      openssl aes-256-cbc \
+        -K $encrypted_ec501d2f76a5_key \
+        -iv $encrypted_ec501d2f76a5_iv \
+        -in id_rsa.enc \
+        -out /tmp/vagrant-id_rsa \
+        -d
+      chmod 600 /tmp/vagrant-id_rsa
+      ssh-keygen -y -f /tmp/vagrant-id_rsa > /tmp/vagrant-id_rsa.pub
+    )
+    ;;
+
+  run)
+    echo "Starting Vagrant"
+    (set -x
+      vagrant up
+    )
+    ;;
+
+  cleanup)
+    echo "Destroying Vagrant"
+    (set -x
+      vagrant destroy -f
+    )
+    ;;
+
+  *)
+    echo "Unknown command $1" >&2
+    exit 1
+    ;;
+
+esac

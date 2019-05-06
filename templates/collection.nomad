@@ -2,7 +2,7 @@ job "collection-${name}" {
   datacenters = ["dc1"]
   type = "service"
 
-  group "deps" {
+  group "queue" {
     task "rabbitmq" {
       driver = "docker"
       config {
@@ -18,18 +18,26 @@ job "collection-${name}" {
         }
       }
       resources {
+        memory = 1000
         network {
           port "amqp" {}
         }
-        memory = 1024
-
       }
       service {
         name = "snoop-${name}-rabbitmq"
         port = "amqp"
+        check {
+          name = "rabbitmq alive on tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
+  }
 
+  group "tika" {
     task "tika" {
       driver = "docker"
       config {
@@ -42,17 +50,27 @@ job "collection-${name}" {
         }
       }
       resources {
+        memory = 1000
         network {
           port "tika" {}
         }
-	memory = 1024
       }
       service {
         name = "snoop-${name}-tika"
         port = "tika"
+        check {
+          name = "tika alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/version"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
+  }
 
+  group "db" {
     task "pg" {
       driver = "docker"
       config {
@@ -72,20 +90,28 @@ job "collection-${name}" {
         POSTGRES_DATABASE = "snoop"
       }
       resources {
+        cpu = 1000
+        memory = 500
         network {
           port "pg" {}
         }
-        memory = 1024
       }
       service {
         name = "snoop-${name}-pg"
         port = "pg"
+        check {
+          name = "postgres alive on tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
 
   group "workers" {
-    count = $workers
+    count = ${workers}
 
     task "snoop" {
       driver = "docker"
@@ -132,7 +158,7 @@ job "collection-${name}" {
         env = true
       }
       resources {
-        memory = 1024
+        memory = 500
       }
     }
   }
@@ -189,7 +215,7 @@ job "collection-${name}" {
         env = true
       }
       resources {
-        memory = 512
+        memory = 500
         network {
           port "http" {}
         }
@@ -197,6 +223,26 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}"
         port = "http"
+        check {
+          name = "snoop alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/collection/json"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["${name}.snoop.${liquid_domain}"]
+          }
+        }
+        check {
+          name = "snoop healthcheck script"
+          initial_status = "warning"
+          type = "script"
+          command = "python"
+          args = ["manage.py", "healthcheck"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

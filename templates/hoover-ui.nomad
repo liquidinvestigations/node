@@ -16,7 +16,7 @@ job "hoover-ui" {
         args = ["npm", "run", "build"]
       }
       resources {
-        memory = 1024
+        memory = 1000
       }
     }
   }
