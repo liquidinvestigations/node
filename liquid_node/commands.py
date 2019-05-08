@@ -115,6 +115,8 @@ def deploy():
         'liquid/core.django',
         'hoover/search.django',
         'authdemo/auth.django',
+        'nextcloud/nextcloud.admin'
+        'nextcloud/nextcloud.pg'
     ]
 
     for path in vault_secret_keys:

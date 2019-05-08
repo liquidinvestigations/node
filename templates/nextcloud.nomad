@@ -28,9 +28,13 @@ job "nextcloud" {
             NEXTCLOUD_ADMIN_USER="admin"
             NEXTCLOUD_ADMIN_PASSWORD="admin"
             NEXTCLOUD_POSTGRES_DB="nextcloud"
-            NEXTCLOUD_POSTGRES_USER="postgres"
+            {{- with secret "liquid/nextcloud/nextcloud.pg" }}
+              NEXTCLOUD_POSTGRES_USER= {{.Data.secret_key}}
+            {{- end }}
             NEXTCLOUD_POSTGRES_PASSWORD="secret"
-            OC_PASS="a_very_good_secret"
+            {{- with secret "liquid/nextcloud/nextcloud.admin" }}
+              OC_PASS= {{.Data.secret_key}}
+            {{- end }}
           EOF
         destination = "local/nextcloud.env"
         env = true
@@ -62,9 +66,15 @@ job "nextcloud" {
           pg = 5432
         }
       }
-      env {
-        POSTGRES_USER = "postgres"
-        POSTGRES_PASSWORD = "secret"
+      template {
+        data = <<EOF
+          POSTGRES_USER = "postgres"
+          {{- with secret "liquid/nextcloud/nextcloud.pg" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key}}
+          {{- end }}
+        EOF
+        destination = "local/pg.env"
+        env = true
       }
       resources {
         network {
