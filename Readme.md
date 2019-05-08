@@ -150,10 +150,11 @@ collection:
 
 ### Nextcloud
 
-On first startup, inititialize the uploads collection for nextcloud
+On first startup, inititialize the uploads collection for nextcloud and install nextcloud
 
 ```shell
 ./liquid initcollection uploads
+./liquid shell nextcloud /setup.sh
 ```
 
 Nextcloud runs on the subdomain nextcloud.<liquid_domain>

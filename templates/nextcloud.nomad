@@ -28,10 +28,10 @@ job "nextcloud" {
             NEXTCLOUD_ADMIN_USER="admin"
             NEXTCLOUD_ADMIN_PASSWORD="admin"
             NEXTCLOUD_POSTGRES_DB="nextcloud"
+            NEXTCLOUD_POSTGRES_USER="postgres"
             {{- with secret "liquid/nextcloud/nextcloud.pg" }}
-              NEXTCLOUD_POSTGRES_USER= {{.Data.secret_key}}
+              NEXTCLOUD_POSTGRES_PASSWORD={{.Data.secret_key}}
             {{- end }}
-            NEXTCLOUD_POSTGRES_PASSWORD="secret"
             {{- with secret "liquid/nextcloud/nextcloud.admin" }}
               OC_PASS= {{.Data.secret_key}}
             {{- end }}
@@ -68,7 +68,7 @@ job "nextcloud" {
       }
       template {
         data = <<EOF
-          POSTGRES_USER = "postgres"
+          POSTGRES_USER ="postgres"
           {{- with secret "liquid/nextcloud/nextcloud.pg" }}
             POSTGRES_PASSWORD = {{.Data.secret_key}}
           {{- end }}
