@@ -9,7 +9,7 @@ job "nextcloud" {
         image = "liquidinvestigations/liquid-nextcloud"
         volumes = [
           "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
-          "${liquid_collections}/ncsync/data:/var/www/html/data/ncsync/files",
+          "${liquid_collections}/uploads/data:/var/www/html/data/uploads/files",
         ]
         args = ["/bin/sh", "-c", "chown -R 33:33 /var/www/html/ && echo chown done && /entrypoint.sh apache2-foreground"]
         port_map {
@@ -21,10 +21,9 @@ job "nextcloud" {
       }
       template {
         data = <<EOF
-            NEXTCLOUD_POSTGRES_HOST =
-              {{- range service "nextcloud-pg" -}}
-                {{ .Address }}:{{ .Port }}
-              {{- end }}  
+            {{- range service "nextcloud-pg" }}
+              NEXTCLOUD_POSTGRES_HOST = {{.Address}}:{{.Port}}
+            {{- end }}
             NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
             NEXTCLOUD_ADMIN_USER="admin"
             NEXTCLOUD_ADMIN_PASSWORD="admin"
@@ -45,14 +44,16 @@ job "nextcloud" {
         name = "nextcloud"
         port = "http"
       }
-      }
-
+    }
+  }
+  
+  group "db" {
     task "pg" {
       driver = "docker"
       config {
         image = "postgres:9.6"
         volumes = [
-          "${liquid_volumes}/nextcloud/nextcloud-pg/data:/var/lib/postgresql/data",
+          "${liquid_volumes}/nextcloud/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "nextcloud-pg"
@@ -60,7 +61,6 @@ job "nextcloud" {
         port_map {
           pg = 5432
         }
-        hostname = "nextcloud-pg"
       }
       env {
         POSTGRES_USER = "postgres"

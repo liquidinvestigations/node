@@ -150,21 +150,11 @@ collection:
 
 ### Nextcloud
 
-Tell liquid we want to run nextcloud and nc_sync jobs in `liquid.ini`:
+On first startup, inititialize the uploads collection for nextcloud
 
-```ini
-[job:nextcloud]
-template = templates/nextcloud.nomad
-
-[collection:ncsync]
-workers = 1
-sync = true
-```
- 
-and deploy with  
 ```shell
-./liquid.py deploy
-```  
+./liquid initcollection uploads
+```
 
 Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 
