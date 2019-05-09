@@ -115,7 +115,7 @@ job "hoover" {
           {{- end }}
           HOOVER_HOSTNAME = hoover.{{key "liquid_domain"}}
           {{- with secret "liquid/hoover/search.oauth2" }}
-            LIQUID_AUTH_PUBLIC_URL = http://{{key "liquid_domain"}}
+            LIQUID_AUTH_PUBLIC_URL = ${config.liquid_http_protocol}://{{key "liquid_domain"}}
             {{- range service "core" }}
               LIQUID_AUTH_INTERNAL_URL = http://{{.Address}}:{{.Port}}
             {{- end }}
