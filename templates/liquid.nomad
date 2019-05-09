@@ -111,7 +111,7 @@ job "liquid" {
         port_map {
           http = 80
           dashboard = 8080
-          admin = 8888
+          admin_internal = 8888
           {%- if https_enabled %}
           https = 443
           {%- endif %}
@@ -134,6 +134,12 @@ job "liquid" {
           defaultEntryPoints = ["http"]
           {%- endif %}
 
+          [traefikLog]
+          filePath = "/dev/stderr"
+
+          [accessLog]
+          filePath = "/dev/stdout"
+
           [api]
           entryPoint = "dashboard"
 
@@ -149,7 +155,7 @@ job "liquid" {
             [entryPoints.dashboard]
             address = ":8080"
 
-            [entryPoints.admin]
+            [entryPoints.admin_internal]
             address = ":8888"
 
             {%- if https_enabled %}
@@ -159,6 +165,7 @@ job "liquid" {
             {%- endif %}
 
           [file]
+
           [backends]
             [backends.nomad]
             [backends.nomad.servers]
@@ -173,11 +180,11 @@ job "liquid" {
             timeout = "${check_timeout}"
 
           [frontends]
-            [frontend.nomad_ui]
-            entryPoint = "admin"
+            [frontends.nomad]
+            entryPoint = "admin_internal"
             backend = "nomad"
-            passHostHeader = true
-            [frontend.nomad_ui.routes.route0]
+            [frontends.nomad.routes]
+            [frontends.nomad.routes.route0]
             rule = "Host:admin.${liquid_domain};PathPrefixStrip:/nomad"
 
           {%- if https_enabled %}
@@ -210,7 +217,7 @@ job "liquid" {
           port "http" {
             static = ${liquid_http_port}
           }
-          port "admin" {}
+          port "admin_internal" {}
           port "dashboard" {}
 
           {%- if https_enabled %}
@@ -263,7 +270,7 @@ job "liquid" {
         port = "dashboard"
         tags = [
           "traefik.enable=true",
-          "traefik.frontend.entryPoints=admin",
+          "traefik.frontend.entryPoint=admin_internal",
           "traefik.frontend.rule=Host:admin.${liquid_domain};PathPrefixStrip:/traefik",
         ]
         check {
@@ -278,7 +285,7 @@ job "liquid" {
 
       service {
         name = "traefik-admin-internal"
-        port = "admin"
+        port = "admin_internal"
       }
     }
   }
