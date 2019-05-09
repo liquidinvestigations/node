@@ -44,7 +44,7 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provider :digital_ocean do |digital_ocean, override|
-    do_token = ENV['DO_TOKEN'] || abort("need DO_TOKEN in your environment")
+    do_token = ENV['DO_TOKEN']
     do_region = ENV['DO_REGION'] || "fra1"
     do_seppuku = ENV['DO_SEPPUKU']
 

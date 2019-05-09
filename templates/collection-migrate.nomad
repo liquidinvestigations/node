@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import migration_reschedule %}
+{% from '_lib.hcl' import migration_reschedule -%}
 
 job "collection-${name}-migrate" {
   datacenters = ["dc1"]
