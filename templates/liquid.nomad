@@ -55,13 +55,63 @@ job "liquid" {
   }
 
   group "ingress" {
+    task "admin-authproxy" {
+      driver = "docker"
+      config {
+        image = "liquidinvestigations/authproxy"
+        labels {
+          liquid_task = "ingress-admin-authproxy"
+        }
+        port_map {
+          http = 5000
+        }
+      }
+      template {
+        data = <<EOF
+          {{- range service "traefik-admin-internal" }}
+            UPSTREAM_APP_URL = http://{{.Address}}:{{.Port}}
+          {{- end }}
+          DEBUG = {{key "liquid_debug"}}
+          USER_HEADER_TEMPLATE = {}
+          {{- range service "core" }}
+            LIQUID_INTERNAL_URL = http://{{.Address}}:{{.Port}}
+          {{- end }}
+          LIQUID_PUBLIC_URL = http://{{key "liquid_domain"}}
+          {{- with secret "liquid/admin/auth.django" }}
+            SECRET_KEY = {{.Data.secret_key}}
+          {{- end }}
+          {{- with secret "liquid/admin/auth.oauth2" }}
+            LIQUID_CLIENT_ID = {{.Data.client_id}}
+            LIQUID_CLIENT_SECRET = {{.Data.client_secret}}
+          {{- end }}
+        EOF
+        destination = "local/docker.env"
+        env = true
+      }
+      resources {
+        memory = 100
+        network {
+          port "http" {}
+        }
+      }
+      service {
+        name = "traefik-admin"
+        port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:admin.${liquid_domain}",
+        ]
+      }
+    }
+
     task "traefik" {
       driver = "docker"
       config {
         image = "traefik:1.7"
         port_map {
           http = 80
-          admin = 8080
+          dashboard = 8080
+          admin = 8888
           {%- if https_enabled %}
           https = 443
           {%- endif %}
@@ -85,7 +135,7 @@ job "liquid" {
           {%- endif %}
 
           [api]
-          entryPoint = "admin"
+          entryPoint = "dashboard"
 
           [entryPoints]
             [entryPoints.http]
@@ -96,14 +146,39 @@ job "liquid" {
               entryPoint = "https"
               {%- endif %}
 
-            [entryPoints.admin]
+            [entryPoints.dashboard]
             address = ":8080"
+
+            [entryPoints.admin]
+            address = ":8888"
 
             {%- if https_enabled %}
             [entryPoints.https]
             address = ":443"
               [entryPoints.https.tls]
             {%- endif %}
+
+          [file]
+          [backends]
+            [backends.nomad]
+            [backends.nomad.servers]
+            [backends.nomad.servers.the_server]
+            url = "${nomad_url}"
+            [backends.nomad.healthCheck]
+            type = "http"
+            initial_status = "critical"
+            name = "nomad alive on http /v1/status/leader"
+            path = "/v1/status/leader"
+            interval = "${check_interval}"
+            timeout = "${check_timeout}"
+
+          [frontends]
+            [frontend.nomad_ui]
+            entryPoint = "admin"
+            backend = "nomad"
+            passHostHeader = true
+            [frontend.nomad_ui.routes.route0]
+            rule = "Host:admin.${liquid_domain};PathPrefixStrip:/nomad"
 
           {%- if https_enabled %}
           [acme]
@@ -135,9 +210,8 @@ job "liquid" {
           port "http" {
             static = ${liquid_http_port}
           }
-          port "admin" {
-            static = 8766
-          }
+          port "admin" {}
+          port "dashboard" {}
 
           {%- if https_enabled %}
           port "https" {
@@ -185,16 +259,26 @@ job "liquid" {
       {%- endif %}
 
       service {
-        name = "traefik-admin"
-        port = "admin"
+        name = "traefik-dashboard"
+        port = "dashboard"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.entryPoints=admin",
+          "traefik.frontend.rule=Host:admin.${liquid_domain};PathPrefixStrip:/traefik",
+        ]
         check {
-          name = "traefik alive on http admin"
+          name = "traefik alive on dashboard"
           initial_status = "critical"
           type = "http"
           path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
+      }
+
+      service {
+        name = "traefik-admin-internal"
+        port = "admin"
       }
     }
   }

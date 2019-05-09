@@ -34,6 +34,7 @@ class Vault(JsonApi):
             raise
 
     def set(self, path, payload):
+        log.debug('vault set liquid/%s', path)
         return self.put(f'liquid/{path}', payload)
 
 

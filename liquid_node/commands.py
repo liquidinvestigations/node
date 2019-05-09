@@ -32,6 +32,11 @@ core_auth_apps = [
             '/accounts/oauth2-exchange/'
         ),
     },
+    {
+        'name': 'admin',
+        'vault_path': 'admin/auth.oauth2',
+        'callback': f'http://admin.{config.liquid_domain}/__auth/callback',
+    },
 ]
 
 
@@ -115,6 +120,7 @@ def deploy():
         'liquid/core.django',
         'hoover/search.django',
         'authdemo/auth.django',
+        'admin/auth.django',
     ]
 
     for path in vault_secret_keys:
