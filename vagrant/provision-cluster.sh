@@ -32,6 +32,7 @@ cat > /tmp/vagrant-boot-cluster.conf <<EOF
 user = root
 command = /opt/cluster/examples/network.sh
 autorestart = false
+redirect_stderr = true
 EOF
 sudo cp /tmp/vagrant-boot-cluster.conf /etc/supervisor/conf.d/boot-cluster.conf
 
