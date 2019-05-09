@@ -1,9 +1,7 @@
 {% macro migration_reschedule() %}
   reschedule {
-    attempts = 10
-    interval = "5m"
+    unlimited = true
+    attempts = 0
     delay = "5s"
-    delay_function = "exponential"
-    max_delay = "30s"
   }
 {% endmacro %}
