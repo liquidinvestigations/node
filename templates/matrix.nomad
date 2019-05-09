@@ -1,3 +1,5 @@
+{% from '_lib.hcl' import authproxy_group with context -%}
+
 job "matrix" {
   datacenters = ["dc1"]
   type = "service"
@@ -104,24 +106,16 @@ job "matrix" {
     task "web" {
       driver = "docker"
       config = {
-        image = "avhost/docker-matrix-riot"
+        image = "liquidinvestigations/riot"
         volumes = [
-          "local/data:/data",
+          "local/config.json:/usr/local/apache2/htdocs/config.json:ro",
         ]
         labels {
           liquid_task = "matrix-riot"
         }
         port_map {
-          riot = 8765
+          riot = 80
         }
-      }
-      template {
-        data = <<EOF
-          -p 8765
-          -A 0.0.0.0
-          -c 3500
-        EOF
-        destination = "local/data/riot.im.conf"
       }
       template {
         data  = <<EOF
@@ -138,7 +132,7 @@ job "matrix" {
             "piwik": null
           }
         EOF
-        destination = "local/data/config.json"
+        destination = "local/config.json"
       }
       resources {
         memory = 100
@@ -150,10 +144,6 @@ job "matrix" {
       service {
         name = "matrix-riot-web"
         port = "riot"
-        tags = [
-          "traefik.enable=true",
-          "traefik.frontend.rule=Host:riot.${liquid_domain}",
-        ]
         check {
           name = "matrix-riot-web"
           initial_status = "critical"
@@ -165,4 +155,10 @@ job "matrix" {
       }
     }
   }
+
+  ${- authproxy_group(
+      'matrix-riot',
+      host='riot.' + liquid_domain,
+      upstream='matrix-riot-web',
+    ) }
 }
