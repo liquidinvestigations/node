@@ -247,7 +247,7 @@ job "hoover" {
           nginx = 80
         }
         volumes = [
-          "local/collections.conf:/etc/nginx/conf.d/collections.conf",
+          "local/collections.conf:/etc/nginx/conf.d/collections.conf:ro",
         ]
         labels {
           liquid_task = "hoover-collections-nginx"
