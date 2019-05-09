@@ -23,9 +23,6 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, path: 'provision-cluster.sh'
 
   # liquid node
-  config.vm.synced_folder "..", "/opt/node", type: "rsync",
-    rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
-                     "liquid.ini", "venv/", "volumes/", "collections/"]
   config.vm.provision :file, source: liquid_ini, destination: '/tmp/vagrant-liquid.ini'
   config.vm.provision :shell, path: 'provision-liquid.sh'
 
@@ -41,6 +38,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider :virtualbox do |virtualbox, override|
     virtualbox.memory = 8192
     virtualbox.cpus = 2
+    override.vm.synced_folder "..", "/opt/node"
   end
 
   config.vm.provider :digital_ocean do |digital_ocean, override|
@@ -52,6 +50,9 @@ Vagrant.configure("2") do |config|
     override.vm.box_url = "https://github.com/devopsgroup-io/vagrant-digitalocean/raw/master/box/digital_ocean.box"
     override.nfs.functional = false
     override.ssh.private_key_path = ENV['DO_SSH_PRIVATE_KEY_PATH'] || '~/.ssh/id_rsa'
+    override.vm.synced_folder "..", "/opt/node", type: "rsync",
+      rsync__exclude: [".vagrant/", ".git/", "__pycache__/",
+                       "liquid.ini", "venv/", "volumes/", "collections/"]
 
     do_provision_env = {}
     if do_seppuku
@@ -78,6 +79,7 @@ Vagrant.configure("2") do |config|
     override.vm.box = "generic/ubuntu1804"
     libvirt.memory = 8192
     libvirt.cpus = 2
+    override.vm.synced_folder "..", "/opt/node"
   end
 
 end
