@@ -8,7 +8,7 @@
   }
 {%- endmacro %}
 
-{%- macro authproxy(name, host, upstream) %}
+{%- macro authproxy_group(name, host, upstream) %}
   group "authproxy" {
     task "web" {
       driver = "docker"
@@ -31,7 +31,7 @@
           {{- range service "core" }}
             LIQUID_INTERNAL_URL = http://{{.Address}}:{{.Port}}
           {{- end }}
-          LIQUID_PUBLIC_URL = ${liquid_http}://{{key "liquid_domain"}}
+          LIQUID_PUBLIC_URL = ${config.liquid_http_protocol}://{{key "liquid_domain"}}
           {{- with secret "liquid/${name}/auth.django" }}
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}

@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy with context -%}
+{% from '_lib.hcl' import authproxy_group with context -%}
 
 job "dokuwiki" {
   datacenters = ["dc1"]
@@ -33,7 +33,7 @@ job "dokuwiki" {
     }
   }
 
-  ${- authproxy(
+  ${- authproxy_group(
       'dokuwiki',
       host='dokuwiki.' + liquid_domain,
       upstream='dokuwiki-php',

@@ -19,7 +19,7 @@ from .vault import vault
 log = logging.getLogger(__name__)
 
 def app_url(name):
-    return f'{config.liquid_http}://{name}.{config.liquid_domain}'
+    return f'{config.liquid_http_protocol}://{name}.{config.liquid_domain}'
 
 core_auth_apps = [
     {
@@ -113,7 +113,7 @@ def deploy():
 
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
-    consul.set_kv('liquid_http', config.liquid_http)
+    consul.set_kv('liquid_http_protocol', config.liquid_http_protocol)
 
     vault.ensure_engine()
 
