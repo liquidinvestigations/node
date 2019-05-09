@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy with context -%}
+{% from '_lib.hcl' import authproxy_group with context -%}
 
 job "authdemo" {
   datacenters = ["dc1"]
@@ -29,7 +29,7 @@ job "authdemo" {
     }
   }
 
-  ${- authproxy(
+  ${- authproxy_group(
       'authdemo',
       host='authdemo.' + liquid_domain,
       upstream='authdemo-app',
