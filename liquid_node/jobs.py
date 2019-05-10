@@ -28,6 +28,7 @@ def set_volumes_paths(substitutions={}):
     :rtype: dict
     """
 
+    substitutions['config'] = config
     substitutions['liquid_domain'] = config.liquid_domain
     substitutions['liquid_volumes'] = config.liquid_volumes
     substitutions['liquid_collections'] = config.liquid_collections

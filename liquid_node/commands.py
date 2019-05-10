@@ -18,19 +18,24 @@ from .vault import vault
 
 log = logging.getLogger(__name__)
 
+def app_url(name):
+    return f'{config.liquid_http_protocol}://{name}.{config.liquid_domain}'
+
 core_auth_apps = [
     {
         'name': 'authdemo',
         'vault_path': 'authdemo/auth.oauth2',
-        'callback': f'http://authdemo.{config.liquid_domain}/__auth/callback',
+        'callback': f'{app_url("authdemo")}/__auth/callback',
     },
     {
         'name': 'hoover',
         'vault_path': 'hoover/search.oauth2',
-        'callback': (
-            f'http://hoover.{config.liquid_domain}'
-            '/accounts/oauth2-exchange/'
-        ),
+        'callback': f'{app_url("hoover")}/accounts/oauth2-exchange/',
+    },
+    {
+        'name': 'dokuwiki',
+        'vault_path': 'dokuwiki/auth.oauth2',
+        'callback': f'{app_url("dokuwiki")}/__auth/callback',
     },
 ]
 
@@ -108,6 +113,7 @@ def deploy():
 
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
+    consul.set_kv('liquid_http_protocol', config.liquid_http_protocol)
 
     vault.ensure_engine()
 
@@ -117,6 +123,7 @@ def deploy():
         'authdemo/auth.django',
         'nextcloud/nextcloud.admin',
         'nextcloud/nextcloud.pg',
+        'dokuwiki/auth.django',
     ]
 
     for path in vault_secret_keys:
