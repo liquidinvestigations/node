@@ -25,12 +25,12 @@ job "nextcloud" {
               NEXTCLOUD_POSTGRES_HOST = {{.Address}}:{{.Port}}
             {{- end }}
             NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
-            NEXTCLOUD_ADMIN_USER="admin"
-            NEXTCLOUD_ADMIN_PASSWORD="admin"
-            NEXTCLOUD_POSTGRES_DB="nextcloud"
-            NEXTCLOUD_POSTGRES_USER="postgres"
+            NEXTCLOUD_ADMIN_USER = admin
+            NEXTCLOUD_ADMIN_PASSWORD = admin
+            NEXTCLOUD_POSTGRES_DB = nextcloud
+            NEXTCLOUD_POSTGRES_USER= postgres
             {{- with secret "liquid/nextcloud/nextcloud.pg" }}
-              NEXTCLOUD_POSTGRES_PASSWORD={{.Data.secret_key}}
+              NEXTCLOUD_POSTGRES_PASSWORD = {{.Data.secret_key}}
             {{- end }}
             {{- with secret "liquid/nextcloud/nextcloud.admin" }}
               OC_PASS= {{.Data.secret_key}}
