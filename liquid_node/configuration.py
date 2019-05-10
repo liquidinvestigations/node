@@ -12,7 +12,8 @@ class Configuration:
 
         self.jobs = [
             (job, self.templates / f'{job}.nomad')
-            for job in ['liquid', 'hoover-ui', 'hoover-migrate', 'hoover', 'hoover-ui']
+            for job in ['liquid', 'hoover-ui', 'hoover-migrate', 'hoover',
+                        'hoover-ui', 'dokuwiki', 'dokuwiki-migrate']
         ]
 
         self.ini = configparser.ConfigParser()
@@ -59,10 +60,14 @@ class Configuration:
 
         self.https_enabled = 'https' in self.ini
         if self.https_enabled:
+            self.liquid_http_protocol = 'https'
             self.liquid_https_port = self.ini.get('https', 'https_port', fallback='443')
             self.https_acme_email = self.ini.get('https', 'acme_email')
             self.https_acme_caServer = self.ini.get('https', 'acme_caServer',
                 fallback="https://acme-staging-v02.api.letsencrypt.org/directory")
+
+        else:
+            self.liquid_http_protocol = 'http'
 
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
