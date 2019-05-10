@@ -17,6 +17,7 @@ def set_collection_defaults(name, settings):
 
     settings['name'] = name
     settings.setdefault('workers', '1')
+    settings.setdefault('sync', 'false')
 
 
 def set_volumes_paths(substitutions={}):

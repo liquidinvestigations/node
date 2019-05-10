@@ -148,6 +148,17 @@ collection:
 ./liquid initcollection testdata
 ```
 
+### Nextcloud
+
+On first startup, inititialize the uploads collection for nextcloud and install nextcloud
+
+```shell
+./liquid initcollection uploads
+./liquid shell nextcloud /setup.sh
+```
+
+Nextcloud runs on the subdomain nextcloud.<liquid_domain>
+
 ### Debugging
 Set the debug flag in `liquid.ini`:
 ```ini

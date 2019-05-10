@@ -121,6 +121,8 @@ def deploy():
         'liquid/core.django',
         'hoover/search.django',
         'authdemo/auth.django',
+        'nextcloud/nextcloud.admin',
+        'nextcloud/nextcloud.pg',
         'dokuwiki/auth.django',
     ]
 
