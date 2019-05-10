@@ -68,6 +68,21 @@ Vagrant will forward the following http ports:
   * `guest: 8200, host: 18200` - vault
   * `guest: 4646, host: 14646` - nomad
 
+### Vagrant on MacOS
+
+On MacOS the following extra steps need to be taken:
+
+1. Run the following command in a terminal:
+```shell
+sudo socat -vvv  tcp-listen:80,fork tcp:localhost:1380
+```
+
+2. Edit `/etc/hosts` and add the following line:
+```text
+127.0.0.1       [liquid_domain] hoover.[liquid_domain]
+```
+where `[liquid_domain]` is the value of `liquid.domain` from the `liquid.ini` file.
+
 [Vagrant]: https://www.vagrantup.com
 [libvirt driver]: https://github.com/vagrant-libvirt/vagrant-libvirt
 [Install vagrant]: https://www.vagrantup.com/docs/installation/
