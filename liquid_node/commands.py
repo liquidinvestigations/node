@@ -37,6 +37,11 @@ core_auth_apps = [
         'vault_path': 'dokuwiki/auth.oauth2',
         'callback': f'{app_url("dokuwiki")}/__auth/callback',
     },
+    {
+        'name': 'rocketchat',
+        'vault_path': 'rocketchat/auth.oauth2',
+        'callback': f'{app_url("rocketchat")}/_oauth/liquid',
+    },
 ]
 
 
@@ -122,6 +127,7 @@ def deploy():
         'hoover/search.django',
         'authdemo/auth.django',
         'dokuwiki/auth.django',
+        'rocketchat/auth.django',
     ]
 
     for path in vault_secret_keys:
