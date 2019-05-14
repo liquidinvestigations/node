@@ -12,7 +12,7 @@ job "rocketchat" {
         volumes = [
           "${liquid_volumes}/rocketchat/mongo/data:/data/db",
         ]
-        args = ["mongod", "--smallfiles"]
+        args = ["mongod", "--smallfiles", "--replSet", "rs01"]
         labels {
           liquid_task = "rocketchat-mongo"
         }
