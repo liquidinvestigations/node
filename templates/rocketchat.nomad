@@ -94,7 +94,6 @@ job "rocketchat" {
           for (const a of dotenv.split(/\n/)) {
             [_,k,v]=a.trim().match(/^([^=]+)=(.*)/);
             process.env[k]=v;
-            console.log('' + k + ' = ' + v);
           }
           require('/app/bundle/main.js');
         EOF
