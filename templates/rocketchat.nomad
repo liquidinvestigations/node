@@ -61,8 +61,10 @@ job "rocketchat" {
             MONGO_OPLOG_URL=mongodb://{{.Address}}:{{.Port}}/local?replSet=rs01
           {{- end }}
           ROOT_URL=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
-          ADMIN_USERNAME=admin
-          ADMIN_PASS=supersecret
+          {{- with secret "liquid/rocketchat/adminuser" }}
+            ADMIN_USERNAME={{.Data.username}}
+            ADMIN_PASS={{.Data.pass}}
+          {{- end }}
           ADMIN_EMAIL=admin@example.com
           Organization_Name=Liquid
           Site_Name=Liquid

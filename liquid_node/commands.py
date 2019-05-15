@@ -45,15 +45,19 @@ core_auth_apps = [
 ]
 
 
-def random_secret():
+def random_secret(bits=256):
     """ Generate a crypto-quality 256-bit random string. """
-    return str(base64.b16encode(os.urandom(32)), 'latin1').lower()
+    return str(base64.b16encode(os.urandom(int(bits/8))), 'latin1').lower()
+
+
+def ensure_secret(path, get_value):
+    if not vault.read(path):
+        log.info(f"Generating value for {path}")
+        vault.set(path, get_value())
 
 
 def ensure_secret_key(path):
-    if not vault.read(path):
-        log.info(f"Generating secrets for {path}")
-        vault.set(path, {'secret_key': random_secret()})
+    ensure_secret(path, lambda: {'secret_key': random_secret()})
 
 
 def wait_for_service_health_checks(health_checks):
@@ -152,6 +156,11 @@ def deploy():
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
         ensure_secret_key(f'collections/{name}/snoop.django')
+
+    ensure_secret('rocketchat/adminuser', lambda: {
+        'username': 'admin',
+        'pass': random_secret(64),
+    })
 
     # Start liquid-core in order to setup the auth
     liquid_checks = start('liquid', dict(jobs)['liquid'])
@@ -289,3 +298,15 @@ def dockerexec(name, *args):
     """Run `docker exec` in a container tagged with liquid_task=`name`"""
 
     docker.exec_(name, *args)
+
+
+def getsecret(path=None):
+    """Get a Vault secret"""
+
+    if path:
+        print(vault.read(path))
+
+    else:
+        for section in vault.list():
+            for key in vault.list(f'{section}'):
+                print(f'{section}{key}')
