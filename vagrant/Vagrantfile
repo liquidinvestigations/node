@@ -72,7 +72,7 @@ Vagrant.configure("2") do |config|
     digital_ocean.region = do_region
     digital_ocean.ssh_key_name = 'vagrant'
     digital_ocean.image = 'ubuntu-18-04-x64'
-    digital_ocean.size = 's-4vcpu-8gb'
+    digital_ocean.size = 's-6vcpu-16gb'
   end
 
   config.vm.provider :libvirt do |libvirt, override|
