@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ubuntu/bionic64"
+  config.vm.box = "generic/ubuntu1804"
 
   if Vagrant.has_plugin?('vagrant-env')
     config.env.enable
@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
   config.vm.network :forwarded_port, guest: 8200, guest_ip:  "127.0.0.1", host: 18200, host_ip: "127.0.0.1"
 
   config.vm.provider :virtualbox do |virtualbox, override|
-    virtualbox.memory = 8192
+    virtualbox.memory = 12288
     virtualbox.cpus = 2
     override.vm.synced_folder "..", "/opt/node"
   end
@@ -72,7 +72,7 @@ Vagrant.configure("2") do |config|
     digital_ocean.region = do_region
     digital_ocean.ssh_key_name = 'vagrant'
     digital_ocean.image = 'ubuntu-18-04-x64'
-    digital_ocean.size = 's-4vcpu-8gb'
+    digital_ocean.size = 's-6vcpu-16gb'
   end
 
   config.vm.provider :libvirt do |libvirt, override|

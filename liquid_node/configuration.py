@@ -12,8 +12,12 @@ class Configuration:
 
         self.jobs = [
             (job, self.templates / f'{job}.nomad')
-            for job in ['liquid', 'hoover-ui', 'hoover-migrate', 'hoover',
-                        'hoover-ui', 'dokuwiki', 'dokuwiki-migrate']
+            for job in [
+                'liquid',
+                'hoover', 'hoover-ui', 'hoover-migrate',
+                'dokuwiki', 'dokuwiki-migrate',
+                'rocketchat',
+            ]
         ]
 
         self.ini = configparser.ConfigParser()
