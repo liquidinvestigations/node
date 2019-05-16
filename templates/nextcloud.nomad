@@ -1,3 +1,5 @@
+{% from '_lib.hcl' import authproxy_group with context -%}
+
 job "nextcloud" {
   datacenters = ["dc1"]
   type = "service"
@@ -87,4 +89,11 @@ job "nextcloud" {
       }
     }
   }
+
+  ${- authproxy_group(
+      'nextcloud',
+      host='nextcloud.' + liquid_domain,
+      upstream='nextcloud',
+  )}
+
 }

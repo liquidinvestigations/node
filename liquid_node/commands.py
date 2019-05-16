@@ -42,6 +42,11 @@ core_auth_apps = [
         'vault_path': 'rocketchat/auth.oauth2',
         'callback': f'{app_url("rocketchat")}/_oauth/liquid',
     },
+    {
+        'name': 'nextcloud',
+        'vault_path': 'nextcloud/auth.oauth2',
+        'callback': f'{app_url("nextcloud")}/__auth/callback',
+    },
 ]
 
 
@@ -133,6 +138,7 @@ def deploy():
         'nextcloud/nextcloud.admin',
         'nextcloud/nextcloud.pg',
         'dokuwiki/auth.django',
+        'nextcloud/auth.django',
         'rocketchat/auth.django',
     ]
 
