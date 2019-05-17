@@ -1,5 +1,6 @@
 import logging
-
+import os
+from contextlib import contextmanager
 
 log = logging.getLogger(__name__)
 
@@ -14,3 +15,13 @@ def first(items, name_plural='items'):
         )
 
     return items[0]
+
+
+@contextmanager
+def change_dir(path):
+    current_dir = os.getcwd()
+    try:
+        os.chdir(str(path))
+        yield path
+    finally:
+        os.chdir(current_dir)
