@@ -39,15 +39,14 @@ def validate_names(collections):
 import_methods = ['copy', 'move', 'link']
 
 
-def import_dir(src, dst, method='link', overwrite=False):
+def import_dir(src, dst, method='link'):
     if method  not in import_methods:
         raise RuntimeError(f'Invalid import method {method}')
 
-    if dst.is_dir() or dst.is_symlink():
-        if overwrite:
-            shutil.rmtree(str(dst))
-        else:
-            raise RuntimeError(f'Directory {dst} already exists!')
+    if dst.is_dir():
+        shutil.rmtree(str(dst))
+    elif dst.is_symlink():
+        dst.unlink()
 
     if method == 'copy':
         shutil.copytree(str(src), str(dst))
@@ -57,33 +56,33 @@ def import_dir(src, dst, method='link', overwrite=False):
         dst.symlink_to(src)
 
 
-def import_index(docker_setup, method, overwrite):
+def import_index(docker_setup, method):
     log.info('Importing elasticsearch index')
     es_src = docker_setup / 'volumes' / 'search-es'
     es_dst = config.liquid_volumes / 'hoover' / 'es'
-    import_dir(es_src, es_dst, method, overwrite)
+    import_dir(es_src, es_dst, method)
 
 
-def import_collection(name, settings, docker_setup, method='copy', overwrite=False):
+def import_collection(name, settings, docker_setup, method='copy'):
     log.info(f'Importing collection {name}')
 
     node_name = name.lower()
     if name != node_name:
         log.info(f'Renaming "{name}" to "{node_name}"')
 
-    collection_path = config.liquid_volumes / 'collections' / node_name
+    collection_path = Path(config.liquid_volumes) / 'collections' / node_name
 
     # copy the pg dir
     pg_src = docker_setup / 'volumes' / f'snoop-pg--{name}'
     pg_dst = collection_path / 'pg'
-    log.info(f'Copying the collection "{name}" pg dir from docker-setup to node..')
-    import_dir(pg_src, pg_dst, method, overwrite)
+    log.info(f'Importing the collection "{name}" pg dir from docker-setup to node..')
+    import_dir(pg_src, pg_dst, method)
 
     # copy the blobs dir
     blob_src = docker_setup / 'snoop-blobs' / name
     blob_dst = collection_path / 'blobs'
-    log.info(f'Copying the collection "{name}" blobs dir from docker-setup to node..')
-    import_dir(blob_src, blob_dst, method, overwrite)
+    log.info(f'Importing the collection "{name}" blobs dir from docker-setup to node..')
+    import_dir(blob_src, blob_dst, method)
 
 
 def add_collections_ini(collections):

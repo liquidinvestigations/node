@@ -299,7 +299,7 @@ def purge(force=False):
         print('No collections will be purged')
 
 
-def importfromdocker(path, method='link', overwrite=False):
+def importfromdocker(path, method='link'):
     """Import collections from existing docker-setup deployment.
 
     :param path: path to the docker-setup deployment
@@ -330,8 +330,8 @@ def importfromdocker(path, method='link', overwrite=False):
     halt()
 
     for name, settings in collections.items():
-        import_collection(name, settings, docker_setup, method, overwrite)
-    import_index(docker_setup, method, overwrite)
+        import_collection(name, settings, docker_setup, method)
+    import_index(docker_setup, method)
 
     add_collections_ini(collections)
 
