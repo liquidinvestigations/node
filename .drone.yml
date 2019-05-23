@@ -1,0 +1,11 @@
+kind: pipeline
+name: deploy whole stack to qemu
+
+steps:
+- name: deploy to qemu
+  image: mgax/vagrant-vmck
+  pull: true
+  commands:
+  - export VMCK_URL=http://$VMCK_IP:$VMCK_PORT
+  - echo $VMCK_URL
+  - vagrant/deploy-vmck
