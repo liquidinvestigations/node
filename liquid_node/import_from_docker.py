@@ -4,7 +4,6 @@ from pathlib import Path
 
 from liquid_node.configuration import config
 from liquid_node.process import run
-from liquid_node.util import change_dir
 
 log = logging.getLogger(__name__)
 
@@ -57,9 +56,22 @@ def import_dir(src, dst, method='link'):
 
 
 def import_index(docker_setup, method):
+    log.info('Importing hoover search datadabase')
+    pg_src = docker_setup / 'volumes' / 'search-pg'
+    pg_dst = Path(config.liquid_volumes) / 'hoover' / 'pg'
+    if pg_dst.is_symlink():
+        pg_dst.unlink()
+    if pg_dst.is_dir():
+        shutil.rmtree(str(pg_dst))
+    import_dir(pg_src, pg_dst, method)
+
     log.info('Importing elasticsearch index')
     es_src = docker_setup / 'volumes' / 'search-es'
-    es_dst = config.liquid_volumes / 'hoover' / 'es'
+    es_dst = Path(config.liquid_volumes) / 'hoover' / 'es'
+    if es_dst.is_symlink():
+        es_dst.unlink()
+    if es_dst.is_dir():
+        shutil.rmtree(str(es_dst))
     import_dir(es_src, es_dst, method)
 
 
@@ -71,6 +83,8 @@ def import_collection(name, settings, docker_setup, method='copy'):
         log.info(f'Renaming "{name}" to "{node_name}"')
 
     collection_path = Path(config.liquid_volumes) / 'collections' / node_name
+    if not collection_path.is_dir():
+        collection_path.mkdir()
 
     # copy the pg dir
     pg_src = docker_setup / 'volumes' / f'snoop-pg--{name}'

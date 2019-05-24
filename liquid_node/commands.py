@@ -6,7 +6,7 @@ import base64
 import json
 
 from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
-    add_collections_ini, import_index
+    add_collections_ini, import_index, import_dir
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
@@ -305,9 +305,6 @@ def importfromdocker(path, method='link'):
     :param path: path to the docker-setup deployment
     :param move: if true, move data from the docker-setup deployment, otherwise copy data
     """
-    if config.collections:
-        raise RuntimeError('Please remove existing collections before importing.')
-
     docker_setup = Path(path).resolve()
 
     docker_compose_file = docker_setup / 'docker-compose.yml'
@@ -319,14 +316,16 @@ def importfromdocker(path, method='link'):
         log.info(f'Unable to find any collections in {docker_setup}.')
         return
 
+    if config.collections:
+        raise RuntimeError('Please remove existing collections before importing.')
+    if get_collections_to_purge():
+        raise RuntimeError('Please purge existing collections before importing')
+
     with open(str(collections_json)) as collections_file:
         collections = json.load(collections_file)
     validate_names(collections)
 
-    purge(force=True)
-
     ensure_docker_setup_stopped()
-
     halt()
 
     for name, settings in collections.items():
