@@ -24,7 +24,7 @@ job "liquid" {
           HTTP_HOST = {{key "liquid_domain"}}
           HOOVER_APP_URL = ${config.liquid_http_protocol}://hoover.${config.liquid_domain}
           DOKUWIKI_APP_URL = ${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}
-          RIOT_APP_URL = ${config.liquid_http_protocol}://riot.${config.liquid_domain}
+          ROCKETCHAT_APP_URL = ${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
           NEXTCLOUD_APP_URL = ${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}
           {{- with secret "liquid/liquid/core.django" }}
             SECRET_KEY = {{.Data.secret_key}}
