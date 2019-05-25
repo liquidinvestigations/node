@@ -21,10 +21,12 @@ job "liquid" {
       template {
         data = <<EOF
           DEBUG = {{key "liquid_debug"}}
-          HTTP_HOST = {{key "liquid_domain"}}
           {{- with secret "liquid/liquid/core.django" }}
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}
+          LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
+          LIQUID_DOMAIN = {{key "liquid_domain"}}
+          SERVICE_ADDRESS = {{env "NOMAD_IP_http"}}
         EOF
         destination = "local/docker.env"
         env = true
@@ -49,6 +51,9 @@ job "liquid" {
           path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
+          header {
+            Host = ["${liquid_domain}"]
+          }
         }
       }
     }
