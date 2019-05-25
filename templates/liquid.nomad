@@ -1,8 +1,12 @@
+{% from '_lib.hcl' import continuous_reschedule -%}
+
 job "liquid" {
   datacenters = ["dc1"]
   type = "service"
 
   group "core" {
+    ${ continuous_reschedule() }
+
     task "core" {
       driver = "docker"
       config {
@@ -60,6 +64,8 @@ job "liquid" {
   }
 
   group "ingress" {
+    ${ continuous_reschedule() }
+
     task "traefik" {
       driver = "docker"
       config {
