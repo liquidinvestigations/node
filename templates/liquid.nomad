@@ -31,6 +31,7 @@ job "liquid" {
           LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
           LIQUID_DOMAIN = {{key "liquid_domain"}}
           SERVICE_ADDRESS = {{env "NOMAD_IP_http"}}
+          LIQUID_2FA = true
         EOF
         destination = "local/docker.env"
         env = true
