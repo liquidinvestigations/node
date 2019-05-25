@@ -73,6 +73,8 @@ class Configuration:
         else:
             self.liquid_http_protocol = 'http'
 
+        self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
+
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
