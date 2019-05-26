@@ -32,6 +32,10 @@ job "liquid" {
           LIQUID_DOMAIN = {{key "liquid_domain"}}
           SERVICE_ADDRESS = {{env "NOMAD_IP_http"}}
           LIQUID_2FA = ${config.liquid_2fa}
+          HOOVER_APP_URL = ${config.liquid_http_protocol}://hoover.${config.liquid_domain}
+          DOKUWIKI_APP_URL = ${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}
+          ROCKETCHAT_APP_URL = ${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
+          NEXTCLOUD_APP_URL = ${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}
         EOF
         destination = "local/docker.env"
         env = true
