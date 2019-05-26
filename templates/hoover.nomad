@@ -122,6 +122,9 @@ job "hoover" {
             LIQUID_AUTH_CLIENT_ID = {{.Data.client_id}}
             LIQUID_AUTH_CLIENT_SECRET = {{.Data.client_secret}}
           {{- end }}
+          {%- if config.liquid_http_protocol == 'https' %}
+            SECURE_PROXY_SSL_HEADER = HTTP_X_FORWARDED_PROTO
+          {%- endif %}
         EOF
         destination = "local/hoover.env"
         env = true
