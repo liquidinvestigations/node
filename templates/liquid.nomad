@@ -89,6 +89,8 @@ job "liquid" {
       }
       template {
         data = <<-EOF
+          logLevel = "INFO"
+
           debug = {{ key "liquid_debug" }}
           {%- if https_enabled %}
           defaultEntryPoints = ["http", "https"]
