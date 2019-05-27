@@ -21,7 +21,7 @@ job "liquid" {
       template {
         data = <<EOF
           DEBUG = {{key "liquid_debug"}}
-          HTTP_HOST = {{key "liquid_domain"}}
+          LIQUID_DOMAIN = {{key "liquid_domain"}}
           HOOVER_APP_URL = ${config.liquid_http_protocol}://hoover.${config.liquid_domain}
           DOKUWIKI_APP_URL = ${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}
           ROCKETCHAT_APP_URL = ${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
