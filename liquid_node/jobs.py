@@ -33,6 +33,7 @@ def set_volumes_paths(substitutions={}):
     substitutions['liquid_volumes'] = config.liquid_volumes
     substitutions['liquid_collections'] = config.liquid_collections
     substitutions['liquid_http_port'] = config.liquid_http_port
+    substitutions['liquid_2fa'] = config.liquid_2fa
     substitutions['check_interval'] = config.check_interval
     substitutions['check_timeout'] = config.check_timeout
     substitutions['consul_socket'] = os.path.realpath(config.consul_socket)

@@ -1,4 +1,4 @@
-{%- macro migration_reschedule() %}
+{%- macro continuous_reschedule() %}
   reschedule {
     unlimited = true
     attempts = 0

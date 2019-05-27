@@ -1,10 +1,10 @@
-{% from '_lib.hcl' import migration_reschedule -%}
+{% from '_lib.hcl' import continuous_reschedule -%}
 
 job "dokuwiki-migrate" {
   datacenters = ["dc1"]
   type = "batch"
 
-  ${ migration_reschedule() }
+  ${ continuous_reschedule() }
 
   group "migrate" {
     task "script" {

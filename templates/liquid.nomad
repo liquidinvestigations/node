@@ -1,8 +1,12 @@
+{% from '_lib.hcl' import continuous_reschedule -%}
+
 job "liquid" {
   datacenters = ["dc1"]
   type = "service"
 
   group "core" {
+    ${ continuous_reschedule() }
+
     task "core" {
       driver = "docker"
       config {
@@ -21,14 +25,17 @@ job "liquid" {
       template {
         data = <<EOF
           DEBUG = {{key "liquid_debug"}}
-          HTTP_HOST = {{key "liquid_domain"}}
+          {{- with secret "liquid/liquid/core.django" }}
+            SECRET_KEY = {{.Data.secret_key}}
+          {{- end }}
+          LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
+          LIQUID_DOMAIN = {{key "liquid_domain"}}
+          SERVICE_ADDRESS = {{env "NOMAD_IP_http"}}
+          LIQUID_2FA = ${config.liquid_2fa}
           HOOVER_APP_URL = ${config.liquid_http_protocol}://hoover.${config.liquid_domain}
           DOKUWIKI_APP_URL = ${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}
           ROCKETCHAT_APP_URL = ${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
           NEXTCLOUD_APP_URL = ${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}
-          {{- with secret "liquid/liquid/core.django" }}
-            SECRET_KEY = {{.Data.secret_key}}
-          {{- end }}
         EOF
         destination = "local/docker.env"
         env = true
@@ -53,12 +60,17 @@ job "liquid" {
           path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
+          header {
+            Host = ["${liquid_domain}"]
+          }
         }
       }
     }
   }
 
   group "ingress" {
+    ${ continuous_reschedule() }
+
     task "traefik" {
       driver = "docker"
       config {
@@ -81,6 +93,8 @@ job "liquid" {
       }
       template {
         data = <<-EOF
+          logLevel = "INFO"
+
           debug = {{ key "liquid_debug" }}
           {%- if https_enabled %}
           defaultEntryPoints = ["http", "https"]
