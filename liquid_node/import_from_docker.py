@@ -42,16 +42,17 @@ def import_dir(src, dst, method='link'):
     if method  not in import_methods:
         raise RuntimeError(f'Invalid import method {method}')
 
-    if dst.is_dir():
-        shutil.rmtree(str(dst))
-    elif dst.is_symlink():
-        dst.unlink()
+    if dst.is_dir() or dst.is_symlink():
+        raise RuntimeError(f'The destination directory {dst} already exists.')
 
     if method == 'copy':
+        log.info(f'Copying from {src} to {dst}')
         shutil.copytree(str(src), str(dst))
     elif method == 'move':
+        log.info(f'Moving {src} to {dst}')
         src.replace(dst)
     elif method == 'link':
+        log.info(f'Linking {dst} to {src}')
         dst.symlink_to(src)
 
 
@@ -84,7 +85,7 @@ def import_collection(name, settings, docker_setup, method='copy'):
 
     collection_path = Path(config.liquid_volumes) / 'collections' / node_name
     if not collection_path.is_dir():
-        collection_path.mkdir()
+        collection_path.mkdir(parents=True)
 
     # copy the pg dir
     pg_src = docker_setup / 'volumes' / f'snoop-pg--{name}'

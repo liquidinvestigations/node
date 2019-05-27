@@ -42,7 +42,7 @@ def main():
         commands.initcollection,
         commands.purge,
         commands.getsecret,
-        commands.importfromdocker
+        commands.importfromdocker,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
