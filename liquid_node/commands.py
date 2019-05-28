@@ -88,6 +88,7 @@ def wait_for_service_health_checks(health_checks):
     t0 = time()
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
+    last_spam = t0
     while time() < timeout:
         sleep(config.wait_interval)
         failed = sorted(get_failed_checks())
@@ -106,12 +107,14 @@ def wait_for_service_health_checks(health_checks):
         if greens == 0 and time() >= no_chance_timestamp:
             break
 
-        failed_text = ''
-        for service, check, status in failed:
-            failed_text += f'\n - {service}: check "{check}" is {status}'
-        if failed:
-            failed_text += '\n'
-        log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
+        if time() - last_spam > 10.0:
+            failed_text = ''
+            for service, check, status in failed:
+                failed_text += f'\n - {service}: check "{check}" is {status}'
+            if failed:
+                failed_text += '\n'
+            log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
+            last_spam = time()
 
     msg = f'Checks are failing after {time() - t0:.02f}s: \n - {failed_text}'
     raise RuntimeError(msg)
@@ -134,6 +137,7 @@ def deploy():
         'nextcloud/nextcloud.pg',
         'dokuwiki/auth.django',
         'rocketchat/auth.django',
+        'ci/vmck.django',
     ]
 
     for path in vault_secret_keys:

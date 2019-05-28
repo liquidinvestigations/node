@@ -83,6 +83,14 @@ class Configuration:
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
         self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
 
+        self.ci_enabled = 'ci' in self.ini
+        if self.ci_enabled:
+            self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
+            self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
+            self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
+            self.ci_github_initial_admin_username = self.ini.get('ci', 'github_initial_admin_username')
+            self.jobs.append(('drone', self.templates / 'drone.nomad'))
+
         self.collections = OrderedDict()
         for key in self.ini:
             if ':' not in key:
