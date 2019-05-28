@@ -13,6 +13,16 @@ ret=$?
 
 set +x
 echo
+echo "Stats"
+vagrant ssh <<EOF
+set -x
+uname -a
+w
+df -h
+free -h
+EOF
+
+echo
 echo "Destroying Vagrant"
 vagrant destroy -f
 exit $ret

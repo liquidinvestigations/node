@@ -6,6 +6,19 @@
   }
 {%- endmacro %}
 
+{%- macro task_logs() %}
+logs {
+  max_files     = 5
+  max_file_size = 1
+}
+{%- endmacro %}
+
+{%- macro group_disk(size=50) %}
+ephemeral_disk {
+  size = ${size}
+}
+{%- endmacro %}
+
 {%- macro authproxy_group(name, host, upstream) %}
   group "authproxy" {
     task "web" {

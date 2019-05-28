@@ -1,9 +1,15 @@
+{% from '_lib.hcl' import group_disk, task_logs -%}
+
 job "hoover-ui" {
   datacenters = ["dc1"]
   type = "batch"
 
   group "ui" {
+    ${ group_disk() }
+
     task "ui" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-ui"

@@ -18,4 +18,5 @@ cd /opt/cluster
 sudo ./examples/network.sh
 cp examples/cluster.ini .
 ./examples/docker.sh
+sleep 20
 docker exec cluster /opt/cluster/cluster.py autovault

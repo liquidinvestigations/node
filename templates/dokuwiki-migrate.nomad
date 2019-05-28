@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
 
 job "dokuwiki-migrate" {
   datacenters = ["dc1"]
@@ -7,7 +7,11 @@ job "dokuwiki-migrate" {
   ${ continuous_reschedule() }
 
   group "migrate" {
+    ${ group_disk() }
+
     task "script" {
+      ${ task_logs() }
+
       driver = "docker"
       config = {
         image = "alpine"

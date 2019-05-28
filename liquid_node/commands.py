@@ -316,10 +316,3 @@ def getsecret(path=None):
         for section in vault.list():
             for key in vault.list(f'{section}'):
                 print(f'{section}{key}')
-
-
-def ci():
-    """Run continuous integration on this code."""
-
-    log.info("Continually Integrating Bugs")
-    log.info("env keys: " + " ".join(os.environ.keys()))

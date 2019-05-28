@@ -1,9 +1,15 @@
+{% from '_lib.hcl' import group_disk, task_logs -%}
+
 job "zipkin" {
   datacenters = ["dc1"]
   type = "service"
 
   group "zipkin" {
+    ${ group_disk() }
+
     task "zipkin" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "openzipkin/zipkin"
