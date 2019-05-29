@@ -90,7 +90,7 @@ job "collection-${name}" {
         POSTGRES_DATABASE = "snoop"
       }
       resources {
-        cpu = 1000
+        cpu = 700
         memory = 500
         network {
           port "pg" {}

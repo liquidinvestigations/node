@@ -22,7 +22,7 @@ job "rocketchat" {
       }
       resources {
         memory = 500
-        cpu = 500
+        cpu = 400
         network {
           port "mongo" {}
         }
@@ -103,7 +103,7 @@ job "rocketchat" {
       }
       resources {
         memory = 1000
-        cpu = 500
+        cpu = 400
         network {
           port "web" {}
         }

@@ -3,6 +3,7 @@
 job "hoover-ui" {
   datacenters = ["dc1"]
   type = "batch"
+  priority = 90
 
   group "ui" {
     ${ group_disk() }

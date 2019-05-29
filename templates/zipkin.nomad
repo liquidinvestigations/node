@@ -22,6 +22,7 @@ job "zipkin" {
       }
       resources {
         memory = 1000
+        cpu = 200
         network {
           port "http" {}
         }

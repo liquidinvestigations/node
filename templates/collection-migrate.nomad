@@ -3,11 +3,12 @@
 job "collection-${name}-migrate" {
   datacenters = ["dc1"]
   type = "batch"
-
-  ${ continuous_reschedule() }
+  priority = 80
 
   group "snoop" {
     ${ group_disk() }
+
+    ${ continuous_reschedule() }
 
     task "migrate" {
       ${ task_logs() }
@@ -56,7 +57,7 @@ job "collection-${name}-migrate" {
         env = true
       }
       resources {
-        memory = 500
+        memory = 200
       }
     }
   }
