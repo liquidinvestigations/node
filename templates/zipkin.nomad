@@ -31,6 +31,14 @@ job "zipkin" {
       service {
         name = "zipkin"
         port = "http"
+        check {
+          name = "zipkin alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

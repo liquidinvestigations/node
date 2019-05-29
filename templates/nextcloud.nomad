@@ -2,7 +2,7 @@ job "nextcloud" {
   datacenters = ["dc1"]
   type = "service"
   priority = 45
-  
+
   group "nc" {
     task "nextcloud" {
       driver = "docker"
@@ -48,6 +48,17 @@ job "nextcloud" {
       service {
         name = "nextcloud"
         port = "http"
+        check {
+          name = "nextcloud alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["nc.${liquid_domain}"]
+          }
+        }
       }
     }
   }
@@ -85,6 +96,13 @@ job "nextcloud" {
       service {
         name = "nextcloud-pg"
         port = "pg"
+        check {
+          name = "postgres alive on tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

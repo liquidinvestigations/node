@@ -30,6 +30,17 @@ job "dokuwiki" {
       service {
         name = "dokuwiki-php"
         port = "php"
+        check {
+          name = "dokuwiki-php alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["dokuwiki.${liquid_domain}"]
+          }
+        }
       }
     }
   }
