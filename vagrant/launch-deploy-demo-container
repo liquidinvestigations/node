@@ -1,0 +1,10 @@
+#!/bin/sh -ex
+
+docker run -d --rm \
+        --name deploy-demo \
+        -v /opt/node:/opt/node \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -v /opt/cluster:/opt/cluster \
+        -w /opt/node \
+        python:3.7-stretch \
+        /opt/node/vagrant/deploy-demo
