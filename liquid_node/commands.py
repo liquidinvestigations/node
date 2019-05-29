@@ -6,7 +6,7 @@ import base64
 import json
 
 from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
-    add_collections_ini, import_index, import_dir
+    add_collections_ini, import_index
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
