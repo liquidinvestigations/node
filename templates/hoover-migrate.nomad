@@ -3,11 +3,12 @@
 job "hoover-migrate" {
   datacenters = ["dc1"]
   type = "batch"
-
-  ${ continuous_reschedule() }
+  priority = 45
 
   group "search" {
     ${ group_disk() }
+
+    ${ continuous_reschedule() }
 
     task "migrate" {
       ${ task_logs() }

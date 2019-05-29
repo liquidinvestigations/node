@@ -3,6 +3,7 @@
 job "zipkin" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 25
 
   group "zipkin" {
     ${ group_disk() }
@@ -22,6 +23,7 @@ job "zipkin" {
       }
       resources {
         memory = 1000
+        cpu = 200
         network {
           port "http" {}
         }

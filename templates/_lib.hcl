@@ -4,6 +4,9 @@
     attempts = 0
     delay = "5s"
   }
+  restart {
+    attempts = 0
+  }
 {%- endmacro %}
 
 {%- macro task_logs() %}
@@ -58,6 +61,8 @@ ephemeral_disk {
         network {
           port "authproxy" {}
         }
+        memory = 150
+        cpu = 150
       }
       service {
         name = "${name}"

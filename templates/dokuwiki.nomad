@@ -3,6 +3,7 @@
 job "dokuwiki" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 65
 
   group "dokuwiki" {
     task "php" {

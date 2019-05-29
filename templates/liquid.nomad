@@ -3,6 +3,7 @@
 job "liquid" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 99
 
   group "core" {
     ${ continuous_reschedule() }

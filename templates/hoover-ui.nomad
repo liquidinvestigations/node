@@ -3,6 +3,7 @@
 job "hoover-ui" {
   datacenters = ["dc1"]
   type = "batch"
+  priority = 80
 
   group "ui" {
     ${ group_disk() }
@@ -22,7 +23,7 @@ job "hoover-ui" {
         args = ["npm", "run", "build"]
       }
       resources {
-        memory = 1000
+        memory = 900
       }
     }
   }
