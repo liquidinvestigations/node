@@ -299,7 +299,7 @@ def purge(force=False):
         print('No collections will be purged')
 
 
-def importfromdocker(path, method='link'):
+def importfromdockersetup(path, method='link'):
     """Import collections from existing docker-setup deployment.
 
     :param path: path to the docker-setup deployment
