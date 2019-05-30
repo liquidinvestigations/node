@@ -34,7 +34,7 @@ job "hoover-migrate" {
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}
           {{- range service "hoover-pg" }}
-            HOOVER_DB = postgresql://hoover:hoover@{{.Address}}:{{.Port}}/hoover
+            HOOVER_DB = postgresql://search:search@{{.Address}}:{{.Port}}/search
           {{- end }}
           {{- range service "hoover-es" }}
             HOOVER_ES_URL = http://{{.Address}}:{{.Port}}
