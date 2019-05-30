@@ -39,7 +39,7 @@ import_methods = ['copy', 'move', 'link']
 
 
 def import_dir(src, dst, method='link'):
-    if method  not in import_methods:
+    if method not in import_methods:
         raise RuntimeError(f'Invalid import method {method}')
 
     if dst.is_dir() or dst.is_symlink():
