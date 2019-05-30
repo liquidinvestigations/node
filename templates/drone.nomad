@@ -24,7 +24,8 @@ job "drone" {
         }
       }
       resources {
-        memory = 100
+        memory = 80
+        cpu = 400
         network {
           port "http" {}
         }
@@ -81,7 +82,7 @@ job "drone" {
         env = true
       }
       resources {
-        memory = 150
+        memory = 350
         network {
           port "http" {
             static = 9999
