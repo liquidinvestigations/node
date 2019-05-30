@@ -104,6 +104,7 @@ We need a way to access Vault. The simplest way is to use:
 domain = liquid.example.org
 debug = true
 
+[cluster]
 vault_secrets = /opt/cluster/var/vault-secrets.ini
 
 [collection:testdata]
