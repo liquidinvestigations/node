@@ -3,6 +3,7 @@
 job "zipkin" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 25
 
   group "zipkin" {
     ${ group_disk() }
@@ -22,6 +23,7 @@ job "zipkin" {
       }
       resources {
         memory = 1000
+        cpu = 200
         network {
           port "http" {}
         }
@@ -29,6 +31,14 @@ job "zipkin" {
       service {
         name = "zipkin"
         port = "http"
+        check {
+          name = "zipkin alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

@@ -8,7 +8,9 @@ export PATH="/sbin:$PATH"
 echo "Starting Vagrant"
 set -x
 set +e
-vagrant up --provider=vmck
+vagrant up --provider=vmck --no-provision
+echo 'sudo shutdown +15' | vagrant ssh
+vagrant provision
 ret=$?
 
 set +x

@@ -3,11 +3,12 @@
 job "dokuwiki-migrate" {
   datacenters = ["dc1"]
   type = "batch"
-
-  ${ continuous_reschedule() }
+  priority = 45
 
   group "migrate" {
     ${ group_disk() }
+
+    ${ continuous_reschedule() }
 
     task "script" {
       ${ task_logs() }

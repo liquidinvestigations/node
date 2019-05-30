@@ -3,6 +3,7 @@
 job "drone" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 90
 
   group "imghost" {
     ${ group_disk() }
@@ -23,7 +24,8 @@ job "drone" {
         }
       }
       resources {
-        memory = 200
+        memory = 80
+        cpu = 400
         network {
           port "http" {}
         }
@@ -80,7 +82,7 @@ job "drone" {
         env = true
       }
       resources {
-        memory = 200
+        memory = 350
         network {
           port "http" {
             static = 9999
@@ -141,7 +143,7 @@ job "drone" {
         env = true
       }
       resources {
-        memory = 200
+        memory = 250
         network {
           port "http" {}
         }

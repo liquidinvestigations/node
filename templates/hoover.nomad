@@ -1,6 +1,9 @@
+{% from '_lib.hcl' import continuous_reschedule -%}
+
 job "hoover" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 60
 
   group "index" {
     task "es" {
@@ -44,6 +47,8 @@ job "hoover" {
   }
 
   group "db" {
+    ${ continuous_reschedule() }
+
     task "pg" {
       driver = "docker"
       config {
@@ -63,8 +68,7 @@ job "hoover" {
         POSTGRES_DATABASE = "hoover"
       }
       resources {
-        cpu = 500
-        memory = 150
+        memory = 350
         network {
           port "pg" {}
         }
