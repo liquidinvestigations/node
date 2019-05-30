@@ -79,7 +79,7 @@ sudo socat -vvv  tcp-listen:80,fork tcp:localhost:1380
 
 2. Edit `/etc/hosts` and add the following line:
 ```text
-127.0.0.1       [liquid_domain] hoover.[liquid_domain]
+10.66.60.1       [liquid_domain] hoover.[liquid_domain]
 ```
 where `[liquid_domain]` is the value of `liquid.domain` from the `liquid.ini` file.
 

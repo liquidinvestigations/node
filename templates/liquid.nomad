@@ -85,7 +85,6 @@ job "liquid" {
         }
         volumes = [
           "local/traefik.toml:/etc/traefik/traefik.toml:ro",
-          "${consul_socket}:/consul.sock:ro",
           "${liquid_volumes}/liquid/traefik/acme:/etc/traefik/acme",
         ]
         labels {
@@ -138,12 +137,12 @@ job "liquid" {
 
 
           [consulCatalog]
-          endpoint = "unix:///consul.sock"
+          endpoint = "${consul_url}"
           prefix = "traefik"
           exposedByDefault = false
 
           [consul]
-          endpoint = "unix:///consul.sock"
+          endpoint = "${consul_url}"
           prefix = "traefik"
         EOF
         destination = "local/traefik.toml"
