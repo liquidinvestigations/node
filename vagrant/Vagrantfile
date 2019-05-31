@@ -12,6 +12,8 @@ Vagrant.configure("2") do |config|
   custom_sh = ENV['PROVISION_SH']
 
   config.vm.define machine_name
+  # disable implicit mount for /vagrant
+  config.vm.synced_folder '.', '/vagrant', disabled: true
 
   # blank provisioner that can be overridden by providers
   config.vm.provision 'provider', type: 'shell', inline: '/bin/true'
