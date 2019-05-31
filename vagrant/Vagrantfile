@@ -16,8 +16,8 @@ Vagrant.configure("2") do |config|
   # blank provisioner that can be overridden by providers
   config.vm.provision 'provider', type: 'shell', inline: '/bin/true'
 
-  config.vm.provision :shell, path: 'provision-cluster.sh'
-  config.vm.provision :shell, path: 'provision-liquid.sh'
+  config.vm.provision "shell", inline: "/opt/node/provision-cluster.sh"
+  config.vm.provision "shell", inline: "/opt/node/provision-liquid.sh"
 
   if custom_sh
     config.vm.provision :shell, path: custom_sh
