@@ -1,6 +1,9 @@
+{% from '_lib.hcl' import continuous_reschedule -%}
+
 job "collection-${name}" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 60
 
   group "queue" {
     task "rabbitmq" {
@@ -18,7 +21,7 @@ job "collection-${name}" {
         }
       }
       resources {
-        memory = 1000
+        memory = 800
         network {
           port "amqp" {}
         }
@@ -50,7 +53,7 @@ job "collection-${name}" {
         }
       }
       resources {
-        memory = 1000
+        memory = 800
         network {
           port "tika" {}
         }
@@ -71,6 +74,8 @@ job "collection-${name}" {
   }
 
   group "db" {
+    ${ continuous_reschedule() }
+
     task "pg" {
       driver = "docker"
       config {
@@ -90,7 +95,7 @@ job "collection-${name}" {
         POSTGRES_DATABASE = "snoop"
       }
       resources {
-        cpu = 1000
+        cpu = 700
         memory = 500
         network {
           port "pg" {}

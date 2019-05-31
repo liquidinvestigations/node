@@ -1,0 +1,43 @@
+kind: pipeline
+name: deploy to qemu
+
+steps:
+- name: deploy to qemu
+  image: mgax/vagrant-vmck
+  commands:
+  - export VMCK_URL=http://$VMCK_IP:$VMCK_PORT
+  - echo $VMCK_URL
+  - vagrant/deploy-vmck
+
+---
+kind: pipeline
+name: deploy to demo
+
+steps:
+- name: do it
+  image: docker
+  privileged: true
+  volumes:
+  - name: docker-sock
+    path: /var/run/docker.sock
+  commands:
+  - while docker ps deploy-demo; do sleep 5 && echo waiting; done
+  - CONTAINER=$(./vagrant/launch-deploy-demo-container)
+  - docker logs -f $CONTAINER &
+  - sleep 10
+
+depends_on:
+- deploy to qemu
+
+trigger:
+  status:
+  - success
+  branch:
+  - master
+  event:
+  - push
+
+volumes:
+- name: docker-sock
+  host:
+      path: /var/run/docker.sock

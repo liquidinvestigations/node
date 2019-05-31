@@ -73,13 +73,22 @@ class Configuration:
         else:
             self.liquid_http_protocol = 'http'
 
+        self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
+
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
-        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
         self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
+
+        self.ci_enabled = 'ci' in self.ini
+        if self.ci_enabled:
+            self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
+            self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
+            self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
+            self.ci_github_initial_admin_username = self.ini.get('ci', 'github_initial_admin_username')
+            self.jobs.append(('drone', self.templates / 'drone.nomad'))
 
         self.collections = OrderedDict()
         for key in self.ini:

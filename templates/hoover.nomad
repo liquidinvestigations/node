@@ -1,6 +1,9 @@
+{% from '_lib.hcl' import continuous_reschedule -%}
+
 job "hoover" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 60
 
   group "index" {
     task "es" {
@@ -44,6 +47,8 @@ job "hoover" {
   }
 
   group "db" {
+    ${ continuous_reschedule() }
+
     task "pg" {
       driver = "docker"
       config {
@@ -59,12 +64,11 @@ job "hoover" {
         }
       }
       env {
-        POSTGRES_USER = "hoover"
-        POSTGRES_DATABASE = "hoover"
+        POSTGRES_USER = "search"
+        POSTGRES_DATABASE = "search"
       }
       resources {
-        cpu = 500
-        memory = 150
+        memory = 350
         network {
           port "pg" {}
         }
@@ -108,7 +112,7 @@ job "hoover" {
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}
           {{- range service "hoover-pg" }}
-            HOOVER_DB = postgresql://hoover:hoover@{{.Address}}:{{.Port}}/hoover
+            HOOVER_DB = postgresql://search:search@{{.Address}}:{{.Port}}/search
           {{- end }}
           {{- range service "hoover-es" }}
             HOOVER_ES_URL = http://{{.Address}}:{{.Port}}
@@ -122,6 +126,9 @@ job "hoover" {
             LIQUID_AUTH_CLIENT_ID = {{.Data.client_id}}
             LIQUID_AUTH_CLIENT_SECRET = {{.Data.client_secret}}
           {{- end }}
+          {%- if config.liquid_http_protocol == 'https' %}
+            SECURE_PROXY_SSL_HEADER = HTTP_X_FORWARDED_PROTO
+          {%- endif %}
         EOF
         destination = "local/hoover.env"
         env = true

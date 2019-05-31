@@ -27,7 +27,7 @@ if ! [ -e collections/testdata ]; then
   git clone https://github.com/hoover/testdata collections/testdata
 fi
 
-cp /tmp/vagrant-liquid.ini liquid.ini
+cp examples/liquid.ini .
 
 ./liquid deploy
 ./liquid initcollection testdata

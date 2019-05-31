@@ -1,13 +1,18 @@
-{% from '_lib.hcl' import migration_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
 
 job "collection-${name}-migrate" {
   datacenters = ["dc1"]
   type = "batch"
-
-  ${ migration_reschedule() }
+  priority = 45
 
   group "snoop" {
+    ${ group_disk() }
+
+    ${ continuous_reschedule() }
+
     task "migrate" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-snoop2"
@@ -52,7 +57,7 @@ job "collection-${name}-migrate" {
         env = true
       }
       resources {
-        memory = 500
+        memory = 200
       }
     }
   }

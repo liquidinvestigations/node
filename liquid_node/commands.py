@@ -1,9 +1,12 @@
+from pathlib import Path
 from time import time, sleep
 import logging
 import os
 import base64
 import json
 
+from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
+    add_collections_ini, import_index
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
@@ -14,6 +17,7 @@ from .util import first
 from .collections import get_search_collections
 from .docker import docker
 from .vault import vault
+from .import_from_docker import import_collection
 
 
 log = logging.getLogger(__name__)
@@ -93,6 +97,7 @@ def wait_for_service_health_checks(health_checks):
     t0 = time()
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
+    last_spam = t0
     while time() < timeout:
         sleep(config.wait_interval)
         failed = sorted(get_failed_checks())
@@ -111,12 +116,14 @@ def wait_for_service_health_checks(health_checks):
         if greens == 0 and time() >= no_chance_timestamp:
             break
 
-        failed_text = ''
-        for service, check, status in failed:
-            failed_text += f'\n - {service}: check "{check}" is {status}'
-        if failed:
-            failed_text += '\n'
-        log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
+        if time() - last_spam > 10.0:
+            failed_text = ''
+            for service, check, status in failed:
+                failed_text += f'\n - {service}: check "{check}" is {status}'
+            if failed:
+                failed_text += '\n'
+            log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
+            last_spam = time()
 
     msg = f'Checks are failing after {time() - t0:.02f}s: \n - {failed_text}'
     raise RuntimeError(msg)
@@ -140,6 +147,7 @@ def deploy():
         'dokuwiki/auth.django',
         'nextcloud/auth.django',
         'rocketchat/auth.django',
+        'ci/vmck.django',
     ]
 
     for path in vault_secret_keys:
@@ -190,6 +198,7 @@ def deploy():
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
+
 
 def halt():
     """Stop all the jobs in nomad."""
@@ -294,6 +303,44 @@ def purge(force=False):
             purge_collection(coll)
     else:
         print('No collections will be purged')
+
+
+def importfromdockersetup(path, method='link'):
+    """Import collections from existing docker-setup deployment.
+
+    :param path: path to the docker-setup deployment
+    :param move: if true, move data from the docker-setup deployment, otherwise copy data
+    """
+    docker_setup = Path(path).resolve()
+
+    docker_compose_file = docker_setup / 'docker-compose.yml'
+    if not docker_compose_file.is_file():
+        raise RuntimeError(f'Path {docker_setup} is not a docker-setup deployment.')
+
+    collections_json = docker_setup / 'settings' / 'collections.json'
+    if not collections_json.is_file():
+        log.info(f'Unable to find any collections in {docker_setup}.')
+        return
+
+    if config.collections:
+        raise RuntimeError('Please remove existing collections before importing.')
+    if get_collections_to_purge():
+        raise RuntimeError('Please purge existing collections before importing')
+
+    with open(str(collections_json)) as collections_file:
+        collections = json.load(collections_file)
+    validate_names(collections)
+
+    ensure_docker_setup_stopped()
+    halt()
+
+    for name, settings in collections.items():
+        import_collection(name, settings, docker_setup, method)
+    import_index(docker_setup, method)
+
+    add_collections_ini(collections)
+
+    deploy()
 
 
 def shell(name, *args):

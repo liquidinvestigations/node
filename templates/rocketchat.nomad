@@ -3,6 +3,7 @@
 job "rocketchat" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 30
 
   group "db" {
     task "mongo" {
@@ -22,7 +23,7 @@ job "rocketchat" {
       }
       resources {
         memory = 500
-        cpu = 500
+        cpu = 400
         network {
           port "mongo" {}
         }
@@ -102,8 +103,8 @@ job "rocketchat" {
         destination = "local/main.js"
       }
       resources {
-        memory = 1000
-        cpu = 500
+        memory = 800
+        cpu = 400
         network {
           port "web" {}
         }

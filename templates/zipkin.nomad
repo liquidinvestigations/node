@@ -1,9 +1,16 @@
+{% from '_lib.hcl' import group_disk, task_logs -%}
+
 job "zipkin" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 25
 
   group "zipkin" {
+    ${ group_disk() }
+
     task "zipkin" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "openzipkin/zipkin"
@@ -16,6 +23,7 @@ job "zipkin" {
       }
       resources {
         memory = 1000
+        cpu = 200
         network {
           port "http" {}
         }
@@ -23,6 +31,14 @@ job "zipkin" {
       service {
         name = "zipkin"
         port = "http"
+        check {
+          name = "zipkin alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

@@ -1,13 +1,18 @@
-{% from '_lib.hcl' import migration_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
 
 job "hoover-migrate" {
   datacenters = ["dc1"]
   type = "batch"
-
-  ${ migration_reschedule() }
+  priority = 45
 
   group "search" {
+    ${ group_disk() }
+
+    ${ continuous_reschedule() }
+
     task "migrate" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-search"
@@ -29,7 +34,7 @@ job "hoover-migrate" {
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}
           {{- range service "hoover-pg" }}
-            HOOVER_DB = postgresql://hoover:hoover@{{.Address}}:{{.Port}}/hoover
+            HOOVER_DB = postgresql://search:search@{{.Address}}:{{.Port}}/search
           {{- end }}
           {{- range service "hoover-es" }}
             HOOVER_ES_URL = http://{{.Address}}:{{.Port}}

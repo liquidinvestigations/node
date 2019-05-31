@@ -4,3 +4,4 @@
 /collections
 /venv
 __pycache__
+*.swp

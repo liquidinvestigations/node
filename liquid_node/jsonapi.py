@@ -31,7 +31,6 @@ class JsonApi:
                 req_headers['Content-Type'] = 'application/json'
                 req_body = json.dumps(data).encode('utf8')
 
-        log.debug('%s %r', method, req_url)
         req = Request(
             req_url,
             req_body,
