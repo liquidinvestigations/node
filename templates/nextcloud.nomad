@@ -48,7 +48,7 @@ job "nextcloud" {
         }
       }
       service {
-        name = "nextcloud"
+        name = "nextcloud-app"
         port = "http"
         check {
           name = "nextcloud alive on http"
@@ -58,7 +58,7 @@ job "nextcloud" {
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
-            Host = ["nc.${liquid_domain}"]
+            Host = ["nextcloud.${liquid_domain}"]
           }
         }
       }
@@ -112,7 +112,7 @@ job "nextcloud" {
   ${- authproxy_group(
       'nextcloud',
       host='nextcloud.' + liquid_domain,
-      upstream='nextcloud',
-  )}
+      upstream='nextcloud-app',
+    ) }
 
 }
