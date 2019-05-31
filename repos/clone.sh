@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-for repo in hoover/snoop2 hoover/search liquidinvestigations/core; do
+for repo in hoover/snoop2 hoover/search liquidinvestigations/core liquidinvestigations/authproxy; do
     echo $repo
     mkdir -p $repo
     if [ "$1" == 'ssh' ]; then

@@ -28,6 +28,9 @@ ephemeral_disk {
       driver = "docker"
       config {
         image = "liquidinvestigations/authproxy"
+        volumes = [
+          ${liquidinvestigations_authproxy_repo}
+        ]
         labels {
           liquid_task = "${name}-authproxy"
         }
