@@ -12,7 +12,7 @@ job "drone" {
       ${ task_logs() }
       driver = "docker"
       config {
-        image = "nginx"
+        image = "nginx:mainline"
         volumes = [
           "${liquid_volumes}/vmck-images:/usr/share/nginx/html",
         ]
@@ -130,7 +130,7 @@ job "drone" {
         DRONE_USER_FILTER = "${config.ci_github_user_filter}"
         DRONE_USER_CREATE = "username:${config.ci_github_initial_admin_username},admin:true"
         DRONE_SERVER_HOST = "jenkins.${liquid_domain}"
-        DRONE_SERVER_PROTO = "http"
+        DRONE_SERVER_PROTO = "${config.liquid_http_protocol}"
         DRONE_RUNNER_CAPACITY = "2"
       }
       template {
