@@ -15,6 +15,7 @@ job "drone" {
         image = "nginx:mainline"
         volumes = [
           "${liquid_volumes}/vmck-images:/usr/share/nginx/html",
+          "custom/default.conf:/etc/nginx/conf.d/default.conf",
         ]
         port_map {
           http = 80
@@ -25,10 +26,25 @@ job "drone" {
       }
       resources {
         memory = 80
-        cpu = 400
+        cpu = 300
         network {
           port "http" {}
         }
+      }
+      template {
+        data = <<EOF
+          server {
+              listen       80;
+              server_name  _;
+              access_log  /dev/stdout  main;
+              error_log /dev/stderr info;
+              location / {
+                  root   /usr/share/nginx/html;
+                  autoindex on;
+              }
+          }
+        EOF
+        destination = "custom/default.conf"
       }
       service {
         name = "vmck-imghost"
@@ -37,7 +53,7 @@ job "drone" {
           name = "vmck-imghost nginx alive on http"
           initial_status = "critical"
           type = "http"
-          path = "/bionic-vagrant-3.qcow2"
+          path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -75,7 +91,7 @@ job "drone" {
           NOMAD_URL = "${config.nomad_url}"
           BACKEND = "qemu"
           {{- range service "vmck-imghost" }}
-            QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/bionic-vagrant-3.qcow2"
+            QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2"
           {{- end }}
         EOF
         destination = "local/vmck.env"
