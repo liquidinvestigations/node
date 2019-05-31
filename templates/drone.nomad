@@ -110,7 +110,7 @@ job "drone" {
       ${ task_logs() }
       driver = "docker"
       config {
-        image = "drone/drone:1.1.0"
+        image = "drone/drone:1.2.0"
         volumes = [
           "/var/run/docker.sock:/var/run/docker.sock",
           "${liquid_volumes}/drone:/data",
