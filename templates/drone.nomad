@@ -69,7 +69,7 @@ job "drone" {
 
       driver = "docker"
       config {
-        image = "mgax/vmck"
+        image = "vmck/vmck:0.0.1"
         volumes = [
           "${liquid_volumes}/vmck:/opt/vmck/data",
         ]
