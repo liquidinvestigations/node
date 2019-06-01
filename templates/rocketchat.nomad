@@ -76,7 +76,7 @@ job "rocketchat" {
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_path=http://{{.Address}}:{{.Port}}/o/token/
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-identity_path=http://{{.Address}}:{{.Port}}/accounts/profile
           {{- end }}
-          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-authorize_path=http://${liquid_domain}/o/authorize/
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-authorize_path=${config.liquid_http_protocol}://${liquid_domain}/o/authorize/
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-scope=read
           {{- with secret "liquid/rocketchat/auth.oauth2" }}
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-id={{.Data.client_id}}
