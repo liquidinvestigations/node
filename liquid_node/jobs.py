@@ -95,8 +95,6 @@ def get_collection_job(name, settings, template='collection.nomad'):
     return get_job(config.templates / template, substitutions)
 
 
-
-
 def render(template, subs):
     env = jinja2.Environment(
         variable_start_string="${",

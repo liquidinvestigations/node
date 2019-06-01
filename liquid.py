@@ -2,7 +2,6 @@
 
 """ Manage liquid on a nomad cluster. """
 
-import os
 import sys
 import logging
 import argparse

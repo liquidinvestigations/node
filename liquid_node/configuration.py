@@ -1,6 +1,5 @@
 from collections import OrderedDict
 import configparser
-import os
 from pathlib import Path
 
 
@@ -58,7 +57,8 @@ class Configuration:
 
         self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
 
-        self.liquid_collections = self.ini.get('liquid', 'collections', fallback=str(self.root / 'collections'))
+        self.liquid_collections = self.ini.get('liquid', 'collections',
+                                               fallback=str(self.root / 'collections'))
 
         self.liquid_http_port = self.ini.get('liquid', 'http_port', fallback='80')
 
@@ -67,14 +67,16 @@ class Configuration:
             self.liquid_http_protocol = 'https'
             self.liquid_https_port = self.ini.get('https', 'https_port', fallback='443')
             self.https_acme_email = self.ini.get('https', 'acme_email')
-            self.https_acme_caServer = self.ini.get('https', 'acme_caServer',
-                fallback="https://acme-staging-v02.api.letsencrypt.org/directory")
+            self.https_acme_caServer = self.ini.get(
+                'https',
+                'acme_caServer',
+                fallback="https://acme-staging-v02.api.letsencrypt.org/directory"
+            )
 
         else:
             self.liquid_http_protocol = 'http'
 
         self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
-
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')

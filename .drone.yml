@@ -1,7 +1,12 @@
 kind: pipeline
-name: deploy to qemu
+name: test
 
 steps:
+- name: flake8
+  image: python:3.7
+  commands:
+  - pip install flake8 > /dev/null
+  - flake8
 - name: deploy to qemu
   image: mgax/vagrant-vmck
   commands:
@@ -27,7 +32,7 @@ steps:
   - sleep 10
 
 depends_on:
-- deploy to qemu
+- test
 
 trigger:
   status:

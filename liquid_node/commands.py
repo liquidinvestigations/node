@@ -22,8 +22,10 @@ from .import_from_docker import import_collection
 
 log = logging.getLogger(__name__)
 
+
 def app_url(name):
     return f'{config.liquid_http_protocol}://{name}.{config.liquid_domain}'
+
 
 core_auth_apps = [
     {
@@ -56,7 +58,7 @@ core_auth_apps = [
 
 def random_secret(bits=256):
     """ Generate a crypto-quality 256-bit random string. """
-    return str(base64.b16encode(os.urandom(int(bits/8))), 'latin1').lower()
+    return str(base64.b16encode(os.urandom(int(bits / 8))), 'latin1').lower()
 
 
 def ensure_secret(path, get_value):

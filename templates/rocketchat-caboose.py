@@ -28,7 +28,7 @@ def main():
     log.info("Starting RocketChat Caboose")
     try:
         initiate_mongodb_replicaset()
-    except:
+    except:  # noqa: E722
         log.exception("Failed `initiate_mongodb_replicaset`")
 
     log.info("Done. sleeping forever.")
