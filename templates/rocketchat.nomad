@@ -87,6 +87,7 @@ job "rocketchat" {
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-button_label_text=Liquid login
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_roles=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_users=true
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-username_field=id
           OVERWRITE_SETTING_Accounts_ShowFormLogin=false
           OVERWRITE_SETTING_Accounts_AllowPasswordChange=false
           OVERWRITE_SETTING_Accounts_ForgetUserSessionOnWindowClose=true
