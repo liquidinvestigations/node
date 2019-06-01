@@ -6,14 +6,16 @@ curl https://get.docker.com/ | sh -
 git --version
 docker --version
 
-git fetch -a
-git checkout master
-git pull
-
 pip install -r requirements.txt
 python --version
 python liquid.py alloc drone drone
 sleep 5
+
 python liquid.py halt
 sleep 13
+
+git fetch -a
+git checkout master
+git pull
+
 python liquid.py deploy
