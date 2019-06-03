@@ -44,7 +44,9 @@ job "liquid" {
       resources {
         memory = 200
         network {
-          port "http" {}
+          port "http" {
+            static = 8768
+          }
         }
       }
       service {
