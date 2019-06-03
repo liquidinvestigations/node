@@ -68,14 +68,14 @@ ephemeral_disk {
         cpu = 150
       }
       service {
-        name = "${name}"
+        name = "${name}-authproxy"
         port = "authproxy"
         tags = [
           "traefik.enable=true",
           "traefik.frontend.rule=Host:${host}",
         ]
         check {
-          name = "${name}"
+          name = "${name} authproxy http"
           initial_status = "critical"
           type = "http"
           path = "/__auth/logout"
