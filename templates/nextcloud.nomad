@@ -25,18 +25,18 @@ job "nextcloud" {
       template {
         data = <<EOF
             {{- range service "nextcloud-pg" }}
-              NEXTCLOUD_POSTGRES_HOST = {{.Address}}:{{.Port}}
+              POSTGRES_HOST = {{.Address}}:{{.Port}}
             {{- end }}
             NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
             NEXTCLOUD_ADMIN_USER = admin
             NEXTCLOUD_ADMIN_PASSWORD = admin
-            NEXTCLOUD_POSTGRES_DB = nextcloud
-            NEXTCLOUD_POSTGRES_USER= postgres
+            POSTGRES_DB = nextcloud
+            POSTGRES_USER = postgres
             {{- with secret "liquid/nextcloud/nextcloud.pg" }}
-              NEXTCLOUD_POSTGRES_PASSWORD = {{.Data.secret_key}}
+              POSTGRES_PASSWORD = {{.Data.secret_key}}
             {{- end }}
             {{- with secret "liquid/nextcloud/nextcloud.admin" }}
-              OC_PASS= {{.Data.secret_key}}
+              OC_PASS = {{.Data.secret_key}}
             {{- end }}
           EOF
         destination = "local/nextcloud.env"
@@ -54,7 +54,7 @@ job "nextcloud" {
           name = "nextcloud alive on http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/login"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
@@ -92,7 +92,9 @@ job "nextcloud" {
       }
       resources {
         network {
-          port "pg" {}
+          port "pg" {
+            static = 8767
+          }
         }
       }
       service {
