@@ -54,7 +54,7 @@ job "nextcloud" {
           name = "nextcloud alive on http"
           initial_status = "critical"
           type = "http"
-          path = "/login"
+          path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
