@@ -175,7 +175,12 @@ On first startup, inititialize the uploads collection for nextcloud and install 
 
 Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 
+### Rocket.Chat
+
+In order to activate liquid login, follow [RocketChatAuthSetup](docs/RocketChatAuthSetup.md).
+
 ### Debugging
+
 Set the debug flag in `liquid.ini`:
 ```ini
 [liquid]
