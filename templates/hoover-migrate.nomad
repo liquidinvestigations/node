@@ -22,7 +22,7 @@ job "hoover-migrate" {
           "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
         ]
         labels {
-          liquid_task = "hoover-search"
+          liquid_task = "hoover-search-migrate"
         }
       }
       template {
