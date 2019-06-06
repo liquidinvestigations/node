@@ -57,6 +57,9 @@ job "nextcloud" {
           path = "/login"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
+          header {
+            Host = ["nextcloud.${liquid_domain}"]
+          }
         }
       }
     }
