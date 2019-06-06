@@ -54,12 +54,9 @@ job "nextcloud" {
           name = "nextcloud alive on http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/login"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
-          header {
-            Host = ["nextcloud.${liquid_domain}"]
-          }
         }
       }
     }
