@@ -5,6 +5,7 @@ import os
 import base64
 import json
 
+from liquid_node.collections import push_collections_titles
 from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
     add_collections_ini, import_index
 from .collections import get_collections_to_purge, purge_collection
@@ -200,6 +201,8 @@ def deploy():
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
+
+    push_collections_titles()
 
 
 def halt():
