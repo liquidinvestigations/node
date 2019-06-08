@@ -5,7 +5,10 @@
     delay = "5s"
   }
   restart {
-    attempts = 0
+    attempts = 3
+    interval = "18s"
+    delay = "4s"
+    mode = "fail"
   }
 {%- endmacro %}
 
