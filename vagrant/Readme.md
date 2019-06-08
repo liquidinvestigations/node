@@ -1,12 +1,21 @@
 # Vagrant configuration
 
-### Running in Travis
-Travis needs two secrets: the DO token and the SSH private key.
+The Vagrantfile supports VirtualBox and VMCK providers.
+
+## VirtualBox
+
+With Virtualbox we're using 8GB RAM and 8GB of swap.
+
+First, run `./vbox-create-swap.sh` to create the swap file on your host.
+
+Then just `vagrant up` and you should be good to go.
+
+
+## VMCK
+
+VMCK is used to provision VMs with 16GB of RAM.
 
 ```shell
-ssh-keygen -f id_rsa
-travis encrypt-file id_rsa
-travis encrypt DO_TOKEN="$DO_TOKEN"
+export VMCK_URL=http://127.0.0.1:12345
+vagrant up
 ```
-
-Upload `id_rsa.pub` to DigitalOcean and name it `vagrant`.
