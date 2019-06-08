@@ -29,4 +29,6 @@ cat cluster.ini
 
 echo "Running the cluster" > /dev/null
 sudo -Hu vagrant ./examples/docker.sh
+sleep 10
 until docker exec cluster /opt/cluster/cluster.py autovault; do sleep 10; done
+sleep 10
