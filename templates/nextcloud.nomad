@@ -50,17 +50,17 @@ job "nextcloud" {
       service {
         name = "nextcloud-app"
         port = "http"
-        check {
-          name = "nextcloud alive on http"
-          initial_status = "critical"
-          type = "http"
-          path = "/login"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-          header {
-            Host = ["nextcloud.${liquid_domain}"]
-          }
-        }
+        #check {
+        #  name = "nextcloud alive on http"
+        #  initial_status = "critical"
+        #  type = "http"
+        #  path = "/login"
+        #  interval = "${check_interval}"
+        #  timeout = "${check_timeout}"
+        #  header {
+        #    Host = ["nextcloud.${liquid_domain}"]
+        #  }
+        #}
       }
     }
   }
