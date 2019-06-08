@@ -45,3 +45,15 @@ def purge_collection(name):
     if collection_volume.is_dir():
         shutil.rmtree(collection_volume)
     log.info(f'Collection {name} data was purged.')
+
+
+def push_collections_titles():
+    for name, settings in config.collections.items():
+        if 'title' in settings:
+            try:
+                cmd = docker.exec_command('hoover-search', './manage.py',
+                                          'setcollectiontitle', name,
+                                          settings['title'])
+                return run(cmd, shell=False).split()
+            except CalledProcessError as e:
+                log.error(e.output.decode('latin1'))
