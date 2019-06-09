@@ -177,7 +177,7 @@ def deploy():
         ensure_secret_key(f'collections/{name}/snoop.django')
 
     ensure_secret('rocketchat/adminuser', lambda: {
-        'username': 'admin',
+        'username': 'rocketchatadmin',
         'pass': random_secret(64),
     })
 
