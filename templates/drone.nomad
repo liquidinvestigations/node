@@ -87,6 +87,7 @@ job "drone" {
         {{- with secret "liquid/ci/vmck.django" }}
           SECRET_KEY = {{.Data.secret_key}}
         {{- end }}
+        DEBUG = "true"
         HOSTNAME = "*"
         SSH_USERNAME = "vagrant"
         CONSUL_URL = "${config.consul_url}"
