@@ -26,7 +26,7 @@ job "drone" {
       }
       resources {
         memory = 80
-        cpu = 300
+        cpu = 200
         network {
           port "http" {}
         }
@@ -41,6 +41,8 @@ job "drone" {
               location / {
                   root   /usr/share/nginx/html;
                   autoindex on;
+                  proxy_max_temp_file_size 0;
+                  proxy_buffering off;
               }
           }
         EOF
@@ -69,7 +71,7 @@ job "drone" {
 
       driver = "docker"
       config {
-        image = "vmck/vmck:0.0.1"
+        image = "vmck/vmck:0.0.1-permit-archived-artifact"
         volumes = [
           "${liquid_volumes}/vmck:/opt/vmck/data",
         ]
@@ -81,24 +83,27 @@ job "drone" {
         }
       }
       template {
-        data = <<EOF
-          {{- with secret "liquid/ci/vmck.django" }}
-            SECRET_KEY = {{.Data.secret_key}}
+        data = <<-EOF
+        {{- with secret "liquid/ci/vmck.django" }}
+          SECRET_KEY = {{.Data.secret_key}}
+        {{- end }}
+        HOSTNAME = "*"
+        SSH_USERNAME = "vagrant"
+        CONSUL_URL = "${config.consul_url}"
+        NOMAD_URL = "${config.nomad_url}"
+        BACKEND = "qemu"
+        {{- with service "vmck-imghost" }}
+          {{- with index . 0 }}
+            QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
           {{- end }}
-          HOSTNAME = "*"
-          SSH_USERNAME = "vagrant"
-          CONSUL_URL = "${config.consul_url}"
-          NOMAD_URL = "${config.nomad_url}"
-          BACKEND = "qemu"
-          {{- range service "vmck-imghost" }}
-            QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2"
-          {{- end }}
+        {{- end }}
         EOF
         destination = "local/vmck.env"
         env = true
       }
       resources {
         memory = 350
+        cpu = 350
         network {
           port "http" {
             static = 9999
@@ -160,6 +165,7 @@ job "drone" {
       }
       resources {
         memory = 250
+        cpu = 150
         network {
           port "http" {}
         }
