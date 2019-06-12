@@ -146,7 +146,7 @@ def deploy():
         'hoover/search.django',
         'authdemo/auth.django',
         'nextcloud/nextcloud.admin',
-        'nextcloud/nextcloud.pg',
+        'nextcloud/nextcloud.maria',
         'dokuwiki/auth.django',
         'nextcloud/auth.django',
         'rocketchat/auth.django',

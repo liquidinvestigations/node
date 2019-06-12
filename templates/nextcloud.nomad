@@ -3,7 +3,7 @@
 job "nextcloud" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 45
+  priority = 65
 
   group "nc" {
     task "nextcloud" {
@@ -22,30 +22,21 @@ job "nextcloud" {
           liquid_task = "nextcloud"
         }
       }
-      template {
-        data = <<EOF
-            {{- range service "nextcloud-pg" }}
-              POSTGRES_HOST = {{.Address}}:{{.Port}}
-            {{- end }}
-            NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
-            NEXTCLOUD_ADMIN_USER = admin
-            NEXTCLOUD_ADMIN_PASSWORD = admin
-            POSTGRES_DB = nextcloud
-            POSTGRES_USER = postgres
-            {{- with secret "liquid/nextcloud/nextcloud.pg" }}
-              POSTGRES_PASSWORD = {{.Data.secret_key}}
-            {{- end }}
-            {{- with secret "liquid/nextcloud/nextcloud.admin" }}
-              OC_PASS = {{.Data.secret_key}}
-            {{- end }}
-          EOF
-        destination = "local/nextcloud.env"
-        env = true
-      }
       resources {
+        cpu = 100
+        memory = 150
         network {
           port "http" {}
         }
+      }
+      template {
+        data = <<-EOF
+        {{- with secret "liquid/nextcloud/nextcloud.admin" }}
+          OC_PASS = {{.Data.secret_key}}
+        {{- end }}
+        EOF
+        destination = "local/nextcloud-migrate.env"
+        env = true
       }
       service {
         name = "nextcloud-app"
@@ -66,42 +57,46 @@ job "nextcloud" {
   }
 
   group "db" {
-    task "pg" {
+    task "maria" {
       driver = "docker"
       config {
-        image = "postgres:9.6"
+        image = "mariadb:10.4"
         volumes = [
-          "${liquid_volumes}/nextcloud/pg/data:/var/lib/postgresql/data",
+          "${liquid_volumes}/nextcloud/mysql:/var/lib/mysql",
         ]
         labels {
-          liquid_task = "nextcloud-pg"
+          liquid_task = "nextcloud-maria"
         }
         port_map {
-          pg = 5432
+          maria = 3306
         }
       }
       template {
         data = <<EOF
-          POSTGRES_USER ="postgres"
-          {{- with secret "liquid/nextcloud/nextcloud.pg" }}
-            POSTGRES_PASSWORD = {{.Data.secret_key}}
-          {{- end }}
+        MYSQL_RANDOM_ROOT_PASSWORD = yes
+        MYSQL_DATABASE = nextcloud
+        MYSQL_USER = nextcloud
+        {{- with secret "liquid/nextcloud/nextcloud.maria" }}
+          MYSQL_PASSWORD = {{.Data.secret_key}}
+        {{- end }}
         EOF
-        destination = "local/pg.env"
+        destination = "local/maria.env"
         env = true
       }
       resources {
+        cpu = 100
+        memory = 250
         network {
-          port "pg" {
+          port "maria" {
             static = 8767
           }
         }
       }
       service {
-        name = "nextcloud-pg"
-        port = "pg"
+        name = "nextcloud-maria"
+        port = "maria"
         check {
-          name = "postgres alive on tcp"
+          name = "mariadb alive on tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
