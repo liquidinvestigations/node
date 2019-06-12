@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 import jinja2
 
@@ -69,13 +70,14 @@ def set_volumes_paths(substitutions={}):
     }
 
     for repo, repo_config in repos.items():
-        repo_volume_line = (f"\"{repo_config['local']}:{repo_config['target']}\",\n")
         key = f"{repo_config['org']}_{repo}_repo"
 
+        substitutions[key] = ''
         if config.mount_local_repos:
-            substitutions[key] = repo_volume_line
-        else:
-            substitutions[key] = ''
+            if Path(repo_config['local']).is_dir():
+                substitutions[key] = f"\"{repo_config['local']}:{repo_config['target']}\",\n"
+            else:
+                log.warn(f'Invalid repo path "{repo_config["local"]}"')
 
     return substitutions
 
