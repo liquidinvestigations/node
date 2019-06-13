@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 import shutil
-from subprocess import CalledProcessError
+from subprocess import CalledProcessError, DEVNULL
 import sys
 
 from .configuration import config
@@ -17,7 +17,7 @@ def get_search_collections():
 
     try:
         return run(docker.exec_command('hoover-search', './manage.py', 'listcollections'),
-                   shell=False).split()
+                   shell=False, stderr=DEVNULL).split()
     except CalledProcessError as e:
         print(e.output.decode('latin1'), file=sys.stderr)
         raise

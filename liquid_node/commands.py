@@ -203,13 +203,13 @@ def deploy():
     wait_for_service_health_checks(health_checks)
 
     # Run initcollection for all unregistered collections
-    already_initialized = get_search_collections()
-    for collection in config.collections:
-        if name not in already_initialized:
-            log.info('Initializing collection: %s', name)
-            initcollection(name)
+    already_initialized = sorted(get_search_collections())
+    for collection in sorted(config.collections.keys()):
+        if collection not in already_initialized:
+            log.info('Initializing collection: %s', collection)
+            initcollection(collection)
         else:
-            log.info('Already initialized collection: %s', name)
+            log.info('Already initialized collection: %s', collection)
 
     push_collections_titles()
 
