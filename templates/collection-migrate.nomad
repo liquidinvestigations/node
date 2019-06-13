@@ -31,6 +31,7 @@ job "collection-${name}-migrate" {
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
+        TIMESTAMP = "${config.timestamp}"
       }
       template {
         data = <<-EOF

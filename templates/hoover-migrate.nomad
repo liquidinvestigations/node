@@ -47,6 +47,7 @@ job "hoover-migrate" {
             {{- end }}
             LIQUID_AUTH_CLIENT_ID = {{.Data.client_id}}
             LIQUID_AUTH_CLIENT_SECRET = {{.Data.client_secret}}
+            TIMESTAMP = ${config.timestamp}
           {{- end }}
         EOF
         destination = "local/hoover.env"

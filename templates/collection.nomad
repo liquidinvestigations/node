@@ -124,7 +124,7 @@ job "collection-${name}" {
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-snoop2"
-        args = ["./manage.py", "runworkers"]
+        args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
@@ -140,6 +140,23 @@ job "collection-${name}" {
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
         SYNC_FILES = "${sync}"
+      }
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        if [ -z "$SNOOP_DB" ] \
+                || [ -z "$SNOOP_TIKA_URL" ] \
+                || [ -z "$SNOOP_ES_URL" ] \
+                || [ -z "$SNOOP_AMQP_URL" ]; then
+          echo "incomplete configuration!"
+          sleep 5
+          exit 1
+        fi
+        exec ./manage.py runworkers
+        EOF
+        env = false
+        destination = "local/startup.sh"
       }
       template {
         data = <<EOF
@@ -178,6 +195,7 @@ job "collection-${name}" {
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-snoop2"
+        args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
@@ -195,6 +213,23 @@ job "collection-${name}" {
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
+      }
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        if [ -z "$SNOOP_DB" ] \
+                || [ -z "$SNOOP_TIKA_URL" ] \
+                || [ -z "$SNOOP_ES_URL" ] \
+                || [ -z "$SNOOP_AMQP_URL" ]; then
+          echo "incomplete configuration!"
+          sleep 5
+          exit 1
+        fi
+        exec /runserver
+        EOF
+        env = false
+        destination = "local/startup.sh"
       }
       template {
         data = <<-EOF

@@ -1,3 +1,4 @@
+import time
 from collections import OrderedDict
 import configparser
 from pathlib import Path
@@ -107,6 +108,7 @@ class Configuration:
             elif cls == 'job':
                 job_config = self.ini[key]
                 self.jobs.append((name, self.root / job_config['template']))
+        self.timestamp = int(time.time())
 
     @classmethod
     def _validate_collection_name(self, name):
