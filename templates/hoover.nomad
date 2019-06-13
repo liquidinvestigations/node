@@ -23,7 +23,7 @@ job "hoover" {
       }
       env {
         cluster.name = "hoover"
-        ES_JAVA_OPTS = "-Xms1536m -Xmx1536m"
+        ES_JAVA_OPTS = "-Xms1024m -Xmx1024m"
       }
       resources {
         memory = 2000
