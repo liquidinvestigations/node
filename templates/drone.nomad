@@ -93,10 +93,8 @@ job "drone" {
         CONSUL_URL = "${config.consul_url}"
         NOMAD_URL = "${config.nomad_url}"
         BACKEND = "qemu"
-        {{- with service "vmck-imghost" }}
-          {{- with index . 0 }}
-            QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
-          {{- end }}
+        {{- range service "vmck-imghost" }}
+          QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
         {{- end }}
         EOF
         destination = "local/vmck.env"
