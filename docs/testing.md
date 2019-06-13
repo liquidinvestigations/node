@@ -19,22 +19,6 @@ The output should look like this:
 
 In the nomad admin UI all jobs (`hoover`, `hoover-ui`, `liquid`, `collection-testdata`) should start succesfully.
 
-## Test `initcollection`
-
-Run the following command:
-```shell
-./liquid initcollection testdata
-```
-
-The output should look like this:
-```
-Operations to perform:
-  Apply all migrations: admin, auth, contenttypes, data, sessions
-Running migrations:
-  Applying contenttypes.0001_initial... OK
-...
-```
-
 In the search UI admin interface, collections, the `testdata` should show up in the collections list. The `COUNT` field should start to grow after a while, when refreshing the page.
 
 ## Test `gc`

@@ -156,22 +156,13 @@ Next define the collection in `liquid.ini`:
 workers = 1
 ```
 
-Then redeploy liquid, run migrations, and tell `hoover-search` about the new
-collection:
+Then let the `deploy` command pick up the new collection:
 
 ```shell
 ./liquid deploy
-./liquid initcollection testdata
 ```
 
 ### Nextcloud
-
-On first startup, inititialize the uploads collection for nextcloud and install nextcloud
-
-```shell
-./liquid initcollection uploads
-./liquid shell nextcloud /setup.sh
-```
 
 Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 

@@ -21,7 +21,8 @@ job "collection-${name}" {
         }
       }
       resources {
-        memory = 800
+        memory = 700
+        cpu = 150
         network {
           port "amqp" {}
         }
@@ -54,6 +55,7 @@ job "collection-${name}" {
       }
       resources {
         memory = 800
+        cpu = 200
         network {
           port "tika" {}
         }
@@ -95,8 +97,8 @@ job "collection-${name}" {
         POSTGRES_DATABASE = "snoop"
       }
       resources {
-        cpu = 700
-        memory = 500
+        cpu = 400
+        memory = 400
         network {
           port "pg" {}
         }
@@ -141,35 +143,37 @@ job "collection-${name}" {
       }
       template {
         data = <<EOF
-            {{- if keyExists "liquid_debug" }}
-              DEBUG = {{key "liquid_debug"}}
-            {{- end }}
-            {{- range service "snoop-${name}-pg" }}
-              SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
-            {{- end }}
-            {{- range service "hoover-es" }}
-              SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{- range service "snoop-${name}-tika" }}
-              SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{- range service "snoop-${name}-rabbitmq" }}
-              SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{ range service "zipkin" }}
-              TRACING_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-          EOF
+        {{- if keyExists "liquid_debug" }}
+          DEBUG = {{key "liquid_debug"}}
+        {{- end }}
+        {{- range service "snoop-${name}-pg" }}
+          SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
+        {{- end }}
+        {{- range service "hoover-es" }}
+          SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{- range service "snoop-${name}-tika" }}
+          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{- range service "snoop-${name}-rabbitmq" }}
+          SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{ range service "zipkin" }}
+          TRACING_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        EOF
         destination = "local/snoop.env"
         env = true
       }
       resources {
-        memory = 500
+        memory = 400
       }
     }
   }
 
   group "api" {
+    ${ continuous_reschedule() }
+
     task "snoop" {
       driver = "docker"
       config {
@@ -193,35 +197,36 @@ job "collection-${name}" {
         SNOOP_ES_INDEX = "${name}"
       }
       template {
-        data = <<EOF
-            {{- if keyExists "liquid_debug" }}
-              DEBUG = {{ key "liquid_debug" }}
-            {{- end }}
-            {{- with secret "liquid/collections/${name}/snoop.django" }}
-              SECRET_KEY = {{.Data.secret_key}}
-            {{- end }}
-            {{- range service "snoop-${name}-pg" }}
-              SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
-            {{- end }}
-            {{- range service "hoover-es" }}
-              SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{- range service "snoop-${name}-tika" }}
-              SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{- range service "snoop-${name}-rabbitmq" }}
-              SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
-            {{- end }}
-            SNOOP_HOSTNAME = ${name}.snoop.{{ key "liquid_domain" }}
-            {{- range service "zipkin" }}
-              TRACING_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-          EOF
+        data = <<-EOF
+        {{- if keyExists "liquid_debug" }}
+          DEBUG = {{ key "liquid_debug" }}
+        {{- end }}
+        {{- with secret "liquid/collections/${name}/snoop.django" }}
+          SECRET_KEY = {{.Data.secret_key}}
+        {{- end }}
+        {{- range service "snoop-${name}-pg" }}
+          SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
+        {{- end }}
+        {{- range service "hoover-es" }}
+          SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{- range service "snoop-${name}-tika" }}
+          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{- range service "snoop-${name}-rabbitmq" }}
+          SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
+        {{- end }}
+        SNOOP_HOSTNAME = ${name}.snoop.{{ key "liquid_domain" }}
+        {{- range service "zipkin" }}
+          TRACING_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        EOF
         destination = "local/snoop.env"
         env = true
       }
       resources {
-        memory = 500
+        memory = 400
+        cpu = 200
         network {
           port "http" {}
         }

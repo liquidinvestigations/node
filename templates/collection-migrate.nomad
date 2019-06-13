@@ -16,7 +16,7 @@ job "collection-${name}-migrate" {
       driver = "docker"
       config {
         image = "liquidinvestigations/hoover-snoop2"
-        args = ["./manage.py", "migrate"]
+        args = ["sh", "/local/migrate.sh"]
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
@@ -24,7 +24,7 @@ job "collection-${name}-migrate" {
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         labels {
-          liquid_task = "snoop-${name}-worker"
+          liquid_task = "snoop-${name}-migrate"
         }
       }
       env {
@@ -33,26 +33,37 @@ job "collection-${name}-migrate" {
         SNOOP_ES_INDEX = "${name}"
       }
       template {
-        data = <<EOF
-            {{- if keyExists "liquid_debug" }}
-              DEBUG = {{key "liquid_debug"}}
-            {{- end }}
-            {{- range service "snoop-${name}-pg" }}
-              SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
-            {{- end }}
-            {{- range service "hoover-es" }}
-              SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{- range service "snoop-${name}-tika" }}
-              SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{- range service "snoop-${name}-rabbitmq" }}
-              SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
-            {{- end }}
-            {{ range service "zipkin" }}
-              TRACING_URL = http://{{.Address}}:{{.Port}}
-            {{- end }}
-          EOF
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        pwd
+        date
+        ./manage.py migrate --noinput
+        ./manage.py healthcheck
+        EOF
+        destination = "local/migrate.sh"
+      }
+      template {
+        data = <<-EOF
+        {{- if keyExists "liquid_debug" }}
+          DEBUG = {{key "liquid_debug"}}
+        {{- end }}
+        {{- range service "snoop-${name}-pg" }}
+          SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
+        {{- end }}
+        {{- range service "hoover-es" }}
+          SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{- range service "snoop-${name}-tika" }}
+          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{- range service "snoop-${name}-rabbitmq" }}
+          SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
+        {{- end }}
+        {{ range service "zipkin" }}
+          TRACING_URL = http://{{.Address}}:{{.Port}}
+        {{- end }}
+        EOF
         destination = "local/snoop.env"
         env = true
       }

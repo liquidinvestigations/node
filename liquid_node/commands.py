@@ -202,6 +202,15 @@ def deploy():
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
 
+    # Run initcollection for all unregistered collections
+    already_initialized = get_search_collections()
+    for collection in config.collections:
+        if name not in already_initialized:
+            log.info('Initializing collection: %s', name)
+            initcollection(name)
+        else:
+            log.info('Already initialized collection: %s', name)
+
     push_collections_titles()
 
 

@@ -32,6 +32,5 @@ fi
 cp examples/liquid.ini .
 
 ./liquid deploy
-./liquid initcollection testdata
 
 echo "Liquid provisioned successfully." > /dev/null
