@@ -179,6 +179,32 @@ Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 
 In order to activate liquid login, follow [RocketChatAuthSetup](docs/RocketChatAuthSetup.md).
 
+### Importing collections from docker-setup
+
+#### Preparation
+
+The node setup must be clean. For this, either use a new node install (recommended), or remove
+all collections from `liquid.ini` and run the following commands:
+```shell
+./liquid purge
+./liquid halt
+rm -fr ./volumes/hoover
+```
+
+#### Import
+
+In order to import the collections from `docker-setup` run the following command:
+```shell
+./liquid importfromdockersetup [path_to_docker_setup] [method]
+```
+
+The `method` is optional. The default value is `link`, while the possible values are:
+- `link`: create links to existing directories in `docker-setup`
+- `copy`: copy the data from `docker-setup` to `node`
+- `move`: move the directories from `docker-setup` to `node`
+
+When using the `copy` method, the import will take longer.
+
 ### Debugging
 
 Set the debug flag in `liquid.ini`:
