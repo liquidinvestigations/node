@@ -72,6 +72,7 @@ job "drone" {
       driver = "docker"
       config {
         image = "vmck/vmck:0.0.1-permit-archived-artifact"
+        args = ["sh", "/local/startup.sh"]
         volumes = [
           "${liquid_volumes}/vmck:/opt/vmck/data",
         ]
@@ -81,6 +82,20 @@ job "drone" {
         labels {
           liquid_task = "vmck"
         }
+      }
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        if [ -z "$QEMU_IMAGE_URL" ]; then
+          echo "NO QEMU_IMAGE_URL!"
+          sleep 10
+          exit 1
+        fi
+        exec /opt/vmck/runvmck
+        EOF
+        env = false
+        destination = "local/startup.sh"
       }
       template {
         data = <<-EOF
