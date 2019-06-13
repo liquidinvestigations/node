@@ -41,8 +41,10 @@ job "nextcloud-migrate" {
           NEXTCLOUD_INTERNAL_STATUS_URL = http://{{.Address}}:{{.Port}}/status.php
         {{- end }}
         NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
-        NEXTCLOUD_ADMIN_USER = admin
-        NEXTCLOUD_ADMIN_PASSWORD = admin
+        NEXTCLOUD_ADMIN_USER = nextcloudadmin
+        {{- with secret "liquid/nextcloud/nextcloud.admin" }}
+          NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key}}
+        {{- end }}
 
         {{- range service "nextcloud-maria" }}
           MYSQL_HOST = {{.Address}}:{{.Port}}
@@ -53,7 +55,7 @@ job "nextcloud-migrate" {
           MYSQL_PASSWORD = {{.Data.secret_key}}
         {{- end }}
 
-        {{- with secret "liquid/nextcloud/nextcloud.admin" }}
+        {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
           OC_PASS = {{.Data.secret_key}}
         {{- end }}
         TIMESTAMP = ${config.timestamp}

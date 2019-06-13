@@ -152,6 +152,7 @@ def deploy():
         'hoover/search.django',
         'authdemo/auth.django',
         'nextcloud/nextcloud.admin',
+        'nextcloud/nextcloud.uploads',
         'nextcloud/nextcloud.maria',
         'dokuwiki/auth.django',
         'nextcloud/auth.django',

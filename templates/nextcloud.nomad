@@ -36,7 +36,7 @@ job "nextcloud" {
       }
       template {
         data = <<-EOF
-        {{- with secret "liquid/nextcloud/nextcloud.admin" }}
+        {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
           OC_PASS = {{.Data.secret_key}}
         {{- end }}
         EOF
