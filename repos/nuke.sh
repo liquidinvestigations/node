@@ -2,4 +2,4 @@
 
 set -ex
 
-exec find . -type d -depth 2 -print0 | xargs -0 rm -rf
+find . -type d -mindepth 1 -maxdepth 1 -print0 | xargs -0 rm -rf
