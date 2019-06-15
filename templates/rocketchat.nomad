@@ -69,8 +69,8 @@ job "rocketchat" {
             ADMIN_PASS={{.Data.pass}}
           {{- end }}
           ADMIN_EMAIL=admin@example.com
-          Organization_Name=Liquid
-          Site_Name=Liquid
+          Organization_Name=${config.liquid_title} Liquid
+          Site_Name=${config.liquid_title} Liquid
           OVERWRITE_SETTING_Show_Setup_Wizard=completed
           OVERWRITE_SETTING_registerServer=false
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid=true
@@ -94,6 +94,8 @@ job "rocketchat" {
           OVERWRITE_SETTING_Accounts_AllowPasswordChange=false
           OVERWRITE_SETTING_Accounts_ForgetUserSessionOnWindowClose=true
           OVERWRITE_SETTING_Accounts_RegistrationForm=Disabled
+          OVERWRITE_SETTING_Layout_Sidenav_Footer=<a href="/home"><img src="assets/logo"/></a><h1 style="font-size:140%; float:right; color:#aaa">${config.liquid_title}</h1>
+          OVERWRITE_SETTING_UI_Allow_room_names_with_special_chars=true
         EOF
         destination = "local/liquid.env"
       }
