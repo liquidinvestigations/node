@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule with context -%}
 
 job "rocketchat" {
   datacenters = ["dc1"]
@@ -43,10 +43,12 @@ job "rocketchat" {
   }
 
   group "app" {
+    ${ continuous_reschedule() }
+
     task "rocketchat" {
       driver = "docker"
       config = {
-        image = "rocket.chat:latest"
+        image = "rocket.chat:1.1.1"
         args = ["node", "/local/main.js"]
         labels {
           liquid_task = "rocketchat-app"
@@ -88,6 +90,7 @@ job "rocketchat" {
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_roles=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_users=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-username_field=id
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-roles_claim=roles
           OVERWRITE_SETTING_Accounts_AllowPasswordChange=false
           OVERWRITE_SETTING_Accounts_ForgetUserSessionOnWindowClose=true
           OVERWRITE_SETTING_Accounts_RegistrationForm=Disabled

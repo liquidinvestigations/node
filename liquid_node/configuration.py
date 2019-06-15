@@ -16,7 +16,7 @@ class Configuration:
                 'liquid',
                 'hoover', 'hoover-ui', 'hoover-migrate',
                 'dokuwiki', 'dokuwiki-migrate',
-                'rocketchat',
+                'rocketchat', 'rocketchat-migrate',
                 'nextcloud', 'nextcloud-migrate',
             ]
         ]
