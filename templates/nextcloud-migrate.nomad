@@ -48,7 +48,7 @@ job "nextcloud-migrate" {
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
           OC_PASS = {{.Data.secret_key}}
         {{- end }}
-        TIMESTAMP = {{ timestamp }}
+        TIMESTAMP = ${config.timestamp}
         EOF
         destination = "local/nextcloud-migrate.env"
         env = true
