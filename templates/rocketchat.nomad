@@ -138,46 +138,6 @@ job "rocketchat" {
     }
   }
 
-  group "configuration" {
-    task "caboose" {
-      driver = "docker"
-      config = {
-        image = "liquidinvestigations/caboose"
-        args = ["python", "/local/rocketchat-caboose.py"]
-        labels {
-          liquid_task = "rocketchat-caboose"
-        }
-      }
-      template {
-        data = <<EOF
-{% include 'rocketchat-caboose.py' %}
-        EOF
-        destination = "local/rocketchat-caboose.py"
-      }
-      template {
-        data = <<EOF
-          {{- range service "rocketchat-mongo" }}
-            MONGO_ADDRESS={{.Address}}
-            MONGO_PORT={{.Port}}
-          {{- end }}
-          {{- range service "rocketchat-app" }}
-            ROCKETCHAT_URL=http://{{.Address}}:{{.Port}}
-          {{- end }}
-          {{- range service "core" }}
-            LIQUID_CORE_ADDRESS={{.Address}}
-            LIQUID_CORE_PORT={{.Port}}
-          {{- end }}
-          {{- with secret "liquid/rocketchat/auth.oauth2" }}
-            LIQUID_OAUTH2_CLIENT_ID={{.Data.client_id}}
-            LIQUID_OAUTH2_CLIENT_SECRET={{.Data.client_secret}}
-          {{- end }}
-        EOF
-        destination = "local/liquid.env"
-        env = true
-      }
-    }
-  }
-
   ${- '' and authproxy_group(
       'rocketchat',
       host='rocketchat.' + liquid_domain,
