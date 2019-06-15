@@ -27,8 +27,11 @@ def main():
     log.info("Starting RocketChat Caboose")
     try:
         initiate_mongodb_replicaset()
-    except:  # noqa: E722
-        log.exception("Failed `initiate_mongodb_replicaset`")
+    except pymongo.errors.OperationFailure as e:
+        if 'already initialized' in e.details['errmsg']:
+            log.info('Done: already initialized.')
+            return
+        raise
 
     log.info("Done.")
 
