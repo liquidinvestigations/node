@@ -80,7 +80,7 @@ job "rocketchat" {
           {{- end }}
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-authorize_path=${config.liquid_core_url}/o/authorize/
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-scope=read
-          {{- with secret "liquid/rocketchat/auth.oauth2" }}
+          {{- with secret "liquid/rocketchat/app.oauth2" }}
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-id={{.Data.client_id}}
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-secret={{.Data.client_secret}}
           {{- end }}
@@ -121,10 +121,6 @@ job "rocketchat" {
       service {
         name = "rocketchat-app"
         port = "web"
-        tags = [
-          "traefik.enable=true",
-          "traefik.frontend.rule=Host:rocketchat.${liquid_domain}",
-        ]
         check {
           name = "rocketchat alive on http"
           initial_status = "critical"
@@ -140,7 +136,7 @@ job "rocketchat" {
     }
   }
 
-  ${- '' and authproxy_group(
+  ${- authproxy_group(
       'rocketchat',
       host='rocketchat.' + liquid_domain,
       upstream='rocketchat-app',
