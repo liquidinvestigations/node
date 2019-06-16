@@ -27,6 +27,8 @@ ephemeral_disk {
 
 {%- macro authproxy_group(name, host, upstream) %}
   group "authproxy" {
+    ${ continuous_reschedule() }
+
     task "web" {
       driver = "docker"
       config {
