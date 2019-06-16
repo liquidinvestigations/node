@@ -69,8 +69,8 @@ job "rocketchat" {
             ADMIN_PASS={{.Data.pass}}
           {{- end }}
           ADMIN_EMAIL=admin@example.com
-          Organization_Name=${config.liquid_title} Liquid
-          Site_Name=${config.liquid_title} Liquid
+          Organization_Name=${config.liquid_title}
+          Site_Name=${config.liquid_title}
           OVERWRITE_SETTING_Show_Setup_Wizard=completed
           OVERWRITE_SETTING_registerServer=false
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid=true
