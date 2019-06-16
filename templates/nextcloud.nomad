@@ -9,7 +9,7 @@ job "nextcloud" {
     task "nextcloud" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/liquid-nextcloud"
+        image = "liquidinvestigations/liquid-nextcloud:title"
         volumes = [
           "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
           "${liquid_collections}/uploads/data:/var/www/html/data/uploads/files",
@@ -28,6 +28,10 @@ job "nextcloud" {
         network {
           port "http" {}
         }
+      }
+      env {
+        LIQUID_TITLE = "${config.liquid_title}"
+        LIQUID_BASEURL = "${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}"
       }
       template {
         data = <<-EOF

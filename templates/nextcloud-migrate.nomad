@@ -15,7 +15,7 @@ job "nextcloud-migrate" {
 
       driver = "docker"
       config = {
-        image = "liquidinvestigations/liquid-nextcloud"
+        image = "liquidinvestigations/liquid-nextcloud:title"
         volumes = [
           "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
           "${liquid_collections}/uploads/data:/var/www/html/data/uploads/files",
