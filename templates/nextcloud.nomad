@@ -30,8 +30,9 @@ job "nextcloud" {
         }
       }
       env {
+        NEXTCLOUD_URL = "${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}"
         LIQUID_TITLE = "${config.liquid_title}"
-        LIQUID_BASEURL = "${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}"
+        LIQUID_CORE_URL = "${config.liquid_core_url}"
       }
       template {
         data = <<-EOF

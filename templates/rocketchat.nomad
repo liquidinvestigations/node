@@ -78,7 +78,7 @@ job "rocketchat" {
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_path=http://{{.Address}}:{{.Port}}/o/token/
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-identity_path=http://{{.Address}}:{{.Port}}/accounts/profile
           {{- end }}
-          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-authorize_path=${config.liquid_http_protocol}://${liquid_domain}/o/authorize/
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-authorize_path=${config.liquid_core_url}/o/authorize/
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-scope=read
           {{- with secret "liquid/rocketchat/auth.oauth2" }}
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-id={{.Data.client_id}}
@@ -94,7 +94,7 @@ job "rocketchat" {
           OVERWRITE_SETTING_Accounts_AllowPasswordChange=false
           OVERWRITE_SETTING_Accounts_ForgetUserSessionOnWindowClose=true
           OVERWRITE_SETTING_Accounts_RegistrationForm=Disabled
-          OVERWRITE_SETTING_Layout_Sidenav_Footer=<a href="/home"><img src="assets/logo"/></a><h1 style="font-size:140%; float:right; color:#aaa">${config.liquid_title}</h1>
+          OVERWRITE_SETTING_Layout_Sidenav_Footer=<a href="/home"><img src="assets/logo"/></a><a href="${config.liquid_core_url}"><h1 style="font-size:140%; float:right; color:#aaa">&#8594; ${config.liquid_title}</h1></a>
           OVERWRITE_SETTING_UI_Allow_room_names_with_special_chars=true
         EOF
         destination = "local/liquid.env"

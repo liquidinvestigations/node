@@ -76,6 +76,7 @@ class Configuration:
 
         else:
             self.liquid_http_protocol = 'http'
+        self.liquid_core_url = f'{self.liquid_http_protocol}://{self.liquid_domain}'
 
         self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
 
