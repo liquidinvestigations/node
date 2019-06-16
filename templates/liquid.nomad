@@ -31,6 +31,7 @@ job "liquid" {
           {{- end }}
           LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
           LIQUID_DOMAIN = {{key "liquid_domain"}}
+          LIQUID_TITLE = ${config.liquid_title}
           SERVICE_ADDRESS = {{env "NOMAD_IP_http"}}
           LIQUID_2FA = ${config.liquid_2fa}
           HOOVER_APP_URL = ${config.liquid_http_protocol}://hoover.${config.liquid_domain}
