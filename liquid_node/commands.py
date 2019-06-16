@@ -36,8 +36,8 @@ core_auth_apps = [
     },
     {
         'name': 'hoover',
-        'vault_path': 'hoover/search.oauth2',
-        'callback': f'{app_url("hoover")}/accounts/oauth2-exchange/',
+        'vault_path': 'hoover/auth.oauth2',
+        'callback': f'{app_url("hoover")}/__auth/callback',
     },
     {
         'name': 'dokuwiki',
@@ -143,6 +143,7 @@ def deploy():
 
     vault_secret_keys = [
         'liquid/core.django',
+        'hoover/auth.django',
         'hoover/search.django',
         'authdemo/auth.django',
         'nextcloud/nextcloud.admin',
