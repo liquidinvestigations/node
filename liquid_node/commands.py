@@ -45,8 +45,13 @@ core_auth_apps = [
         'callback': f'{app_url("dokuwiki")}/__auth/callback',
     },
     {
-        'name': 'rocketchat',
+        'name': 'rocketchat-authproxy',
         'vault_path': 'rocketchat/auth.oauth2',
+        'callback': f'{app_url("rocketchat")}/__auth/callback',
+    },
+    {
+        'name': 'rocketchat-app',
+        'vault_path': 'rocketchat/app.oauth2',
         'callback': f'{app_url("rocketchat")}/_oauth/liquid',
     },
     {
