@@ -157,10 +157,22 @@ def deploy():
         'nextcloud/auth.django',
         'rocketchat/auth.django',
         'ci/vmck.django',
+        'ci/drone.secret',
     ]
 
     for path in vault_secret_keys:
         ensure_secret_key(path)
+
+    if config.ci_enabled:
+        vault.set('ci/drone.github', {
+            'client_id': config.ci_github_client_id,
+            'client_secret': config.ci_github_client_secret,
+            'user_filter': config.ci_github_user_filter,
+        })
+        vault.set('ci/drone.docker', {
+            'username': config.ci_docker_username,
+            'password': config.ci_docker_password,
+        })
 
     def start(job, hcl):
         log.info('Starting %s...', job)

@@ -88,10 +88,12 @@ class Configuration:
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
+            self.ci_runner_capacity = self.ini.getint('ci', 'runner_capacity', fallback=2)
+            self.ci_docker_username = self.ini.get('ci', 'docker_username')
+            self.ci_docker_password = self.ini.get('ci', 'docker_password')
             self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
             self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
-            self.ci_github_initial_admin_username = self.ini.get('ci', 'github_initial_admin_username')
             self.jobs.append(('drone', self.templates / 'drone.nomad'))
 
         self.collections = OrderedDict()
