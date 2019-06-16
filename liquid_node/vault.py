@@ -1,5 +1,6 @@
 from urllib.error import HTTPError
 import logging
+from time import time
 
 from .configuration import config
 from .jsonapi import JsonApi
@@ -19,8 +20,16 @@ class Vault(JsonApi):
             headers['X-Vault-Token'] = self.token
         return super().request(*args, headers=headers, **kwargs)
 
-    def ensure_engine(self):
-        mounts = self.get('sys/mounts')
+    def ensure_engine(self, timeout=30):
+        t0 = time()
+        while time() - t0 < int(timeout):
+            try:
+                mounts = self.get('sys/mounts')
+                break
+
+            except URLError:
+                sleep(.5)
+
         if 'liquid/' not in mounts['data']:
             log.info("Creating kv secrets engine `liquid`")
             self.post(f'sys/mounts/liquid', {'type': 'kv'})
