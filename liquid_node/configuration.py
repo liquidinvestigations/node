@@ -41,6 +41,9 @@ class Configuration:
 
         self.liquid_domain = self.ini.get('liquid', 'domain', fallback='localhost')
 
+        default_title = ' '.join(map(str.capitalize, self.liquid_domain.split('.')))
+        self.liquid_title = self.ini.get('liquid', 'title', fallback=default_title)
+
         self.liquid_debug = self.ini.getboolean('liquid', 'debug', fallback=False)
 
         self.mount_local_repos = self.ini.getboolean('liquid', 'mount_local_repos', fallback=False)
@@ -73,6 +76,7 @@ class Configuration:
 
         else:
             self.liquid_http_protocol = 'http'
+        self.liquid_core_url = f'{self.liquid_http_protocol}://{self.liquid_domain}'
 
         self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
 

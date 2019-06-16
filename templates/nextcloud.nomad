@@ -29,6 +29,11 @@ job "nextcloud" {
           port "http" {}
         }
       }
+      env {
+        NEXTCLOUD_URL = "${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}"
+        LIQUID_TITLE = "${config.liquid_title}"
+        LIQUID_CORE_URL = "${config.liquid_core_url}"
+      }
       template {
         data = <<-EOF
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
