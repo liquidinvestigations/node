@@ -9,7 +9,7 @@ job "nextcloud" {
     task "nextcloud" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/liquid-nextcloud:title"
+        image = "liquidinvestigations/liquid-nextcloud"
         volumes = [
           "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
           "${liquid_collections}/uploads/data:/var/www/html/data/uploads/files",
