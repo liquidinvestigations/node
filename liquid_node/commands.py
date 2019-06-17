@@ -1,4 +1,5 @@
 from pathlib import Path
+from collections import defaultdict
 from time import time, sleep
 import logging
 import os
@@ -132,6 +133,26 @@ def wait_for_service_health_checks(health_checks):
     raise RuntimeError(msg)
 
 
+def resources():
+    """Get memory and CPU usage for the deployment"""
+
+    def get_all_res():
+        jobs = [nomad.parse(get_job(job.template)) for job in config.jobs]
+        for spec in jobs:
+            yield from nomad.get_resources(spec)
+
+    total = defaultdict(int)
+    for name, _type, res in get_all_res():
+        for key in ['MemoryMB', 'CPU']:
+            if res[key] is None:
+                raise RuntimeError("Please update Nomad to 0.9.3+")
+            total[f'{_type} {key}'] += res[key]
+
+    print('Resource requirement totals: ')
+    for key, value in sorted(total.items()):
+        print(f'  {key}: {value}')
+
+
 def deploy():
     """Run all the jobs in nomad."""
 
@@ -175,10 +196,12 @@ def deploy():
         })
 
     def start(job, hcl):
+        log.info('Parsing %s...', job)
+        spec = nomad.parse(hcl)
         log.info('Starting %s...', job)
-        nomad.run(hcl)
+        nomad.run(spec)
         job_checks = {}
-        for service, checks in nomad.get_health_checks(hcl):
+        for service, checks in nomad.get_health_checks(spec):
             if not checks:
                 log.warn(f'service {service} has no health checks')
                 continue

@@ -8,11 +8,13 @@ class Nomad(JsonApi):
     def __init__(self, endpoint):
         super().__init__(endpoint + '/v1/')
 
-    def run(self, hcl):
-        spec = self.post(f'jobs/parse', {'JobHCL': hcl})
+    def parse(self, hcl):
+        return self.post(f'jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
+
+    def run(self, spec):
         return self.post(f'jobs', {'job': spec})
 
-    def get_health_checks(self, hcl):
+    def get_health_checks(self, spec):
         """Generates (service, check_name_list) tuples for the supplied job"""
 
         def name(check):
@@ -21,11 +23,19 @@ class Nomad(JsonApi):
             )
             return check['Name']
 
-        spec = self.post(f'jobs/parse', {'JobHCL': hcl})
         for group in spec['TaskGroups'] or []:
             for task in group['Tasks'] or []:
                 for service in task['Services'] or []:
                     yield service['Name'], [name(check) for check in service['Checks'] or []]
+
+    def get_resources(self, spec):
+        """Generates (task, type, resources) tuples with resource stranzas for
+        the supplied job."""
+
+        for group in spec['TaskGroups'] or []:
+            for task in group['Tasks'] or []:
+                name = f'{spec["Name"]}-{group["Name"]}-{task["Name"]}'
+                yield name, spec['Type'], task['Resources']
 
     def jobs(self):
         return self.get(f'jobs')

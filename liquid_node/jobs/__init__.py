@@ -123,7 +123,6 @@ def get_job(hcl_path, substitutions={}):
         template = job_file.read()
 
     output = render(template, set_volumes_paths(substitutions))
-    log.debug(f'{hcl_path}\n{output}')
     return output
 
 
