@@ -71,7 +71,7 @@ job "drone" {
 
       driver = "docker"
       config {
-        image = "vmck/vmck:configure-resources"
+        image = "vmck/vmck"
         args = ["sh", "/local/startup.sh"]
         volumes = [
           "${liquid_volumes}/vmck:/opt/vmck/data",
