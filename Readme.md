@@ -36,9 +36,7 @@ manuals. For development run them all in `-dev` mode:
 ```
 
 ### Install the Liquid Cluster
-[liquidinvestigations/cluster][cluster] is a self-configuring cluster of Consul
-+ Vault + Nomad. It's optimised for local development, testing, and
-demo/staging servers.
+[liquidinvestigations/cluster][cluster] is a self-configuring cluster of Consul + Vault + Nomad. It's optimised for local development, testing, and demo/staging servers.
 
 [cluster]: https://github.com/liquidinvestigations/cluster
 
