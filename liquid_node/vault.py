@@ -26,18 +26,18 @@ class Vault(JsonApi):
             self.post(f'sys/mounts/liquid', {'type': 'kv'})
 
     def list(self, prefix=''):
-        return self.get(f'liquid/{prefix}?list=true')['data']['keys']
+        return self.get(f'{prefix}?list=true')['data']['keys']
 
     def read(self, path):
         try:
-            return self.get(f'liquid/{path}')['data']
+            return self.get(path)['data']
         except HTTPError as e:
             if e.code == 404:
                 return None
             raise
 
     def set(self, path, payload):
-        return self.put(f'liquid/{path}', payload)
+        return self.put(path, payload)
 
 
 vault = Vault(config.vault_url, config.vault_token)

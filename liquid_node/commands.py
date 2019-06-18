@@ -31,32 +31,32 @@ def app_url(name):
 core_auth_apps = [
     {
         'name': 'authdemo',
-        'vault_path': 'authdemo/auth.oauth2',
+        'vault_path': 'liquid/authdemo/auth.oauth2',
         'callback': f'{app_url("authdemo")}/__auth/callback',
     },
     {
         'name': 'hoover',
-        'vault_path': 'hoover/auth.oauth2',
+        'vault_path': 'liquid/hoover/auth.oauth2',
         'callback': f'{app_url("hoover")}/__auth/callback',
     },
     {
         'name': 'dokuwiki',
-        'vault_path': 'dokuwiki/auth.oauth2',
+        'vault_path': 'liquid/dokuwiki/auth.oauth2',
         'callback': f'{app_url("dokuwiki")}/__auth/callback',
     },
     {
         'name': 'rocketchat-authproxy',
-        'vault_path': 'rocketchat/auth.oauth2',
+        'vault_path': 'liquid/rocketchat/auth.oauth2',
         'callback': f'{app_url("rocketchat")}/__auth/callback',
     },
     {
         'name': 'rocketchat-app',
-        'vault_path': 'rocketchat/app.oauth2',
+        'vault_path': 'liquid/rocketchat/app.oauth2',
         'callback': f'{app_url("rocketchat")}/_oauth/liquid',
     },
     {
         'name': 'nextcloud',
-        'vault_path': 'nextcloud/auth.oauth2',
+        'vault_path': 'liquid/nextcloud/auth.oauth2',
         'callback': f'{app_url("nextcloud")}/__auth/callback',
     },
 ]
@@ -147,17 +147,17 @@ def deploy():
     vault.ensure_engine()
 
     vault_secret_keys = [
-        'liquid/core.django',
-        'hoover/auth.django',
-        'hoover/search.django',
-        'authdemo/auth.django',
-        'nextcloud/nextcloud.admin',
-        'nextcloud/nextcloud.maria',
-        'dokuwiki/auth.django',
-        'nextcloud/auth.django',
-        'rocketchat/auth.django',
-        'ci/vmck.django',
-        'ci/drone.secret',
+        'liquid/liquid/core.django',
+        'liquid/hoover/auth.django',
+        'liquid/hoover/search.django',
+        'liquid/authdemo/auth.django',
+        'liquid/nextcloud/nextcloud.admin',
+        'liquid/nextcloud/nextcloud.maria',
+        'liquid/dokuwiki/auth.django',
+        'liquid/nextcloud/auth.django',
+        'liquid/rocketchat/auth.django',
+        'liquid/ci/vmck.django',
+        'liquid/ci/drone.secret',
     ]
 
     for path in vault_secret_keys:
@@ -192,9 +192,9 @@ def deploy():
         jobs.append((f'collection-{name}-migrate', migrate_job))
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
-        ensure_secret_key(f'collections/{name}/snoop.django')
+        ensure_secret_key(f'liquid/collections/{name}/snoop.django')
 
-    ensure_secret('rocketchat/adminuser', lambda: {
+    ensure_secret('liquid/rocketchat/adminuser', lambda: {
         'username': 'rocketchatadmin',
         'pass': random_secret(64),
     })
@@ -395,5 +395,5 @@ def getsecret(path=None):
 
     else:
         for section in vault.list():
-            for key in vault.list(f'{section}'):
+            for key in vault.list(section):
                 print(f'{section}{key}')
