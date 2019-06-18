@@ -71,7 +71,7 @@ job "drone" {
 
       driver = "docker"
       config {
-        image = "vmck/vmck:0.0.1-permit-archived-artifact"
+        image = "vmck/vmck"
         args = ["sh", "/local/startup.sh"]
         volumes = [
           "${liquid_volumes}/vmck:/opt/vmck/data",
@@ -111,6 +111,8 @@ job "drone" {
         {{- range service "vmck-imghost" }}
           QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
         {{- end }}
+        QEMU_MEMORY = 12000
+        QEMU_CPU = 2000
         EOF
         destination = "local/vmck.env"
         env = true
