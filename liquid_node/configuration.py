@@ -5,6 +5,13 @@ from pathlib import Path
 from .util import import_string
 from .jobs import Job
 
+from liquid_node.jobs import core
+from liquid_node.jobs import hoover
+from liquid_node.jobs import dokuwiki
+from liquid_node.jobs import rocketchat
+from liquid_node.jobs import nextcloud
+from liquid_node.jobs import ci
+
 
 class Configuration:
 
@@ -13,16 +20,16 @@ class Configuration:
         self.templates = self.root / 'templates'
 
         self.jobs = [
-            import_string('liquid_node.jobs.liquid.Liquid')(),
-            import_string('liquid_node.jobs.hoover.Hoover')(),
-            import_string('liquid_node.jobs.hoover.Ui')(),
-            import_string('liquid_node.jobs.hoover.Migrate')(),
-            import_string('liquid_node.jobs.dokuwiki.Dokuwiki')(),
-            import_string('liquid_node.jobs.dokuwiki.Migrate')(),
-            import_string('liquid_node.jobs.rocketchat.Rocketchat')(),
-            import_string('liquid_node.jobs.rocketchat.Migrate')(),
-            import_string('liquid_node.jobs.nextcloud.Nextcloud')(),
-            import_string('liquid_node.jobs.nextcloud.Migrate')(),
+            core.Liquid(),
+            hoover.Hoover(),
+            hoover.Ui(),
+            hoover.Migrate(),
+            dokuwiki.Dokuwiki(),
+            dokuwiki.Migrate(),
+            rocketchat.Rocketchat(),
+            rocketchat.Migrate(),
+            nextcloud.Nextcloud(),
+            nextcloud.Migrate(),
         ]
 
         self.ini = configparser.ConfigParser()
@@ -98,8 +105,7 @@ class Configuration:
             self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
             self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
-            Drone = import_string('liquid_node.jobs.ci.Drone')
-            self.jobs.append(Drone())
+            self.jobs.append(ci.Drone())
 
         self.collections = OrderedDict()
         for key in self.ini:
