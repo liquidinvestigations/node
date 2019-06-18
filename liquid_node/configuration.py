@@ -5,7 +5,7 @@ from pathlib import Path
 from .util import import_string
 from .jobs import Job
 
-from liquid_node.jobs import core
+from liquid_node.jobs import liquid
 from liquid_node.jobs import hoover
 from liquid_node.jobs import dokuwiki
 from liquid_node.jobs import rocketchat
@@ -20,7 +20,7 @@ class Configuration:
         self.templates = self.root / 'templates'
 
         self.jobs = [
-            core.Liquid(),
+            liquid.Liquid(),
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Migrate(),
