@@ -185,7 +185,7 @@ def deploy():
             job_checks[service] = checks
         return job_checks
 
-    jobs = [(job, get_job(path)) for job, path in config.jobs]
+    jobs = [(job.name, get_job(job.template)) for job in config.jobs]
 
     for name, settings in config.collections.items():
         migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
@@ -235,7 +235,7 @@ def deploy():
 def halt():
     """Stop all the jobs in nomad."""
 
-    jobs = [j for j, _ in config.jobs]
+    jobs = [j.name for j in config.jobs]
     jobs.extend(f'collection-{name}' for name in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
