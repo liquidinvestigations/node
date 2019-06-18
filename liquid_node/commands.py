@@ -23,41 +23,36 @@ from .import_from_docker import import_collection
 
 log = logging.getLogger(__name__)
 
-
-def app_url(name):
-    return f'{config.liquid_http_protocol}://{name}.{config.liquid_domain}'
-
-
-core_auth_apps = [
+CORE_AUTH_APPS = [
     {
         'name': 'authdemo',
         'vault_path': 'liquid/authdemo/auth.oauth2',
-        'callback': f'{app_url("authdemo")}/__auth/callback',
+        'callback': f'{config.app_url("authdemo")}/__auth/callback',
     },
     {
         'name': 'hoover',
         'vault_path': 'liquid/hoover/auth.oauth2',
-        'callback': f'{app_url("hoover")}/__auth/callback',
+        'callback': f'{config.app_url("hoover")}/__auth/callback',
     },
     {
         'name': 'dokuwiki',
         'vault_path': 'liquid/dokuwiki/auth.oauth2',
-        'callback': f'{app_url("dokuwiki")}/__auth/callback',
+        'callback': f'{config.app_url("dokuwiki")}/__auth/callback',
     },
     {
         'name': 'rocketchat-authproxy',
         'vault_path': 'liquid/rocketchat/auth.oauth2',
-        'callback': f'{app_url("rocketchat")}/__auth/callback',
+        'callback': f'{config.app_url("rocketchat")}/__auth/callback',
     },
     {
         'name': 'rocketchat-app',
         'vault_path': 'liquid/rocketchat/app.oauth2',
-        'callback': f'{app_url("rocketchat")}/_oauth/liquid',
+        'callback': f'{config.app_url("rocketchat")}/_oauth/liquid',
     },
     {
         'name': 'nextcloud',
         'vault_path': 'liquid/nextcloud/auth.oauth2',
-        'callback': f'{app_url("nextcloud")}/__auth/callback',
+        'callback': f'{config.app_url("nextcloud")}/__auth/callback',
     },
 ]
 
@@ -159,6 +154,11 @@ def deploy():
         'liquid/ci/vmck.django',
         'liquid/ci/drone.secret',
     ]
+    core_auth_apps = list(CORE_AUTH_APPS)
+
+    for job in config.jobs:
+        vault_secret_keys += list(job.vault_secret_keys)
+        core_auth_apps += list(job.core_auth_apps)
 
     for path in vault_secret_keys:
         ensure_secret_key(path)

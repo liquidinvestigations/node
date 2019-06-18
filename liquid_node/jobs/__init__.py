@@ -128,4 +128,5 @@ def get_job(hcl_path, substitutions={}):
 
 
 class Job:
-    pass
+    vault_secret_keys = ()
+    core_auth_apps = ()

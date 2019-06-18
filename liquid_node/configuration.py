@@ -124,7 +124,14 @@ class Configuration:
             job.template = self.root / job_config['template']
             return job
 
-        raise RuntimeError("A job needs `template`")
+        if 'loader' in job_config:
+            job_loader = import_string(job_config['loader'])
+            return job_loader(name, job_config, self)
+
+        raise RuntimeError("A job needs `template` or `loader`")
+
+    def app_url(self, name):
+        return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
 
     @classmethod
     def _validate_collection_name(self, name):
