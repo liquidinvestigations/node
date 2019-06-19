@@ -242,6 +242,7 @@ job "hoover" {
               {{- end }}
             {{- end }}
           {{- end }}
+          server_names_hash_bucket_size 128;
           EOF
         destination = "local/collections.conf"
       }
