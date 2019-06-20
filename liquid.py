@@ -39,6 +39,7 @@ def main():
         commands.gc,
         commands.halt,
         commands.initcollection,
+        commands.deletecollection,
         commands.purge,
         commands.getsecret,
         commands.importfromdockersetup,

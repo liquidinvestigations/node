@@ -337,6 +337,12 @@ def purge(force=False):
         print('No collections will be purged')
 
 
+def deletecollection(name):
+    """Delete a collection by name"""
+    nomad.stop(f'collection-{name}')
+    purge_collection(name)
+
+
 def importfromdockersetup(path, method='link'):
     """Import collections from existing docker-setup deployment.
 
