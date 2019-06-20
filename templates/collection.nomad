@@ -139,6 +139,7 @@ job "collection-${name}" {
         SNOOP_COLLECTION_ROOT = "collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
+        SNOOP_GNUPG_HOME = "/opt/hoover/gnupg"
         SYNC_FILES = "${sync}"
       }
       template {
