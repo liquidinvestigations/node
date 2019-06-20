@@ -3,6 +3,16 @@ from collections import OrderedDict
 import configparser
 from pathlib import Path
 
+DOCKER_IMAGES = [
+    'liquidinvestigations/core',
+    'liquidinvestigations/authproxy',
+    'liquidinvestigations/hoover-search',
+    'liquidinvestigations/hoover-ui',
+    'liquidinvestigations/hoover-snoop2',
+    'liquidinvestigations/caboose',
+    'liquidinvestigations/liquid-nextcloud',
+]
+
 
 class Configuration:
 
@@ -86,6 +96,11 @@ class Configuration:
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
         self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
 
+        self.versions = {
+            name: self.ini.get('versions', name, fallback='latest')
+            for name in DOCKER_IMAGES
+        }
+
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
             self.ci_runner_capacity = self.ini.getint('ci', 'runner_capacity', fallback=2)
@@ -120,6 +135,10 @@ class Configuration:
 Collection names must start with lower case letters and must contain only
 lower case letters and digits.
 ''')
+
+    def image(self, name):
+        version = self.versions.get(name, 'latest')
+        return f'{name}:{version}'
 
 
 config = Configuration()

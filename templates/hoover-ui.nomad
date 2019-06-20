@@ -13,7 +13,7 @@ job "hoover-ui" {
 
       driver = "docker"
       config {
-        image = "liquidinvestigations/hoover-ui"
+        image = "${config.image('liquidinvestigations/hoover-ui')}"
         volumes = [
           "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
         ]
