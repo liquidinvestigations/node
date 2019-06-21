@@ -111,7 +111,7 @@ job "drone" {
         {{- range service "vmck-imghost" }}
           QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
         {{- end }}
-        QEMU_MEMORY = 12000
+        QEMU_MEMORY = 14000
         QEMU_CPU = 2000
         EOF
         destination = "local/vmck.env"
