@@ -1,4 +1,4 @@
-from urllib.error import HTTPError
+from urllib.error import URLError, HTTPError
 import logging
 from time import time, sleep
 
@@ -27,7 +27,7 @@ class Vault(JsonApi):
                 mounts = self.get('sys/mounts')
                 break
 
-            except HTTPError:
+            except URLError:
                 sleep(.5)
 
         if 'liquid/' not in mounts['data']:
