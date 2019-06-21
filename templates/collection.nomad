@@ -128,7 +128,7 @@ job "collection-${name}" {
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
-          "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
+          "${liquid_collections}/${name}:/opt/hoover/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         labels {
@@ -136,7 +136,7 @@ job "collection-${name}" {
         }
       }
       env {
-        SNOOP_COLLECTION_ROOT = "collection"
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
         SYNC_FILES = "${sync}"
@@ -199,7 +199,7 @@ job "collection-${name}" {
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
-          "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
+          "${liquid_collections}/${name}:/opt/hoover/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
@@ -210,7 +210,7 @@ job "collection-${name}" {
         }
       }
       env {
-        SNOOP_COLLECTION_ROOT = "collection"
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
       }

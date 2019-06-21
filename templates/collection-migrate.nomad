@@ -20,7 +20,7 @@ job "collection-${name}-migrate" {
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
-          "${liquid_collections}/${name}/data:/opt/hoover/snoop/collection",
+          "${liquid_collections}/${name}:/opt/hoover/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         labels {
@@ -28,7 +28,7 @@ job "collection-${name}-migrate" {
         }
       }
       env {
-        SNOOP_COLLECTION_ROOT = "collection"
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
         TIMESTAMP = "${config.timestamp}"
