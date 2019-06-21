@@ -1,5 +1,7 @@
 #!/bin/sh -ex
 
+echo "Cowardly refusing to deploy"; exit 0
+
 docker run -d --rm \
         --name deploy-demo \
         -v /opt/node:/opt/node \
