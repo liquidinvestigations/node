@@ -123,7 +123,7 @@ job "collection-${name}" {
     task "snoop" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/hoover-snoop2"
+        image = "${config.image('liquidinvestigations/hoover-snoop2')}"
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
@@ -194,7 +194,7 @@ job "collection-${name}" {
     task "snoop" {
       driver = "docker"
       config {
-        image = "liquidinvestigations/hoover-snoop2"
+        image = "${config.image('liquidinvestigations/hoover-snoop2')}"
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
