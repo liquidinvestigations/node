@@ -20,6 +20,7 @@ DOCKER_IMAGES = [
     'liquidinvestigations/hoover-snoop2',
     'liquidinvestigations/caboose',
     'liquidinvestigations/liquid-nextcloud',
+    'vmck/vmck',
 ]
 
 
@@ -164,8 +165,8 @@ lower case letters and digits.
 ''')
 
     def image(self, name):
-        version = self.versions.get(name, 'latest')
-        return f'{name}:{version}'
+        assert name in self.versions, f'please add image {name} to DOCKER_IMAGES'
+        return f'{name}:{self.versions[name]}'
 
 
 config = Configuration()
