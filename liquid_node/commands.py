@@ -23,41 +23,36 @@ from .import_from_docker import import_collection
 
 log = logging.getLogger(__name__)
 
-
-def app_url(name):
-    return f'{config.liquid_http_protocol}://{name}.{config.liquid_domain}'
-
-
-core_auth_apps = [
+CORE_AUTH_APPS = [
     {
         'name': 'authdemo',
-        'vault_path': 'authdemo/auth.oauth2',
-        'callback': f'{app_url("authdemo")}/__auth/callback',
+        'vault_path': 'liquid/authdemo/auth.oauth2',
+        'callback': f'{config.app_url("authdemo")}/__auth/callback',
     },
     {
         'name': 'hoover',
-        'vault_path': 'hoover/auth.oauth2',
-        'callback': f'{app_url("hoover")}/__auth/callback',
+        'vault_path': 'liquid/hoover/auth.oauth2',
+        'callback': f'{config.app_url("hoover")}/__auth/callback',
     },
     {
         'name': 'dokuwiki',
-        'vault_path': 'dokuwiki/auth.oauth2',
-        'callback': f'{app_url("dokuwiki")}/__auth/callback',
+        'vault_path': 'liquid/dokuwiki/auth.oauth2',
+        'callback': f'{config.app_url("dokuwiki")}/__auth/callback',
     },
     {
         'name': 'rocketchat-authproxy',
-        'vault_path': 'rocketchat/auth.oauth2',
-        'callback': f'{app_url("rocketchat")}/__auth/callback',
+        'vault_path': 'liquid/rocketchat/auth.oauth2',
+        'callback': f'{config.app_url("rocketchat")}/__auth/callback',
     },
     {
         'name': 'rocketchat-app',
-        'vault_path': 'rocketchat/app.oauth2',
-        'callback': f'{app_url("rocketchat")}/_oauth/liquid',
+        'vault_path': 'liquid/rocketchat/app.oauth2',
+        'callback': f'{config.app_url("rocketchat")}/_oauth/liquid',
     },
     {
         'name': 'nextcloud',
-        'vault_path': 'nextcloud/auth.oauth2',
-        'callback': f'{app_url("nextcloud")}/__auth/callback',
+        'vault_path': 'liquid/nextcloud/auth.oauth2',
+        'callback': f'{config.app_url("nextcloud")}/__auth/callback',
     },
 ]
 
@@ -147,18 +142,23 @@ def deploy():
     vault.ensure_engine()
 
     vault_secret_keys = [
-        'liquid/core.django',
-        'hoover/auth.django',
-        'hoover/search.django',
-        'authdemo/auth.django',
-        'nextcloud/nextcloud.admin',
-        'nextcloud/nextcloud.maria',
-        'dokuwiki/auth.django',
-        'nextcloud/auth.django',
-        'rocketchat/auth.django',
-        'ci/vmck.django',
-        'ci/drone.secret',
+        'liquid/liquid/core.django',
+        'liquid/hoover/auth.django',
+        'liquid/hoover/search.django',
+        'liquid/authdemo/auth.django',
+        'liquid/nextcloud/nextcloud.admin',
+        'liquid/nextcloud/nextcloud.maria',
+        'liquid/dokuwiki/auth.django',
+        'liquid/nextcloud/auth.django',
+        'liquid/rocketchat/auth.django',
+        'liquid/ci/vmck.django',
+        'liquid/ci/drone.secret',
     ]
+    core_auth_apps = list(CORE_AUTH_APPS)
+
+    for job in config.jobs:
+        vault_secret_keys += list(job.vault_secret_keys)
+        core_auth_apps += list(job.core_auth_apps)
 
     for path in vault_secret_keys:
         ensure_secret_key(path)
@@ -185,16 +185,16 @@ def deploy():
             job_checks[service] = checks
         return job_checks
 
-    jobs = [(job, get_job(path)) for job, path in config.jobs]
+    jobs = [(job.name, get_job(job.template)) for job in config.jobs]
 
     for name, settings in config.collections.items():
         migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
         jobs.append((f'collection-{name}-migrate', migrate_job))
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
-        ensure_secret_key(f'collections/{name}/snoop.django')
+        ensure_secret_key(f'liquid/collections/{name}/snoop.django')
 
-    ensure_secret('rocketchat/adminuser', lambda: {
+    ensure_secret('liquid/rocketchat/adminuser', lambda: {
         'username': 'rocketchatadmin',
         'pass': random_secret(64),
     })
@@ -235,7 +235,7 @@ def deploy():
 def halt():
     """Stop all the jobs in nomad."""
 
-    jobs = [j for j, _ in config.jobs]
+    jobs = [j.name for j in config.jobs]
     jobs.extend(f'collection-{name}' for name in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
@@ -395,5 +395,5 @@ def getsecret(path=None):
 
     else:
         for section in vault.list():
-            for key in vault.list(f'{section}'):
+            for key in vault.list(section):
                 print(f'{section}{key}')

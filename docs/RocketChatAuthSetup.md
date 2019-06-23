@@ -6,7 +6,7 @@ that needs to be performed by an administrator through Rocket.Chat's web admin.
 
 1. Get the Rocket.Chat admin credentials:
     ```shell
-    ./liquid getsecret rocketchat/adminuser
+    ./liquid getsecret liquid/rocketchat/adminuser
     ```
 
 2. Log into Rocket.Chat - `http(s)://rocketchat.<liquid_domain>` - using those

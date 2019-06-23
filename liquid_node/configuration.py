@@ -2,6 +2,15 @@ import time
 from collections import OrderedDict
 import configparser
 from pathlib import Path
+from .util import import_string
+from .jobs import Job
+
+from liquid_node.jobs import liquid
+from liquid_node.jobs import hoover
+from liquid_node.jobs import dokuwiki
+from liquid_node.jobs import rocketchat
+from liquid_node.jobs import nextcloud
+from liquid_node.jobs import ci
 
 DOCKER_IMAGES = [
     'liquidinvestigations/core',
@@ -21,14 +30,16 @@ class Configuration:
         self.templates = self.root / 'templates'
 
         self.jobs = [
-            (job, self.templates / f'{job}.nomad')
-            for job in [
-                'liquid',
-                'hoover', 'hoover-ui', 'hoover-migrate',
-                'dokuwiki', 'dokuwiki-migrate',
-                'rocketchat', 'rocketchat-migrate',
-                'nextcloud', 'nextcloud-migrate',
-            ]
+            liquid.Liquid(),
+            hoover.Hoover(),
+            hoover.Ui(),
+            hoover.Migrate(),
+            dokuwiki.Dokuwiki(),
+            dokuwiki.Migrate(),
+            rocketchat.Rocketchat(),
+            rocketchat.Migrate(),
+            nextcloud.Nextcloud(),
+            nextcloud.Migrate(),
         ]
 
         self.ini = configparser.ConfigParser()
@@ -109,7 +120,7 @@ class Configuration:
             self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
             self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
-            self.jobs.append(('drone', self.templates / 'drone.nomad'))
+            self.jobs.append(ci.Drone())
 
         self.collections = OrderedDict()
         for key in self.ini:
@@ -123,9 +134,25 @@ class Configuration:
                 self.collections[name] = self.ini[key]
 
             elif cls == 'job':
-                job_config = self.ini[key]
-                self.jobs.append((name, self.root / job_config['template']))
+                self.jobs.append(self.load_job(name, self.ini[key]))
+
         self.timestamp = int(time.time())
+
+    def load_job(self, name, job_config):
+        if 'template' in job_config:
+            job = Job()
+            job.name = name
+            job.template = self.root / job_config['template']
+            return job
+
+        if 'loader' in job_config:
+            job_loader = import_string(job_config['loader'])
+            return job_loader(name, job_config, self)
+
+        raise RuntimeError("A job needs `template` or `loader`")
+
+    def app_url(self, name):
+        return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
 
     @classmethod
     def _validate_collection_name(self, name):

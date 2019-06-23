@@ -4,9 +4,8 @@ from pathlib import Path
 
 import jinja2
 
-from .configuration import config
-
 log = logging.getLogger(__name__)
+TEMPLATES = Path(__file__).parent.parent.parent.resolve() / 'templates'
 
 
 def set_collection_defaults(name, settings):
@@ -28,6 +27,8 @@ def set_volumes_paths(substitutions={}):
     :returns: the job options
     :rtype: dict
     """
+
+    from ..configuration import config
 
     substitutions['config'] = config
     substitutions['liquid_domain'] = config.liquid_domain
@@ -91,6 +92,8 @@ def get_collection_job(name, settings, template='collection.nomad'):
     :rtype: str
     """
 
+    from ..configuration import config
+
     substitutions = dict(settings)
     set_collection_defaults(name, substitutions)
 
@@ -98,6 +101,8 @@ def get_collection_job(name, settings, template='collection.nomad'):
 
 
 def render(template, subs):
+    from ..configuration import config
+
     env = jinja2.Environment(
         variable_start_string="${",
         variable_end_string="}",
@@ -120,3 +125,8 @@ def get_job(hcl_path, substitutions={}):
     output = render(template, set_volumes_paths(substitutions))
     log.debug(f'{hcl_path}\n{output}')
     return output
+
+
+class Job:
+    vault_secret_keys = ()
+    core_auth_apps = ()
