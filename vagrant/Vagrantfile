@@ -45,6 +45,9 @@ if Vagrant.has_plugin?('vagrant-env')
 
   config.vm.provider :vmck do |vmck, override|
     vmck.vmck_url = ENV['VMCK_URL']
+    vmck.memory = 15500
+    vmck.cpus = 2
+
     override.vm.box = "base"
     override.nfs.functional = false
     override.vm.provision(

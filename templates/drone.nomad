@@ -102,7 +102,6 @@ job "drone" {
         {{- with secret "liquid/ci/vmck.django" }}
           SECRET_KEY = {{.Data.secret_key}}
         {{- end }}
-        DEBUG = "true"
         HOSTNAME = "*"
         SSH_USERNAME = "vagrant"
         CONSUL_URL = "${config.consul_url}"
@@ -111,14 +110,13 @@ job "drone" {
         {{- range service "vmck-imghost" }}
           QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
         {{- end }}
-        QEMU_MEMORY = 14000
-        QEMU_CPU = 2000
+        QEMU_CPU_MHZ = 3000
         EOF
         destination = "local/vmck.env"
         env = true
       }
       resources {
-        memory = 350
+        memory = 750
         cpu = 350
         network {
           port "http" {
