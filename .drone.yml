@@ -8,7 +8,7 @@ steps:
   - pip install flake8 > /dev/null
   - flake8
 - name: deploy to qemu
-  image: vmck/vagrant-vmck:0.0.3
+  image: vmck/vagrant-vmck:continuous-integration
   commands:
   - export VMCK_URL=http://$VMCK_IP:$VMCK_PORT
   - echo $VMCK_URL
