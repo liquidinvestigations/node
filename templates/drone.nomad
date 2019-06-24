@@ -35,19 +35,25 @@ job "drone" {
       }
       template {
         data = <<EOF
-          server {
-              listen       80;
-              server_name  _;
-              access_log  /dev/stdout  main;
-              error_log /dev/stderr info;
-              location / {
-                  root   /usr/share/nginx/html;
-                  autoindex on;
-                  proxy_max_temp_file_size 0;
-                  proxy_buffering off;
-              }
-              location = /healthcheck {
-                  stub_status;
+          worker_processes 8;
+          http {
+              sendfile on;
+              sendfile_max_chunk 4m;
+              aio threads;
+              server {
+                  listen       80;
+                  server_name  _;
+                  access_log  /dev/stdout  main;
+                  error_log /dev/stderr info;
+                  location / {
+                      root   /usr/share/nginx/html;
+                      autoindex on;
+                      proxy_max_temp_file_size 0;
+                      proxy_buffering off;
+                  }
+                  location = /healthcheck {
+                      stub_status;
+                  }
               }
           }
         EOF
