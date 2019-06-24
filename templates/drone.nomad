@@ -28,7 +28,9 @@ job "drone" {
         memory = 80
         cpu = 200
         network {
-          port "http" {}
+          port "http" {
+            static = 10000
+          }
         }
       }
       template {
@@ -87,9 +89,12 @@ job "drone" {
         data = <<-EOF
         #!/bin/sh
         set -ex
+        date
+        cat /local/vmck.env
+        cat /local/startup.sh
         if [ -z "$QEMU_IMAGE_URL" ]; then
           echo "NO QEMU_IMAGE_URL!"
-          sleep 10
+          sleep 5
           exit 1
         fi
         exec /opt/vmck/runvmck
@@ -179,7 +184,9 @@ job "drone" {
         memory = 150
         cpu = 150
         network {
-          port "http" {}
+          port "http" {
+            static = 9998
+          }
         }
       }
       service {
@@ -246,7 +253,9 @@ job "drone" {
         memory = 250
         cpu = 150
         network {
-          port "http" {}
+          port "http" {
+            static = 9997
+          }
         }
       }
       service {
