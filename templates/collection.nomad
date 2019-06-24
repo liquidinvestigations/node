@@ -92,9 +92,16 @@ job "collection-${name}" {
           pg = 5432
         }
       }
-      env {
-        POSTGRES_USER = "snoop"
-        POSTGRES_DATABASE = "snoop"
+      template {
+        data = <<EOF
+          POSTGRES_USER = "snoop"
+          POSTGRES_DATABASE = "snoop"
+          {{- with secret "liquid/collections/${name}/snoop.postgres" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key}}
+          {{- end }}
+        EOF
+        destination = "local/postgres.env"
+        env = true
       }
       resources {
         cpu = 400
@@ -164,7 +171,11 @@ job "collection-${name}" {
           DEBUG = {{key "liquid_debug"}}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
-          SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
+          SNOOP_DB = postgresql://snoop:
+          {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
+            {{.Data.secret_key}}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop
         {{- end }}
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
@@ -240,7 +251,11 @@ job "collection-${name}" {
           SECRET_KEY = {{.Data.secret_key}}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
-          SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
+          SNOOP_DB = postgresql://snoop:
+          {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
+            {{.Data.secret_key}}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop
         {{- end }}
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = http://{{.Address}}:{{.Port}}

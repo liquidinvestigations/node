@@ -166,6 +166,7 @@ def deploy():
         'liquid/liquid/core.django',
         'liquid/hoover/auth.django',
         'liquid/hoover/search.django',
+        'liquid/hoover/search.postgres',
         'liquid/authdemo/auth.django',
         'liquid/nextcloud/nextcloud.admin',
         'liquid/nextcloud/nextcloud.maria',
@@ -216,6 +217,7 @@ def deploy():
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
         ensure_secret_key(f'liquid/collections/{name}/snoop.django')
+        ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
 
     ensure_secret('liquid/rocketchat/adminuser', lambda: {
         'username': 'rocketchatadmin',
