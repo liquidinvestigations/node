@@ -196,15 +196,13 @@ job "drone" {
         }
       }
       env {
+        VAULT_ADDR = "${config.vault_url}"
         VAULT_TOKEN = "${config.vault_token}"
         VAULT_SKIP_VERIFY = "true"
         VAULT_MAX_RETRIES = "5"
       }
       template {
         data = <<EOF
-          {{- range service "vault" }}
-            VAULT_ADDR="http://{{.Address}}:{{.Port}}"
-          {{- end }}
           {{- with secret "liquid/ci/drone.secret" }}
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}
