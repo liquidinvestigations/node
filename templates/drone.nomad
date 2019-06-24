@@ -46,6 +46,9 @@ job "drone" {
                   proxy_max_temp_file_size 0;
                   proxy_buffering off;
               }
+              location = /healthcheck {
+                  stub_status;
+              }
           }
         EOF
         destination = "custom/default.conf"
@@ -57,7 +60,7 @@ job "drone" {
           name = "vmck-imghost nginx alive on http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/healthcheck"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -89,8 +92,11 @@ job "drone" {
         data = <<-EOF
         #!/bin/sh
         set -ex
+        echo
+        echo
         date
         cat /local/vmck.env
+        cat /local/vmck-imghost.env
         cat /local/startup.sh
         if [ -z "$QEMU_IMAGE_URL" ]; then
           echo "NO QEMU_IMAGE_URL!"
@@ -104,7 +110,7 @@ job "drone" {
       }
       template {
         data = <<-EOF
-        {{- with secret "liquid/ci/vmck.django" }}
+        {{- with secret "liquid/ci/vmck.django" -}}
           SECRET_KEY = {{.Data.secret_key}}
         {{- end }}
         HOSTNAME = "*"
@@ -112,16 +118,22 @@ job "drone" {
         CONSUL_URL = "${config.consul_url}"
         NOMAD_URL = "${config.nomad_url}"
         BACKEND = "qemu"
-        {{- range service "vmck-imghost" }}
-          QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
-        {{- end }}
         QEMU_CPU_MHZ = 3000
         EOF
         destination = "local/vmck.env"
         env = true
       }
+      template {
+        data = <<-EOF
+        {{- range service "vmck-imghost" -}}
+          QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
+        {{- end }}
+        EOF
+        destination = "local/vmck-imghost.env"
+        env = true
+      }
       resources {
-        memory = 750
+        memory = 450
         cpu = 350
         network {
           port "http" {
@@ -170,11 +182,6 @@ job "drone" {
           {{- end }}
           {{- with secret "liquid/ci/drone.secret" }}
             SECRET_KEY = {{.Data.secret_key}}
-          {{- end }}
-          {{- with secret "liquid/ci/drone.github" }}
-            DRONE_GITHUB_CLIENT_ID = {{.Data.client_id}}
-            DRONE_GITHUB_CLIENT_SECRET = {{.Data.client_secret}}
-            DRONE_USER_FILTER = {{.Data.user_filter}}
           {{- end }}
         EOF
         destination = "local/drone.env"
