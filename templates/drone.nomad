@@ -15,7 +15,7 @@ job "drone" {
         image = "nginx:mainline"
         volumes = [
           "${liquid_volumes}/vmck-images:/usr/share/nginx/html",
-          "custom/default.conf:/etc/nginx/conf.d/default.conf",
+          "local/nginx.conf:/etc/nginx/nginx.conf",
         ]
         port_map {
           http = 80
@@ -34,30 +34,49 @@ job "drone" {
         }
       }
       template {
-        data = <<EOF
-          worker_processes 8;
+        data = <<-EOF
+          user  nginx;
+          worker_processes auto;
+
+          error_log  /var/log/nginx/error.log warn;
+          pid        /var/run/nginx.pid;
+
+          events {
+            worker_connections  1024;
+          }
+
           http {
-              sendfile on;
-              sendfile_max_chunk 4m;
-              aio threads;
-              server {
-                  listen       80;
-                  server_name  _;
-                  access_log  /dev/stdout  main;
-                  error_log /dev/stderr info;
-                  location / {
-                      root   /usr/share/nginx/html;
-                      autoindex on;
-                      proxy_max_temp_file_size 0;
-                      proxy_buffering off;
-                  }
-                  location = /healthcheck {
-                      stub_status;
-                  }
+            include       /etc/nginx/mime.types;
+            default_type  application/octet-stream;
+
+            log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                              '$status $body_bytes_sent "$http_referer" '
+                              '"$http_user_agent" "$http_x_forwarded_for"';
+
+            access_log  /var/log/nginx/access.log  main;
+
+            sendfile        on;
+            sendfile_max_chunk 4m;
+            aio threads;
+            keepalive_timeout  65;
+            server {
+              listen       80;
+              server_name  _;
+              access_log  /dev/stdout  main;
+              error_log /dev/stderr info;
+              location / {
+                root   /usr/share/nginx/html;
+                autoindex on;
+                proxy_max_temp_file_size 0;
+                proxy_buffering off;
               }
+              location = /healthcheck {
+                stub_status;
+              }
+            }
           }
         EOF
-        destination = "custom/default.conf"
+        destination = "local/nginx.conf"
       }
       service {
         name = "vmck-imghost"
