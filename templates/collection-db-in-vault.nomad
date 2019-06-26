@@ -16,7 +16,7 @@ job "collection-${name}-db-in-vault" {
       driver = "docker"
       config {
         image = "postgres:9.6"
-        args =  ["sh", "-c", "/usr/local/bin/docker-entrypoint.sh && chmod 777 /local/db-in-vault.sh && /local/db-in-vault.sh" ]
+        args =  ["sh", "/local/db-in-vault.sh"]
         volumes = [
           "${liquid_volumes}/collections/${name}/pg/data:/var/lib/postgresql/data",
         ]
@@ -41,7 +41,6 @@ job "collection-${name}-db-in-vault" {
         set -ex
         pwd
         date
-        service postgresql start
         if grep -Fq "$host all all all trust" $PGDATA/pg_hba.conf
         then
           psql -U snoop -c "ALTER USER snoop password '$POSTGRES_PASSWORD'"
