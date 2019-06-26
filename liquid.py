@@ -44,6 +44,7 @@ def main():
         commands.purge,
         commands.getsecret,
         commands.importfromdockersetup,
+        commands.vault_dbs,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
