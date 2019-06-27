@@ -102,7 +102,7 @@ def import_collection(name, settings, docker_setup, method='copy'):
     # link original collection data
     log.info(f'Importing the collection "{name}" source files')
     collection_src = docker_setup / 'collections' / name
-    collection_dst = config.liquid_collections / node_name
+    collection_dst = Path(config.liquid_collections) / node_name
     import_dir(collection_src, collection_dst, method)
 
 
