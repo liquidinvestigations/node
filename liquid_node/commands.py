@@ -377,8 +377,8 @@ def importfromdockersetup(path, method='link'):
     import_index(docker_setup, method)
 
     add_collections_ini(collections)
-
-    deploy()
+    print()
+    print('After adding the lines, re-run "./liquid deploy"')
 
 
 def shell(name, *args):
