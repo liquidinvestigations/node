@@ -301,14 +301,26 @@ def halt():
 def gc():
     """Stop collections jobs that are no longer declared in the ini file."""
 
-    nomad_jobs = nomad.jobs()
-
-    for job in nomad_jobs:
+    killed_jobs = []
+    for job in nomad.jobs():
         if job['ID'].startswith('collection-'):
             collection_name = job['ID'][len('collection-'):]
             if collection_name not in config.collections and job['Status'] == 'running':
                 log.info('Stopping %s...', job['ID'])
                 nomad.stop(job['ID'])
+                killed_jobs.append(job['ID'])
+
+    log.info(f'Waiting for jobs to die...')
+    while killed_jobs:
+        sleep(config.wait_interval)
+
+        nomad_jobs = {job['ID']: job for job in nomad.jobs() if job['ID'] in killed_jobs}
+        for job_name in killed_jobs:
+            if job_name not in nomad_jobs or nomad_jobs[job_name]['Status'] == 'dead':
+                killed_jobs.remove(job_name)
+                log.info(f'Job {job_name} is dead')
+
+    nomad.gc()
 
 
 def nomad_address():
