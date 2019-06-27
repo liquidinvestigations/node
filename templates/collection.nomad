@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule -%}
+{% from '_lib.hcl' import continuous_reschedule, wait_env_vars_script -%}
 
 job "collection-${name}" {
   datacenters = ["dc1"]
@@ -142,19 +142,8 @@ job "collection-${name}" {
         SYNC_FILES = "${sync}"
       }
       template {
-        data = <<-EOF
-        #!/bin/sh
-        set -ex
-        if [ -z "$SNOOP_DB" ] \
-                || [ -z "$SNOOP_TIKA_URL" ] \
-                || [ -z "$SNOOP_ES_URL" ] \
-                || [ -z "$SNOOP_AMQP_URL" ]; then
-          echo "incomplete configuration!"
-          sleep 5
-          exit 1
-        fi
-        exec ./manage.py runworkers
-        EOF
+        ${ wait_env_vars_script("SNOOP_DB SNOOP_TIKA_URL SNOOP_ES_URL SNOOP_AMQP_URL",
+            "./manage.py runworkers") }
         env = false
         destination = "local/startup.sh"
       }
@@ -195,7 +184,7 @@ job "collection-${name}" {
       driver = "docker"
       config {
         image = "${config.image('liquidinvestigations/hoover-snoop2')}"
-        args = ["sh", "/local/startup.sh"]
+        args = ["bash", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
@@ -213,21 +202,11 @@ job "collection-${name}" {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collection"
         SNOOP_TASK_PREFIX = "${name}"
         SNOOP_ES_INDEX = "${name}"
+        SECRET_KEY = "some secret key"
       }
       template {
-        data = <<-EOF
-        #!/bin/sh
-        set -ex
-        if [ -z "$SNOOP_DB" ] \
-                || [ -z "$SNOOP_TIKA_URL" ] \
-                || [ -z "$SNOOP_ES_URL" ] \
-                || [ -z "$SNOOP_AMQP_URL" ]; then
-          echo "incomplete configuration!"
-          sleep 5
-          exit 1
-        fi
-        exec /runserver
-        EOF
+        ${ wait_env_vars_script("SNOOP_DB SNOOP_TIKA_URL SNOOP_ES_URL SNOOP_AMQP_URL",
+            "/runserver") }
         env = false
         destination = "local/startup.sh"
       }

@@ -91,3 +91,24 @@ ephemeral_disk {
     }
   }
 {%- endmacro %}
+
+
+{%- macro wait_env_vars_script(vars, command, attempts=10, delay=10) %}
+  data = <<-EOF
+  #!/bin/bash
+  set -ex
+  for i in $(seq 1 ${attempts}); do
+    missing=false
+    for v in $vars; do
+      {% raw %}
+      echo "$v=${!v}"
+      [ -z "${!v}" ] && missing=true
+      {% endraw %}
+    done
+    ! $missing && break
+    echo "incomplete configuration!"
+    sleep ${delay}
+  done
+  exec ${command}
+  EOF
+{%- endmacro %}
