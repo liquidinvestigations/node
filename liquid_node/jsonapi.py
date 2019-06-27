@@ -40,8 +40,10 @@ class JsonApi:
 
         with urlopen(req) as res:
             if res.status == 200:
-                res_body = json.load(res)
-                return res_body
+                res_body = res.read()
+                if len(res_body) == 0:
+                    return None
+                return json.loads(res_body)
 
     def get(self, url):
         return self.request('GET', url)
