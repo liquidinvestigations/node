@@ -230,6 +230,7 @@ def deploy():
             log.info('Already initialized collection: %s', collection)
 
     push_collections_titles()
+    log.info("Deploy done!")
 
 
 def halt():
