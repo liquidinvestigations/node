@@ -107,6 +107,6 @@ def import_collection(name, settings, docker_setup, method='copy'):
 
 
 def add_collections_ini(collections):
-    print('Add the following lines to your liquid.ini:')
+    print('\nAdd the following lines to your liquid.ini:\n')
     for name in collections:
         print(f'[collection:{name.lower()}]')
