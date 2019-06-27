@@ -103,7 +103,10 @@ def import_collection(name, settings, docker_setup, method='copy'):
     log.info(f'Importing the collection "{name}" source files')
     collection_src = docker_setup / 'collections' / name
     collection_dst = Path(config.liquid_collections) / node_name
-    import_dir(collection_src, collection_dst, method)
+    if collection_dst.exists():
+        log.warning(f'Skipping source collection {name}, it already exists')
+    else:
+        import_dir(collection_src, collection_dst, method)
 
 
 def add_collections_ini(collections):
