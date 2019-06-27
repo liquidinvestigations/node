@@ -24,7 +24,7 @@ from .import_from_docker import import_collection
 
 log = logging.getLogger(__name__)
 
-CORE_AUTH_APPS = [
+HOOVER_AUTH_APPS = [
     {
         'name': 'authdemo',
         'vault_path': 'liquid/authdemo/auth.oauth2',
@@ -35,6 +35,9 @@ CORE_AUTH_APPS = [
         'vault_path': 'liquid/hoover/auth.oauth2',
         'callback': f'{config.app_url("hoover")}/__auth/callback',
     },
+]
+
+CORE_AUTH_APPS = HOOVER_AUTH_APPS + [
     {
         'name': 'dokuwiki',
         'vault_path': 'liquid/dokuwiki/auth.oauth2',
@@ -153,7 +156,7 @@ def resources():
         print(f'  {key}: {value}')
 
 
-def deploy():
+def deploy(scope=None):
     """Run all the jobs in nomad."""
 
     consul.set_kv('liquid_domain', config.liquid_domain)
@@ -167,15 +170,18 @@ def deploy():
         'liquid/hoover/auth.django',
         'liquid/hoover/search.django',
         'liquid/authdemo/auth.django',
-        'liquid/nextcloud/nextcloud.admin',
-        'liquid/nextcloud/nextcloud.maria',
-        'liquid/dokuwiki/auth.django',
-        'liquid/nextcloud/auth.django',
-        'liquid/rocketchat/auth.django',
-        'liquid/ci/vmck.django',
-        'liquid/ci/drone.secret',
     ]
-    core_auth_apps = list(CORE_AUTH_APPS)
+    if scope != 'hoover':
+        vault_secret_keys += [
+            'liquid/nextcloud/nextcloud.admin',
+            'liquid/nextcloud/nextcloud.maria',
+            'liquid/dokuwiki/auth.django',
+            'liquid/nextcloud/auth.django',
+            'liquid/rocketchat/auth.django',
+            'liquid/ci/vmck.django',
+            'liquid/ci/drone.secret',
+        ]
+    core_auth_apps = list(CORE_AUTH_APPS if scope != 'hoover' else HOOVER_AUTH_APPS)
 
     for job in config.jobs:
         vault_secret_keys += list(job.vault_secret_keys)
@@ -208,7 +214,8 @@ def deploy():
             job_checks[service] = checks
         return job_checks
 
-    jobs = [(job.name, get_job(job.template)) for job in config.jobs]
+    config_jobs = config.jobs if scope != 'hoover' else config.hoover_jobs
+    jobs = [(job.name, get_job(job.template)) for job in config_jobs]
 
     for name, settings in config.collections.items():
         migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')

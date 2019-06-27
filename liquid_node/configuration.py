@@ -30,11 +30,14 @@ class Configuration:
         self.root = Path(__file__).parent.parent.resolve()
         self.templates = self.root / 'templates'
 
-        self.jobs = [
+        self.hoover_jobs = [
             liquid.Liquid(),
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Migrate(),
+        ]
+
+        self.jobs = self.hoover_jobs + [
             dokuwiki.Dokuwiki(),
             dokuwiki.Migrate(),
             rocketchat.Rocketchat(),
