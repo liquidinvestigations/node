@@ -99,10 +99,14 @@ def import_collection(name, settings, docker_setup, method='copy'):
     log.info(f'Importing the collection "{name}" blobs dir from docker-setup to node..')
     import_dir(blob_src, blob_dst, method)
 
+    # link original collection data
+    log.info(f'Importing the collection "{name}" source files')
+    collection_src = docker_setup / 'collections' / name
+    collection_dst = config.liquid_collections / node_name
+    import_dir(collection_src, collection_dst, method)
+
 
 def add_collections_ini(collections):
+    print('Add the following lines to your liquid.ini:')
     for name in collections:
-        config.ini.add_section(f'collection:{name.lower()}')
-    ini_path = config.root / 'liquid.ini'
-    with ini_path.open(mode='w') as ini_file:
-        config.ini.write(ini_file)
+        print(f'[collection:{name.lower()}]')
