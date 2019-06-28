@@ -119,12 +119,12 @@ job "collection-${name}" {
             echo "host all all all md5"
             echo
           } >> "$PGDATA/pg_hba.conf"
-          echo changed password of database
+          echo database password changed
         else
           echo "password already set"
         fi
         EOF
-        destination = "local/db-in-vault.sh"
+        destination = "local/set-password.sh"
       }
       resources {
         cpu = 400
