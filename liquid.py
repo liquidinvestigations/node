@@ -36,6 +36,7 @@ def main():
         commands.alloc,
         commands.nomad_address,
         commands.deploy,
+        commands.resources,
         commands.gc,
         commands.halt,
         commands.initcollection,
