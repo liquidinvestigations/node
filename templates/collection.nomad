@@ -103,6 +103,29 @@ job "collection-${name}" {
         destination = "local/postgres.env"
         env = true
       }
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        pwd
+        date
+        if grep -Fq "$host all all all trust" $PGDATA/pg_hba.conf
+        then
+          psql -U snoop -c "ALTER USER snoop password '$POSTGRES_PASSWORD'"
+          sed -i '$d' $PGDATA/pg_hba.conf
+          sed -i '$d' $PGDATA/pg_hba.conf
+          {
+            echo
+            echo "host all all all md5"
+            echo
+          } >> "$PGDATA/pg_hba.conf"
+          echo changed password of database
+        else
+          echo "password already set"
+        fi
+        EOF
+        destination = "local/db-in-vault.sh"
+      }
       resources {
         cpu = 400
         memory = 400
