@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 
@@ -39,11 +40,13 @@ class JsonApi:
         )
 
         with urlopen(req) as res:
-            if res.status == 200:
-                res_body = res.read()
-                if len(res_body) == 0:
+            if res.status in [200, 201]:
+                if res.headers.get('Content-Type') == 'application/json':
+                    return json.load(res)
+                else:
                     return None
-                return json.loads(res_body)
+            else:
+                raise HTTPError(url, res.status, res.msg, res.headers, res)
 
     def get(self, url):
         return self.request('GET', url)
