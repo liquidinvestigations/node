@@ -91,3 +91,29 @@ ephemeral_disk {
     }
   }
 {%- endmacro %}
+
+{%- macro set_password(username) %}
+  template {
+    data = <<-EOF
+    #!/bin/sh
+    set -ex
+    pwd
+    date
+    if grep -Fq "$host all all all trust" $PGDATA/pg_hba.conf
+    then
+      psql -U ${username} -c "ALTER USER ${username} password '$POSTGRES_PASSWORD'"
+      sed -i '$d' $PGDATA/pg_hba.conf
+      sed -i '$d' $PGDATA/pg_hba.conf
+      {
+        echo
+        echo "host all all all md5"
+        echo
+      } >> "$PGDATA/pg_hba.conf"
+      echo database password changed
+    else
+      echo "password already set"
+    fi
+    EOF
+    destination = "local/set_password.sh"
+  }
+{%- endmacro %}

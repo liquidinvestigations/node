@@ -1,4 +1,5 @@
-{% from '_lib.hcl' import continuous_reschedule -%}
+{% from '_lib.hcl' import continuous_reschedule, set_password with context -%}
+
 
 job "collection-${name}" {
   datacenters = ["dc1"]
@@ -103,29 +104,7 @@ job "collection-${name}" {
         destination = "local/postgres.env"
         env = true
       }
-      template {
-        data = <<-EOF
-        #!/bin/sh
-        set -ex
-        pwd
-        date
-        if grep -Fq "$host all all all trust" $PGDATA/pg_hba.conf
-        then
-          psql -U snoop -c "ALTER USER snoop password '$POSTGRES_PASSWORD'"
-          sed -i '$d' $PGDATA/pg_hba.conf
-          sed -i '$d' $PGDATA/pg_hba.conf
-          {
-            echo
-            echo "host all all all md5"
-            echo
-          } >> "$PGDATA/pg_hba.conf"
-          echo database password changed
-        else
-          echo "password already set"
-        fi
-        EOF
-        destination = "local/set-password.sh"
-      }
+      ${ set_password('snoop') }
       resources {
         cpu = 400
         memory = 400
@@ -175,7 +154,7 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        if [ -z "$SNOOP_DB" ] \
+          if [ -z "$SNOOP_DB" ] \
                 || [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
@@ -252,7 +231,7 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        if [ -z "$SNOOP_DB" ] \
+          if [ -z "$SNOOP_DB" ] \
                 || [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
