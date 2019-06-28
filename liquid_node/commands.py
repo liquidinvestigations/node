@@ -242,6 +242,13 @@ def deploy():
         job_checks = start(job, hcl)
         health_checks.update(job_checks)
 
+    # Wait for database health checks of all collections and hoover:
+    pg_checks = {k: v for k, v in health_checks.items() if k.endswith("-pg")}
+    wait_for_service_health_checks(pg_checks)
+    for collection in sorted(config.collections.keys()):
+        docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/db-in-vault.sh')
+    docker.exec_(f'hoover-pg', 'sh', '/local/db-in-vault.sh')
+
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
 
