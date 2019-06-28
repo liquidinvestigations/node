@@ -436,14 +436,3 @@ def getsecret(path=None):
         for section in vault.list():
             for key in vault.list(section):
                 print(f'{section}{key}')
-
-
-def vault_dbs():
-    jobs = []
-    for name, settings in config.collections.items():
-        database_job = get_collection_job(name, settings, 'collection-db-in-vault.nomad')
-        jobs.append((f'collection-{name}-db-in-vault', database_job))
-        ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
-    for job , hcl in jobs:
-        log.info('Starting %s...', job)
-        nomad.run(hcl)
