@@ -94,10 +94,10 @@ job "collection-${name}" {
       }
       template {
         data = <<EOF
-          POSTGRES_USER = "snoop"
-          POSTGRES_DATABASE = "snoop"
+          POSTGRES_USER="snoop"
+          POSTGRES_DATABASE="snoop"
           {{- with secret "liquid/collections/${name}/snoop.postgres" }}
-            POSTGRES_PASSWORD = {{.Data.secret_key}}
+            POSTGRES_PASSWORD="{{.Data.secret_key | toJSON }}"
           {{- end }}
         EOF
         destination = "local/postgres.env"
@@ -196,7 +196,7 @@ job "collection-${name}" {
         {{- range service "snoop-${name}-pg" }}
           SNOOP_DB = postgresql://snoop:
           {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
-            {{.Data.secret_key}}
+            {{.Data.secret_key | toJSON }}
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop
         {{- end }}
@@ -276,7 +276,7 @@ job "collection-${name}" {
         {{- range service "snoop-${name}-pg" }}
           SNOOP_DB = postgresql://snoop:
           {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
-            {{.Data.secret_key}}
+            {{.Data.secret_key | toJSON }}
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop
         {{- end }}

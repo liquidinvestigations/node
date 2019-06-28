@@ -52,7 +52,7 @@ job "collection-${name}-migrate" {
         {{- range service "snoop-${name}-pg" }}
           SNOOP_DB = postgresql://snoop:
           {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
-            {{.Data.secret_key}}
+            {{.Data.secret_key | toJSON }}
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop
         {{- end }}
