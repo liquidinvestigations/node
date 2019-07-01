@@ -27,8 +27,11 @@ class Vault(JsonApi):
                 mounts = self.get('sys/mounts')
                 break
 
-            except URLError:
-                sleep(.5)
+            except URLError as e:
+                log.warning('vault GET sys/mounts: %s', e)
+                sleep(2)
+        else:
+            raise RuntimeError(f"Vault is down after {timeout}s")
 
         if 'liquid/' not in mounts['data']:
             log.info("Creating kv secrets engine `liquid`")
