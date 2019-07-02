@@ -1,11 +1,8 @@
 #!/bin/bash -ex
 
 echo "Waiting for Docker..."
-until docker version; do sleep 3; done
+until docker version; do sleep 1; done
 
 echo "Waiting for cluster autovault..."
-until docker exec cluster /opt/cluster/cluster.py autovault; do sleep 10; done
-sleep 5
-until docker exec cluster /opt/cluster/cluster.py autovault; do sleep 10; done
-
+docker exec cluster ./cluster.py wait
 echo "Cluster provision done."
