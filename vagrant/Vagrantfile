@@ -17,12 +17,14 @@ if Vagrant.has_plugin?('vagrant-env')
   config.vm.synced_folder '.', '/vagrant', disabled: true
 
   # blank provisioner that can be overridden by providers
-  config.vm.provision 'provider', type: 'shell', inline: '/bin/true'
+  config.vm.provision 'provider', type: 'shell', inline: '/bin/true', privileged: false
 
-  config.vm.provision "shell", inline: "/opt/node/vagrant/provision-liquid.sh"
+  config.vm.provision "shell",
+                      inline: "/opt/node/vagrant/provision-liquid.sh",
+                      privileged: false
 
   if custom_sh
-    config.vm.provision :shell, path: custom_sh
+    config.vm.provision :shell, path: custom_sh, privileged: false
   end
 
   config.vm.network :forwarded_port, guest: 80  , guest_ip: "10.66.60.1", host: 1380,  host_ip: "127.0.0.1"
@@ -39,6 +41,7 @@ if Vagrant.has_plugin?('vagrant-env')
       type: 'shell',
       path: "provision-cluster-vbox.sh",
       inline: nil,
+      privileged: true,
     )
     override.vm.synced_folder "..", "/opt/node"
   end
@@ -56,6 +59,7 @@ if Vagrant.has_plugin?('vagrant-env')
       type: 'shell',
       path: "wait-cluster.sh",
       inline: nil,
+      privileged: false,
     )
     override.vm.synced_folder "..", "/opt/node", type: "rsync",
       rsync__exclude: [".vagrant/", ".git/", "__pycache__/",

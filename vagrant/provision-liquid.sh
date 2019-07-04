@@ -1,12 +1,6 @@
 #!/bin/bash -ex
 
-if [ $EUID -eq 0 ]; then
-  chmod 755 $0
-  echo "I'm root, switching to vagrant." > /dev/null
-  exec sudo -iu vagrant $0
-fi
-
-echo "Hello, my name is $(whoami)." > /dev/null
+id $(whoami)
 
 echo "Installing liquid" > /dev/null
 
