@@ -41,40 +41,6 @@ job "collection-${name}" {
     }
   }
 
-  group "tika" {
-    task "tika" {
-      driver = "docker"
-      config {
-        image = "logicalspark/docker-tikaserver"
-        port_map {
-          tika = 9998
-        }
-        labels {
-          liquid_task = "snoop-${name}-tika"
-        }
-      }
-      resources {
-        memory = 800
-        cpu = 200
-        network {
-          port "tika" {}
-        }
-      }
-      service {
-        name = "snoop-${name}-tika"
-        port = "tika"
-        check {
-          name = "tika alive on http"
-          initial_status = "critical"
-          type = "http"
-          path = "/version"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-
   group "db" {
     ${ continuous_reschedule() }
 
@@ -146,13 +112,16 @@ job "collection-${name}" {
         #!/bin/sh
         set -ex
         if [ -z "$SNOOP_DB" ] \
-                || [ -z "$SNOOP_TIKA_URL" ] \
+                || [ -z "$TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
           sleep 5
           exit 1
         fi
+        while true; do
+          sleep 10
+        done
         exec ./manage.py runworkers
         EOF
         env = false
@@ -169,8 +138,8 @@ job "collection-${name}" {
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
-        {{- range service "snoop-${name}-tika" }}
-          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+        {{- range service "tika" }}
+          TIKA_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
@@ -219,7 +188,7 @@ job "collection-${name}" {
         #!/bin/sh
         set -ex
         if [ -z "$SNOOP_DB" ] \
-                || [ -z "$SNOOP_TIKA_URL" ] \
+                || [ -z "$TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
@@ -245,8 +214,8 @@ job "collection-${name}" {
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
-        {{- range service "snoop-${name}-tika" }}
-          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+        {{- range service "tika" }}
+          TIKA_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}

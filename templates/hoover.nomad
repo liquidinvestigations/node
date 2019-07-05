@@ -87,6 +87,40 @@ job "hoover" {
     }
   }
 
+  group "tika" {
+    task "tika" {
+      driver = "docker"
+      config {
+        image = "logicalspark/docker-tikaserver"
+        port_map {
+          tika = 9998
+        }
+        labels {
+          liquid_task = "tika"
+        }
+      }
+      resources {
+        memory = 800
+        cpu = 200
+        network {
+          port "tika" {}
+        }
+      }
+      service {
+        name = "tika"
+        port = "tika"
+        check {
+          name = "tika alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/version"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
   group "web" {
     task "search" {
       driver = "docker"
@@ -191,6 +225,17 @@ job "hoover" {
                 {{- with index . 0 }}
                   location ~ ^/_es/(.*) {
                     proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
+                  }
+                {{- end }}
+              {{- end }}
+            {{- end }}
+
+            {{- if service "tika" }}
+              {{- with service "tika" }}
+                {{- with index . 0 }}
+                  location ~ ^/(.*) {
+                    proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
+                    proxy_set_header Host tika.{{ key "liquid_domain" }};
                   }
                 {{- end }}
               {{- end }}
