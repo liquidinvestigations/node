@@ -98,7 +98,7 @@ job "collection-${name}" {
           POSTGRES_USER="snoop"
           POSTGRES_DATABASE="snoop"
           {{- with secret "liquid/collections/${name}/snoop.postgres" }}
-            POSTGRES_PASSWORD="{{.Data.secret_key | toJSON }}"
+            POSTGRES_PASSWORD={{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
         destination = "local/postgres.env"
@@ -153,7 +153,7 @@ job "collection-${name}" {
       template {
         data = <<-EOF
         #!/bin/sh
-        set -ex
+        set -e
           if [ -z "$SNOOP_DB" ] \
                 || [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
@@ -175,7 +175,7 @@ job "collection-${name}" {
         {{- range service "snoop-${name}-pg" }}
           SNOOP_DB = postgresql://snoop:
           {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
-            {{.Data.secret_key | toJSON }}
+            {{.Data.secret_key }}
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop
         {{- end }}
@@ -230,7 +230,7 @@ job "collection-${name}" {
       template {
         data = <<-EOF
         #!/bin/sh
-        set -ex
+        set -e
           if [ -z "$SNOOP_DB" ] \
                 || [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
@@ -255,7 +255,7 @@ job "collection-${name}" {
         {{- range service "snoop-${name}-pg" }}
           SNOOP_DB = postgresql://snoop:
           {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
-            {{.Data.secret_key | toJSON }}
+            {{.Data.secret_key }}
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop
         {{- end }}

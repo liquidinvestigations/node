@@ -101,7 +101,10 @@ ephemeral_disk {
     date
     if grep -Fq "$host all all all trust" $PGDATA/pg_hba.conf
     then
-      psql -U ${username} -c "ALTER USER ${username} password '$POSTGRES_PASSWORD'"
+      (
+      set +x
+      psql -U snoop -c "ALTER USER snoop password '$POSTGRES_PASSWORD'"
+      )
       sed -i '$d' $PGDATA/pg_hba.conf
       sed -i '$d' $PGDATA/pg_hba.conf
       {
