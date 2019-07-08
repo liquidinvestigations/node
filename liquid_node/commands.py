@@ -12,7 +12,7 @@ from liquid_node.import_from_docker import validate_names, ensure_docker_setup_s
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
-from .jobs import get_job, get_collection_job
+from .jobs import get_job, get_collection_job, hoover
 from .nomad import nomad
 from .process import run
 from .util import first
@@ -211,11 +211,14 @@ def deploy():
 
     jobs = [(job.name, get_job(job.template)) for job in config.jobs]
 
+    hov = hoover.Hoover()
+    database_tasks=[hov.pg_task]
     for name, settings in config.collections.items():
         migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
         jobs.append((f'collection-{name}-migrate', migrate_job))
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
+        database_tasks.append('snoop-' + name + '-pg')
         ensure_secret_key(f'liquid/collections/{name}/snoop.django')
         ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
 
@@ -243,8 +246,9 @@ def deploy():
         health_checks.update(job_checks)
 
     # Wait for database health checks of all collections and hoover:
-    pg_checks = {k: v for k, v in health_checks.items() if k.endswith("-pg")}
+    pg_checks = {k: v for k, v in health_checks.items() if k in database_tasks}
     wait_for_service_health_checks(pg_checks)
+
     for collection in sorted(config.collections.keys()):
         docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_password.sh')
     docker.exec_(f'hoover-pg', 'sh', '/local/set_password.sh')
