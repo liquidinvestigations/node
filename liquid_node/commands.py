@@ -212,7 +212,7 @@ def deploy():
     jobs = [(job.name, get_job(job.template)) for job in config.jobs]
 
     hov = hoover.Hoover()
-    database_tasks=[hov.pg_task]
+    database_tasks = [hov.pg_task]
     for name, settings in config.collections.items():
         migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
         jobs.append((f'collection-{name}-migrate', migrate_job))
