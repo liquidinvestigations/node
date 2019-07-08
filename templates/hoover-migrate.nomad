@@ -36,7 +36,7 @@ job "hoover-migrate" {
           {{- range service "hoover-pg" }}
             HOOVER_DB = postgresql://search:
             {{- with secret "liquid/hoover/search.postgres" -}}
-              {{.Data.secret_key | toJSON }}
+              {{.Data.secret_key }}
             {{- end -}}
             @{{.Address}}:{{.Port}}/search
           {{- end }}

@@ -68,7 +68,7 @@ job "hoover" {
           POSTGRES_USER="search"
           POSTGRES_DATABASE="search"
           {{- with secret "liquid/hoover/search.postgres" }}
-            POSTGRES_PASSWORD ="{{.Data.secret_key | toJSON }}"
+            POSTGRES_PASSWORD ={{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
         destination = "local/postgres.env"
@@ -122,7 +122,7 @@ job "hoover" {
           {{- range service "hoover-pg" }}
             HOOVER_DB = postgresql://search:
             {{- with secret "liquid/hoover/search.postgres" -}}
-              {{.Data.secret_key | toJSON  }}
+              {{.Data.secret_key }}
             {{- end -}}
             @{{.Address}}:{{.Port}}/search
           {{- end }}
