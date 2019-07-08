@@ -162,6 +162,7 @@ job "collection-${name}" {
           sleep 5
           exit 1
         fi
+        echo "running server"
         exec ./manage.py runworkers
         EOF
         env = false
@@ -239,6 +240,7 @@ job "collection-${name}" {
           sleep 5
           exit 1
         fi
+        echo "running server"
         exec /runserver
         EOF
         env = false
