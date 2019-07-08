@@ -39,9 +39,11 @@ job "nextcloud-migrate" {
         {{- range service "nextcloud-app" }}
           NEXTCLOUD_INTERNAL_STATUS_URL = "http://{{.Address}}:{{.Port}}/status.php"
         {{- end }}
-        NEXTCLOUD_HOST = "nextcloud.{{ key "liquid_domain" }}"
-        NEXTCLOUD_ADMIN_USER = "admin"
-        NEXTCLOUD_ADMIN_PASSWORD = "admin"
+        NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
+        NEXTCLOUD_ADMIN_USER = admin
+        {{- with secret "liquid/nextcloud/nextcloud.actualadmin" }}
+          NEXTCLOUD_ADMIN_PASSWORD={{.Data.secret_key | toJSON }}
+        {{- end }}
         {{- range service "nextcloud-maria" }}
           MYSQL_HOST = "{{.Address}}:{{.Port}}"
         {{- end }}

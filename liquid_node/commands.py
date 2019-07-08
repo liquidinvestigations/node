@@ -210,6 +210,7 @@ def deploy():
         'liquid/hoover/search.postgres',
         'liquid/authdemo/auth.django',
         'liquid/nextcloud/nextcloud.admin',
+        'liquid/nextcloud/nextcloud.actualadmin',
         'liquid/nextcloud/nextcloud.maria',
         'liquid/dokuwiki/auth.django',
         'liquid/nextcloud/auth.django',
