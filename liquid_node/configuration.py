@@ -43,6 +43,9 @@ class Configuration:
             nextcloud.Migrate(),
         ]
 
+        self.versions_ini = configparser.ConfigParser()
+        self.versions_ini.read(self.root / 'versions.ini')
+
         self.ini = configparser.ConfigParser()
         self.ini.read(self.root / 'liquid.ini')
 
@@ -108,10 +111,11 @@ class Configuration:
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
         self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
 
-        self.versions = {
-            name: self.ini.get('versions', name, fallback='latest')
-            for name in DOCKER_IMAGES
-        }
+        def _version(name):
+            default = self.versions_ini.get('versions', name, fallback='latest')
+            return self.ini.get('versions', name, fallback=default)
+
+        self.versions = {name: _version(name) for name in DOCKER_IMAGES}
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
