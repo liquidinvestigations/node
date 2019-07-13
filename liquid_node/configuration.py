@@ -12,17 +12,6 @@ from liquid_node.jobs import rocketchat
 from liquid_node.jobs import nextcloud
 from liquid_node.jobs import ci
 
-DOCKER_IMAGES = [
-    'liquidinvestigations/core',
-    'liquidinvestigations/authproxy',
-    'liquidinvestigations/hoover-search',
-    'liquidinvestigations/hoover-ui',
-    'liquidinvestigations/hoover-snoop2',
-    'liquidinvestigations/caboose',
-    'liquidinvestigations/liquid-nextcloud',
-    'vmck/vmck',
-]
-
 
 class Configuration:
 
@@ -111,12 +100,6 @@ class Configuration:
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
         self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
 
-        def _version(name):
-            default = self.versions_ini.get('versions', name, fallback='latest')
-            return self.ini.get('versions', name, fallback=default)
-
-        self.versions = {name: _version(name) for name in DOCKER_IMAGES}
-
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
             self.ci_runner_capacity = self.ini.getint('ci', 'runner_capacity', fallback=2)
@@ -143,6 +126,18 @@ class Configuration:
 
         self.timestamp = int(time.time())
 
+    def image(self, name):
+        """Returns the NAME:TAG for a docker image from versions.ini.
+
+        Can be overrided in liquid.ini, same section name.
+        """
+
+        assert self.versions_ini.get('versions', name, fallback=None), \
+            f'docker tag for {name} not set in versions.ini'
+        default_tag = self.versions_ini.get('versions', name)
+        tag = self.ini.get('versions', name, fallback=default_tag)
+        return f'{name}:{tag}'
+
     def load_job(self, name, job_config):
         if 'template' in job_config:
             job = Job()
@@ -167,10 +162,6 @@ class Configuration:
 Collection names must start with lower case letters and must contain only
 lower case letters and digits.
 ''')
-
-    def image(self, name):
-        assert name in self.versions, f'please add image {name} to DOCKER_IMAGES'
-        return f'{name}:{self.versions[name]}'
 
 
 config = Configuration()
