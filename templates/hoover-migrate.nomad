@@ -26,21 +26,21 @@ job "hoover-migrate" {
         }
       }
       template {
-        data = <<EOF
+        data = <<-EOF
           {{- if keyExists "liquid_debug" }}
-            DEBUG = {{key "liquid_debug"}}
+            DEBUG={{key "liquid_debug"}}
           {{- end }}
           {{- with secret "liquid/hoover/search.django" }}
-            SECRET_KEY = {{.Data.secret_key}}
+            SECRET_KEY={{.Data.secret_key |toJSON }}
           {{- end }}
           {{- range service "hoover-pg" }}
-            HOOVER_DB = postgresql://search:search@{{.Address}}:{{.Port}}/search
+            HOOVER_DB=postgresql://search:search@{{.Address}}:{{.Port}}/search
           {{- end }}
           {{- range service "hoover-es" }}
-            HOOVER_ES_URL = http://{{.Address}}:{{.Port}}
+            HOOVER_ES_URL=http://{{.Address}}:{{.Port}}
           {{- end }}
-          HOOVER_HOSTNAME = hoover.{{key "liquid_domain"}}
-          TIMESTAMP = ${config.timestamp}
+          HOOVER_HOSTNAME=hoover.{{key "liquid_domain"}}
+          TIMESTAMP=${config.timestamp}
         EOF
         destination = "local/hoover.env"
         env = true

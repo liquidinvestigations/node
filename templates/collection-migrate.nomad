@@ -28,10 +28,10 @@ job "collection-${name}-migrate" {
         }
       }
       env {
-        SNOOP_COLLECTION_ROOT=/opt/hoover/collection
-        SNOOP_TASK_PREFIX=${name}
-        SNOOP_ES_INDEX=${name}
-        TIMESTAMP=${config.timestamp}
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collection"
+        SNOOP_TASK_PREFIX = "${name}"
+        SNOOP_ES_INDEX = "${name}"
+        TIMESTAMP = "${config.timestamp}"
       }
       template {
         data = <<-EOF

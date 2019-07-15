@@ -93,8 +93,8 @@ job "collection-${name}" {
         }
       }
       env {
-        POSTGRES_USER=snoop
-        POSTGRES_DATABASE=snoop
+        POSTGRES_USER = "snoop"
+        POSTGRES_DATABASE = "snoop"
       }
       resources {
         cpu = 400
@@ -136,10 +136,10 @@ job "collection-${name}" {
         }
       }
       env {
-        SNOOP_COLLECTION_ROOT=/opt/hoover/collection
-        SNOOP_TASK_PREFIX=${name}
-        SNOOP_ES_INDEX=${name}
-        SYNC_FILES=${sync}
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collection"
+        SNOOP_TASK_PREFIX = "${name}"
+        SNOOP_ES_INDEX = "${name}"
+        SYNC_FILES = "${sync}"
       }
       template {
         data = <<-EOF
@@ -210,9 +210,9 @@ job "collection-${name}" {
         }
       }
       env {
-        SNOOP_COLLECTION_ROOT=/opt/hoover/collection
-        SNOOP_TASK_PREFIX=${name}
-        SNOOP_ES_INDEX=${name}
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collection"
+        SNOOP_TASK_PREFIX = "${name}"
+        SNOOP_ES_INDEX = "${name}"
       }
       template {
         data = <<-EOF

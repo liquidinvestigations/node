@@ -14,7 +14,7 @@ job "nextcloud-migrate" {
       ${ task_logs() }
 
       driver = "docker"
-      config = {
+      config {
         image = "${config.image('liquidinvestigations/liquid-nextcloud')}"
         volumes = [
           "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
@@ -35,28 +35,25 @@ job "nextcloud-migrate" {
       }
       template {
         data = <<-EOF
-        HTTP_PROTO = ${config.liquid_http_protocol}
-
+        HTTP_PROTO=${config.liquid_http_protocol}
         {{- range service "nextcloud-app" }}
-          NEXTCLOUD_INTERNAL_STATUS_URL = http://{{.Address}}:{{.Port}}/status.php
+          NEXTCLOUD_INTERNAL_STATUS_URL=http://{{.Address}}:{{.Port}}/status.php
         {{- end }}
-        NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
-        NEXTCLOUD_ADMIN_USER = admin
-        NEXTCLOUD_ADMIN_PASSWORD = admin
-
+        NEXTCLOUD_HOST=nextcloud.{{ key "liquid_domain" }}
+        NEXTCLOUD_ADMIN_USER=admin
+        NEXTCLOUD_ADMIN_PASSWORD=admin
         {{- range service "nextcloud-maria" }}
-          MYSQL_HOST = {{.Address}}:{{.Port}}
+          MYSQL_HOST={{.Address}}:{{.Port}}
         {{- end }}
-        MYSQL_DB = nextcloud
-        MYSQL_USER = nextcloud
+        MYSQL_DB=nextcloud
+        MYSQL_USER=nextcloud
         {{- with secret "liquid/nextcloud/nextcloud.maria" }}
-          MYSQL_PASSWORD = {{.Data.secret_key}}
+          MYSQL_PASSWORD={{.Data.secret_key |toJSON }}
         {{- end }}
-
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
-          OC_PASS = {{.Data.secret_key}}
+          OC_PASS={{.Data.secret_key |toJSON }}
         {{- end }}
-        TIMESTAMP = ${config.timestamp}
+        TIMESTAMP=${config.timestamp}
         EOF
         destination = "local/nextcloud-migrate.env"
         env = true

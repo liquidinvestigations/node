@@ -37,7 +37,7 @@ job "nextcloud" {
       template {
         data = <<-EOF
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
-          OC_PASS = {{.Data.secret_key}}
+          OC_PASS={{.Data.secret_key |toJSON }}
         {{- end }}
         EOF
         destination = "local/nextcloud-migrate.env"
@@ -77,12 +77,12 @@ job "nextcloud" {
         }
       }
       template {
-        data = <<EOF
-        MYSQL_RANDOM_ROOT_PASSWORD = yes
-        MYSQL_DATABASE = nextcloud
-        MYSQL_USER = nextcloud
+        data = <<-EOF
+        MYSQL_RANDOM_ROOT_PASSWORD=yes
+        MYSQL_DATABASE=nextcloud
+        MYSQL_USER=nextcloud
         {{- with secret "liquid/nextcloud/nextcloud.maria" }}
-          MYSQL_PASSWORD = {{.Data.secret_key}}
+          MYSQL_PASSWORD={{.Data.secret_key |toJSON }}
         {{- end }}
         EOF
         destination = "local/maria.env"

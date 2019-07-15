@@ -24,20 +24,20 @@ job "liquid" {
         }
       }
       template {
-        data = <<EOF
-          DEBUG = {{key "liquid_debug"}}
+        data = <<-EOF
+          DEBUG={{key "liquid_debug"}}
           {{- with secret "liquid/liquid/core.django" }}
-            SECRET_KEY = {{.Data.secret_key}}
+            SECRET_KEY={{.Data.secret_key |toJSON }}
           {{- end }}
-          LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
-          LIQUID_DOMAIN = {{key "liquid_domain"}}
-          LIQUID_TITLE = ${config.liquid_title}
-          SERVICE_ADDRESS = {{env "NOMAD_IP_http"}}
-          LIQUID_2FA = ${config.liquid_2fa}
-          HOOVER_APP_URL = ${config.liquid_http_protocol}://hoover.${config.liquid_domain}
-          DOKUWIKI_APP_URL = ${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}
-          ROCKETCHAT_APP_URL = ${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
-          NEXTCLOUD_APP_URL = ${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}
+          LIQUID_HTTP_PROTOCOL=${config.liquid_http_protocol}
+          LIQUID_DOMAIN={{key "liquid_domain"}}
+          LIQUID_TITLE=${config.liquid_title}
+          SERVICE_ADDRESS={{env "NOMAD_IP_http"}}
+          LIQUID_2FA=${config.liquid_2fa}
+          HOOVER_APP_URL=${config.liquid_http_protocol}://hoover.${config.liquid_domain}
+          DOKUWIKI_APP_URL=${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}
+          ROCKETCHAT_APP_URL=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
+          NEXTCLOUD_APP_URL=${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}
         EOF
         destination = "local/docker.env"
         env = true

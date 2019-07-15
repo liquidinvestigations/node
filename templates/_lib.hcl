@@ -48,7 +48,7 @@ ephemeral_disk {
           {{- range service "${upstream}" }}
             UPSTREAM_APP_URL=http://{{.Address}}:{{.Port}}
           {{- end }}
-          DEBUG = {{key "liquid_debug"}}
+          DEBUG={{key "liquid_debug"}}
           USER_HEADER_TEMPLATE={}
           {{- range service "core" }}
             LIQUID_INTERNAL_URL=http://{{.Address}}:{{.Port}}
