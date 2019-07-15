@@ -153,8 +153,21 @@ def resources():
         print(f'  {key}: {value}')
 
 
+def check_system_config():
+    """Raises errors if the system is improperly configured.
+
+    This checks if elasticsearch will accept our
+    vm.max_map_count kernel parameter value.
+    """
+
+    assert int(run("sysctl -n vm.max_map_count")) >= 262144, \
+        'the "vm.max_map_count" kernel parameter is too low, check readme'
+
+
 def deploy():
     """Run all the jobs in nomad."""
+
+    check_system_config()
 
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
