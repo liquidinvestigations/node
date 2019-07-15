@@ -27,7 +27,7 @@ job "liquid" {
         data = <<-EOF
           DEBUG={{key "liquid_debug"}}
           {{- with secret "liquid/liquid/core.django" }}
-            SECRET_KEY={{.Data.secret_key |toJSON }}
+            SECRET_KEY={{.Data.secret_key | toJSON }}
           {{- end }}
           LIQUID_HTTP_PROTOCOL=${config.liquid_http_protocol}
           LIQUID_DOMAIN={{key "liquid_domain"}}

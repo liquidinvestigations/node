@@ -356,12 +356,12 @@ job "drone" {
             DRONE_SECRET_ENDPOINT=http://{{.Address}}:{{.Port}}
           {{- end }}
           {{- with secret "liquid/ci/drone.secret" }}
-            DRONE_SECRET_SECRET={{.Data.secret_key |toJSON }}
+            DRONE_SECRET_SECRET={{.Data.secret_key | toJSON }}
           {{- end }}
           {{- with secret "liquid/ci/drone.github" }}
-            DRONE_GITHUB_CLIENT_ID={{.Data.client_id |toJSON }}
-            DRONE_GITHUB_CLIENT_SECRET={{.Data.client_secret |toJSON }}
-            DRONE_USER_FILTER={{.Data.user_filter |toJSON }}
+            DRONE_GITHUB_CLIENT_ID={{.Data.client_id | toJSON }}
+            DRONE_GITHUB_CLIENT_SECRET={{.Data.client_secret | toJSON }}
+            DRONE_USER_FILTER={{.Data.user_filter | toJSON }}
           {{- end }}
         EOF
         destination = "local/drone.env"

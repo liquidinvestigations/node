@@ -48,10 +48,10 @@ job "nextcloud-migrate" {
         MYSQL_DB=nextcloud
         MYSQL_USER=nextcloud
         {{- with secret "liquid/nextcloud/nextcloud.maria" }}
-          MYSQL_PASSWORD={{.Data.secret_key |toJSON }}
+          MYSQL_PASSWORD={{.Data.secret_key | toJSON }}
         {{- end }}
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
-          OC_PASS={{.Data.secret_key |toJSON }}
+          OC_PASS={{.Data.secret_key | toJSON }}
         {{- end }}
         TIMESTAMP=${config.timestamp}
         EOF

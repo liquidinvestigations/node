@@ -58,8 +58,8 @@ ephemeral_disk {
             SECRET_KEY={{.Data.secret_key | toJSON}}
           {{- end }}
           {{- with secret "liquid/${name}/auth.oauth2" }}
-            LIQUID_CLIENT_ID={{.Data.client_id |toJSON }}
-            LIQUID_CLIENT_SECRET={{.Data.client_secret |toJSON }}
+            LIQUID_CLIENT_ID={{.Data.client_id | toJSON }}
+            LIQUID_CLIENT_SECRET={{.Data.client_secret | toJSON }}
           {{- end }}
         EOF
         destination = "local/docker.env"

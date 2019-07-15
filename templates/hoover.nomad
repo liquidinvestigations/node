@@ -109,7 +109,7 @@ job "hoover" {
             DEBUG={{key "liquid_debug"}}
           {{- end }}
           {{- with secret "liquid/hoover/search.django" }}
-            SECRET_KEY={{.Data.secret_key |toJSON }}
+            SECRET_KEY={{.Data.secret_key | toJSON }}
           {{- end }}
           {{- range service "hoover-pg" }}
             HOOVER_DB=postgresql://search:search@{{.Address}}:{{.Port}}/search

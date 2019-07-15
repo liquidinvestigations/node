@@ -65,8 +65,8 @@ job "rocketchat" {
           {{- end }}
           ROOT_URL=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
           {{- with secret "liquid/rocketchat/adminuser" }}
-            ADMIN_USERNAME={{.Data.username |toJSON }}
-            ADMIN_PASS={{.Data.pass |toJSON }}
+            ADMIN_USERNAME={{.Data.username | toJSON }}
+            ADMIN_PASS={{.Data.pass | toJSON }}
           {{- end }}
           ADMIN_EMAIL=admin@example.com
           Organization_Name=${config.liquid_title}
@@ -81,8 +81,8 @@ job "rocketchat" {
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-authorize_path=${config.liquid_core_url}/o/authorize/
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-scope=read
           {{- with secret "liquid/rocketchat/app.oauth2" }}
-            OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-id={{.Data.client_id |toJSON }}
-            OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-secret={{.Data.client_secret |toJSON }}
+            OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-id={{.Data.client_id | toJSON }}
+            OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-secret={{.Data.client_secret | toJSON }}
           {{- end }}
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-login_style=redirect
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_sent_via=header
