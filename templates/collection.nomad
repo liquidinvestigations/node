@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
 
 job "collection-${name}" {
   datacenters = ["dc1"]
@@ -6,7 +6,11 @@ job "collection-${name}" {
   priority = 60
 
   group "queue" {
+    ${ group_disk() }
+
     task "rabbitmq" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "rabbitmq:3.7.3"
@@ -42,7 +46,11 @@ job "collection-${name}" {
   }
 
   group "tika" {
+    ${ group_disk() }
+
     task "tika" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "logicalspark/docker-tikaserver"
@@ -76,9 +84,13 @@ job "collection-${name}" {
   }
 
   group "db" {
+    ${ group_disk() }
+
     ${ continuous_reschedule() }
 
     task "pg" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "postgres:9.6"
@@ -118,9 +130,13 @@ job "collection-${name}" {
   }
 
   group "workers" {
+    ${ group_disk() }
+
     count = ${workers}
 
     task "snoop" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "${config.image('liquidinvestigations/hoover-snoop2')}"
@@ -189,9 +205,13 @@ job "collection-${name}" {
   }
 
   group "api" {
+    ${ group_disk() }
+
     ${ continuous_reschedule() }
 
     task "snoop" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "${config.image('liquidinvestigations/hoover-snoop2')}"
