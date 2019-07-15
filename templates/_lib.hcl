@@ -46,20 +46,20 @@ ephemeral_disk {
       template {
         data = <<EOF
           {{- range service "${upstream}" }}
-            UPSTREAM_APP_URL = http://{{.Address}}:{{.Port}}
+            UPSTREAM_APP_URL=http://{{.Address}}:{{.Port}}
           {{- end }}
           DEBUG = {{key "liquid_debug"}}
-          USER_HEADER_TEMPLATE = {}
+          USER_HEADER_TEMPLATE={}
           {{- range service "core" }}
-            LIQUID_INTERNAL_URL = http://{{.Address}}:{{.Port}}
+            LIQUID_INTERNAL_URL=http://{{.Address}}:{{.Port}}
           {{- end }}
-          LIQUID_PUBLIC_URL = ${config.liquid_http_protocol}://{{key "liquid_domain"}}
+          LIQUID_PUBLIC_URL=${config.liquid_http_protocol}://{{key "liquid_domain"}}
           {{- with secret "liquid/${name}/auth.django" }}
-            SECRET_KEY = {{.Data.secret_key}}
+            SECRET_KEY={{.Data.secret_key | toJSON}}
           {{- end }}
           {{- with secret "liquid/${name}/auth.oauth2" }}
-            LIQUID_CLIENT_ID = {{.Data.client_id}}
-            LIQUID_CLIENT_SECRET = {{.Data.client_secret}}
+            LIQUID_CLIENT_ID={{.Data.client_id |toJSON }}
+            LIQUID_CLIENT_SECRET={{.Data.client_secret |toJSON }}
           {{- end }}
         EOF
         destination = "local/docker.env"
