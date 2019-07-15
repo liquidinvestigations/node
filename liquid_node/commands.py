@@ -138,12 +138,18 @@ def resources():
 
     def get_all_res():
         jobs = [nomad.parse(get_job(job.template)) for job in config.jobs]
+        for name, settings in config.collections.items():
+            for template in ['collection-migrate.nomad', 'collection.nomad']:
+                job = get_collection_job(name, settings, template)
+                jobs.append(nomad.parse(job))
         for spec in jobs:
             yield from nomad.get_resources(spec)
 
     total = defaultdict(int)
     for name, _type, res in get_all_res():
-        for key in ['MemoryMB', 'CPU']:
+        for key in ['MemoryMB', 'CPU', 'EphemeralDiskMB']:
+            if key not in res:
+                continue
             if res[key] is None:
                 raise RuntimeError("Please update Nomad to 0.9.3+")
             total[f'{_type} {key}'] += res[key]
