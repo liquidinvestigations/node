@@ -92,7 +92,7 @@ ephemeral_disk {
   }
 {%- endmacro %}
 
-{%- macro set_password(username) %}
+{%- macro set_pg_password_template(username) %}
   template {
     data = <<-EOF
     #!/bin/sh
@@ -103,7 +103,7 @@ ephemeral_disk {
     then
       (
       set +x
-      psql -U snoop -c "ALTER USER snoop password '$POSTGRES_PASSWORD'"
+      psql -U ${username} -c "ALTER USER ${username} password '$POSTGRES_PASSWORD'"
       )
       sed -i '$d' $PGDATA/pg_hba.conf
       sed -i '$d' $PGDATA/pg_hba.conf
@@ -117,6 +117,6 @@ ephemeral_disk {
       echo "password already set"
     fi
     EOF
-    destination = "local/set_password.sh"
+    destination = "local/set_pg_password.sh"
   }
 {%- endmacro %}

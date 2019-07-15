@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_password with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
 
 job "hoover" {
   datacenters = ["dc1"]
@@ -74,7 +74,7 @@ job "hoover" {
         destination = "local/postgres.env"
         env = true
       }
-      ${ set_password('search') }
+      ${ set_pg_password_template('search') }
       resources {
         memory = 350
         network {

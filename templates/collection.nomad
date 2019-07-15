@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule, set_password with context -%}
+{% from '_lib.hcl' import continuous_reschedule, set_pg_password_template with context -%}
 
 
 job "collection-${name}" {
@@ -104,7 +104,7 @@ job "collection-${name}" {
         destination = "local/postgres.env"
         env = true
       }
-      ${ set_password('snoop') }
+      ${ set_pg_password_template('snoop') }
       resources {
         cpu = 400
         memory = 400

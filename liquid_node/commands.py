@@ -250,8 +250,8 @@ def deploy():
     wait_for_service_health_checks(pg_checks)
 
     for collection in sorted(config.collections.keys()):
-        docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_password.sh')
-    docker.exec_(f'hoover-pg', 'sh', '/local/set_password.sh')
+        docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_pg_password.sh')
+    docker.exec_(f'hoover-pg', 'sh', '/local/set_pg_password.sh')
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
