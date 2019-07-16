@@ -32,8 +32,8 @@ job "rocketchat-migrate" {
       template {
         data = <<-EOF
           {{- range service "rocketchat-mongo" }}
-            MONGO_ADDRESS={{.Address}}
-            MONGO_PORT={{.Port}}
+            MONGO_ADDRESS = {{.Address | toJSON }}
+            MONGO_PORT = {{.Port | toJSON }}
           {{- end }}
         EOF
         destination = "local/liquid.env"
