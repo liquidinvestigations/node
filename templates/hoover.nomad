@@ -270,10 +270,9 @@ job "hoover" {
         name = "hoover-collections"
         port = "nginx"
         check {
-          name = "hoover-collections nginx on :8765 forwards elasticsearch"
+          name = "hoover-collections replies to tcp"
           initial_status = "critical"
-          type = "http"
-          path = "/_es/_cluster/health/"
+          type = "tcp"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
