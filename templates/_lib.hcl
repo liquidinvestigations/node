@@ -55,7 +55,7 @@ ephemeral_disk {
           {{- end }}
           LIQUID_PUBLIC_URL = "${config.liquid_http_protocol}://{{key "liquid_domain"}}"
           {{- with secret "liquid/${name}/auth.django" }}
-            SECRET_KEY = {{.Data.secret_key | toJSON}}
+            SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
           {{- with secret "liquid/${name}/auth.oauth2" }}
             LIQUID_CLIENT_ID = {{.Data.client_id | toJSON }}
