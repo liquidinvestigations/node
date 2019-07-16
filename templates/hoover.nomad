@@ -91,7 +91,7 @@ job "hoover" {
     task "tika" {
       driver = "docker"
       config {
-        image = "logicalspark/docker-tikaserver"
+        image = "logicalspark/docker-tikaserver:1.20"
         port_map {
           tika = 9998
         }
@@ -225,17 +225,6 @@ job "hoover" {
                 {{- with index . 0 }}
                   location ~ ^/_es/(.*) {
                     proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
-                  }
-                {{- end }}
-              {{- end }}
-            {{- end }}
-
-            {{- if service "tika" }}
-              {{- with service "tika" }}
-                {{- with index . 0 }}
-                  location ~ ^/(.*) {
-                    proxy_pass http://{{ .Address }}:{{ .Port }}/$1;
-                    proxy_set_header Host tika.{{ key "liquid_domain" }};
                   }
                 {{- end }}
               {{- end }}

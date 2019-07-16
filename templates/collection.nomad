@@ -119,9 +119,6 @@ job "collection-${name}" {
           sleep 5
           exit 1
         fi
-        while true; do
-          sleep 10
-        done
         exec ./manage.py runworkers
         EOF
         env = false
