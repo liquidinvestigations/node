@@ -112,7 +112,7 @@ job "collection-${name}" {
         #!/bin/sh
         set -ex
         if [ -z "$SNOOP_DB" ] \
-                || [ -z "$TIKA_URL" ] \
+                || [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
@@ -136,7 +136,7 @@ job "collection-${name}" {
           SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
         {{- range service "tika" }}
-          TIKA_URL = http://{{.Address}}:{{.Port}}
+          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
@@ -185,7 +185,7 @@ job "collection-${name}" {
         #!/bin/sh
         set -ex
         if [ -z "$SNOOP_DB" ] \
-                || [ -z "$TIKA_URL" ] \
+                || [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
@@ -212,7 +212,7 @@ job "collection-${name}" {
           SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
         {{- range service "tika" }}
-          TIKA_URL = http://{{.Address}}:{{.Port}}
+          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
