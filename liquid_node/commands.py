@@ -138,12 +138,18 @@ def resources():
 
     def get_all_res():
         jobs = [nomad.parse(get_job(job.template)) for job in config.jobs]
+        for name, settings in config.collections.items():
+            for template in ['collection-migrate.nomad', 'collection.nomad']:
+                job = get_collection_job(name, settings, template)
+                jobs.append(nomad.parse(job))
         for spec in jobs:
             yield from nomad.get_resources(spec)
 
     total = defaultdict(int)
     for name, _type, res in get_all_res():
-        for key in ['MemoryMB', 'CPU']:
+        for key in ['MemoryMB', 'CPU', 'EphemeralDiskMB']:
+            if key not in res:
+                continue
             if res[key] is None:
                 raise RuntimeError("Please update Nomad to 0.9.3+")
             total[f'{_type} {key}'] += res[key]
@@ -153,8 +159,21 @@ def resources():
         print(f'  {key}: {value}')
 
 
+def check_system_config():
+    """Raises errors if the system is improperly configured.
+
+    This checks if elasticsearch will accept our
+    vm.max_map_count kernel parameter value.
+    """
+
+    assert int(run("sysctl -n vm.max_map_count")) >= 262144, \
+        'the "vm.max_map_count" kernel parameter is too low, check readme'
+
+
 def deploy():
     """Run all the jobs in nomad."""
+
+    check_system_config()
 
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')

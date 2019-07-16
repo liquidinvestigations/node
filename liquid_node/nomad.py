@@ -33,8 +33,10 @@ class Nomad(JsonApi):
         the supplied job."""
 
         for group in spec['TaskGroups'] or []:
+            group_name = f'{spec["Name"]}-{group["Name"]}'
+            yield group_name, spec['Type'], {'EphemeralDiskMB': group['EphemeralDisk']['SizeMB']}
             for task in group['Tasks'] or []:
-                name = f'{spec["Name"]}-{group["Name"]}-{task["Name"]}'
+                name = f'{group_name}-{task["Name"]}'
                 yield name, spec['Type'], task['Resources']
 
     def jobs(self):

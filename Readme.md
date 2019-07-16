@@ -139,6 +139,11 @@ Create an initial admin user:
 ./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
+### Versions
+The liquid bundle comes with a `versions.ini` file with a known set of working
+versions. You can override them in `liquid.ini`, see `examples/liquid.ini` for
+more information.
+
 ### Testdata
 Set up the `testdata` collection. First download the data:
 
