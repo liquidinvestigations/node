@@ -50,11 +50,11 @@ job "collection-${name}-migrate" {
           DEBUG = {{key "liquid_debug"}}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
-          SNOOP_DB = postgresql://snoop:
+          SNOOP_DB = "postgresql://snoop:
           {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
             {{.Data.secret_key }}
           {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop
+          @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = http://{{.Address}}:{{.Port}}

@@ -65,10 +65,10 @@ job "hoover" {
       }
       template {
         data = <<EOF
-          POSTGRES_USER="search"
-          POSTGRES_DATABASE="search"
+          POSTGRES_USER = "search"
+          POSTGRES_DATABASE = "search"
           {{- with secret "liquid/hoover/search.postgres" }}
-            POSTGRES_PASSWORD ={{.Data.secret_key | toJSON }}
+            POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
         destination = "local/postgres.env"
@@ -120,11 +120,11 @@ job "hoover" {
             SECRET_KEY = {{.Data.secret_key}}
           {{- end }}
           {{- range service "hoover-pg" }}
-            HOOVER_DB = postgresql://search:
+            HOOVER_DB = "postgresql://search:
             {{- with secret "liquid/hoover/search.postgres" -}}
               {{.Data.secret_key }}
             {{- end -}}
-            @{{.Address}}:{{.Port}}/search
+            @{{.Address}}:{{.Port}}/search"
           {{- end }}
           {{- range service "hoover-es" }}
             HOOVER_ES_URL = http://{{.Address}}:{{.Port}}
