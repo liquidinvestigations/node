@@ -152,7 +152,11 @@ class Configuration:
 
             if cls == 'collection':
                 Configuration._validate_collection_name(name)
-                self.collections[name] = self.ini[key]
+                self.collections[name] = {
+                    'name': name,
+                    'workers': self.ini.getint(key, 'workers', fallback=0),
+                    'sync': self.ini.getboolean(key, 'sync', fallback=False),
+                }
 
             elif cls == 'job':
                 self.enabled_jobs.append(self.load_job(name, self.ini[key]))

@@ -10,18 +10,6 @@ log = logging.getLogger(__name__)
 TEMPLATES = Path(__file__).parent.parent.parent.resolve() / 'templates'
 
 
-def set_collection_defaults(name, settings):
-    """Sets the collection job default options
-
-    :param name: collection name
-    :param settings: dictionary containing the collection job options
-    """
-
-    settings['name'] = name
-    settings.setdefault('workers', '1')
-    settings.setdefault('sync', 'false')
-
-
 def set_volumes_paths(substitutions={}):
     """Sets the volumes paths in the job options
 
@@ -112,8 +100,6 @@ def get_collection_job(name, settings, template='collection.nomad'):
     from ..configuration import config
 
     substitutions = dict(settings)
-    set_collection_defaults(name, substitutions)
-
     return get_job(config.templates / template, substitutions)
 
 
