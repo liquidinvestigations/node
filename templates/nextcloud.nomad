@@ -26,6 +26,7 @@ job "nextcloud" {
         cpu = 100
         memory = 150
         network {
+          mbits = 1
           port "http" {}
         }
       }
@@ -92,6 +93,7 @@ job "nextcloud" {
         cpu = 100
         memory = 250
         network {
+          mbits = 1
           port "maria" {
             static = 8767
           }

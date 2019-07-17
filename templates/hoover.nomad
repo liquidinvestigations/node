@@ -28,6 +28,7 @@ job "hoover" {
       resources {
         memory = 2000
         network {
+          mbits = 1
           port "es" {}
         }
       }
@@ -70,6 +71,7 @@ job "hoover" {
       resources {
         memory = 350
         network {
+          mbits = 1
           port "pg" {}
         }
       }
@@ -103,6 +105,7 @@ job "hoover" {
         memory = 800
         cpu = 200
         network {
+          mbits = 1
           port "tika" {}
         }
       }
@@ -165,6 +168,7 @@ job "hoover" {
       resources {
         memory = 300
         network {
+          mbits = 1
           port "http" {}
         }
       }
@@ -295,6 +299,7 @@ job "hoover" {
       resources {
         memory = 100
         network {
+          mbits = 1
           port "nginx" {
             static = 8765
           }

@@ -25,6 +25,7 @@ job "zipkin" {
         memory = 1000
         cpu = 200
         network {
+          mbits = 1
           port "http" {}
         }
       }

@@ -28,6 +28,7 @@ job "drone" {
         memory = 80
         cpu = 200
         network {
+          mbits = 1
           port "http" {
             static = 10000
           }
@@ -161,6 +162,7 @@ job "drone" {
         memory = 450
         cpu = 350
         network {
+          mbits = 1
           port "http" {
             static = 11111
           }
@@ -249,6 +251,7 @@ job "drone" {
         memory = 450
         cpu = 350
         network {
+          mbits = 1
           port "http" {
             static = 9995
           }
@@ -302,6 +305,7 @@ job "drone" {
         memory = 150
         cpu = 150
         network {
+          mbits = 1
           port "http" {
             static = 9996
           }
@@ -371,6 +375,7 @@ job "drone" {
         memory = 250
         cpu = 150
         network {
+          mbits = 1
           port "http" {
             static = 9997
           }

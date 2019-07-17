@@ -25,6 +25,7 @@ job "rocketchat" {
         memory = 500
         cpu = 400
         network {
+          mbits = 1
           port "mongo" {}
         }
       }
@@ -115,6 +116,7 @@ job "rocketchat" {
         memory = 800
         cpu = 400
         network {
+          mbits = 1
           port "web" {}
         }
       }

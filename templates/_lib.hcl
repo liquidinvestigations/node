@@ -67,6 +67,7 @@ ephemeral_disk {
       }
       resources {
         network {
+          mbits = 1
           port "authproxy" {}
         }
         memory = 150

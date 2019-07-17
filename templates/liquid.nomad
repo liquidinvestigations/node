@@ -45,6 +45,7 @@ job "liquid" {
       resources {
         memory = 200
         network {
+          mbits = 1
           port "http" {
             static = 8768
           }
@@ -153,6 +154,7 @@ job "liquid" {
       resources {
         memory = 100
         network {
+          mbits = 1
           port "http" {
             static = ${liquid_http_port}
           }
