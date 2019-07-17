@@ -96,7 +96,7 @@ job "hoover" {
           tika = 9998
         }
         labels {
-          liquid_task = "tika"
+          liquid_task = "hoover-tika"
         }
       }
       resources {
@@ -107,10 +107,10 @@ job "hoover" {
         }
       }
       service {
-        name = "tika"
+        name = "hoover-tika"
         port = "tika"
         check {
-          name = "tika alive on http"
+          name = "hoover-tika alive on http"
           initial_status = "critical"
           type = "http"
           path = "/version"

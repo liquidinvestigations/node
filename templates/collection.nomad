@@ -147,7 +147,7 @@ job "collection-${name}" {
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
-        {{- range service "tika" }}
+        {{- range service "hoover-tika" }}
           SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
@@ -227,7 +227,7 @@ job "collection-${name}" {
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
-        {{- range service "tika" }}
+        {{- range service "hoover-tika" }}
           SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
