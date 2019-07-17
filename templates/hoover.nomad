@@ -112,12 +112,12 @@ job "hoover" {
         }
       }
       template {
-        data = <<EOF
+        data = <<-EOF
           {{- if keyExists "liquid_debug" }}
-            DEBUG = {{key "liquid_debug"}}
+            DEBUG = {{key "liquid_debug" | toJSON }}
           {{- end }}
           {{- with secret "liquid/hoover/search.django" }}
-            SECRET_KEY = {{.Data.secret_key}}
+            SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
           {{- range service "hoover-pg" }}
             HOOVER_DB = "postgresql://search:
@@ -127,14 +127,14 @@ job "hoover" {
             @{{.Address}}:{{.Port}}/search"
           {{- end }}
           {{- range service "hoover-es" }}
-            HOOVER_ES_URL = http://{{.Address}}:{{.Port}}
+            HOOVER_ES_URL = "http://{{.Address}}:{{.Port}}"
           {{- end }}
-          HOOVER_HOSTNAME = hoover.{{key "liquid_domain"}}
+          HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
           HOOVER_TITLE = "Hoover <a style="display:inline-block;margin-left:10px;" href="${config.liquid_core_url}">&#8594; ${config.liquid_title}</a>"
-          HOOVER_AUTHPROXY = true
-          USE_X_FORWARDED_HOST = true
+          HOOVER_AUTHPROXY = "true"
+          USE_X_FORWARDED_HOST = "true"
           {%- if config.liquid_http_protocol == 'https' %}
-            SECURE_PROXY_SSL_HEADER = HTTP_X_FORWARDED_PROTO
+            SECURE_PROXY_SSL_HEADER = "HTTP_X_FORWARDED_PROTO"
           {%- endif %}
         EOF
         destination = "local/hoover.env"

@@ -47,7 +47,7 @@ job "collection-${name}-migrate" {
       template {
         data = <<-EOF
         {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug"}}
+          DEBUG = {{key "liquid_debug" | toJSON }}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
           SNOOP_DB = "postgresql://snoop:
@@ -57,16 +57,16 @@ job "collection-${name}-migrate" {
           @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
         {{- range service "hoover-es" }}
-          SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
+          SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-tika" }}
-          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+          SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
-          SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
+          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
         {{ range service "zipkin" }}
-          TRACING_URL = http://{{.Address}}:{{.Port}}
+          TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         EOF
         destination = "local/snoop.env"
