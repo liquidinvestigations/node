@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template with context -%}
 
 job "collection-${name}" {
   datacenters = ["dc1"]
@@ -67,10 +67,18 @@ job "collection-${name}" {
           pg = 5432
         }
       }
-      env {
-        POSTGRES_USER = "snoop"
-        POSTGRES_DATABASE = "snoop"
+      template {
+        data = <<EOF
+          POSTGRES_USER = "snoop"
+          POSTGRES_DATABASE = "snoop"
+          {{- with secret "liquid/collections/${name}/snoop.postgres" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/postgres.env"
+        env = true
       }
+      ${ set_pg_password_template('snoop') }
       resources {
         cpu = 400
         memory = 400
@@ -125,8 +133,15 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        if [ -z "$SNOOP_DB" ] \
-                || [ -z "$SNOOP_TIKA_URL" ] \
+        (
+        set +x
+        if [ -z "$SNOOP_DB" ]; then
+          echo "database not ready"
+          sleep 5
+          exit 1
+        fi
+        )
+        if  [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
@@ -144,7 +159,11 @@ job "collection-${name}" {
           DEBUG = {{key "liquid_debug" | toJSON }}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
-          SNOOP_DB = "postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop"
+          SNOOP_DB = "postgresql://snoop:
+          {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
@@ -202,8 +221,15 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        if [ -z "$SNOOP_DB" ] \
-                || [ -z "$SNOOP_TIKA_URL" ] \
+        (
+        set +x
+        if [ -z "$SNOOP_DB" ]; then
+          echo "database not ready"
+          sleep 5
+          exit 1
+        fi
+        )
+        if  [ -z "$SNOOP_TIKA_URL" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
@@ -224,7 +250,11 @@ job "collection-${name}" {
           SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
-          SNOOP_DB = "postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop"
+          SNOOP_DB = "postgresql://snoop:
+          {{- with secret "liquid/collections/${name}/snoop.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"

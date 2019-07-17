@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
 
 job "hoover" {
   datacenters = ["dc1"]
@@ -64,10 +64,18 @@ job "hoover" {
           pg = 5432
         }
       }
-      env {
-        POSTGRES_USER = "search"
-        POSTGRES_DATABASE = "search"
+      template {
+        data = <<EOF
+          POSTGRES_USER = "search"
+          POSTGRES_DATABASE = "search"
+          {{- with secret "liquid/hoover/search.postgres" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/postgres.env"
+        env = true
       }
+      ${ set_pg_password_template('search') }
       resources {
         memory = 350
         network {
@@ -149,7 +157,11 @@ job "hoover" {
             SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
           {{- range service "hoover-pg" }}
-            HOOVER_DB = "postgresql://search:search@{{.Address}}:{{.Port}}/search"
+            HOOVER_DB = "postgresql://search:
+            {{- with secret "liquid/hoover/search.postgres" -}}
+              {{.Data.secret_key }}
+            {{- end -}}
+            @{{.Address}}:{{.Port}}/search"
           {{- end }}
           {{- range service "hoover-es" }}
             HOOVER_ES_URL = "http://{{.Address}}:{{.Port}}"
