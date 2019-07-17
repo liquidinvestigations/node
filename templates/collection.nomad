@@ -137,24 +137,24 @@ job "collection-${name}" {
         destination = "local/startup.sh"
       }
       template {
-        data = <<EOF
+        data = <<-EOF
         {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug"}}
+          DEBUG = {{key "liquid_debug" | toJSON }}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
-          SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
+          SNOOP_DB = "postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop"
         {{- end }}
         {{- range service "hoover-es" }}
-          SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
+          SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
-        {{- range service "tika" }}
-          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+        {{- range service "snoop-${name}-tika" }}
+          SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
-          SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
+          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
         {{ range service "zipkin" }}
-          TRACING_URL = http://{{.Address}}:{{.Port}}
+          TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         EOF
         destination = "local/snoop.env"
@@ -216,26 +216,26 @@ job "collection-${name}" {
       template {
         data = <<-EOF
         {{- if keyExists "liquid_debug" }}
-          DEBUG = {{ key "liquid_debug" }}
+          DEBUG = {{ key "liquid_debug" | toJSON }}
         {{- end }}
         {{- with secret "liquid/collections/${name}/snoop.django" }}
-          SECRET_KEY = {{.Data.secret_key}}
+          SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- range service "snoop-${name}-pg" }}
-          SNOOP_DB = postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop
+          SNOOP_DB = "postgresql://snoop:snoop@{{.Address}}:{{.Port}}/snoop"
         {{- end }}
         {{- range service "hoover-es" }}
-          SNOOP_ES_URL = http://{{.Address}}:{{.Port}}
+          SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
-        {{- range service "tika" }}
-          SNOOP_TIKA_URL = http://{{.Address}}:{{.Port}}
+        {{- range service "snoop-${name}-tika" }}
+          SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
-          SNOOP_AMQP_URL = amqp://{{.Address}}:{{.Port}}
+          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
-        SNOOP_HOSTNAME = ${name}.snoop.{{ key "liquid_domain" }}
+        SNOOP_HOSTNAME = "${name}.snoop.{{ key "liquid_domain" }}"
         {{- range service "zipkin" }}
-          TRACING_URL = http://{{.Address}}:{{.Port}}
+          TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         EOF
         destination = "local/snoop.env"

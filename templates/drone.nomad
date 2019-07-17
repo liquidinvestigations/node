@@ -136,14 +136,14 @@ job "drone" {
       template {
         data = <<-EOF
         {{- with secret "liquid/ci/vmck.django" -}}
-          SECRET_KEY = {{.Data.secret_key}}
+          SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
         HOSTNAME = "*"
         SSH_USERNAME = "vagrant"
         CONSUL_URL = "${config.consul_url}"
         NOMAD_URL = "${config.nomad_url}"
         BACKEND = "qemu"
-        QEMU_CPU_MHZ = 3000
+        QEMU_CPU_MHZ = "3000"
         EOF
         destination = "local/vmck.env"
         env = true
@@ -224,14 +224,14 @@ job "drone" {
       template {
         data = <<-EOF
         {{- with secret "liquid/ci/vmck.django" -}}
-          SECRET_KEY = {{.Data.secret_key}}
+          SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
         HOSTNAME = "*"
         SSH_USERNAME = "vagrant"
         CONSUL_URL = "${config.consul_url}"
         NOMAD_URL = "${config.nomad_url}"
         BACKEND = "qemu"
-        QEMU_CPU_MHZ = 3000
+        QEMU_CPU_MHZ = "3000"
         EOF
         destination = "local/vmck.env"
         env = true
@@ -290,9 +290,9 @@ job "drone" {
         VAULT_MAX_RETRIES = "5"
       }
       template {
-        data = <<EOF
+        data = <<-EOF
           {{- with secret "liquid/ci/drone.secret" }}
-            SECRET_KEY = {{.Data.secret_key}}
+            SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
         destination = "local/drone.env"
@@ -348,20 +348,20 @@ job "drone" {
         DRONE_RUNNER_CAPACITY = "${config.ci_runner_capacity}"
       }
       template {
-        data = <<EOF
+        data = <<-EOF
           {{- range service "vmck" }}
-            DRONE_RUNNER_ENVIRON="VMCK_IP:{{.Address}},VMCK_PORT:{{.Port}}"
+            DRONE_RUNNER_ENVIRON = "VMCK_IP:{{.Address}},VMCK_PORT:{{.Port}}"
           {{- end }}
           {{- range service "drone-secret" }}
-            DRONE_SECRET_ENDPOINT="http://{{.Address}}:{{.Port}}"
+            DRONE_SECRET_ENDPOINT = "http://{{.Address}}:{{.Port}}"
           {{- end }}
           {{- with secret "liquid/ci/drone.secret" }}
-            DRONE_SECRET_SECRET = {{.Data.secret_key}}
+            DRONE_SECRET_SECRET = {{.Data.secret_key | toJSON }}
           {{- end }}
           {{- with secret "liquid/ci/drone.github" }}
-            DRONE_GITHUB_CLIENT_ID = {{.Data.client_id}}
-            DRONE_GITHUB_CLIENT_SECRET = {{.Data.client_secret}}
-            DRONE_USER_FILTER = {{.Data.user_filter}}
+            DRONE_GITHUB_CLIENT_ID = {{.Data.client_id | toJSON }}
+            DRONE_GITHUB_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
+            DRONE_USER_FILTER = {{.Data.user_filter | toJSON }}
           {{- end }}
         EOF
         destination = "local/drone.env"

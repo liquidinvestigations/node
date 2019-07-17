@@ -14,7 +14,7 @@ job "dokuwiki-migrate" {
       ${ task_logs() }
 
       driver = "docker"
-      config = {
+      config {
         image = "alpine"
         volumes = [
           "${liquid_volumes}/dokuwiki/data:/bitnami",
