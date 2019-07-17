@@ -94,6 +94,11 @@ class Configuration:
 
         self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
 
+        self.elasticsearch_heap_size = self.ini.getint('liquid', 'elasticsearch_heap_size',
+                                                       fallback=1024)
+        self.elasticsearch_memory_limit = self.ini.getint('liquid', 'elasticsearch_memory_limit',
+                                                          fallback=2048)
+
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)

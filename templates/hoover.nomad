@@ -23,10 +23,10 @@ job "hoover" {
       }
       env {
         cluster.name = "hoover"
-        ES_JAVA_OPTS = "-Xms1024m -Xmx1024m"
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m"
       }
       resources {
-        memory = 2000
+        memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
           port "es" {}
