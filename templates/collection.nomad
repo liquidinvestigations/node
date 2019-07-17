@@ -45,44 +45,6 @@ job "collection-${name}" {
     }
   }
 
-  group "tika" {
-    ${ group_disk() }
-
-    task "tika" {
-      ${ task_logs() }
-
-      driver = "docker"
-      config {
-        image = "logicalspark/docker-tikaserver"
-        port_map {
-          tika = 9998
-        }
-        labels {
-          liquid_task = "snoop-${name}-tika"
-        }
-      }
-      resources {
-        memory = 800
-        cpu = 200
-        network {
-          port "tika" {}
-        }
-      }
-      service {
-        name = "snoop-${name}-tika"
-        port = "tika"
-        check {
-          name = "tika alive on http"
-          initial_status = "critical"
-          type = "http"
-          path = "/version"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-
   group "db" {
     ${ group_disk() }
 
@@ -185,7 +147,7 @@ job "collection-${name}" {
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
-        {{- range service "snoop-${name}-tika" }}
+        {{- range service "hoover-tika" }}
           SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
@@ -265,7 +227,7 @@ job "collection-${name}" {
         {{- range service "hoover-es" }}
           SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
-        {{- range service "snoop-${name}-tika" }}
+        {{- range service "hoover-tika" }}
           SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}

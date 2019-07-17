@@ -87,6 +87,40 @@ job "hoover" {
     }
   }
 
+  group "tika" {
+    task "tika" {
+      driver = "docker"
+      config {
+        image = "logicalspark/docker-tikaserver:1.20"
+        port_map {
+          tika = 9998
+        }
+        labels {
+          liquid_task = "hoover-tika"
+        }
+      }
+      resources {
+        memory = 800
+        cpu = 200
+        network {
+          port "tika" {}
+        }
+      }
+      service {
+        name = "hoover-tika"
+        port = "tika"
+        check {
+          name = "hoover-tika alive on http"
+          initial_status = "critical"
+          type = "http"
+          path = "/version"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
   group "web" {
     task "search" {
       driver = "docker"
