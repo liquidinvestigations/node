@@ -28,6 +28,7 @@ job "collection-${name}" {
         memory = 700
         cpu = 150
         network {
+          mbits = 1
           port "amqp" {}
         }
       }
@@ -74,6 +75,7 @@ job "collection-${name}" {
         cpu = 400
         memory = 400
         network {
+          mbits = 1
           port "pg" {}
         }
       }
@@ -245,6 +247,7 @@ job "collection-${name}" {
         memory = 400
         cpu = 200
         network {
+          mbits = 1
           port "http" {}
         }
       }
