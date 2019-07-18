@@ -83,7 +83,7 @@ job "drone" {
         name = "vmck-imghost"
         port = "http"
         check {
-          name = "vmck-imghost nginx alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/healthcheck"
@@ -172,7 +172,7 @@ job "drone" {
         name = "vmck-smallimgs"
         port = "http"
         check {
-          name = "vmck alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/v0/"
@@ -261,7 +261,7 @@ job "drone" {
         name = "vmck"
         port = "http"
         check {
-          name = "vmck alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/v0/"
@@ -315,7 +315,7 @@ job "drone" {
         name = "drone-secret"
         port = "http"
         check {
-          name = "drone-secret alive on tcp, because the http is authenticated"
+          name = "tcp on http port :)"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
@@ -389,7 +389,7 @@ job "drone" {
           "traefik.frontend.rule=Host:jenkins.${liquid_domain}",
         ]
         check {
-          name = "drone alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/"

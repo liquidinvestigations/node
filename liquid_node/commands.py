@@ -104,12 +104,10 @@ def wait_for_service_health_checks(health_checks):
         now = time()
         for service, check, status in checks:
             last_time = last_check_timestamps.get((service, check), t0)
-            after = f'after {now - last_time:6.3f}s'
+            after = f'{now - last_time:+.1f}s'
             last_check_timestamps[service, check] = now
 
-            service = service + ':'
-            check = f'"{check}"'
-            line = f'- {service:<{max_service_len + 1}} {check:<{max_name_len + 2}} is {status:<8} {after:>12}'  # noqa: E501
+            line = f'[{time() - t0:4.1f}] {service:>{max_service_len}}: {check:<{max_name_len}} {status.upper():<8} {after:>5}'  # noqa: E501
 
             if status == 'passing':
                 passing_count[service, check] += 1

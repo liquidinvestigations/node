@@ -36,7 +36,7 @@ job "hoover" {
         name = "hoover-es"
         port = "es"
         check {
-          name = "hoover-es alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/_cluster/health"
@@ -87,7 +87,7 @@ job "hoover" {
         name = "hoover-pg"
         port = "pg"
         check {
-          name = "hoover-pg alive on tcp"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
@@ -121,7 +121,7 @@ job "hoover" {
         name = "hoover-tika"
         port = "tika"
         check {
-          name = "hoover-tika alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/version"
@@ -188,7 +188,7 @@ job "hoover" {
         name = "hoover-search"
         port = "http"
         check {
-          name = "hoover /_ping succeeds"
+          name = "http /_ping"
           initial_status = "critical"
           type = "http"
           path = "/_ping"
@@ -199,7 +199,7 @@ job "hoover" {
           }
         }
         check {
-          name = "hoover alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/"
@@ -210,7 +210,7 @@ job "hoover" {
           }
         }
         check {
-          name = "hoover healthcheck script"
+          name = "script"
           initial_status = "warning"
           type = "script"
           command = "python"
@@ -321,7 +321,7 @@ job "hoover" {
         name = "hoover-collections"
         port = "nginx"
         check {
-          name = "hoover-collections replies to tcp"
+          name = "tcp on http"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"

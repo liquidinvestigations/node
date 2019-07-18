@@ -36,7 +36,7 @@ job "collection-${name}" {
         name = "snoop-${name}-rabbitmq"
         port = "amqp"
         check {
-          name = "rabbitmq alive on tcp"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
@@ -91,7 +91,7 @@ job "collection-${name}" {
         name = "snoop-${name}-pg"
         port = "pg"
         check {
-          name = "postgres alive on tcp"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
@@ -285,7 +285,7 @@ job "collection-${name}" {
         name = "snoop-${name}"
         port = "http"
         check {
-          name = "snoop alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/collection/json"
@@ -296,7 +296,7 @@ job "collection-${name}" {
           }
         }
         check {
-          name = "snoop healthcheck script"
+          name = "script"
           initial_status = "warning"
           type = "script"
           command = "python"
