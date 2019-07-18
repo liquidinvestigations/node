@@ -117,6 +117,8 @@ class Configuration:
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
             self.jobs.append(ci.Drone())
 
+        self.tika_memory = self.ini.get('hoover', 'tika_memory', fallback = 800)
+
         self.collections = OrderedDict()
         for key in self.ini:
             if ':' not in key:

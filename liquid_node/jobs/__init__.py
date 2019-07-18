@@ -40,6 +40,7 @@ def set_volumes_paths(substitutions={}):
     substitutions['check_timeout'] = config.check_timeout
     substitutions['consul_socket'] = os.path.realpath(config.consul_socket)
     substitutions['consul_url'] = config.consul_url
+    substitutions['tika_memory'] = config.tika_memory
 
     substitutions['https_enabled'] = config.https_enabled
     if config.https_enabled:
