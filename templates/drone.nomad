@@ -102,7 +102,7 @@ job "drone" {
 
       driver = "docker"
       config {
-        image = "${config.image('vmck/vmck')}"
+        image = "${config.image('vmck')}"
         args = ["sh", "/local/startup.sh"]
         volumes = [
           "${liquid_volumes}/vmck:/opt/vmck/data",
@@ -191,7 +191,7 @@ job "drone" {
 
       driver = "docker"
       config {
-        image = "${config.image('vmck/vmck')}"
+        image = "${config.image('vmck')}"
         args = ["sh", "/local/startup.sh"]
         volumes = [
           "${liquid_volumes}/vmck:/opt/vmck/data",

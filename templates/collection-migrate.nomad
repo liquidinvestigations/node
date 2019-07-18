@@ -15,7 +15,7 @@ job "collection-${name}-migrate" {
 
       driver = "docker"
       config {
-        image = "${config.image('liquidinvestigations/hoover-snoop2')}"
+        image = "${config.image('hoover-snoop2')}"
         args = ["sh", "/local/migrate.sh"]
         volumes = [
           ${hoover_snoop2_repo}

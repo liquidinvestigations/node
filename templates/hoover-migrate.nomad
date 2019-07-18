@@ -15,7 +15,7 @@ job "hoover-migrate" {
 
       driver = "docker"
       config {
-        image = "${config.image('liquidinvestigations/hoover-search')}"
+        image = "${config.image('hoover-search')}"
         args = ["./manage.py", "migrate"]
         volumes = [
           ${hoover_search_repo}

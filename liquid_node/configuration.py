@@ -140,8 +140,8 @@ class Configuration:
         assert self.versions_ini.get('versions', name, fallback=None), \
             f'docker tag for {name} not set in versions.ini'
         default_tag = self.versions_ini.get('versions', name)
-        tag = self.ini.get('versions', name, fallback=default_tag)
-        return f'{name}:{tag}'
+        image = self.ini.get('versions', name, fallback=default_tag)
+        return f'{image}'
 
     def load_job(self, name, job_config):
         if 'template' in job_config:
