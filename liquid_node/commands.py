@@ -298,7 +298,7 @@ def halt():
         nomad.stop(job)
 
 
-def gc():
+def cleancollectionjobs():
     """Stop collections jobs that are no longer declared in the ini file."""
 
     killed_jobs = []
@@ -320,6 +320,9 @@ def gc():
                 killed_jobs.remove(job_name)
                 log.info(f'Job {job_name} is dead')
 
+
+def cleandeadjobs():
+    """Remove dead jobs from nomad"""
     nomad.gc()
 
 
