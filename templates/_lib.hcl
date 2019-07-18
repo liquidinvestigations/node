@@ -32,7 +32,7 @@ ephemeral_disk {
     task "web" {
       driver = "docker"
       config {
-        image = "${config.image('liquidinvestigations/authproxy')}"
+        image = "${config.image('liquid-authproxy')}"
         volumes = [
           ${liquidinvestigations_authproxy_repo}
         ]
