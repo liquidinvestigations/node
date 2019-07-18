@@ -94,14 +94,23 @@ def wait_for_service_health_checks(health_checks):
                 status = consul_status.get((service, check), 'missing')
                 yield service, check, status
 
+    last_checks = set(get_checks())
+    last_check_timestamps = {}
     def log_checks(checks):
+        now = time()
         for service, check, status in checks:
             service = service + ':'
             check = f'"{check}"'
+            line = f'- {service:<21} {check:<34} is {status:<11}'
+            last_time = last_check_timestamps.get((service, check))
+            if last_time:
+                line += f'after {now - last_time:.02f}s'
+            last_check_timestamps[(service, check)] = now
+
             if status == 'passing':
-                log.info(f'- {service:<14} {check:<20} is {status:<11}')
+                log.info(line)
             else:
-                log.warning(f'- {service:<14} {check:<20} is {status:<11}')
+                log.warning(line)
 
     services = sorted(health_checks.keys())
     log.info(f"Waiting for health checks on {services}")
@@ -109,7 +118,6 @@ def wait_for_service_health_checks(health_checks):
     t0 = time()
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
-    last_checks = set(get_checks())
     log_checks(last_checks)
 
     while time() < timeout:

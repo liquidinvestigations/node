@@ -57,11 +57,11 @@ if __name__ == '__main__':
     handler = colorlog.StreamHandler()
     handler.setLevel(level)
     handler.setFormatter(colorlog.ColoredFormatter(
-        '%(asctime)s %(log_color)s%(levelname)s %(message)s'))
+        '%(asctime)s %(log_color)s%(levelname)8s %(message)s'))
     logging.basicConfig(
         handlers=[handler],
         level=level,
-        datefmt='%Y-%m-%d %H:%M:%s',
+        datefmt='%Y-%m-%d %H:%M:%S',
     )
 
     try:
