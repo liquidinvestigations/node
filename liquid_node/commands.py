@@ -311,7 +311,8 @@ def cleancollectionjobs():
                 killed_jobs.append(job['ID'])
 
     log.info(f'Waiting for jobs to die...')
-    while killed_jobs:
+    timeout = time() + config.wait_max
+    while killed_jobs and time() < timeout:
         sleep(config.wait_interval)
 
         nomad_jobs = {job['ID']: job for job in nomad.jobs() if job['ID'] in killed_jobs}
