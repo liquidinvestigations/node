@@ -76,7 +76,7 @@ def ensure_secret_key(path):
 def wait_for_service_health_checks(health_checks):
     """Waits health checks to become green for green_count times in a row. """
 
-    def get_failed_checks():
+    def get_checks():
         """Generates a list of (service, check, status)
         for all failing checks after checking with Consul"""
 
@@ -92,8 +92,16 @@ def wait_for_service_health_checks(health_checks):
         for service, checks in health_checks.items():
             for check in checks:
                 status = consul_status.get((service, check), 'missing')
-                if status != 'passing':
-                    yield service, check, status
+                yield service, check, status
+
+    def log_checks(checks):
+        for service, check, status in checks:
+            service = service + ':'
+            check = f'"{check}"'
+            if status == 'passing':
+                log.info(f'- {service:<14} {check:<20} is {status:<11}')
+            else:
+                log.warning(f'- {service:<14} {check:<20} is {status:<11}')
 
     services = sorted(health_checks.keys())
     log.info(f"Waiting for health checks on {services}")
@@ -101,12 +109,17 @@ def wait_for_service_health_checks(health_checks):
     t0 = time()
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
-    last_spam = t0
+    last_checks = set(get_checks())
+    log_checks(last_checks)
+
     while time() < timeout:
         sleep(config.wait_interval)
-        failed = sorted(get_failed_checks())
 
-        if failed:
+        checks = set(get_checks())
+        log_checks(checks - last_checks)
+        last_checks = checks
+
+        if any(status != 'passing' for _, _, status in checks):
             greens = 0
         else:
             greens += 1
@@ -120,16 +133,7 @@ def wait_for_service_health_checks(health_checks):
         if greens == 0 and time() >= no_chance_timestamp:
             break
 
-        if time() - last_spam > 10.0:
-            failed_text = ''
-            for service, check, status in failed:
-                failed_text += f'\n - {service}: check "{check}" is {status}'
-            if failed:
-                failed_text += '\n'
-            log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
-            last_spam = time()
-
-    msg = f'Checks are failing after {time() - t0:.02f}s: \n - {failed_text}'
+    msg = f'Checks are failed after {time() - t0:.02f}s.'
     raise RuntimeError(msg)
 
 
