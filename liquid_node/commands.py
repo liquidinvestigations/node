@@ -94,20 +94,27 @@ def wait_for_service_health_checks(health_checks):
                 status = consul_status.get((service, check), 'missing')
                 yield service, check, status
 
-    last_checks = set(get_checks())
+    t0 = time()
     last_check_timestamps = {}
+    passing_count = defaultdict(int)
+
     def log_checks(checks):
+        max_service_len = max(len(s) for s in health_checks.keys())
+        max_name_len = max(max(len(name) for name in health_checks[key]) for key in health_checks)
         now = time()
         for service, check, status in checks:
+            last_time = last_check_timestamps.get((service, check), t0)
+            after = f'after {now - last_time:6.3f}s'
+            last_check_timestamps[service, check] = now
+
             service = service + ':'
             check = f'"{check}"'
-            line = f'- {service:<21} {check:<34} is {status:<11}'
-            last_time = last_check_timestamps.get((service, check))
-            if last_time:
-                line += f'after {now - last_time:.02f}s'
-            last_check_timestamps[(service, check)] = now
+            line = f'- {service:<{max_service_len + 1}} {check:<{max_name_len + 2}} is {status:<8} {after:>12}'  # noqa: E501
 
             if status == 'passing':
+                passing_count[service, check] += 1
+                if passing_count[service, check] > 1:
+                    line += f' #{passing_count[service, check]}'
                 log.info(line)
             else:
                 log.warning(line)
@@ -115,11 +122,10 @@ def wait_for_service_health_checks(health_checks):
     services = sorted(health_checks.keys())
     log.info(f"Waiting for health checks on {services}")
 
-    t0 = time()
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
+    last_checks = set(get_checks())
     log_checks(last_checks)
-
     while time() < timeout:
         sleep(config.wait_interval)
 
@@ -228,9 +234,8 @@ def deploy():
         })
 
     def start(job, hcl):
-        log.info('Parsing %s...', job)
-        spec = nomad.parse(hcl)
         log.info('Starting %s...', job)
+        spec = nomad.parse(hcl)
         nomad.run(spec)
         job_checks = {}
         for service, checks in nomad.get_health_checks(spec):
