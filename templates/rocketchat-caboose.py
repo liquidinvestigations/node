@@ -1,5 +1,8 @@
 import logging
 import os
+import subprocess
+
+subprocess.check_call('pip install pymongo', shell=True)
 
 import pymongo
 
