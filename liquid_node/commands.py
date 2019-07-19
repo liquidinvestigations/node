@@ -155,9 +155,8 @@ def resources():
     def get_all_res():
         jobs = [nomad.parse(get_job(job.template)) for job in config.jobs]
         for name, settings in config.collections.items():
-            for template in ['collection-migrate.nomad', 'collection.nomad']:
-                job = get_collection_job(name, settings, template)
-                jobs.append(nomad.parse(job))
+            job = get_collection_job(name, settings, 'collection.nomad')
+            jobs.append(nomad.parse(job))
         for spec in jobs:
             yield from nomad.get_resources(spec)
 
@@ -284,11 +283,6 @@ def deploy():
     for collection in sorted(config.collections.keys()):
         docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_pg_password.sh')
     docker.exec_(f'hoover-pg', 'sh', '/local/set_pg_password.sh')
-
-    # Run the migrate jobs
-    for name, settings in config.collections.items():
-        migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
-        start(f'collection-{name}-migrate', migrate_job)
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
