@@ -286,12 +286,9 @@ def deploy():
     docker.exec_(f'hoover-pg', 'sh', '/local/set_pg_password.sh')
 
     # Run the migrate jobs
-    migrate_jobs = []
     for name, settings in config.collections.items():
         migrate_job = get_collection_job(name, settings, 'collection-migrate.nomad')
-        migrate_jobs.append((f'collection-{name}-migrate', migrate_job))
-    for job, hcl in migrate_jobs:
-        start(job, hcl)
+        start(f'collection-{name}-migrate', migrate_job)
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
