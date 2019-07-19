@@ -1,15 +1,15 @@
 {%- macro continuous_reschedule() %}
-  reschedule {
-    unlimited = true
-    attempts = 0
-    delay = "5s"
-  }
-  restart {
-    attempts = 3
-    interval = "18s"
-    delay = "4s"
-    mode = "fail"
-  }
+  #reschedule {
+  #  unlimited = false
+  #  attempts = 3
+  #  delay = "5s"
+  #}
+  #restart {
+  #  attempts = 3
+  #  interval = "18s"
+  #  delay = "4s"
+  #  mode = "fail"
+  #}
 {%- endmacro %}
 
 {%- macro task_logs() %}
