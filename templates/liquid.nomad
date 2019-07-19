@@ -59,7 +59,7 @@ job "liquid" {
           "traefik.frontend.rule=Host:${liquid_domain}",
         ]
         check {
-          name = "liquid-core alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/"
@@ -174,7 +174,7 @@ job "liquid" {
         port = "http"
         {%- if not https_enabled %}
         check {
-          name = "traefik alive on http - home page"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/"
@@ -192,7 +192,7 @@ job "liquid" {
         name = "traefik-https"
         port = "https"
         check {
-          name = "traefik alive on https - home page"
+          name = "https"
           initial_status = "critical"
           type = "http"
           protocol = "https"
@@ -211,7 +211,7 @@ job "liquid" {
         name = "traefik-admin"
         port = "admin"
         check {
-          name = "traefik alive on http admin"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/"

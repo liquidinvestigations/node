@@ -32,7 +32,7 @@ job "dokuwiki" {
         name = "dokuwiki-php"
         port = "php"
         check {
-          name = "dokuwiki-php alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/"

@@ -81,7 +81,7 @@ ephemeral_disk {
           "traefik.frontend.rule=Host:${host}",
         ]
         check {
-          name = "${name} authproxy http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/__auth/logout"

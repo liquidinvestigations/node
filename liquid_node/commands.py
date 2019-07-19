@@ -76,7 +76,7 @@ def ensure_secret_key(path):
 def wait_for_service_health_checks(health_checks):
     """Waits health checks to become green for green_count times in a row. """
 
-    def get_failed_checks():
+    def get_checks():
         """Generates a list of (service, check, status)
         for all failing checks after checking with Consul"""
 
@@ -92,21 +92,46 @@ def wait_for_service_health_checks(health_checks):
         for service, checks in health_checks.items():
             for check in checks:
                 status = consul_status.get((service, check), 'missing')
-                if status != 'passing':
-                    yield service, check, status
+                yield service, check, status
+
+    t0 = time()
+    last_check_timestamps = {}
+    passing_count = defaultdict(int)
+
+    def log_checks(checks):
+        max_service_len = max(len(s) for s in health_checks.keys())
+        max_name_len = max(max(len(name) for name in health_checks[key]) for key in health_checks)
+        now = time()
+        for service, check, status in checks:
+            last_time = last_check_timestamps.get((service, check), t0)
+            after = f'{now - last_time:+.1f}s'
+            last_check_timestamps[service, check] = now
+
+            line = f'[{time() - t0:4.1f}] {service:>{max_service_len}}: {check:<{max_name_len}} {status.upper():<8} {after:>5}'  # noqa: E501
+
+            if status == 'passing':
+                passing_count[service, check] += 1
+                if passing_count[service, check] > 1:
+                    line += f' #{passing_count[service, check]}'
+                log.info(line)
+            else:
+                log.warning(line)
 
     services = sorted(health_checks.keys())
     log.info(f"Waiting for health checks on {services}")
 
-    t0 = time()
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
-    last_spam = t0
+    last_checks = set(get_checks())
+    log_checks(last_checks)
     while time() < timeout:
         sleep(config.wait_interval)
-        failed = sorted(get_failed_checks())
 
-        if failed:
+        checks = set(get_checks())
+        log_checks(checks - last_checks)
+        last_checks = checks
+
+        if any(status != 'passing' for _, _, status in checks):
             greens = 0
         else:
             greens += 1
@@ -120,16 +145,7 @@ def wait_for_service_health_checks(health_checks):
         if greens == 0 and time() >= no_chance_timestamp:
             break
 
-        if time() - last_spam > 10.0:
-            failed_text = ''
-            for service, check, status in failed:
-                failed_text += f'\n - {service}: check "{check}" is {status}'
-            if failed:
-                failed_text += '\n'
-            log.debug(f'greens = {greens}, failed = {len(failed)}{failed_text}')
-            last_spam = time()
-
-    msg = f'Checks are failing after {time() - t0:.02f}s: \n - {failed_text}'
+    msg = f'Checks are failed after {time() - t0:.02f}s.'
     raise RuntimeError(msg)
 
 
@@ -216,9 +232,8 @@ def deploy():
         })
 
     def start(job, hcl):
-        log.info('Parsing %s...', job)
-        spec = nomad.parse(hcl)
         log.info('Starting %s...', job)
+        spec = nomad.parse(hcl)
         nomad.run(spec)
         job_checks = {}
         for service, checks in nomad.get_health_checks(spec):

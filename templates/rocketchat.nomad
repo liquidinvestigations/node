@@ -33,7 +33,7 @@ job "rocketchat" {
         name = "rocketchat-mongo"
         port = "mongo"
         check {
-          name = "rocketchat-mongo alive on tcp"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
@@ -124,7 +124,7 @@ job "rocketchat" {
         name = "rocketchat-app"
         port = "web"
         check {
-          name = "rocketchat alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/"
