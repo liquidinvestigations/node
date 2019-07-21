@@ -236,8 +236,9 @@ job "collection-${name}" {
           sleep 5
           exit 1
         fi
-        time ./manage.py migrate --noinput
-        time ./manage.py healthcheck
+        date
+        ./manage.py migrate --noinput
+        ./manage.py healthcheck
         date
         exec /runserver
         EOF
