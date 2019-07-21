@@ -137,6 +137,7 @@ job "hoover" {
       driver = "docker"
       config {
         image = "${config.image('hoover-search')}"
+        args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_search_repo}
           "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
@@ -147,6 +148,17 @@ job "hoover" {
         labels {
           liquid_task = "hoover-search"
         }
+      }
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        /wait
+        ./manage.py migrate
+        exec /runserver
+        EOF
+        env = false
+        destination = "local/startup.sh"
       }
       template {
         data = <<-EOF
