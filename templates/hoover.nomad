@@ -153,6 +153,14 @@ job "hoover" {
         data = <<-EOF
         #!/bin/sh
         set -ex
+        (
+        set +x
+        if [ -z "$HOOVER_DB" ]; then
+          echo "database not ready"
+          sleep 5
+          exit 1
+        fi
+        )
         /wait
         ./manage.py migrate
         exec /runserver
