@@ -246,9 +246,11 @@ def deploy():
 
     hov = hoover.Hoover()
     database_tasks = [hov.pg_task]
+    collection_deps_jobs = [] + hov
     for name, settings in config.collections.items():
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
+        collection_deps_jobs.append((f'collection-{name}-deps', job))
         database_tasks.append('snoop-' + name + '-pg')
         ensure_secret_key(f'liquid/collections/{name}/snoop.django')
         ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
@@ -271,18 +273,27 @@ def deploy():
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
 
+    # only start deps jobs
     health_checks = {}
-    for job, hcl in jobs:
+    for job, hcl in collection_deps_jobs:
         job_checks = start(job, hcl)
         health_checks.update(job_checks)
 
-    # Wait for database health checks of all collections and hoover:
+    # wait for database health checks
     pg_checks = {k: v for k, v in health_checks.items() if k in database_tasks}
     wait_for_service_health_checks(pg_checks)
 
+    # run the set password script
     for collection in sorted(config.collections.keys()):
         docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_pg_password.sh')
     docker.exec_(f'hoover-pg', 'sh', '/local/set_pg_password.sh')
+
+    # wait until all deps are healthy
+    wait_for_service_health_checks(health_checks)
+
+    for job, hcl in jobs:
+        job_checks = start(job, hcl)
+        health_checks.update(job_checks)
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
