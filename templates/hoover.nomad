@@ -317,7 +317,7 @@ job "hoover" {
         destination = "local/collections.conf"
       }
       config = {
-        image = "nginx"
+        image = "nginx:1.17"
         port_map {
           nginx = 80
         }
