@@ -163,7 +163,7 @@ job "hoover" {
         )
         /wait
         ./manage.py migrate
-        exec /runserver
+        exec ./runserver
         EOF
         env = false
         destination = "local/startup.sh"
