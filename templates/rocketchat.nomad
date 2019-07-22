@@ -105,8 +105,10 @@ job "rocketchat" {
           var fs = require('fs');
           var dotenv = ('' + fs.readFileSync('/local/liquid.env')).trim();
           for (const a of dotenv.split(/\n/)) {
-            [_,k,v]=a.trim().match(/^([^=]+)=(.*)/);
-            process.env[k]=v;
+            [_,k,v] = a.trim().match(/^([^=]+)=(.*)/);
+            var noquotes = v.match(/^"(.*)"$/);
+            if (noquotes) v = noquotes[1];
+            process.env[k] = v;
           }
           require('/app/bundle/main.js');
         EOF
