@@ -98,7 +98,7 @@ def wait_for_service_health_checks(health_checks):
     last_check_timestamps = {}
     passing_count = defaultdict(int)
 
-    def log_checks(checks):
+    def log_checks(checks, as_error=False):
         max_service_len = max(len(s) for s in health_checks.keys())
         max_name_len = max(max(len(name) for name in health_checks[key]) for key in health_checks)
         now = time()
@@ -110,10 +110,14 @@ def wait_for_service_health_checks(health_checks):
             line = f'[{time() - t0:4.1f}] {service:>{max_service_len}}: {check:<{max_name_len}} {status.upper():<8} {after:>5}'  # noqa: E501
 
             if status == 'passing':
+                if as_error:
+                    continue
                 passing_count[service, check] += 1
                 if passing_count[service, check] > 1:
                     line += f' #{passing_count[service, check]}'
                 log.info(line)
+            elif as_error:
+                log.error(line)
             else:
                 log.warning(line)
 
@@ -145,6 +149,7 @@ def wait_for_service_health_checks(health_checks):
         if greens == 0 and time() >= no_chance_timestamp:
             break
 
+    log_checks(checks, as_error=True)
     msg = f'Checks are failed after {time() - t0:.02f}s.'
     raise RuntimeError(msg)
 
