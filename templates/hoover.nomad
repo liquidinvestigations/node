@@ -341,7 +341,7 @@ job "hoover" {
         name = "hoover-collections"
         port = "nginx"
         check {
-          name = "tcp on http"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
