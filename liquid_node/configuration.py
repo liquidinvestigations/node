@@ -23,6 +23,7 @@ class Configuration:
             liquid.Liquid(),
             hoover.Hoover(),
             hoover.Ui(),
+            hoover.Deps(),
             dokuwiki.Dokuwiki(),
             dokuwiki.Migrate(),
             rocketchat.Rocketchat(),

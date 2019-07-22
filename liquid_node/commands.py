@@ -244,11 +244,14 @@ def deploy():
 
     jobs = [(job.name, get_job(job.template)) for job in config.jobs]
 
-    hov = hoover.Hoover()
-    database_tasks = [hov.pg_task]
+    hov_deps = hoover.Deps()
+    database_tasks = [hov_deps.pg_task]
+    deps_jobs = [(hov_deps.name, get_job(hov_deps.template))]
     for name, settings in config.collections.items():
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
+        deps_job = get_collection_job(name, settings, 'collection-deps.nomad')
+        deps_jobs.append((f'collection-{name}-deps', deps_job))
         database_tasks.append('snoop-' + name + '-pg')
         ensure_secret_key(f'liquid/collections/{name}/snoop.django')
         ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
@@ -271,18 +274,27 @@ def deploy():
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
 
+    # only start deps jobs + hoover
     health_checks = {}
-    for job, hcl in jobs:
+    for job, hcl in deps_jobs:
         job_checks = start(job, hcl)
         health_checks.update(job_checks)
 
-    # Wait for database health checks of all collections and hoover:
+    # wait for database health checks
     pg_checks = {k: v for k, v in health_checks.items() if k in database_tasks}
     wait_for_service_health_checks(pg_checks)
 
+    # run the set password script
     for collection in sorted(config.collections.keys()):
         docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_pg_password.sh')
     docker.exec_(f'hoover-pg', 'sh', '/local/set_pg_password.sh')
+
+    # wait until all deps are healthy
+    wait_for_service_health_checks(health_checks)
+
+    for job, hcl in jobs:
+        job_checks = start(job, hcl)
+        health_checks.update(job_checks)
 
     # Wait for everything else
     wait_for_service_health_checks(health_checks)
@@ -305,6 +317,7 @@ def halt():
 
     jobs = [j.name for j in config.jobs]
     jobs.extend(f'collection-{name}' for name in config.collections)
+    jobs.extend(f'collection-{name}-deps' for name in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
         nomad.stop(job)
