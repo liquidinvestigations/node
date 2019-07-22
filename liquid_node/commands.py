@@ -301,28 +301,30 @@ def halt():
 def cleancollectionjobs():
     """Stop collections jobs that are no longer declared in the ini file."""
 
-    killed_jobs = []
+    stopped_jobs = []
     for job in nomad.jobs():
         if job['ID'].startswith('collection-'):
             collection_name = job['ID'][len('collection-'):]
             if collection_name not in config.collections and job['Status'] == 'running':
                 log.info('Stopping %s...', job['ID'])
                 nomad.stop(job['ID'])
-                killed_jobs.append(job['ID'])
+                stopped_jobs.append(job['ID'])
 
     log.info(f'Waiting for jobs to die...')
     timeout = time() + config.wait_max
-    while killed_jobs and time() < timeout:
+    while stopped_jobs and time() < timeout:
         sleep(config.wait_interval)
 
-        nomad_jobs = {job['ID']: job for job in nomad.jobs() if job['ID'] in killed_jobs}
-        for job_name in killed_jobs:
+        nomad_jobs = {job['ID']: job for job in nomad.jobs() if job['ID'] in stopped_jobs}
+        for job_name in stopped_jobs:
             if job_name not in nomad_jobs or nomad_jobs[job_name]['Status'] == 'dead':
-                killed_jobs.remove(job_name)
+                stopped_jobs.remove(job_name)
                 log.info(f'Job {job_name} is dead')
+    else:
+        raise RuntimeError(f'The following jobs are still running: {stopped_jobs}')
 
 
-def cleandeadjobs():
+def nomadgc():
     """Remove dead jobs from nomad"""
     nomad.gc()
 

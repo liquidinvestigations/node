@@ -38,7 +38,7 @@ def main():
         commands.deploy,
         commands.resources,
         commands.cleancollectionjobs,
-        commands.cleandeadjobs,
+        commands.nomadgc,
         commands.halt,
         commands.initcollection,
         commands.deletecollection,
