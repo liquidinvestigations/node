@@ -36,6 +36,7 @@ job "hoover" {
         )
         /wait
         ./manage.py migrate
+        ./manage.py healthcheck
         exec ./runserver
         EOF
         env = false
@@ -81,17 +82,6 @@ job "hoover" {
         name = "hoover-search"
         port = "http"
         check {
-          name = "http /_ping"
-          initial_status = "critical"
-          type = "http"
-          path = "/_ping"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-          header {
-            Host = ["hoover.${liquid_domain}"]
-          }
-        }
-        check {
           name = "http"
           initial_status = "critical"
           type = "http"
@@ -101,15 +91,6 @@ job "hoover" {
           header {
             Host = ["hoover.${liquid_domain}"]
           }
-        }
-        check {
-          name = "script"
-          initial_status = "warning"
-          type = "script"
-          command = "python"
-          args = ["manage.py", "healthcheck"]
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
         }
       }
     }
