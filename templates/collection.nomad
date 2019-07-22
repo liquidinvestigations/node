@@ -236,6 +236,10 @@ job "collection-${name}" {
           sleep 5
           exit 1
         fi
+        date
+        ./manage.py migrate --noinput
+        ./manage.py healthcheck
+        date
         exec /runserver
         EOF
         env = false
@@ -294,15 +298,6 @@ job "collection-${name}" {
           header {
             Host = ["${name}.snoop.${liquid_domain}"]
           }
-        }
-        check {
-          name = "script"
-          initial_status = "warning"
-          type = "script"
-          command = "python"
-          args = ["manage.py", "healthcheck"]
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
         }
       }
     }

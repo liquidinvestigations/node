@@ -9,7 +9,7 @@ job "dokuwiki" {
     task "php" {
       driver = "docker"
       config = {
-        image = "bitnami/dokuwiki:0"
+        image = "bitnami/dokuwiki:0.20180422.201901061035"
         volumes = [
           "${liquid_volumes}/dokuwiki/data:/bitnami",
         ]

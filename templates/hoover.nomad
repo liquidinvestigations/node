@@ -137,6 +137,7 @@ job "hoover" {
       driver = "docker"
       config {
         image = "${config.image('hoover-search')}"
+        args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_search_repo}
           "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
@@ -147,6 +148,25 @@ job "hoover" {
         labels {
           liquid_task = "hoover-search"
         }
+      }
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        (
+        set +x
+        if [ -z "$HOOVER_DB" ]; then
+          echo "database not ready"
+          sleep 5
+          exit 1
+        fi
+        )
+        /wait
+        ./manage.py migrate
+        exec ./runserver
+        EOF
+        env = false
+        destination = "local/startup.sh"
       }
       template {
         data = <<-EOF
@@ -297,7 +317,7 @@ job "hoover" {
         destination = "local/collections.conf"
       }
       config = {
-        image = "nginx"
+        image = "nginx:1.17"
         port_map {
           nginx = 80
         }
@@ -321,7 +341,7 @@ job "hoover" {
         name = "hoover-collections"
         port = "nginx"
         check {
-          name = "tcp on http"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
