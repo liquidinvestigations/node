@@ -317,6 +317,7 @@ def halt():
 
     jobs = [j.name for j in config.jobs]
     jobs.extend(f'collection-{name}' for name in config.collections)
+    jobs.extend(f'collection-{name}-deps' for name in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
         nomad.stop(job)
