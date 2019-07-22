@@ -244,13 +244,14 @@ def deploy():
 
     jobs = [(job.name, get_job(job.template)) for job in config.jobs]
 
-    hov = hoover.Hoover()
-    database_tasks = [hov.pg_task]
-    collection_deps_jobs = [] + hov
+    hov_deps = hoover.Deps()
+    database_tasks = [hov_deps.pg_task]
+    deps_jobs = [(hov_deps.name, get_job(hov_deps.template))]
     for name, settings in config.collections.items():
         job = get_collection_job(name, settings)
         jobs.append((f'collection-{name}', job))
-        collection_deps_jobs.append((f'collection-{name}-deps', job))
+        deps_job = get_collection_job(name, settings, 'collection-deps.nomad')
+        deps_jobs.append((f'collection-{name}-deps', deps_job))
         database_tasks.append('snoop-' + name + '-pg')
         ensure_secret_key(f'liquid/collections/{name}/snoop.django')
         ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
@@ -273,9 +274,9 @@ def deploy():
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
 
-    # only start deps jobs
+    # only start deps jobs + hoover
     health_checks = {}
-    for job, hcl in collection_deps_jobs:
+    for job, hcl in deps_jobs:
         job_checks = start(job, hcl)
         health_checks.update(job_checks)
 
