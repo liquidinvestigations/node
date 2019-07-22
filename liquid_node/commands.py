@@ -162,6 +162,8 @@ def resources():
         for name, settings in config.collections.items():
             job = get_collection_job(name, settings, 'collection.nomad')
             jobs.append(nomad.parse(job))
+            deps_job = get_collection_job(name, settings, 'collection-deps.nomad')
+            jobs.append(nomad.parse(deps_job))
         for spec in jobs:
             yield from nomad.get_resources(spec)
 
