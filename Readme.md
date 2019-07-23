@@ -88,6 +88,16 @@ where `[liquid_domain]` is the value of `liquid.domain` from the `liquid.ini` fi
 
 
 ## Configuration
+### Use Pipenv
+```shell
+sudo apt update
+sudo apt install python3-venv python3-pip git curl unzip
+pip3 install pipenv
+pipenv install -r requirements.txt
+pipenv shell
+```
+After taking these steps, continue the configuration inside the virtual environment's shell.
+
 The Liquid Investigations cluster configuration is read from `liquid.ini`.
 Start with the example configuration file:
 
@@ -121,7 +131,7 @@ root_token = s.Cmro41vNI4wIndgrPqzlqOKY
 Then deploy to the cluster:
 
 ```shell
-./liquid deploy
+./liquid.py deploy
 ```
 
 The liquid instance will listen by default on port 80 on the local machine. If
@@ -136,7 +146,7 @@ you don't have a DNS domain pointing to the macine, you can add entries to
 
 Create an initial admin user:
 ```shell
-./liquid shell liquid-core ./manage.py createsuperuser
+./liquid.py shell liquid-core ./manage.py createsuperuser
 ```
 
 ### Versions
