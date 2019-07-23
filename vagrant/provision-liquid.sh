@@ -15,7 +15,7 @@ fi
 
 cp examples/liquid.ini .
 
-./liquid resources
-./liquid deploy
+pipenv run ./liquid.py resources
+pipenv run ./liquid.py deploy
 
 echo "Liquid provisioned successfully." > /dev/null
