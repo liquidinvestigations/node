@@ -139,6 +139,21 @@ Create an initial admin user:
 ./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
+### Maintenance
+During maintenance, you may decide to allow only administrators to log in. Set
+this flag in `liquid.ini` then deploy:
+
+```ini
+[liquid]
+auth_staff_only = true
+```
+
+To invalidate any existing login session, run `killsessions`:
+
+```shell
+./liquid shell liquid-core ./manage.py killsessions
+```
+
 ### Versions
 The liquid bundle comes with a `versions.ini` file with a known set of working
 versions. You can override them in `liquid.ini`, see `examples/liquid.ini` for
