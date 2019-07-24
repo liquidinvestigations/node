@@ -278,3 +278,18 @@ In order to remove a collection, take the following steps:
 #### Removing dead jobs from nomad
 In order to remove dead jobs from nomad run the following command:
 `./liquid nomadgc`.
+
+#### Enabling/disabling applications
+Applications can be enabled/disabled on deploy by setting them `on` or `off`
+in the `apps` section:
+```ini
+[apps]
+nextcloud = off
+```
+
+By default, all applications are started, but this default can also be changed
+in the `deploy` section:
+```ini
+[deploy]
+default_app_status = off
+```

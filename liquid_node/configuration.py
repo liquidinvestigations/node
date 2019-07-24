@@ -1,42 +1,30 @@
+import configparser
 import time
 from collections import OrderedDict
-import configparser
+from distutils.util import strtobool
 from pathlib import Path
-from .util import import_string
-from .jobs import Job
 
-from liquid_node.jobs import liquid
-from liquid_node.jobs import hoover
-from liquid_node.jobs import dokuwiki
-from liquid_node.jobs import rocketchat
-from liquid_node.jobs import nextcloud
-from liquid_node.jobs import ci
+from .util import import_string
+from liquid_node.jobs import ci, Job
 
 
 class Configuration:
+    _core_apps = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',)
+    _allways_on_apps = ('liquid', 'hoover',)
 
     def __init__(self):
         self.root = Path(__file__).parent.parent.resolve()
         self.templates = self.root / 'templates'
-
-        self.jobs = [
-            liquid.Liquid(),
-            hoover.Hoover(),
-            hoover.Ui(),
-            hoover.Deps(),
-            dokuwiki.Dokuwiki(),
-            dokuwiki.Migrate(),
-            rocketchat.Rocketchat(),
-            rocketchat.Migrate(),
-            nextcloud.Nextcloud(),
-            nextcloud.Migrate(),
-        ]
 
         self.versions_ini = configparser.ConfigParser()
         self.versions_ini.read(self.root / 'versions.ini')
 
         self.ini = configparser.ConfigParser()
         self.ini.read(self.root / 'liquid.ini')
+
+        self.default_app_status = self.ini.get('deploy', 'default_app_status', fallback='on')
+
+        self.all_jobs, self.jobs = self._jobs()
 
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
         self.consul_socket = self.ini.get('cluster', 'consul_socket')
@@ -173,6 +161,25 @@ class Configuration:
 
     def app_url(self, name):
         return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
+
+    def _jobs(self):
+        all_jobs = []
+        jobs_to_start = []
+
+        for core_app in Configuration._core_apps:
+            if core_app in Configuration._allways_on_apps and self.ini.has_option('apps', core_app):
+                raise RuntimeError(f'The app "{core_app}" is always on.')
+
+            app_jobs = list(import_string(f'liquid_node.jobs.{core_app}.jobs'))
+            all_jobs.extend(app_jobs)
+            if self.is_app_enabled(core_app):
+                jobs_to_start.extend(app_jobs)
+
+        return all_jobs, jobs_to_start
+
+    def is_app_enabled(self, job_name):
+        return job_name in Configuration._allways_on_apps or \
+            strtobool(self.ini.get('apps', job_name, fallback=self.default_app_status))
 
     @classmethod
     def _validate_collection_name(self, name):

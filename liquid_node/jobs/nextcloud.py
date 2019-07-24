@@ -9,3 +9,6 @@ class Nextcloud(jobs.Job):
 class Migrate(jobs.Job):
     name = 'nextcloud-migrate'
     template = jobs.TEMPLATES / f'{name}.nomad'
+
+
+jobs = (Nextcloud(), Migrate(), )

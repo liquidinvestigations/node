@@ -9,3 +9,6 @@ class Dokuwiki(jobs.Job):
 class Migrate(jobs.Job):
     name = 'dokuwiki-migrate'
     template = jobs.TEMPLATES / f'{name}.nomad'
+
+
+jobs = (Dokuwiki(), Migrate(), )

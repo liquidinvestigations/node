@@ -15,3 +15,6 @@ class Deps(jobs.Job):
     name = 'hoover-deps'
     template = jobs.TEMPLATES / f'{name}.nomad'
     pg_task = 'hoover-pg'
+
+
+jobs = (Deps(), Hoover(), Ui(), )

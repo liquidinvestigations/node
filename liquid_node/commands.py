@@ -9,6 +9,7 @@ import json
 from liquid_node.collections import push_collections_titles
 from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
     add_collections_ini, import_index
+from liquid_node.jobs import wait_for_stopped_jobs
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
@@ -281,6 +282,15 @@ def deploy():
         docker_exec_cmd = ['docker', 'exec', container_id] + cmd
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
+
+    # check if there are jobs to stop
+    disabled_jobs = set(job.name for job in (set(config.all_jobs) - set(config.jobs)))
+    nomad_jobs = set(job['ID'] for job in nomad.jobs())
+    jobs_to_stop = disabled_jobs.intersection(nomad_jobs)
+    if jobs_to_stop:
+        for job in jobs_to_stop:
+            nomad.stop(job)
+        wait_for_stopped_jobs(jobs_to_stop)
 
     # only start deps jobs + hoover
     health_checks = {}

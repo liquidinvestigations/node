@@ -9,3 +9,6 @@ class Rocketchat(jobs.Job):
 class Migrate(jobs.Job):
     name = 'rocketchat-migrate'
     template = jobs.TEMPLATES / f'{name}.nomad'
+
+
+jobs = (Rocketchat(), Migrate(), )
