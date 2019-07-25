@@ -144,5 +144,7 @@ job "rocketchat" {
       'rocketchat',
       host='rocketchat.' + liquid_domain,
       upstream='rocketchat-app',
+      threads=150,
+      memory=500,
     ) }
 }
