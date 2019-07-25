@@ -115,7 +115,7 @@ job "rocketchat" {
         destination = "local/main.js"
       }
       resources {
-        memory = 800
+        memory = 1500
         cpu = 400
         network {
           mbits = 1
