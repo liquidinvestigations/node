@@ -399,4 +399,58 @@ job "drone" {
       }
     }
   }
+
+  group "registry" {
+    ${ group_disk() }
+    task "registry" {
+      ${ task_logs() }
+      driver = "docker"
+      config {
+        image = "registry:2"
+        volumes = [
+          "/opt/volumes/registry:/var/lib/registry",
+        ]
+        port_map {
+          reg = 5000
+        }
+      }
+
+      resources {
+        memory = 300
+        cpu = 200
+        network {
+          mbits = 10
+          port "reg" {
+            static = 6665
+          }
+        }
+      }
+
+      template {
+        data = <<-EOF
+          version: 0.1
+          log:
+            fields:
+              service: registry
+          storage:
+            cache:
+              blobdescriptor: inmemory
+            filesystem:
+              rootdirectory: /var/lib/registry
+          http:
+            addr: 0.0.0.0:5000
+            headers:
+              X-Content-Type-Options: [nosniff]
+          health:
+            storagedriver:
+              enabled: true
+              interval: 10s
+              threshold: 3
+          proxy:
+            remoteurl: https://registry-1.docker.io
+        EOF
+        destination = "/etc/docker/registry/config.yml"
+      }
+    }
+  }
 }
