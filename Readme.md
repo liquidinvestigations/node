@@ -205,6 +205,13 @@ The `method` is optional. The default value is `link`, while the possible values
 
 When using the `copy` method, the import will take longer.
 
+### Starting a local registry
+
+`templates/drone.nomad` should be running on your Nomad cluster. It provides a local registry
+mirror on port 6665, but dockerd is not using it yet. To enabled it just run `{root}/templates/registry-setup.sh`.
+This will let docker use the local mirror first then it will try the official one if the
+requested image is not present.
+
 ### Debugging
 
 Set the debug flag in `liquid.ini`:

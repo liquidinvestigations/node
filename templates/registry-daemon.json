@@ -1,0 +1,4 @@
+{
+    "registry-mirrors": ["http://localhost:6665", "https://registry-1.docker.io"],
+    "insecure-registry": ["localhost:6665"]
+}
