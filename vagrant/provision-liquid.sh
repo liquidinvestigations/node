@@ -14,8 +14,14 @@ if ! [ -d collections/testdata ]; then
 fi
 
 cp examples/liquid.ini .
+cat vagrant/liquid-collections.ini >> liquid.ini
 
 ./liquid resources
 ./liquid deploy
+
+cp -f examples/liquid.ini .
+
+./liquid collectionsgc
+./liquid nomadgc
 
 echo "Liquid provisioned successfully." > /dev/null

@@ -268,3 +268,13 @@ template = local/foo.nomad
 ```
 
 Afterwards, run `./liquid deploy`, which will send your job `foo` to nomad.
+
+#### Removing collections
+In order to remove a collection, take the following steps:
+1. Remove the corresponding collection section from the `liquid.ini` file.
+2. Run `./liquid collectionsgc`
+3. Run `./liquid purge`
+
+#### Removing dead jobs from nomad
+In order to remove dead jobs from nomad run the following command:
+`./liquid nomadgc`.

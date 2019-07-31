@@ -51,6 +51,9 @@ class Nomad(JsonApi):
     def stop(self, job):
         return self.delete(f'job/{job}')
 
+    def gc(self):
+        return self.put('system/gc', None)
+
     def get_address(self):
         """Return the nomad server's address."""
 
