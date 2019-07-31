@@ -298,7 +298,7 @@ def halt():
         nomad.stop(job)
 
 
-def cleancollectionjobs():
+def collectionsgc():
     """Stop collections jobs that are no longer declared in the ini file."""
 
     stopped_jobs = []
@@ -320,7 +320,7 @@ def cleancollectionjobs():
             if job_name not in nomad_jobs or nomad_jobs[job_name]['Status'] == 'dead':
                 stopped_jobs.remove(job_name)
                 log.info(f'Job {job_name} is dead')
-    else:
+    if stopped_jobs:
         raise RuntimeError(f'The following jobs are still running: {stopped_jobs}')
 
 

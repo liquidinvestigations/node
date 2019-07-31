@@ -37,7 +37,7 @@ def main():
         commands.nomad_address,
         commands.deploy,
         commands.resources,
-        commands.cleancollectionjobs,
+        commands.collectionsgc,
         commands.nomadgc,
         commands.halt,
         commands.initcollection,
