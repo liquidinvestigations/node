@@ -41,7 +41,7 @@ job "nextcloud" {
           OC_PASS= {{.Data.secret_key}}
         {{- end }}
         NEXTCLOUD_ADMIN="admin"
-        {{- with secret "liquid/nextcloud/nextcloud.actualadmin" }}
+        {{- with secret "liquid/nextcloud/nextcloud.webadmin" }}
         NEXTCLOUD_ADMIN_PASSWORD={{.Data.secret_key | toJSON }}
         {{- end }}
         EOF

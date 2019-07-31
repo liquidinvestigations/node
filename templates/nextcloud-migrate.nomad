@@ -41,7 +41,7 @@ job "nextcloud-migrate" {
         {{- end }}
         NEXTCLOUD_HOST = nextcloud.{{ key "liquid_domain" }}
         NEXTCLOUD_ADMIN_USER = admin
-        {{- with secret "liquid/nextcloud/nextcloud.actualadmin" }}
+        {{- with secret "liquid/nextcloud/nextcloud.webadmin" }}
           NEXTCLOUD_ADMIN_PASSWORD={{.Data.secret_key | toJSON }}
         {{- end }}
         {{- range service "nextcloud-maria" }}
