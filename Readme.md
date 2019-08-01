@@ -275,6 +275,13 @@ In order to remove a collection, take the following steps:
 2. Run `./liquid collectionsgc`
 3. Run `./liquid purge`
 
+#### Stopping jobs that should not be running in the current deploy configuration
+This command will stop all jobs from collections that are no longer in the `liquid.ini`
+file and jobs from applications that were disabled.
+```bash
+./liquid gc
+```
+
 #### Removing dead jobs from nomad
 In order to remove dead jobs from nomad run the following command:
 `./liquid nomadgc`.
@@ -290,6 +297,6 @@ nextcloud = off
 By default, all applications are started, but this default can also be changed
 in the `deploy` section:
 ```ini
-[deploy]
+[apps]
 default_app_status = off
 ```
