@@ -115,6 +115,15 @@ class Configuration:
             self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
             self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
+            self.ci_docker_registry_address = self.ini.get('ci', 'docker_registry_address', fallback=None)
+            self.ci_docker_registry_port = self.ini.get('ci', 'docker_registry_port', fallback=None)
+            if self.ci_docker_registry_address and self.ci_docker_registry_port:
+                self.ci_docker_registry_env = (
+                    f',REGISTRY_ADDRESS={self.ci_docker_registry_address}'
+                    f',REGISTRY_PORT={self.ci_docker_registry_port}'
+                )
+            else:
+                self.ci_docker_registry_env = ''
             self.jobs.append(ci.Drone())
 
         self.collections = OrderedDict()
