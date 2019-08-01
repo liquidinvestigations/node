@@ -119,8 +119,8 @@ class Configuration:
             self.ci_docker_registry_port = self.ini.get('ci', 'docker_registry_port', fallback=None)
             if self.ci_docker_registry_address and self.ci_docker_registry_port:
                 self.ci_docker_registry_env = (
-                    f',REGISTRY_ADDRESS={self.ci_docker_registry_address}'
-                    f',REGISTRY_PORT={self.ci_docker_registry_port}'
+                    f',REGISTRY_ADDRESS:{self.ci_docker_registry_address}'
+                    f',REGISTRY_PORT:{self.ci_docker_registry_port}'
                 )
             else:
                 self.ci_docker_registry_env = ''
