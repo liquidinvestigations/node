@@ -29,6 +29,10 @@ if [ "$INSTALLED" == "false" ]; then
             --admin-user=$NEXTCLOUD_ADMIN_USER \
             --admin-pass=$NEXTCLOUD_ADMIN_PASSWORD
 
+    (
+    set +x
+    export OC_PASS="$UPLOADS_USER_PASS"
+    )
     php occ user:add --password-from-env --display-name="uploads" uploads
     php occ config:system:set trusted_domains 0 --value '*'
 
@@ -39,8 +43,15 @@ elif [ "$INSTALLED" == "null" ]; then
     sleep 6
     exit 1
 fi
-
-
+(
+set +x
+export OC_PASS="$UPLOADS_USER_PASS"
+php occ user:resetpassword --password-from-env uploads
+export OC_PASS="$NEXTCLOUD_ADMIN_PASSWORD"
+php occ user:resetpassword --password-from-env $NEXTCLOUD_ADMIN_USER
+)
+echo "uploads and admin password set
+"
 echo "Unpacking theme"
 
 rm -rf /var/www/html/themes/liquid || true
