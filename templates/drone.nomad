@@ -354,7 +354,7 @@ job "drone" {
       template {
         data = <<-EOF
           {{- range service "vmck" }}
-            DRONE_RUNNER_ENVIRON = "VMCK_IP:{{.Address}},VMCK_PORT:{{.Port}}"
+            DRONE_RUNNER_ENVIRON = "VMCK_IP:{{.Address}},VMCK_PORT:{{.Port}}${config.ci_docker_registry_env}"
           {{- end }}
           {{- range service "drone-secret" }}
             DRONE_SECRET_ENDPOINT = "http://{{.Address}}:{{.Port}}"
