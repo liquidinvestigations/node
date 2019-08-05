@@ -2,21 +2,21 @@
 
 set -ex
 
-if [ -z "$NEXTCLOUD_INTERNAL_STATUS_URL" ]; then
-    echo "Missing NEXTCLOUD_INTERNAL_STATUS_URL - please wait for apache to boot up"
-    sleep 6
-    exit 1
-fi
+#if [ -z "$NEXTCLOUD_INTERNAL_STATUS_URL" ]; then
+#    echo "Missing NEXTCLOUD_INTERNAL_STATUS_URL - please wait for apache to boot up"
+#    sleep 6
+#    exit 1
+#fi
 
-if [ -z "$MYSQL_HOST" ]; then
-    echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
-    sleep 6
-    exit 1
-fi
+#if [ -z "$MYSQL_HOST" ]; then
+#    echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
+#    sleep 6
+#    exit 1
+#fi
 
-INSTALLED=$(curl --silent --header "Host: $NEXTCLOUD_HOST" $NEXTCLOUD_INTERNAL_STATUS_URL | jq .installed)
-if [ "$INSTALLED" == "false" ]; then
-    echo "Installing nextcloud"
+#INSTALLED=$(curl --silent --header "Host: $NEXTCLOUD_HOST" $NEXTCLOUD_INTERNAL_STATUS_URL | jq .installed)
+#if [ "$INSTALLED" == "false" ]; then
+#    echo "Installing nextcloud"
 
     php /var/www/html/occ maintenance:install \
             --no-interaction \
@@ -32,9 +32,9 @@ if [ "$INSTALLED" == "false" ]; then
     (
     set +x
     export OC_PASS="$UPLOADS_USER_PASS"
-    )
     php occ user:add --password-from-env --display-name="uploads" uploads
     php occ config:system:set trusted_domains 0 --value '*'
+    )
 
     echo "Installation successful -- now restarting (aka failing) the migrate job"
     exit 66
@@ -65,10 +65,10 @@ echo "Configuring..."
 php occ config:system:set trusted_domains 0 --value '*'
 php occ config:system:set dbhost --value $MYSQL_HOST
 php occ config:system:set theme --value liquid
-php occ config:system:set overwrite.cli.url --value $HTTP_PROTO://$NEXTCLOUD_HOST
+# php occ config:system:set overwrite.cli.url --value $HTTP_PROTO://$NEXTCLOUD_HOST
 php occ config:system:set allow_user_to_change_display_name --value false --type boolean
-php occ config:system:set overwritehost --value $NEXTCLOUD_HOST
-php occ config:system:set overwriteprotocol --value $HTTP_PROTO
+# php occ config:system:set overwritehost --value $NEXTCLOUD_HOST
+# php occ config:system:set overwriteprotocol --value $HTTP_PROTO
 php occ config:system:set htaccess.RewriteBase --value '/'
 php occ config:system:set skeletondirectory --value ''
 php occ config:system:set updatechecker --value false --type boolean
