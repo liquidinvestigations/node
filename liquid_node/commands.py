@@ -19,7 +19,7 @@ from .util import first
 from .collections import get_search_collections
 from .docker import docker
 from .vault import vault
-from .import_from_docker import import_collection
+from .import_from_docker import import_collection, import_dir
 
 
 log = logging.getLogger(__name__)
@@ -448,6 +448,31 @@ def deletecollection(name):
     """Delete a collection by name"""
     nomad.stop(f'collection-{name}')
     purge_collection(name)
+
+
+def importcollection(name, database=None, blobs=None, index=None ):
+    log.info(f'Importing collection {name}')
+
+    node_name = name.lower()
+    if name != node_name:
+        log.info(f'Renaming "{name}" to "{node_name}"')
+    collection_path = Path(config.liquid_volumes) / 'collections' / node_name
+    if not collection_path.is_dir():
+        collection_path.mkdir(parents=True)
+
+    # copy the pg dir
+    database.Path.resolve(strict=True)
+    pg_src = database
+    pg_dst = collection_path / 'pg'
+    log.info(f'Importing the collection "{name}" pg dir')
+    import_dir(pg_src, pg_dst, method='copy')
+
+    # copy the blobs dir
+    blobs.Path.resolve(strict=True)
+    blob_src = blobs
+    blob_dst = collection_path / 'blobs'
+    log.info(f'Importing the collection "{name}" blobs dir')
+    import_dir(blob_src, blob_dst, method='copy')
 
 
 def importfromdockersetup(path, method='link'):
