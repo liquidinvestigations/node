@@ -53,7 +53,7 @@ job "nextcloud-migrate" {
           MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
-          UPLOADS_USER_PASS = {{.Data.secret_key | toJSON }}
+          UPLOADS_USER_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         TIMESTAMP = "${config.timestamp}"
         EOF
