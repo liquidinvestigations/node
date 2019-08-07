@@ -101,6 +101,8 @@ class Configuration:
         self.elasticsearch_memory_limit = self.ini.getint('liquid', 'elasticsearch_memory_limit',
                                                           fallback=2048)
 
+        self.tika_memory_limit = self.ini.get('liquid', 'tika_memory_limit', fallback=800)
+
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
@@ -116,8 +118,6 @@ class Configuration:
             self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
             self.jobs.append(ci.Drone())
-
-        self.tika_memory = self.ini.get('hoover', 'tika_memory', fallback=800)
 
         self.collections = OrderedDict()
         for key in self.ini:
