@@ -450,29 +450,33 @@ def deletecollection(name):
     purge_collection(name)
 
 
-def importcollection(name, database=None, blobs=None, index=None ):
+def importcollection(name, database=None, blobs=None, index=None, method='copy' ):
     log.info(f'Importing collection {name}')
 
     node_name = name.lower()
     if name != node_name:
         log.info(f'Renaming "{name}" to "{node_name}"')
     collection_path = Path(config.liquid_volumes) / 'collections' / node_name
-    if not collection_path.is_dir():
+    if collection_path.exists():
+        raise RuntimeError("collection path already exists, can't import")
+    else:
         collection_path.mkdir(parents=True)
 
     # copy the pg dir
-    database.Path.resolve(strict=True)
+    database = Path(database).resolve(strict=True)
+    if not (database / 'PG_VERSION').exists():
+        raise RuntimeError("database is not a valid Postgres database")
     pg_src = database
     pg_dst = collection_path / 'pg'
     log.info(f'Importing the collection "{name}" pg dir')
-    import_dir(pg_src, pg_dst, method='copy')
+    import_dir(pg_src, pg_dst, method)
 
     # copy the blobs dir
     blobs.Path.resolve(strict=True)
     blob_src = blobs
     blob_dst = collection_path / 'blobs'
     log.info(f'Importing the collection "{name}" blobs dir')
-    import_dir(blob_src, blob_dst, method='copy')
+    import_dir(blob_src, blob_dst, method)
 
 
 def importfromdockersetup(path, method='link'):
