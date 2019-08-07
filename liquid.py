@@ -44,6 +44,7 @@ def main():
         commands.halt,
         commands.initcollection,
         commands.deletecollection,
+        commands.importcollection,
         commands.purge,
         commands.getsecret,
         commands.importfromdockersetup,
