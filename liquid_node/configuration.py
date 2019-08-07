@@ -176,9 +176,9 @@ class Configuration:
     def app_url(self, name):
         return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
 
-    def is_app_enabled(self, job_name):
-        return job_name in Configuration.CORE_APPS or \
-            self.ini.getboolean('apps', job_name, fallback=strtobool(self.default_app_status))
+    def is_app_enabled(self, app_name):
+        return app_name in Configuration.CORE_APPS or \
+            self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
 
     @classmethod
     def _validate_collection_name(self, name):
