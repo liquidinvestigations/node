@@ -124,8 +124,8 @@ job "drone" {
         cat /local/vmck.env
         cat /local/vmck-imghost.env
         cat /local/startup.sh
-        if [ -z "$QEMU_IMAGE_URL" ]; then
-          echo "NO QEMU_IMAGE_URL!"
+        if [ -z "$QEMU_IMAGE_PATH_PREFIX" ]; then
+          echo "NO QEMU_IMAGE_PATH_PREFIX!"
           sleep 5
           exit 1
         fi
