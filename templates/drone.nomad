@@ -94,95 +94,6 @@ job "drone" {
     }
   }
 
-  group "vmck-smallimgs" {
-    ${ group_disk() }
-
-    task "vmck-smallimgs" {
-      ${ task_logs() }
-
-      driver = "docker"
-      config {
-        image = "${config.image('vmck')}"
-        args = ["sh", "/local/startup.sh"]
-        volumes = [
-          "${liquid_volumes}/vmck:/opt/vmck/data",
-        ]
-        port_map {
-          http = 8000
-        }
-        labels {
-          liquid_task = "vmck"
-        }
-      }
-      template {
-        data = <<-EOF
-        #!/bin/sh
-        set -ex
-        echo
-        echo
-        date
-        cat /local/vmck.env
-        cat /local/vmck-imghost.env
-        cat /local/startup.sh
-        if [ -z "$QEMU_IMAGE_URL" ]; then
-          echo "NO QEMU_IMAGE_URL!"
-          sleep 5
-          exit 1
-        fi
-        exec /opt/vmck/runvmck
-        EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-      template {
-        data = <<-EOF
-        {{- with secret "liquid/ci/vmck.django" -}}
-          SECRET_KEY = {{.Data.secret_key | toJSON }}
-        {{- end }}
-        HOSTNAME = "*"
-        SSH_USERNAME = "vagrant"
-        CONSUL_URL = "${config.consul_url}"
-        NOMAD_URL = "${config.nomad_url}"
-        BACKEND = "qemu"
-        QEMU_CPU_MHZ = "3000"
-        EOF
-        destination = "local/vmck.env"
-        env = true
-      }
-      template {
-        data = <<-EOF
-        {{- range service "vmck-imghost" -}}
-          QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/imgbuild-master.qcow2.tar.gz"
-        {{- end }}
-        EOF
-        destination = "local/vmck-imghost.env"
-        env = true
-      }
-      resources {
-        memory = 450
-        cpu = 350
-        network {
-          mbits = 1
-          port "http" {
-            static = 11111
-          }
-        }
-      }
-      service {
-        name = "vmck-smallimgs"
-        port = "http"
-        check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/v0/"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-
   group "vmck" {
     ${ group_disk() }
 
@@ -241,7 +152,7 @@ job "drone" {
       template {
         data = <<-EOF
         {{- range service "vmck-imghost" -}}
-          QEMU_IMAGE_URL = "http://{{.Address}}:{{.Port}}/cluster-master.qcow2.tar.gz"
+          QEMU_IMAGE_PATH_PREFIX = "http://{{.Address}}:{{.Port}}/"
         {{- end }}
         EOF
         destination = "local/vmck-imghost.env"
