@@ -10,9 +10,10 @@ job "hoover-deps" {
       driver = "docker"
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4"
-        args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
+        args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data /opt/hoover/es-snapshots && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "${liquid_volumes}/hoover/es/data:/usr/share/elasticsearch/data",
+          "${liquid_volumes}/hoover/es/snapshots:/opt/hoover/es-snapshots"
         ]
         port_map {
           es = 9200
@@ -24,6 +25,7 @@ job "hoover-deps" {
       env {
         cluster.name = "hoover"
         ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m"
+        path.repo = "/opt/hoover/es-snapshots"
       }
       resources {
         memory = ${config.elasticsearch_memory_limit}
