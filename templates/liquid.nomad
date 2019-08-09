@@ -34,6 +34,7 @@ job "liquid" {
           LIQUID_TITLE = "${config.liquid_title}"
           SERVICE_ADDRESS = "{{env "NOMAD_IP_http"}}"
           AUTH_STAFF_ONLY = "${config.auth_staff_only}"
+          AUTH_AUTO_LOGOUT = "${config.auth_auto_logout}"
           LIQUID_2FA = "${config.liquid_2fa}"
           HOOVER_APP_URL = "${config.liquid_http_protocol}://hoover.${config.liquid_domain}"
           DOKUWIKI_APP_URL = "${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}"

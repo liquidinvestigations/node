@@ -94,6 +94,8 @@ class Configuration:
 
         self.auth_staff_only = self.ini.getboolean('liquid', 'auth_staff_only', fallback=False)
 
+        self.auth_auto_logout = self.ini.get('liquid', 'auth_auto_logout', fallback='')
+
         self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
 
         self.elasticsearch_heap_size = self.ini.getint('liquid', 'elasticsearch_heap_size',
