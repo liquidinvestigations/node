@@ -23,6 +23,9 @@ job "collection-${name}" {
           "${liquid_collections}/${name}:/opt/hoover/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
+        port_map {
+          flower = 5555
+        }
         labels {
           liquid_task = "snoop-${name}-worker"
         }
@@ -87,6 +90,14 @@ job "collection-${name}" {
       }
       resources {
         memory = 400
+        network {
+          mbits = 1
+          port "flower" {}
+        }
+      }
+      service {
+        name = "snoop-${name}-flower"
+        port = "flower"
       }
     }
   }
