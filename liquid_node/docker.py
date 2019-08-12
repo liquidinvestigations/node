@@ -10,20 +10,28 @@ class Docker:
         out = run(f'docker ps -q {label_args}')
         return out.split()
 
-    def exec_command(self, name, *args, tty=False):
+    def exec_command(self, *args):
         """Prepare and return the command to run in a docker container tagged with
-        liquid_task=`name`
+        liquid_task=`name`.
+        you can give the same flags to the command as to docker exec, at the beginning
+        of your command. The first argument, which doesn't start with '-' is interpreted
+        as the container name.
 
         :param name: the value of the liquid_task tag
-        :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
         """
-
+        taken_args = []
+        docker_exec_cmd = ['docker', 'exec']
+        for arg in args:
+            if arg.startswith('-'):
+                docker_exec_cmd += [arg]
+                taken_args += [arg]
+            else:
+                name = arg
+                taken_args += [arg]
+                break
+        
         containers = self.containers([('liquid_task', name)])
         container_id = first(containers, f'{name} containers')
-
-        docker_exec_cmd = ['docker', 'exec']
-        if tty:
-            docker_exec_cmd += ['-it']
         docker_exec_cmd += [container_id] + list(args or (['bash'] if tty else []))
 
         return docker_exec_cmd

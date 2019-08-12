@@ -404,21 +404,17 @@ def initcollection(name):
     index_path = Path(config.liquid_volumes) / 'collections' / name / 'index' / f'{name}-index.tgz' 
     if index_path.is_file():
         log.info('found index, importing index instead of creating it')
-        docker.exec_(
-            f'snoop-{name}-api',
-            './manage.py', 'importindex',
-            '<', index_path,
-        )
+
     else:
         docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
-
-    docker.exec_(
-        'hoover-search',
-        './manage.py', 'addcollection', name,
-        '--index', name,
-        f'http://{nomad.get_address()}:8765/{name}/collection/json',
-        '--public',
-    )
+        #@TODO: has to be outside of the else clause in the end!
+        docker.exec_(
+            'hoover-search',
+            './manage.py', 'addcollection', name,
+            '--index', name,
+            f'http://{nomad.get_address()}:8765/{name}/collection/json',
+            '--public',
+        )
 
 
 def purge(force=False):

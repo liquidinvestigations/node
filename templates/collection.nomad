@@ -22,6 +22,7 @@ job "collection-${name}" {
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
           "${liquid_collections}/${name}:/opt/hoover/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
+          "${liquid_volumes}/collections/${name}/index:/opt/hoover/index",
         ]
         port_map {
           flower = 5555
@@ -119,6 +120,8 @@ job "collection-${name}" {
           "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
           "${liquid_collections}/${name}:/opt/hoover/collection",
           "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
+          "${liquid_volumes}/collections/${name}/index:/opt/hoover/index",
+          "${liquid_volumes}/hoover/es/snapshots:/opt/hoover/es-snapshots"
         ]
         port_map {
           http = 80
