@@ -23,13 +23,13 @@ class Docker:
         name = ''
         docker_exec_cmd = ['docker', 'exec']
         for arg in args:
-            if arg.startswith('-'):
-                docker_exec_cmd += [arg]
-            else:
-                if not name:
-                    name = arg
+            if not name:
+                if arg.startswith('-'):
+                    docker_exec_cmd += [arg]
                 else:
-                    additional_args += [arg]
+                    name = arg
+            else:
+                additional_args += [arg]
         if not name:
             raise TypeError('name must be set.')
 
@@ -41,15 +41,15 @@ class Docker:
         docker_exec_cmd += [container_id] + list(additional_args or (['bash'] if tty else []))
         return docker_exec_cmd
 
-    def shell(self, name, *args, tty=False):
+    def shell(self, name, *args,stdin=None, tty=False):
         """Run the given command in a docker container tagged with liquid_task=`name`.
 
         The command output is redirected to the standard output and a tty is opened.
         """
-        run_fg(self.exec_command(name, *args, tty=True), shell=False)
+        run_fg(self.exec_command(name, *args, tty=True), stdin=stdin, shell=False)
 
-    def exec_(self, *args):
-        run_fg(self.exec_command(*args), shell=False)
+    def exec_(self, *args, stdin=None):
+        run_fg(self.exec_command(*args), stdin=stdin,shell=False)
 
 
 docker = Docker()

@@ -404,11 +404,12 @@ def initcollection(name):
     index_path = Path(config.liquid_volumes) / 'collections' / name / 'index' / f'{name}-index.tgz' 
     if index_path.is_file():
         log.info(f'found index for {name}, importing index instead of creating it')
-        docker.exec_(
-            '-i', f'snoop-{name}-api',
-            './manage.py', 'importindex', '<',
-            str(index_path)
-        )
+        with open(index_path, "r") as index_file:
+            docker.exec_(
+                '-i', f'snoop-{name}-api',
+                './manage.py', 'importindex',
+                stdin=index_file
+            )
     else:
         docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
     docker.exec_(
