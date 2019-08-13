@@ -389,7 +389,7 @@ def initcollection(name):
 
     Create the snoop database, create the search index, run dispatcher, add collection
     to search.
-    Checks, whether an index is stored for the collection. if so, imports the index instead
+    Check, whether an index is stored for the collection. if so, imports the index instead
     of indexing.
 
     :param name: the collection name
@@ -404,17 +404,20 @@ def initcollection(name):
     index_path = Path(config.liquid_volumes) / 'collections' / name / 'index' / f'{name}-index.tgz' 
     if index_path.is_file():
         log.info('found index, importing index instead of creating it')
-
+        docker.exec_(
+            '-i', f'snoop-{name}-api',
+            './manage.py', 'importindex', '<',
+            index_path
+        )
     else:
         docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
-        #@TODO: has to be outside of the else clause in the end!
-        docker.exec_(
-            'hoover-search',
-            './manage.py', 'addcollection', name,
-            '--index', name,
-            f'http://{nomad.get_address()}:8765/{name}/collection/json',
-            '--public',
-        )
+    docker.exec_(
+        'hoover-search',
+        './manage.py', 'addcollection', name,
+        '--index', name,
+        f'http://{nomad.get_address()}:8765/{name}/collection/json',
+        '--public',
+    )
 
 
 def purge(force=False):
@@ -468,6 +471,11 @@ def importcollection(name, database, blobs, index, method='copy' ):
     """
 
     log.info(f'Importing collection {name}')
+    #parsing `method`, which is not interpreted as a kwarg
+    if method != 'copy':
+        _ , method = method.split('=',1)
+        if method not in ['copy', 'move' ,'link']:
+            raise RuntimeError(f'unknown method: {method}')
 
     node_name = name.lower()
     if name != node_name:
@@ -476,7 +484,7 @@ def importcollection(name, database, blobs, index, method='copy' ):
     if collection_path.exists():
         raise RuntimeError("collection path already exists, can't import")
     else:
-        collection_path.mkdir(parents=True)
+        (collection_path / 'pg').mkdir(parents=True)
 
     # copy the pg dir
     database = Path(database).resolve(strict=True)
@@ -484,17 +492,16 @@ def importcollection(name, database, blobs, index, method='copy' ):
         raise RuntimeError("database is not a valid Postgres database")
     pg_src = database
     pg_dst = collection_path / 'pg' / 'data'
-    log.info(f'Importing the collection "{name}" pg dir')
-    import_dir(pg_src, pg_dst, method)
+    import_dir(pg_src, pg_dst, method=method)
 
     # copy the blobs dir
     blobs = Path(blobs).resolve(strict=True)
     blob_src = blobs
     blob_dst = collection_path / 'blobs'
-    log.info(f'Importing the collection "{name}" blobs dir')
-    import_dir(blob_src, blob_dst, method)
+    import_dir(blob_src, blob_dst, method=method)
 
     # copy or link the index
+    index = Path(index).resolve(strict=True)
     index_path = collection_path / 'index'
     index_path.mkdir(parents=True)
     if method == 'copy':
@@ -503,8 +510,8 @@ def importcollection(name, database, blobs, index, method='copy' ):
         os.symlink(index, index_path / f'{name}-index.tgz')
     elif method == 'move':
         os.rename(index, index_path / f'{name}-index.tgz')
-    else:
-        raise RuntimeError(f'method {method} not supported')
+
+    log.info(f'Imported collection using method: {method}')
 
 
 def importfromdockersetup(path, method='link'):

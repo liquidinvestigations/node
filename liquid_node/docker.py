@@ -10,7 +10,7 @@ class Docker:
         out = run(f'docker ps -q {label_args}')
         return out.split()
 
-    def exec_command(self, *args):
+    def exec_command(self, *args, tty=False):
         """Prepare and return the command to run in a docker container tagged with
         liquid_task=`name`.
         you can give the same flags to the command as to docker exec, at the beginning
@@ -19,32 +19,37 @@ class Docker:
 
         :param name: the value of the liquid_task tag
         """
-        taken_args = []
+        additional_args = []
+        name = ''
         docker_exec_cmd = ['docker', 'exec']
         for arg in args:
             if arg.startswith('-'):
                 docker_exec_cmd += [arg]
-                taken_args += [arg]
             else:
-                name = arg
-                taken_args += [arg]
-                break
-        
+                if not name:
+                    name = arg
+                else:
+                    additional_args += [arg]
+        if not name:
+            raise TypeError('name must be set.')
+
         containers = self.containers([('liquid_task', name)])
         container_id = first(containers, f'{name} containers')
-        docker_exec_cmd += [container_id] + list(args or (['bash'] if tty else []))
 
+        if tty:
+            docker_exec_cmd += ['-it']
+        docker_exec_cmd += [container_id] + list(additional_args or (['bash'] if tty else []))
         return docker_exec_cmd
 
-    def shell(self, name, *args):
+    def shell(self, name, *args, tty=False):
         """Run the given command in a docker container tagged with liquid_task=`name`.
 
         The command output is redirected to the standard output and a tty is opened.
         """
         run_fg(self.exec_command(name, *args, tty=True), shell=False)
 
-    def exec_(self, name, *args):
-        run_fg(self.exec_command(name, *args), shell=False)
+    def exec_(self, *args):
+        run_fg(self.exec_command(*args), shell=False)
 
 
 docker = Docker()
