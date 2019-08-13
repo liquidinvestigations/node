@@ -403,11 +403,11 @@ def initcollection(name):
         return
     index_path = Path(config.liquid_volumes) / 'collections' / name / 'index' / f'{name}-index.tgz' 
     if index_path.is_file():
-        log.info('found index, importing index instead of creating it')
+        log.info(f'found index for {name}, importing index instead of creating it')
         docker.exec_(
             '-i', f'snoop-{name}-api',
             './manage.py', 'importindex', '<',
-            index_path
+            str(index_path)
         )
     else:
         docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
@@ -512,6 +512,8 @@ def importcollection(name, database, blobs, index, method='copy' ):
         os.rename(index, index_path / f'{name}-index.tgz')
 
     log.info(f'Imported collection using method: {method}')
+    print('add the following line to liquid.ini')
+    print(f'[collection:{name}]')
 
 
 def importfromdockersetup(path, method='link'):
@@ -558,10 +560,10 @@ def shell(name, *args):
     docker.shell(name, *args)
 
 
-def dockerexec(name, *args):
+def dockerexec(*args):
     """Run `docker exec` in a container tagged with liquid_task=`name`"""
 
-    docker.exec_(name, *args)
+    docker.exec_(*args)
 
 
 def getsecret(path=None):
