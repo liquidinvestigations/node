@@ -131,7 +131,7 @@ root_token = s.Cmro41vNI4wIndgrPqzlqOKY
 Then deploy to the cluster:
 
 ```shell
-./liquid.py deploy
+./liquid deploy
 ```
 
 The liquid instance will listen by default on port 80 on the local machine. If
@@ -146,7 +146,7 @@ you don't have a DNS domain pointing to the macine, you can add entries to
 
 Create an initial admin user:
 ```shell
-./liquid.py shell liquid-core ./manage.py createsuperuser
+./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
 ### Versions

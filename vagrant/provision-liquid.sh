@@ -18,7 +18,7 @@ cp examples/liquid.ini .
 sudo apt install python3-venv python3-pip
 sudo -H pip3 install pipenv
 pipenv install -r requirements.txt
-pipenv run ./liquid.py resources
-pipenv run ./liquid.py deploy
+./liquid resources
+./liquid deploy
 
 echo "Liquid provisioned successfully." > /dev/null
