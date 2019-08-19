@@ -6,6 +6,7 @@ import os
 import base64
 import json
 import shutil
+import gzip
 
 from liquid_node.collections import push_collections_titles
 from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
@@ -401,7 +402,7 @@ def initcollection(name):
     if name in get_search_collections():
         log.warning(f'Collection "{name}" was already initialized.')
         return
-    index_path = Path(config.liquid_volumes) / 'collections' / name / 'index' / f'{name}-index.tgz' 
+    index_path = Path(config.liquid_volumes) / 'collections' / name / 'index' / f'{name}-index.tgz'
     if index_path.is_file():
         log.info(f'found index for {name}, importing index instead of creating it')
         with open(index_path, "r") as index_file:
@@ -461,7 +462,7 @@ def deletecollection(name):
     purge_collection(name)
 
 
-def importcollection(name, database, blobs, index, method='copy' ):
+def importcollection(name, database, blobs, index, method='copy'):
     """Import a single collection extracted collection.
 
     :param name: name of the collection you want to import
@@ -472,10 +473,10 @@ def importcollection(name, database, blobs, index, method='copy' ):
     """
 
     log.info(f'Importing collection {name}')
-    #parsing `method`, which is not interpreted as a kwarg
+    # parsing `method`, which is not interpreted as a kwarg
     if method != 'copy':
-        _ , method = method.split('=',1)
-        if method not in ['copy', 'move' ,'link']:
+        _, method = method.split('=', 1)
+        if method not in ['copy', 'move', 'link']:
             raise RuntimeError(f'unknown method: {method}')
 
     node_name = name.lower()
@@ -515,6 +516,41 @@ def importcollection(name, database, blobs, index, method='copy' ):
     log.info(f'Imported collection using method: {method}')
     print('add the following line to liquid.ini')
     print(f'[collection:{name}]')
+
+
+def exportcollection(name):
+    """Export a collection from node. Liquid has to be running.
+
+    :param name: name of the collection you want to export.
+
+    """
+    if name not in config.collections:
+        raise RuntimeError(f'Collection {name} does not exist in the liquid.ini file.')
+    export_path = Path(config.liquid_collections) / 'exported' / name
+    if export_path.exists():
+        raise RuntimeError("collection already has exported files")
+    else:
+        (export_path).mkdir(parents=True)
+    # copy the pg dir
+    database = Path(config.liquid_volumes) / 'collections' / name / 'pg' / 'data'
+    pg_src = database
+    pg_dst = export_path / 'pg'
+    import_dir(pg_src, pg_dst, method='copy')
+
+    # copy the blobs dir
+    blobs = Path(config.liquid_volumes) / 'collections' / name / 'blobs'
+    blob_src = blobs
+    blob_dst = export_path / 'blobs'
+    import_dir(blob_src, blob_dst, method='copy')
+
+    log.info(f'found index for {name}, importing index instead of creating it')
+    with gzip.open(export_path / f'{name}-index.tgz', "w") as index_file:
+        docker.exec_(
+            '-i', f'snoop-{name}-api',
+            './manage.py', 'exportindex',
+            stdout=index_file
+        )
+    log.info(f'collection {name} exported to {export_path}')
 
 
 def importfromdockersetup(path, method='link'):

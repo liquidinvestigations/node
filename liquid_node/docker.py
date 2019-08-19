@@ -41,15 +41,15 @@ class Docker:
         docker_exec_cmd += [container_id] + list(additional_args or (['bash'] if tty else []))
         return docker_exec_cmd
 
-    def shell(self, name, *args,stdin=None, tty=False):
+    def shell(self, name, *args, stdin=None, stdout=None, tty=False):
         """Run the given command in a docker container tagged with liquid_task=`name`.
 
         The command output is redirected to the standard output and a tty is opened.
         """
-        run_fg(self.exec_command(name, *args, tty=True), stdin=stdin, shell=False)
+        run_fg(self.exec_command(name, *args, tty=True), stdin=stdin, stdout=stdout, shell=False)
 
-    def exec_(self, *args, stdin=None):
-        run_fg(self.exec_command(*args), stdin=stdin,shell=False)
+    def exec_(self, *args, stdin=None, stdout=None):
+        run_fg(self.exec_command(*args), stdin=stdin, stdout=stdout, shell=False)
 
 
 docker = Docker()
