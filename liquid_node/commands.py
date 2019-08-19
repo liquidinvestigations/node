@@ -486,14 +486,14 @@ def importcollection(name, database, blobs, index, method='copy'):
     if collection_path.exists():
         raise RuntimeError("collection path already exists, can't import")
     else:
-        (collection_path / 'pg').mkdir(parents=True)
+        (collection_path).mkdir(parents=True)
 
     # copy the pg dir
     database = Path(database).resolve(strict=True)
-    if not (database / 'PG_VERSION').exists():
+    if not (database / 'data' / 'PG_VERSION').exists():
         raise RuntimeError("database is not a valid Postgres database")
     pg_src = database
-    pg_dst = collection_path / 'pg' / 'data'
+    pg_dst = collection_path / 'pg'
     import_dir(pg_src, pg_dst, method=method)
 
     # copy the blobs dir

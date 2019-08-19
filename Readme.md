@@ -220,6 +220,27 @@ The `method` is optional. The default value is `link`, while the possible values
 
 When using the `copy` method, the import will take longer.
 
+### Importing and export single collections
+
+#### Exporting
+Liquid has to be deployed in order to export collections. When deployed, run 
+```
+./liquid exportcollection <collection_name>
+```
+The exported collection data is stored in `<collections_directory>/exported/<collection_name`
+
+#### Importing
+you need paths to the following data in order to import a collection:
+- database: the folder must contain a subfolder called data, containing the database
+- blobs: the folder contains the blobs
+- index: a `.tgz` archive containing the index
+run the following command:
+```
+./liquid importcollection <collection_name> <database_path> <blobs_path> <index_path> [method] 
+
+You can also specify whether data is moved, copied or linked by specifying the method.
+As of now, this is a positional argument, so put `method='copy/link/move` at the end of your command 
+
 ### Debugging
 
 Set the debug flag in `liquid.ini`:
