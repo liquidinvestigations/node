@@ -14,7 +14,7 @@ def run(cmd, **kwargs):
     return subprocess.check_output(cmd, **kwargs).decode('latin1')
 
 
-def run_fg(cmd, stdin=None, **kwargs):
+def run_fg(cmd, **kwargs):
     """Run the given command in a subprocess.
 
     The command output is redirected to the standard output and a tty is opened.
@@ -22,4 +22,4 @@ def run_fg(cmd, stdin=None, **kwargs):
 
     log.debug("+ %s", cmd)
     kwargs.setdefault('shell', True)
-    subprocess.check_call(cmd, **kwargs, stdin=stdin)
+    subprocess.check_call(cmd, **kwargs)

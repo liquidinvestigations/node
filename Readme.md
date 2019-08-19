@@ -237,9 +237,9 @@ you need paths to the following data in order to import a collection:
 run the following command:
 ```
 ./liquid importcollection <collection_name> <database_path> <blobs_path> <index_path> [method] 
-
+```
 You can also specify whether data is moved, copied or linked by specifying the method.
-As of now, this is a positional argument, so put `method='copy/link/move` at the end of your command 
+As of now, this is a positional argument, so put `method=copy/link/move` at the end of your command 
 
 ### Debugging
 

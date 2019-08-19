@@ -12,12 +12,13 @@ class Docker:
 
     def exec_command(self, *args, tty=False):
         """Prepare and return the command to run in a docker container tagged with
-        liquid_task=`name`.
+        liquid_task=`name`
         you can give the same flags to the command as to docker exec, at the beginning
         of your command. The first argument, which doesn't start with '-' is interpreted
         as the container name.
 
         :param name: the value of the liquid_task tag
+        :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
         """
         additional_args = []
         name = ''
