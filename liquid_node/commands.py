@@ -156,6 +156,18 @@ def wait_for_service_health_checks(health_checks):
     raise RuntimeError(msg)
 
 
+def confirm(confirm_statement):
+    answer = ''
+    while answer.lower() not in ("y", "n"):
+        answer = input(confirm_statement + ' y/n: ')
+        if answer.lower() == "y":
+            return True
+        elif answer.lower() == "n":
+            return False
+        else:
+            print("Please enter y or n.")
+
+
 def resources():
     """Get memory and CPU usage for the deployment"""
 
@@ -484,7 +496,13 @@ def importcollection(name, database, blobs, index, method='copy'):
         log.info(f'Renaming "{name}" to "{node_name}"')
     collection_path = Path(config.liquid_volumes) / 'collections' / node_name
     if collection_path.exists():
-        raise RuntimeError("collection path already exists, can't import")
+        if confirm(f'collection {name} already exists, overwrite (hoover needs to be running)?'):
+            redeploy = True
+            purge_collection(name)
+        else:
+            redeploy = False
+            log.info(f'exiting and not overwriting data for {name}')
+            exit()
     else:
         (collection_path).mkdir(parents=True)
 
@@ -514,8 +532,11 @@ def importcollection(name, database, blobs, index, method='copy'):
         os.rename(index, index_path / f'{name}-index.tgz')
 
     log.info(f'Imported collection using method: {method}')
-    print('add the following line to liquid.ini')
-    print(f'[collection:{name}]')
+    if redeploy:
+        print('redeploy in order to make {name} available.')
+    else:
+        print('add the following line to liquid.ini')
+        print(f'[collection:{name}]')
 
 
 def exportcollection(name):
@@ -528,11 +549,15 @@ def exportcollection(name):
         raise RuntimeError(f'Collection {name} does not exist in the liquid.ini file.')
     export_path = Path(config.liquid_collections) / 'exported' / name
     if export_path.exists():
-        raise RuntimeError("collection already has exported files")
+        if confirm(f'collection {name} already has exported files in {export_path}, overwrite?'):
+            shutil.rmtree(export_path)
+        else:
+            log.info(f'exiting and not overwriting data for {name}')
+            exit()
     else:
         (export_path).mkdir(parents=True)
     # copy the pg dir
-    database = Path(config.liquid_volumes) / 'collections' / name / 'pg' / 'data'
+    database = Path(config.liquid_volumes) / 'collections' / name / 'pg'
     pg_src = database
     pg_dst = export_path / 'pg'
     import_dir(pg_src, pg_dst, method='copy')

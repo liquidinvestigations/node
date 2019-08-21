@@ -222,6 +222,9 @@ When using the `copy` method, the import will take longer.
 
 ### Importing and export single collections
 
+_**note:**_ Since directories might have been created by the docker daemon instead of a user,
+root privileges might be necessary.
+
 #### Exporting
 Liquid has to be deployed in order to export collections. When deployed, run
 ```
