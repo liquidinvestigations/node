@@ -52,7 +52,7 @@ job "nextcloud" {
         name = "nextcloud-app"
         port = "http"
         check {
-          name = "nextcloud"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/status.php"
@@ -107,7 +107,7 @@ job "nextcloud" {
         name = "nextcloud-maria"
         port = "maria"
         check {
-          name = "mariadb"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
