@@ -21,7 +21,7 @@ from .util import first
 from .collections import get_search_collections
 from .docker import docker
 from .vault import vault
-from .import_from_docker import import_collection, import_dir
+from .import_from_docker import import_collection, import_dir, import_file
 
 
 log = logging.getLogger(__name__)
@@ -419,9 +419,9 @@ def initcollection(name):
         log.info(f'found index for {name}, importing index instead of creating it')
         with open(index_path, "r") as index_file:
             docker.exec_(
-                '-i', f'snoop-{name}-api',
+                f'snoop-{name}-api',
                 './manage.py', 'importindex',
-                stdin=index_file
+                stdin=index_file, interactive=True
             )
     else:
         docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
@@ -474,16 +474,21 @@ def deletecollection(name):
     purge_collection(name)
 
 
-def importcollection(name, database, blobs, index, method='copy'):
+def importcollection(name, path, method='copy'):
     """Import a single collection extracted collection.
+    The path must contain:
+    1. The blobs folder, named `blobs`
+    2. The database folder, named `pg`, containing a subfolder called `data`.
+    3. the index, named <name>-index.tgz
 
     :param name: name of the collection you want to import
-    :param database: path to the collections' database data folder
-    :param blobs: path to the collections' blob folder
-    :param index: path to the collections' index, as a .tgz archive, named name-index.tgz
-    :param method: can be 'copy', 'move' or  'link'
+    :param path: path to the collection data.
+    :param method: can be 'copy', 'move' or  'link'. Copy is default.
     """
-
+    path = Path(path).resolve()
+    database = path / 'pg'
+    blobs = path / 'blobs'
+    index = path / f'{name}-index.tgz'
     log.info(f'Importing collection {name}')
     # parsing `method`, which is not interpreted as a kwarg
     if method != 'copy':
@@ -500,10 +505,10 @@ def importcollection(name, database, blobs, index, method='copy'):
             redeploy = True
             purge_collection(name)
         else:
-            redeploy = False
             log.info(f'exiting and not overwriting data for {name}')
             exit()
     else:
+        redeploy = False
         (collection_path).mkdir(parents=True)
 
     # copy the pg dir
@@ -519,21 +524,16 @@ def importcollection(name, database, blobs, index, method='copy'):
     blob_src = blobs
     blob_dst = collection_path / 'blobs'
     import_dir(blob_src, blob_dst, method=method)
-
+    (collection_path / 'index').mkdir()
     # copy or link the index
     index = Path(index).resolve(strict=True)
-    index_path = collection_path / 'index'
-    index_path.mkdir(parents=True)
-    if method == 'copy':
-        shutil.copy(index, index_path / f'{name}-index.tgz', follow_symlinks=True)
-    elif method == 'link':
-        os.symlink(index, index_path / f'{name}-index.tgz')
-    elif method == 'move':
-        os.rename(index, index_path / f'{name}-index.tgz')
+
+    index_dst = collection_path / 'index' / f'{name}-index.tgz'
+    import_file(index, index_dst, method=method)
 
     log.info(f'Imported collection using method: {method}')
     if redeploy:
-        print('redeploy in order to make {name} available.')
+        print(f'redeploy in order to make changes to {name} available.')
     else:
         print('add the following line to liquid.ini')
         print(f'[collection:{name}]')
@@ -571,9 +571,9 @@ def exportcollection(name):
     log.info(f'found index for {name}, importing index instead of creating it')
     with gzip.open(export_path / f'{name}-index.tgz', "w") as index_file:
         docker.exec_(
-            '-i', f'snoop-{name}-api',
+            f'snoop-{name}-api',
             './manage.py', 'exportindex',
-            stdout=index_file
+            stdout=index_file, interactive=True
         )
     log.info(f'collection {name} exported to {export_path}')
 
@@ -622,10 +622,10 @@ def shell(name, *args):
     docker.shell(name, *args)
 
 
-def dockerexec(*args):
+def dockerexec(name, *args):
     """Run `docker exec` in a container tagged with liquid_task=`name`"""
 
-    docker.exec_(*args)
+    docker.exec_(name, *args)
 
 
 def getsecret(path=None):

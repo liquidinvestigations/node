@@ -10,7 +10,7 @@ class Docker:
         out = run(f'docker ps -q {label_args}')
         return out.split()
 
-    def exec_command(self, *args, tty=False):
+    def exec_command(self, name, *args, interactive=False,  tty=False):
         """Prepare and return the command to run in a docker container tagged with
         liquid_task=`name`
         you can give the same flags to the command as to docker exec, at the beginning
@@ -20,37 +20,28 @@ class Docker:
         :param name: the value of the liquid_task tag
         :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
         """
-        additional_args = []
-        name = ''
+
         docker_exec_cmd = ['docker', 'exec']
-        for arg in args:
-            if not name:
-                if arg.startswith('-'):
-                    docker_exec_cmd += [arg]
-                else:
-                    name = arg
-            else:
-                additional_args += [arg]
-        if not name:
-            raise TypeError('name must be set.')
 
         containers = self.containers([('liquid_task', name)])
         container_id = first(containers, f'{name} containers')
 
         if tty:
-            docker_exec_cmd += ['-it']
-        docker_exec_cmd += [container_id] + list(additional_args or (['bash'] if tty else []))
+            docker_exec_cmd += ['-t']
+        if interactive:
+            docker_exec_cmd += ['-i']
+        docker_exec_cmd += [container_id] + list(args or (['bash'] if (tty and interactive) else []))
         return docker_exec_cmd
 
-    def shell(self, name, *args, stdin=None, stdout=None, tty=False):
+    def shell(self, name, *args, stdin=None, stdout=None):
         """Run the given command in a docker container tagged with liquid_task=`name`.
 
         The command output is redirected to the standard output and a tty is opened.
         """
-        run_fg(self.exec_command(name, *args, tty=True), stdin=stdin, stdout=stdout, shell=False)
+        run_fg(self.exec_command(name, *args, tty=True, interactive=True), stdin=stdin, stdout=stdout, shell=False)
 
-    def exec_(self, *args, stdin=None, stdout=None):
-        run_fg(self.exec_command(*args), stdin=stdin, stdout=stdout, shell=False)
+    def exec_(self, name, *args, interactive=False,  tty=False, stdin=None, stdout=None):
+        run_fg(self.exec_command(name, *args, interactive=interactive, tty=tty), stdin=stdin, stdout=stdout, shell=False)
 
 
 docker = Docker()

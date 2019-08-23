@@ -1,5 +1,6 @@
 import logging
 import shutil
+import os
 from pathlib import Path
 
 from liquid_node.configuration import config
@@ -54,6 +55,18 @@ def import_dir(src, dst, method='link'):
     elif method == 'link':
         log.info(f'Linking {dst} to {src}')
         dst.symlink_to(src)
+
+def import_file(src, dst, method='link'):
+    if method == 'copy':
+        shutil.copy(src, dst, follow_symlinks=True)
+    elif method == 'link':
+        os.symlink(src, dst)
+    elif method == 'move':
+        os.rename(src, dst)
+    else:
+        raise RuntimeError(f'unknown method for importing file: {method}')
+    log.info(f'imported file from {src} to {dst} using method: {method}')
+
 
 
 def import_index(docker_setup, method):
