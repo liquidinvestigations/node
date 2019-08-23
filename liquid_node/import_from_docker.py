@@ -56,6 +56,7 @@ def import_dir(src, dst, method='link'):
         log.info(f'Linking {dst} to {src}')
         dst.symlink_to(src)
 
+
 def import_file(src, dst, method='link'):
     if method == 'copy':
         shutil.copy(src, dst, follow_symlinks=True)
@@ -66,7 +67,6 @@ def import_file(src, dst, method='link'):
     else:
         raise RuntimeError(f'unknown method for importing file: {method}')
     log.info(f'imported file from {src} to {dst} using method: {method}')
-
 
 
 def import_index(docker_setup, method):

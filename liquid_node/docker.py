@@ -10,7 +10,7 @@ class Docker:
         out = run(f'docker ps -q {label_args}')
         return out.split()
 
-    def exec_command(self, name, *args, interactive=False,  tty=False):
+    def exec_command(self, name, *args, interactive=False, tty=False):
         """Prepare and return the command to run in a docker container tagged with
         liquid_task=`name`
         :param name: the value of the liquid_task tag
@@ -35,10 +35,12 @@ class Docker:
 
         The command output is redirected to the standard output and a tty is opened.
         """
-        run_fg(self.exec_command(name, *args, tty=True, interactive=True), stdin=stdin, stdout=stdout, shell=False)
+        run_fg(self.exec_command(name, *args, tty=True, interactive=True),
+               stdin=stdin, stdout=stdout, shell=False)
 
-    def exec_(self, name, *args, interactive=False,  tty=False, stdin=None, stdout=None):
-        run_fg(self.exec_command(name, *args, interactive=interactive, tty=tty), stdin=stdin, stdout=stdout, shell=False)
+    def exec_(self, name, *args, interactive=False, tty=False, stdin=None, stdout=None):
+        run_fg(self.exec_command(name, *args, interactive=interactive, tty=tty),
+               stdin=stdin, stdout=stdout, shell=False)
 
 
 docker = Docker()
