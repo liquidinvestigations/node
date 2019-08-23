@@ -8,7 +8,6 @@ import os
 import base64
 import json
 import sys
-import logging
 from urllib.error import HTTPError
 import colorlog
 import click
@@ -27,6 +26,7 @@ from liquid_node.collections import get_search_collections
 from liquid_node.docker import docker
 from liquid_node.vault import vault
 from liquid_node.import_from_docker import import_collection
+
 
 @click.group()
 def liquid_commands():
@@ -164,6 +164,7 @@ def wait_for_service_health_checks(health_checks):
     log_checks(checks, as_error=True)
     msg = f'Checks are failed after {time() - t0:.02f}s.'
     raise RuntimeError(msg)
+
 
 @liquid_commands.command()
 def resources():
@@ -384,6 +385,7 @@ def nomad_address():
 
     print(nomad.get_address())
 
+
 @liquid_commands.command()
 @click.argument('job')
 @click.argument('group')
@@ -429,6 +431,7 @@ def initcollection(name):
         f'http://{nomad.get_address()}:8765/{name}/collection/json',
         '--public',
     )
+
 
 @liquid_commands.command()
 @click.option('--force', is_flag=True)
@@ -523,6 +526,7 @@ def shell(name, *args):
 
     docker.shell(name, *args)
 
+
 @liquid_commands.command()
 @click.argument('name')
 @click.argument('args', nargs=-1)
@@ -530,6 +534,7 @@ def dockerexec(name, *args):
     """Run `docker exec` in a container tagged with liquid_task=`name`"""
 
     docker.exec_(name, *args)
+
 
 @liquid_commands.command()
 @click.argument('path', required=False)
@@ -543,7 +548,6 @@ def getsecret(path=None):
         for section in vault.list():
             for key in vault.list(section):
                 print(f'{section}{key}')
-
 
 
 if __name__ == '__main__':
