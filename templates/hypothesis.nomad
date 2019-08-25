@@ -148,8 +148,34 @@ job "hypothesis" {
       }
       template {
         data = <<-EOF
+          import os
+          from h import cli, models
+          request = cli.bootstrap(os.environ['APP_URL'])
+          authclient = request.db.query(models.AuthClient).filter_by(name='liquid').one_or_none()
+          if authclient:
+              id_ = authclient.id
+          else:
+              authclient = models.AuthClient(
+                  name='liquid',
+                  authority="hypothesis.${liquid_domain}",
+                  redirect_uri="https://hypothesis.${liquid_domain}/app.html",
+                  grant_type=models.auth_client.GrantType.authorization_code,
+                  response_type=models.auth_client.ResponseType.code,
+                  trusted=True,
+              )
+              request.db.add(authclient)
+              request.db.flush()
+              id_ = authclient.id
+              request.tm.commit()
+          print(id_)
+          EOF
+        destination = "local/get_client_oauth_id.py"
+      }
+      template {
+        data = <<-EOF
           #!/bin/sh -ex
           bin/hypothesis init
+          export CLIENT_OAUTH_ID=$(python /local/get_client_oauth_id.py)
           exec init-env supervisord -c conf/supervisord.conf
           EOF
         destination = "local/entrypoint"
@@ -256,4 +282,48 @@ job "hypothesis" {
       upstream='hypothesis',
       user_header_template="acct:{}@" + liquid_domain,
     ) }
+
+  group "client" {
+    task "nginx" {
+      driver = "docker"
+      config = {
+        image = "liquidinvestigations/h-client:liquid-as-node"
+        port_map {
+          http = 80
+        }
+        labels {
+          liquid_task = "hypothesis-client"
+        }
+      }
+      template {
+        data = <<-EOF
+          LIQUID_DOMAIN = ${liquid_domain|tojson}
+          EOF
+        destination = "local/bake.env"
+        env = true
+      }
+      resources {
+        memory = 100
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+      service {
+        name = "hypothesis-client"
+        port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:client.hypothesis.${liquid_domain}",
+        ]
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
 }
