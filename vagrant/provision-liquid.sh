@@ -24,4 +24,12 @@ cp -f examples/liquid.ini .
 ./liquid collectionsgc
 ./liquid nomadgc
 
+cat vagrant/liquid-apps.ini >> liquid.ini
+
+./liquid deploy
+
+echo "default_app_status = off" >> liquid.ini
+
+./liquid gc
+
 echo "Liquid provisioned successfully." > /dev/null

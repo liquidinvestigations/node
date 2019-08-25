@@ -9,6 +9,7 @@ import json
 from liquid_node.collections import push_collections_titles
 from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
     add_collections_ini, import_index
+from liquid_node.jobs import wait_for_stopped_jobs
 from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
@@ -158,7 +159,7 @@ def resources():
     """Get memory and CPU usage for the deployment"""
 
     def get_all_res():
-        jobs = [nomad.parse(get_job(job.template)) for job in config.jobs]
+        jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
         for name, settings in config.collections.items():
             job = get_collection_job(name, settings, 'collection.nomad')
             jobs.append(nomad.parse(job))
@@ -187,6 +188,8 @@ def check_system_config():
     This checks if elasticsearch will accept our
     vm.max_map_count kernel parameter value.
     """
+    if os.uname().sysname == 'Darwin':
+        return
 
     assert int(run("sysctl -n vm.max_map_count")) >= 262144, \
         'the "vm.max_map_count" kernel parameter is too low, check readme'
@@ -220,7 +223,7 @@ def deploy():
     ]
     core_auth_apps = list(CORE_AUTH_APPS)
 
-    for job in config.jobs:
+    for job in config.enabled_jobs:
         vault_secret_keys += list(job.vault_secret_keys)
         core_auth_apps += list(job.core_auth_apps)
 
@@ -250,7 +253,7 @@ def deploy():
             job_checks[service] = checks
         return job_checks
 
-    jobs = [(job.name, get_job(job.template)) for job in config.jobs]
+    jobs = [(job.name, get_job(job.template)) for job in config.enabled_jobs]
 
     hov_deps = hoover.Deps()
     database_tasks = [hov_deps.pg_task]
@@ -281,6 +284,15 @@ def deploy():
         docker_exec_cmd = ['docker', 'exec', container_id] + cmd
         tokens = json.loads(run(docker_exec_cmd, shell=False))
         vault.set(app['vault_path'], tokens)
+
+    # check if there are jobs to stop
+    nomad_jobs = set(job['ID'] for job in nomad.jobs())
+    jobs_to_stop = nomad_jobs.intersection(set(job.name for job in config.disabled_jobs))
+    print(f'jobs to stop: {jobs_to_stop}')
+    if jobs_to_stop:
+        for job in jobs_to_stop:
+            nomad.stop(job)
+        wait_for_stopped_jobs(jobs_to_stop)
 
     # only start deps jobs + hoover
     health_checks = {}
@@ -323,7 +335,7 @@ def deploy():
 def halt():
     """Stop all the jobs in nomad."""
 
-    jobs = [j.name for j in config.jobs]
+    jobs = [j.name for j in config.all_jobs]
     jobs.extend(f'collection-{name}' for name in config.collections)
     jobs.extend(f'collection-{name}-deps' for name in config.collections)
     for job in jobs:
@@ -331,30 +343,34 @@ def halt():
         nomad.stop(job)
 
 
+def gc():
+    """Stop all jobs that should not be running in the current deploy configuration:
+    - jobs from collections that are no longer declared in the ini file
+    - jobs from disabled applications.
+    """
+    collectionsgc()
+
+    stopped_jobs = []
+    for job in config.disabled_jobs:
+        nomad.stop(job.name)
+        stopped_jobs.append(job.name)
+
+    wait_for_stopped_jobs(stopped_jobs)
+
+
 def collectionsgc():
-    """Stop collections jobs that are no longer declared in the ini file."""
+    """Stop jobs from collections that are no longer declared in the ini file."""
 
     stopped_jobs = []
     for job in nomad.jobs():
         if job['ID'].startswith('collection-'):
-            collection_name = job['ID'][len('collection-'):]
+            collection_name = job['ID'].split('-')[1]
             if collection_name not in config.collections and job['Status'] == 'running':
                 log.info('Stopping %s...', job['ID'])
                 nomad.stop(job['ID'])
                 stopped_jobs.append(job['ID'])
 
-    log.info(f'Waiting for jobs to die...')
-    timeout = time() + config.wait_max
-    while stopped_jobs and time() < timeout:
-        sleep(config.wait_interval)
-
-        nomad_jobs = {job['ID']: job for job in nomad.jobs() if job['ID'] in stopped_jobs}
-        for job_name in stopped_jobs:
-            if job_name not in nomad_jobs or nomad_jobs[job_name]['Status'] == 'dead':
-                stopped_jobs.remove(job_name)
-                log.info(f'Job {job_name} is dead')
-    if stopped_jobs:
-        raise RuntimeError(f'The following jobs are still running: {stopped_jobs}')
+    wait_for_stopped_jobs(stopped_jobs)
 
 
 def nomadgc():
