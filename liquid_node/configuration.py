@@ -75,7 +75,7 @@ class Configuration:
         self.liquidinvestigations_repos_path = str(Path(li_repos_path).resolve())
 
         h_repos_path = self.ini.get('liquid', 'hypothesis_repos_path',
-                                     fallback=str((self.root / 'repos' / 'hypothesis')))
+                                    fallback=str((self.root / 'repos' / 'hypothesis')))
         self.hypothesis_repos_path = str(Path(h_repos_path).resolve())
 
         self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
