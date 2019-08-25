@@ -158,7 +158,7 @@ job "hypothesis" {
               authclient = models.AuthClient(
                   name='liquid',
                   authority="hypothesis.${liquid_domain}",
-                  redirect_uri="https://hypothesis.${liquid_domain}/app.html",
+                  redirect_uri="${config.liquid_http_protocol}://hypothesis.${liquid_domain}/app.html",
                   grant_type=models.auth_client.GrantType.authorization_code,
                   response_type=models.auth_client.ResponseType.code,
                   trusted=True,
@@ -199,8 +199,8 @@ job "hypothesis" {
           BROKER_URL = "amqp://guest:guest@{{.Address}}:{{.Port}}//"
           {{- end }}
 
-          APP_URL = "https://hypothesis.${liquid_domain}"
-          CLIENT_URL = "https://client.hypothesis.${liquid_domain}"
+          APP_URL = "${config.liquid_http_protocol}://hypothesis.${liquid_domain}"
+          CLIENT_URL = "${config.liquid_http_protocol}://client.hypothesis.${liquid_domain}"
           PROXY_AUTH = "true"
           AUTHORITY = ${liquid_domain|tojson}
           {{- with secret "liquid/hypothesis/hypothesis.secret_key" }}
