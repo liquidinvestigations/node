@@ -10,6 +10,7 @@ from liquid_node.jobs import hoover
 from liquid_node.jobs import dokuwiki
 from liquid_node.jobs import rocketchat
 from liquid_node.jobs import nextcloud
+from liquid_node.jobs import hypothesis
 from liquid_node.jobs import ci
 
 
@@ -30,6 +31,7 @@ class Configuration:
             rocketchat.Migrate(),
             nextcloud.Nextcloud(),
             nextcloud.Migrate(),
+            hypothesis.Hypothesis(),
         ]
 
         self.versions_ini = configparser.ConfigParser()
@@ -69,6 +71,10 @@ class Configuration:
         li_repos_path = self.ini.get('liquid', 'liquidinvestigations_repos_path',
                                      fallback=str((self.root / 'repos' / 'liquidinvestigations')))
         self.liquidinvestigations_repos_path = str(Path(li_repos_path).resolve())
+
+        h_repos_path = self.ini.get('liquid', 'hypothesis_repos_path',
+                                     fallback=str((self.root / 'repos' / 'hypothesis')))
+        self.hypothesis_repos_path = str(Path(h_repos_path).resolve())
 
         self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
 

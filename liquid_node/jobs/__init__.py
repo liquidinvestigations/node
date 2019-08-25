@@ -68,6 +68,16 @@ def set_volumes_paths(substitutions={}):
             'local': os.path.join(config.liquidinvestigations_repos_path, 'authproxy'),
             'target': '/app'
         },
+        'h_h': {
+            'org': 'hypothesis',
+            'local': os.path.join(config.hypothesis_repos_path, 'h/h'),
+            'target': '/var/lib/hypothesis/h',
+        },
+        'h_conf': {
+            'org': 'hypothesis',
+            'local': os.path.join(config.hypothesis_repos_path, 'h/conf'),
+            'target': '/var/lib/hypothesis/conf',
+        },
     }
 
     for repo, repo_config in repos.items():

@@ -55,6 +55,11 @@ CORE_AUTH_APPS = [
         'vault_path': 'liquid/nextcloud/auth.oauth2',
         'callback': f'{config.app_url("nextcloud")}/__auth/callback',
     },
+    {
+        'name': 'hypothesis',
+        'vault_path': 'liquid/hypothesis/auth.oauth2',
+        'callback': f'{config.app_url("hypothesis")}/__auth/callback',
+    },
 ]
 
 
@@ -215,6 +220,9 @@ def deploy():
         'liquid/dokuwiki/auth.django',
         'liquid/nextcloud/auth.django',
         'liquid/rocketchat/auth.django',
+        'liquid/hypothesis/auth.django',
+        'liquid/hypothesis/hypothesis.secret_key',
+        'liquid/hypothesis/hypothesis.postgres',
         'liquid/ci/vmck.django',
         'liquid/ci/drone.secret',
     ]
