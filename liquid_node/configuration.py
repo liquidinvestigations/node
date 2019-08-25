@@ -1,26 +1,32 @@
+import configparser
 import time
 from collections import OrderedDict
-import configparser
+from distutils.util import strtobool
 from pathlib import Path
-from .util import import_string
-from .jobs import Job
 
-from liquid_node.jobs import liquid
-from liquid_node.jobs import hoover
-from liquid_node.jobs import dokuwiki
-from liquid_node.jobs import rocketchat
-from liquid_node.jobs import nextcloud
-from liquid_node.jobs import hypothesis
-from liquid_node.jobs import ci
+from .util import import_string
+from liquid_node.jobs import ci, Job, liquid, hoover, dokuwiki, rocketchat, \
+    nextcloud, hypothesis
 
 
 class Configuration:
+    ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',)
+    # The core apps can't be turned off.
+    CORE_APPS = ('liquid', 'hoover',)
 
     def __init__(self):
         self.root = Path(__file__).parent.parent.resolve()
         self.templates = self.root / 'templates'
 
-        self.jobs = [
+        self.versions_ini = configparser.ConfigParser()
+        self.versions_ini.read(self.root / 'versions.ini')
+
+        self.ini = configparser.ConfigParser()
+        self.ini.read(self.root / 'liquid.ini')
+
+        self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
+
+        self.all_jobs = [
             liquid.Liquid(),
             hoover.Hoover(),
             hoover.Ui(),
@@ -33,12 +39,8 @@ class Configuration:
             nextcloud.Migrate(),
             hypothesis.Hypothesis(),
         ]
-
-        self.versions_ini = configparser.ConfigParser()
-        self.versions_ini.read(self.root / 'versions.ini')
-
-        self.ini = configparser.ConfigParser()
-        self.ini.read(self.root / 'liquid.ini')
+        self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
+        self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
         self.consul_socket = self.ini.get('cluster', 'consul_socket')
@@ -134,7 +136,7 @@ class Configuration:
                 )
             else:
                 self.ci_docker_registry_env = ''
-            self.jobs.append(ci.Drone())
+            self.enabled_jobs.append(ci.Drone())
 
         self.collections = OrderedDict()
         for key in self.ini:
@@ -148,7 +150,7 @@ class Configuration:
                 self.collections[name] = self.ini[key]
 
             elif cls == 'job':
-                self.jobs.append(self.load_job(name, self.ini[key]))
+                self.enabled_jobs.append(self.load_job(name, self.ini[key]))
 
         self.timestamp = int(time.time())
 
@@ -179,6 +181,10 @@ class Configuration:
 
     def app_url(self, name):
         return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
+
+    def is_app_enabled(self, app_name):
+        return app_name in Configuration.CORE_APPS or \
+            self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
 
     @classmethod
     def _validate_collection_name(self, name):
