@@ -44,6 +44,21 @@ job "liquid" {
         destination = "local/docker.env"
         env = true
       }
+      template {
+        data = <<-EOF
+          #!/usr/bin/env python3
+          import sys, os
+          os.environ['DJANGO_SETTINGS_MODULE'] = 'liquidcore.site.settings'
+          sys.path.append('/app')
+          import django
+          django.setup()
+          from django.contrib.auth.models import User
+          for u in User.objects.all():
+              print(u.username)
+          EOF
+          perms = "755"
+          destination = "local/users.py"
+      }
       resources {
         memory = 200
         network {

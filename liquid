@@ -5,7 +5,7 @@ set -e
 cd "$(dirname ${BASH_SOURCE[0]})"
 
 # delete venv if outdated
-if ! shasum -c venv/requirements.shasum; then
+if ! shasum -cq venv/requirements.shasum; then
   rm -rf venv
 fi
 
@@ -16,4 +16,4 @@ if [ ! -d ./venv ]; then
   shasum requirements.txt > venv/requirements.shasum
 fi
 
-exec ./venv/bin/python liquid.py $@
+exec ./venv/bin/python liquid.py "$@"
