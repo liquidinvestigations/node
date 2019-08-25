@@ -40,6 +40,7 @@ job "liquid" {
           DOKUWIKI_APP_URL = "${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}"
           ROCKETCHAT_APP_URL = "${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}"
           NEXTCLOUD_APP_URL = "${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}"
+          HYPOTHESIS_APP_URL = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}"
         EOF
         destination = "local/docker.env"
         env = true
