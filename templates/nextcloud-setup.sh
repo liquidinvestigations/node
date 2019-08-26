@@ -98,5 +98,7 @@ php occ app:disable survey_client
 php occ app:disable systemtags
 php occ app:disable updatenotification
 
-
 echo "Configuration done"
+
+# scan the filesystem in case there are files initially (redeploy e.g.)
+php occ files:scan
