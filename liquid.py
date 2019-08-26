@@ -521,7 +521,7 @@ def importfromdockersetup(path, method='link'):
 @liquid_commands.command()
 @click.argument('name')
 @click.argument('args', nargs=-1)
-def shell(name, *args):
+def shell(name, args):
     """Open a shell in a docker container tagged with liquid_task=`name`"""
 
     docker.shell(name, *args)
@@ -530,7 +530,7 @@ def shell(name, *args):
 @liquid_commands.command()
 @click.argument('name')
 @click.argument('args', nargs=-1)
-def dockerexec(name, *args):
+def dockerexec(name, args):
     """Run `docker exec` in a container tagged with liquid_task=`name`"""
 
     docker.exec_(name, *args)
