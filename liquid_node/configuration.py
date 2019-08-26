@@ -10,7 +10,8 @@ from liquid_node.jobs import ci, Job, liquid, hoover, dokuwiki, rocketchat, \
 
 
 class Configuration:
-    ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',)
+    ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
+                'hypothesis',)
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'hoover',)
 
