@@ -67,6 +67,7 @@ job "hoover" {
           {%- if config.liquid_http_protocol == 'https' %}
             SECURE_PROXY_SSL_HEADER = "HTTP_X_FORWARDED_PROTO"
           {%- endif %}
+          HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
         EOF
         destination = "local/hoover.env"
         env = true

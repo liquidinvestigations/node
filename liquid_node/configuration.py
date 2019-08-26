@@ -114,6 +114,8 @@ class Configuration:
 
         self.tika_memory_limit = self.ini.get('liquid', 'tika_memory_limit', fallback=800)
 
+        self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
+
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
