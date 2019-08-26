@@ -68,9 +68,10 @@ job "hypothesis" {
       }
       env {
         discovery.type = "single-node"
+        ES_JAVA_OPTS = "-Xms500m -Xmx500m"
       }
       resources {
-        memory = 5000
+        memory = 1000
         network {
           mbits = 1
           port "es" {}
@@ -108,7 +109,7 @@ job "hypothesis" {
         }
       }
       resources {
-        memory = 700
+        memory = 300
         cpu = 150
         network {
           mbits = 1
@@ -303,7 +304,7 @@ job "hypothesis" {
         env = true
       }
       resources {
-        memory = 100
+        memory = 10
         network {
           mbits = 1
           port "http" {}
