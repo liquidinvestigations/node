@@ -5,11 +5,13 @@ from distutils.util import strtobool
 from pathlib import Path
 
 from .util import import_string
-from liquid_node.jobs import ci, Job, liquid, hoover, dokuwiki, rocketchat, nextcloud
+from liquid_node.jobs import ci, Job, liquid, hoover, dokuwiki, rocketchat, \
+    nextcloud, hypothesis
 
 
 class Configuration:
-    ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',)
+    ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
+                'hypothesis',)
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'hoover',)
 
@@ -36,6 +38,7 @@ class Configuration:
             rocketchat.Migrate(),
             nextcloud.Nextcloud(),
             nextcloud.Migrate(),
+            hypothesis.Hypothesis(),
         ]
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
@@ -71,6 +74,10 @@ class Configuration:
         li_repos_path = self.ini.get('liquid', 'liquidinvestigations_repos_path',
                                      fallback=str((self.root / 'repos' / 'liquidinvestigations')))
         self.liquidinvestigations_repos_path = str(Path(li_repos_path).resolve())
+
+        h_repos_path = self.ini.get('liquid', 'hypothesis_repos_path',
+                                    fallback=str((self.root / 'repos' / 'hypothesis')))
+        self.hypothesis_repos_path = str(Path(h_repos_path).resolve())
 
         self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
 

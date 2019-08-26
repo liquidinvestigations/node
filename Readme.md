@@ -194,6 +194,16 @@ Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 
 In order to activate liquid login, follow [RocketChatAuthSetup](docs/RocketChatAuthSetup.md).
 
+### Hypothesis
+
+For login to work, Hypothesis needs its own copy of each user. Here is a script to synchronize them:
+
+```shell
+liquid_core_users="$(./liquid shell liquid-core /local/users.py)"
+hypothesis_users="$(./liquid shell hypothesis-pg psql -U hypothesis hypothesis -c 'COPY (SELECT username FROM "user") TO stdout WITH CSV;')"
+./liquid shell hypothesis-h /local/usersync.py "$liquid_core_users" "$hypothesis_users"
+```
+
 ### Importing collections from docker-setup
 
 #### Preparation
