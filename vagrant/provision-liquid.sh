@@ -15,7 +15,7 @@ fi
 
 cp examples/liquid.ini .
 
-sudo apt install python3-venv python3-pip
+sudo apt-get install -qy python3-venv python3-pip
 sudo -H pip3 install pipenv
 pipenv install -r requirements.txt
 ./liquid resources

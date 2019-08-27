@@ -91,12 +91,11 @@ where `[liquid_domain]` is the value of `liquid.domain` from the `liquid.ini` fi
 ### Use Pipenv
 ```shell
 sudo apt update
-sudo apt install python3-venv python3-pip git curl unzip
+sudo apt-get install python3-venv python3-pip git curl unzip
 pip3 install pipenv
 pipenv install -r requirements.txt
-pipenv shell
 ```
-After taking these steps, continue the configuration inside the virtual environment's shell.
+After taking these steps, the configuration will be run inside the virtual environment.
 
 The Liquid Investigations cluster configuration is read from `liquid.ini`.
 Start with the example configuration file:
