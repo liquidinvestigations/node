@@ -16,7 +16,12 @@ ephemeral_disk {
 
 {%- macro authproxy_group(name, host, upstream, threads=4, memory=150, user_header_template="{}") %}
   group "authproxy" {
-    ${ continuous_reschedule() }
+    restart {
+      interval = "1m"
+      attempts = 4
+      delay = "5s"
+      mode = "delay"
+    }
 
     task "web" {
       driver = "docker"
