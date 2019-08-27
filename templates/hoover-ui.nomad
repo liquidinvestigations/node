@@ -15,6 +15,7 @@ job "hoover-ui" {
       config {
         image = "${config.image('hoover-ui')}"
         volumes = [
+          ${hoover_ui_repo}
           "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
         ]
         labels {

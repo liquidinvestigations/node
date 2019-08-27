@@ -61,7 +61,8 @@ job "hoover" {
             HOOVER_ES_URL = "http://{{.Address}}:{{.Port}}"
           {{- end }}
           HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
-          HOOVER_TITLE = "Hoover <a style="display:inline-block;margin-left:10px;" href="${config.liquid_core_url}">&#8594; ${config.liquid_title}</a><script src="https://hypothesis.${liquid_domain}/embed.js"></script>"
+          HOOVER_TITLE = "Hoover <a style="display:inline-block;margin-left:10px;" href="${config.liquid_core_url}">&#8594; ${config.liquid_title}</a>"
+          HOOVER_HYPOTHESIS_EMBED = "https://hypothesis.${liquid_domain}/embed.js"
           HOOVER_AUTHPROXY = "true"
           USE_X_FORWARDED_HOST = "true"
           {%- if config.liquid_http_protocol == 'https' %}
