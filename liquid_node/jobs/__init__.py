@@ -60,6 +60,11 @@ def set_volumes_paths(substitutions={}):
             'local': os.path.join(config.hoover_repos_path, 'search'),
             'target': '/opt/hoover/search'
         },
+        'ui': {
+            'org': 'hoover',
+            'local': os.path.join(config.hoover_repos_path, 'ui/src'),
+            'target': '/opt/hoover/ui/src'
+        },
         'core': {
             'org': 'liquidinvestigations',
             'local': os.path.join(config.liquidinvestigations_repos_path, 'core'),
