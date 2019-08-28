@@ -16,11 +16,12 @@ fi
 cp examples/liquid.ini .
 cat vagrant/liquid-collections.ini >> liquid.ini
 
-sudo apt-get install -qy python3-venv python3-pip
+sudo -H apt-get install -qy python3-venv python3-pip
 sudo -H pip3 install pipenv
 pipenv install -r requirements.txt
-sudo ./liquid resources
-sudo ./liquid deploy
+chmod 777 ./liquid
+./liquid resources
+./liquid deploy
 
 cp -f examples/liquid.ini .
 
