@@ -148,6 +148,21 @@ Create an initial admin user:
 ./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
+### Maintenance
+During maintenance, you may decide to allow only administrators to log in. Set
+this flag in `liquid.ini` then deploy:
+
+```ini
+[liquid]
+auth_staff_only = true
+```
+
+To invalidate any existing login session, run `killsessions`:
+
+```shell
+./liquid shell liquid-core ./manage.py killsessions
+```
+
 ### Versions
 The liquid bundle comes with a `versions.ini` file with a known set of working
 versions. You can override them in `liquid.ini`, see `examples/liquid.ini` for
@@ -187,6 +202,16 @@ Nextcloud runs on the subdomain nextcloud.<liquid_domain>
 ### Rocket.Chat
 
 In order to activate liquid login, follow [RocketChatAuthSetup](docs/RocketChatAuthSetup.md).
+
+### Hypothesis
+
+For login to work, Hypothesis needs its own copy of each user. Here is a script to synchronize them:
+
+```shell
+liquid_core_users="$(./liquid shell liquid-core /local/users.py)"
+hypothesis_users="$(./liquid shell hypothesis-pg psql -U hypothesis hypothesis -c 'COPY (SELECT username FROM "user") TO stdout WITH CSV;')"
+./liquid shell hypothesis-h /local/usersync.py "$liquid_core_users" "$hypothesis_users"
+```
 
 ### Importing collections from docker-setup
 
@@ -262,3 +287,35 @@ template = local/foo.nomad
 ```
 
 Afterwards, run `./liquid deploy`, which will send your job `foo` to nomad.
+
+#### Removing collections
+In order to remove a collection, take the following steps:
+1. Remove the corresponding collection section from the `liquid.ini` file.
+2. Run `./liquid collectionsgc`
+3. Run `./liquid purge`
+
+#### Stopping jobs that should not be running in the current deploy configuration
+This command will stop all jobs from collections that are no longer in the `liquid.ini`
+file and jobs from applications that were disabled.
+```bash
+./liquid gc
+```
+
+#### Removing dead jobs from nomad
+In order to remove dead jobs from nomad run the following command:
+`./liquid nomadgc`.
+
+#### Enabling/disabling applications
+Applications can be enabled/disabled on deploy by setting them `on` or `off`
+in the `apps` section:
+```ini
+[apps]
+nextcloud = off
+```
+
+By default, all applications are started, but this default can also be changed
+in the `deploy` section:
+```ini
+[apps]
+default_app_status = off
+```

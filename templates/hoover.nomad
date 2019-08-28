@@ -61,12 +61,13 @@ job "hoover" {
             HOOVER_ES_URL = "http://{{.Address}}:{{.Port}}"
           {{- end }}
           HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
-          HOOVER_TITLE = "Hoover <a style="display:inline-block;margin-left:10px;" href="${config.liquid_core_url}">&#8594; ${config.liquid_title}</a>"
+          HOOVER_TITLE = "Hoover <a style="display:inline-block;margin-left:10px;" href="${config.liquid_core_url}">&#8594; ${config.liquid_title}</a><script src="https://hypothesis.${liquid_domain}/embed.js"></script>"
           HOOVER_AUTHPROXY = "true"
           USE_X_FORWARDED_HOST = "true"
           {%- if config.liquid_http_protocol == 'https' %}
             SECURE_PROXY_SSL_HEADER = "HTTP_X_FORWARDED_PROTO"
           {%- endif %}
+          HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
         EOF
         destination = "local/hoover.env"
         env = true

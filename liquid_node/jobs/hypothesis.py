@@ -1,7 +1,7 @@
 from liquid_node import jobs
 
 
-class Liquid(jobs.Job):
-    name = 'liquid'
+class Hypothesis(jobs.Job):
+    name = 'hypothesis'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'liquid'
+    app = 'hypothesis'

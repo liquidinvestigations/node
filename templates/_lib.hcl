@@ -14,7 +14,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream) %}
+{%- macro authproxy_group(name, host, upstream, threads=4, memory=150, user_header_template="{}") %}
   group "authproxy" {
     ${ continuous_reschedule() }
 
@@ -38,7 +38,7 @@ ephemeral_disk {
             UPSTREAM_APP_URL = "http://{{.Address}}:{{.Port}}"
           {{- end }}
           DEBUG = {{key "liquid_debug" | toJSON }}
-          USER_HEADER_TEMPLATE = "{}"
+          USER_HEADER_TEMPLATE = ${user_header_template|tojson}
           {{- range service "core" }}
             LIQUID_INTERNAL_URL = "http://{{.Address}}:{{.Port}}"
           {{- end }}
@@ -50,7 +50,8 @@ ephemeral_disk {
             LIQUID_CLIENT_ID = {{.Data.client_id | toJSON }}
             LIQUID_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
           {{- end }}
-        EOF
+          THREADS = ${threads}
+          EOF
         destination = "local/docker.env"
         env = true
       }
@@ -59,7 +60,7 @@ ephemeral_disk {
           mbits = 1
           port "authproxy" {}
         }
-        memory = 150
+        memory = ${memory}
         cpu = 150
       }
       service {

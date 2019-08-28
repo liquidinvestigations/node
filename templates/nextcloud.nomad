@@ -37,8 +37,12 @@ job "nextcloud" {
       }
       template {
         data = <<-EOF
+        {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
+          UPLOADS_USER_PASSWORD = {{.Data.secret_key | toJSON }}
+        {{- end }}
+        NEXTCLOUD_ADMIN = "admin"
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
-          OC_PASS = {{.Data.secret_key | toJSON }}
+          NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         EOF
         destination = "local/nextcloud-migrate.env"

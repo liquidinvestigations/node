@@ -110,7 +110,7 @@ job "hoover-deps" {
         }
       }
       resources {
-        memory = 800
+        memory = ${config.tika_memory_limit}
         cpu = 200
         network {
           mbits = 1

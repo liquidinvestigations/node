@@ -14,11 +14,25 @@ if ! [ -d collections/testdata ]; then
 fi
 
 cp examples/liquid.ini .
+cat vagrant/liquid-collections.ini >> liquid.ini
 
 sudo apt-get install -qy python3-venv python3-pip
 sudo -H pip3 install pipenv
 pipenv install -r requirements.txt
 ./liquid resources
 ./liquid deploy
+
+cp -f examples/liquid.ini .
+
+./liquid collectionsgc
+./liquid nomadgc
+
+cat vagrant/liquid-apps.ini >> liquid.ini
+
+./liquid deploy
+
+echo "default_app_status = off" >> liquid.ini
+
+./liquid gc
 
 echo "Liquid provisioned successfully." > /dev/null

@@ -115,7 +115,7 @@ job "rocketchat" {
         destination = "local/main.js"
       }
       resources {
-        memory = 800
+        memory = 1500
         cpu = 400
         network {
           mbits = 1
@@ -144,5 +144,7 @@ job "rocketchat" {
       'rocketchat',
       host='rocketchat.' + liquid_domain,
       upstream='rocketchat-app',
+      threads=150,
+      memory=500,
     ) }
 }

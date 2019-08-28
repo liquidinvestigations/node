@@ -40,6 +40,8 @@ def main():
         commands.deploy,
         commands.resources,
         commands.gc,
+        commands.collectionsgc,
+        commands.nomadgc,
         commands.halt,
         commands.initcollection,
         commands.deletecollection,

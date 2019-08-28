@@ -41,7 +41,9 @@ job "nextcloud-migrate" {
         {{- end }}
         NEXTCLOUD_HOST = "nextcloud.{{ key "liquid_domain" }}"
         NEXTCLOUD_ADMIN_USER = "admin"
-        NEXTCLOUD_ADMIN_PASSWORD = "admin"
+        {{- with secret "liquid/nextcloud/nextcloud.admin" }}
+          NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
+        {{- end }}
         {{- range service "nextcloud-maria" }}
           MYSQL_HOST = "{{.Address}}:{{.Port}}"
         {{- end }}
@@ -50,8 +52,8 @@ job "nextcloud-migrate" {
         {{- with secret "liquid/nextcloud/nextcloud.maria" }}
           MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
-        {{- with secret "liquid/nextcloud/nextcloud.admin" }}
-          OC_PASS = {{.Data.secret_key | toJSON }}
+        {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
+          UPLOADS_USER_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         TIMESTAMP = "${config.timestamp}"
         EOF

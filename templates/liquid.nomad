@@ -33,14 +33,32 @@ job "liquid" {
           LIQUID_DOMAIN = "{{key "liquid_domain"}}"
           LIQUID_TITLE = "${config.liquid_title}"
           SERVICE_ADDRESS = "{{env "NOMAD_IP_http"}}"
+          AUTH_STAFF_ONLY = "${config.auth_staff_only}"
+          AUTH_AUTO_LOGOUT = "${config.auth_auto_logout}"
           LIQUID_2FA = "${config.liquid_2fa}"
           HOOVER_APP_URL = "${config.liquid_http_protocol}://hoover.${config.liquid_domain}"
           DOKUWIKI_APP_URL = "${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}"
           ROCKETCHAT_APP_URL = "${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}"
           NEXTCLOUD_APP_URL = "${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}"
+          HYPOTHESIS_APP_URL = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}"
         EOF
         destination = "local/docker.env"
         env = true
+      }
+      template {
+        data = <<-EOF
+          #!/usr/bin/env python3
+          import sys, os
+          os.environ['DJANGO_SETTINGS_MODULE'] = 'liquidcore.site.settings'
+          sys.path.append('/app')
+          import django
+          django.setup()
+          from django.contrib.auth.models import User
+          for u in User.objects.all():
+              print(u.username)
+          EOF
+          perms = "755"
+          destination = "local/users.py"
       }
       resources {
         memory = 200
