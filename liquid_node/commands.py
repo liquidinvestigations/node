@@ -524,10 +524,10 @@ def importcollection(name, path, method='copy'):
     blob_src = blobs
     blob_dst = collection_path / 'blobs'
     import_dir(blob_src, blob_dst, method=method)
-    (collection_path / 'index').mkdir()
-    # copy or link the index
-    index = Path(index).resolve(strict=True)
 
+    # copy or link the index
+    (collection_path / 'index').mkdir()
+    index = Path(index).resolve(strict=True)
     index_dst = collection_path / 'index' / f'{name}-index.tgz'
     import_file(index, index_dst, method=method)
 
@@ -547,7 +547,7 @@ def exportcollection(name):
     """
     if name not in config.collections:
         raise RuntimeError(f'Collection {name} does not exist in the liquid.ini file.')
-    export_path = Path(config.liquid_collections) / 'exported' / name
+    export_path = Path(config.liquid_volumes) / 'exports' / name
     if export_path.exists():
         if confirm(f'collection {name} already has exported files in {export_path}, overwrite?'):
             shutil.rmtree(export_path)
@@ -556,19 +556,19 @@ def exportcollection(name):
             exit()
     else:
         (export_path).mkdir(parents=True)
+    collection_volumes = Path(config.liquid_volumes) / 'collections' / name
     # copy the pg dir
-    database = Path(config.liquid_volumes) / 'collections' / name / 'pg'
+    database = collection_volumes / 'pg'
     pg_src = database
     pg_dst = export_path / 'pg'
     import_dir(pg_src, pg_dst, method='copy')
 
     # copy the blobs dir
-    blobs = Path(config.liquid_volumes) / 'collections' / name / 'blobs'
+    blobs = collection_volumes / 'blobs'
     blob_src = blobs
     blob_dst = export_path / 'blobs'
     import_dir(blob_src, blob_dst, method='copy')
 
-    log.info(f'found index for {name}, importing index instead of creating it')
     with gzip.open(export_path / f'{name}-index.tgz', "w") as index_file:
         docker.exec_(
             f'snoop-{name}-api',

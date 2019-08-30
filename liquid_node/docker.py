@@ -27,7 +27,7 @@ class Docker:
             docker_exec_cmd += ['-t']
         if interactive:
             docker_exec_cmd += ['-i']
-        docker_exec_cmd += [container_id] + list(args or (['bash'] if (tty and interactive) else []))
+        docker_exec_cmd += [container_id] + list(args)
         return docker_exec_cmd
 
     def shell(self, name, *args, stdin=None, stdout=None):

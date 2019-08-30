@@ -230,7 +230,7 @@ Liquid has to be deployed in order to export collections. When deployed, run
 ```
 ./liquid exportcollection <collection_name>
 ```
-The exported collection data is stored in `<collections_directory>/exported/<collection_name`
+The exported collection data is stored in `volumes/exports/<collection_name>`
 
 #### Importing
 you need paths to the following data in order to import a collection:
