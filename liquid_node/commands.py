@@ -6,7 +6,6 @@ import os
 import base64
 import json
 import shutil
-import tarfile
 import gzip
 
 from liquid_node.collections import push_collections_titles
@@ -552,31 +551,24 @@ def exportcollection(name):
     if export_path.exists():
         if confirm(f'collection {name} already has exported files in {export_path}, overwrite?'):
             shutil.rmtree(export_path)
-            export_path.mkdir(parents=True)
         else:
             log.info(f'exiting and not overwriting data for {name}')
             exit()
     else:
-        export_path.mkdir(parents=True)
+        (export_path).mkdir(parents=True)
     collection_volumes = Path(config.liquid_volumes) / 'collections' / name
-
-    # dumping the database
-    with gzip.open(export_path / 'pg_dump.tgz', "w") as pg_dump:
-        docker.exec_(
-            f'snoop-{name}-pg',
-            'pg_dump', '-Ox', '-U', 'snoop', 'snoop',
-            stdout=pg_dump, interactive=True
-        )
-    log.info(f'dumped database to {export_path}')
+    # copy the pg dir
+    database = collection_volumes / 'pg'
+    pg_src = database
+    pg_dst = export_path / 'pg'
+    import_dir(pg_src, pg_dst, method='copy')
 
     # copy the blobs dir
     blobs = collection_volumes / 'blobs'
-    blobs_tar = tarfile.open(export_path / "blobs.tgz", "w:gz")
-    blobs_tar.add(blobs, arcname='blobs')
-    blobs_tar.close()
-    log.info(f'dumped blobs to {export_path}')
+    blob_src = blobs
+    blob_dst = export_path / 'blobs'
+    import_dir(blob_src, blob_dst, method='copy')
 
-    # copy the index
     with gzip.open(export_path / f'{name}-index.tgz', "w") as index_file:
         docker.exec_(
             f'snoop-{name}-api',
