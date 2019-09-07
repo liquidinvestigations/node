@@ -39,6 +39,7 @@ class Configuration:
             nextcloud.Nextcloud(),
             nextcloud.Migrate(),
             hypothesis.Hypothesis(),
+            hypothesis.UserSync(),
         ]
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]

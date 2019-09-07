@@ -244,7 +244,7 @@ job "hypothesis" {
           for username in h_users - liquid_users:
               run([
                   "bin/hypothesis", "user", "delete",
-                  "--username", username,
+                  username,
                   "--authority", authority,
               ])
           EOF
