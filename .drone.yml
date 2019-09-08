@@ -11,7 +11,7 @@ steps:
   image: vmck/vagrant-vmck:0.2.0
   commands:
   - export VMCK_URL=http://$VMCK_IP:$VMCK_PORT
-  - echo $VMCK_URL
+  - export VMCK_NAME="drone $DRONE_REPO:$DRONE_BRANCH#$DRONE_BUILD_NUMBER"
   - vagrant/deploy-vmck
 
 ---
