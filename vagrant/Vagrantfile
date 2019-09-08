@@ -51,6 +51,7 @@ if Vagrant.has_plugin?('vagrant-env')
     vmck.vmck_url = ENV['VMCK_URL']
     vmck.memory = 18000
     vmck.cpus = 2
+    vmck.name = ENV['VMCK_NAME']
 
     override.vm.box = "base"
     override.nfs.functional = false
