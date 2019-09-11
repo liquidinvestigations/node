@@ -81,7 +81,7 @@ class Configuration:
                                     fallback=str((self.root / 'repos' / 'hypothesis')))
         self.hypothesis_repos_path = str(Path(h_repos_path).resolve())
 
-        self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
+        self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=None)
 
         self.liquid_collections = self.ini.get('liquid', 'collections',
                                                fallback=str(self.root / 'collections'))
