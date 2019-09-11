@@ -139,6 +139,7 @@ job "hoover" {
             static = 8765
           }
           port "ui" {
+            static = 8764
           }
         }
       }
