@@ -7,13 +7,18 @@ job "hoover" {
 
   group "web" {
     task "search" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "${config.image('hoover-search')}"
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_search_repo}
-          "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build",
         ]
         port_map {
           http = 80

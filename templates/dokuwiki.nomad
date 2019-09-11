@@ -7,11 +7,16 @@ job "dokuwiki" {
 
   group "dokuwiki" {
     task "php" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config = {
         image = "bitnami/dokuwiki:0.20180422.201901061035"
         volumes = [
-          "${liquid_volumes}/dokuwiki/data:/bitnami",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/dokuwiki/data:/bitnami",
         ]
         labels {
           liquid_task = "dokuwiki"

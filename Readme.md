@@ -88,6 +88,18 @@ where `[liquid_domain]` is the value of `liquid.domain` from the `liquid.ini` fi
 
 
 ## Configuration
+
+### Configure the Nomad cluster
+
+The following Nomad Meta values need to be set:
+
+- `liquid_ingress = true` -- set on the one node that will listen on 80 and 443
+- `liquid_volumes = /path/to/volumes` -- the path on the host that will mount volumes
+- `liquid_collections = /path/to/collections` -- the path on the host that points to the original collections
+
+Take care to set the `liquid_volumes` and `liquid_collections` to the same paths in `[liquid] volumes` and `[liquid] collections` in `liquid.ini`.
+
+### Run Liquid Investigations
 The Liquid Investigations cluster configuration is read from `liquid.ini`.
 Start with the example configuration file:
 

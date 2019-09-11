@@ -7,11 +7,16 @@ job "hypothesis" {
 
   group "db" {
     task "pg" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "postgres:9.4-alpine"
         volumes = [
-          "${liquid_volumes}/hypothesis/pg/data:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hypothesis/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "hypothesis-pg"
@@ -52,12 +57,17 @@ job "hypothesis" {
     }
 
     task "es" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "hypothesis/elasticsearch:latest"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
-          "${liquid_volumes}/hypothesis/es/data:/usr/share/elasticsearch/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hypothesis/es/data:/usr/share/elasticsearch/data",
         ]
         port_map {
           es = 9200
@@ -92,13 +102,18 @@ job "hypothesis" {
     }
 
     task "rabbitmq" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
       config {
         image = "rabbitmq:3.6-management-alpine"
         volumes = [
-          "${liquid_volumes}/hypothesis/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hypothesis/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
         port_map {
           amqp = 5672
