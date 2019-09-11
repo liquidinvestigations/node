@@ -124,10 +124,8 @@ job "hoover" {
         registry.consul.addr = ${consul_url}
         registry.consul.checksRequired = all
         registry.consul.tagprefix = snoop-
-        registry.consul.register.tags = snoop-/
         ui.addr = :9991
         ui.color = blue
-        registry.consul.register.addr = {% raw %}${NOMAD_ADDR_ui}{% endraw %}
         proxy.addr = :9990
         EOH
       }
