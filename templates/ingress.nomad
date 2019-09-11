@@ -7,7 +7,7 @@ job "ingress" {
 
   group "ingress" {
     constraint {
-      attribute = "${meta.ingress}"
+      attribute = "{% raw %}${meta.ingress}{% endraw %}"
       operator  = "is_set"
     }
     ${ continuous_reschedule() }

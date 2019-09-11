@@ -7,11 +7,16 @@ job "rocketchat" {
 
   group "db" {
     task "mongo" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "mongo:3.2"
         volumes = [
-          "${liquid_volumes}/rocketchat/mongo/data:/data/db",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/rocketchat/mongo/data:/data/db",
         ]
         args = ["mongod", "--smallfiles", "--replSet", "rs01"]
         labels {

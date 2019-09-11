@@ -11,6 +11,15 @@ job "collection-${name}" {
     count = ${workers}
 
     task "snoop" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
@@ -19,9 +28,8 @@ job "collection-${name}" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
-          "${liquid_collections}/${name}:/opt/hoover/collection",
-          "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/${name}:/opt/hoover/collection",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
           flower = 5555
@@ -108,6 +116,15 @@ job "collection-${name}" {
     ${ continuous_reschedule() }
 
     task "snoop" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
@@ -116,9 +133,8 @@ job "collection-${name}" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
-          "${liquid_collections}/${name}:/opt/hoover/collection",
-          "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/${name}:/opt/hoover/collection",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
           http = 80

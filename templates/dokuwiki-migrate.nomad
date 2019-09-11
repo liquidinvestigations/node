@@ -11,13 +11,17 @@ job "dokuwiki-migrate" {
     ${ continuous_reschedule() }
 
     task "script" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
       ${ task_logs() }
 
       driver = "docker"
       config {
         image = "alpine"
         volumes = [
-          "${liquid_volumes}/dokuwiki/data:/bitnami",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/dokuwiki/data:/bitnami",
         ]
         args = ["sh", "/local/migrate.sh"]
         labels {

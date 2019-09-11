@@ -9,6 +9,11 @@ job "hoover-ui" {
     ${ group_disk() }
 
     task "ui" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
@@ -16,7 +21,7 @@ job "hoover-ui" {
         image = "${config.image('hoover-ui')}"
         volumes = [
           ${hoover_ui_repo}
-          "${liquid_volumes}/hoover-ui/build:/opt/hoover/ui/build",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build",
         ]
         labels {
           liquid_task = "hoover-ui"

@@ -7,12 +7,17 @@ job "hoover-deps" {
 
   group "index" {
     task "es" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
-          "${liquid_volumes}/hoover/es/data:/usr/share/elasticsearch/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data:/usr/share/elasticsearch/data",
         ]
         port_map {
           es = 9200
@@ -51,11 +56,16 @@ job "hoover-deps" {
     ${ continuous_reschedule() }
 
     task "pg" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "postgres:9.6"
         volumes = [
-          "${liquid_volumes}/hoover/pg/data:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "hoover-pg"

@@ -7,12 +7,21 @@ job "nextcloud" {
 
   group "nc" {
     task "nextcloud" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "${config.image('liquid-nextcloud')}"
         volumes = [
-          "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
-          "${liquid_collections}/uploads/data:/var/www/html/data/uploads/files",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud:/var/www/html",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
         ]
         args = ["/bin/sh", "-c", "chown -R 33:33 /var/www/html/ && echo chown done && /entrypoint.sh apache2-foreground"]
         port_map {
@@ -68,11 +77,16 @@ job "nextcloud" {
 
   group "db" {
     task "maria" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "mariadb:10.4"
         volumes = [
-          "${liquid_volumes}/nextcloud/mysql:/var/lib/mysql",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/mysql:/var/lib/mysql",
         ]
         labels {
           liquid_task = "nextcloud-maria"

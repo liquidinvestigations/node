@@ -62,13 +62,18 @@ job "drone" {
   group "drone" {
     ${ group_disk() }
     task "drone" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
       driver = "docker"
       config {
         image = "drone/drone:1.2.0"
         volumes = [
           "/var/run/docker.sock:/var/run/docker.sock",
-          "${liquid_volumes}/drone:/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/drone:/data",
         ]
         port_map {
           http = 80

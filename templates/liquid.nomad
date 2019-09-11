@@ -9,12 +9,17 @@ job "liquid" {
     ${ continuous_reschedule() }
 
     task "core" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "${config.image('liquid-core')}"
         volumes = [
           ${liquidinvestigations_core_repo}
-          "${liquid_volumes}/liquid/core/var:/app/var",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/var",
         ]
         labels {
           liquid_task = "liquid-core"
