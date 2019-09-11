@@ -104,7 +104,7 @@ job "hoover" {
       upstream='hoover-search',
     ) }
 
-  group "load-balancer" {
+  group "collections-lb" {
     task "fabio" {
       driver = "docker"
       config {
@@ -120,18 +120,18 @@ job "hoover" {
       template {
         destination = "local/fabio.properties"
         data = <<-EOH
-        registry.backend = consul
-        registry.consul.addr = ${consul_url}
-        registry.consul.checksRequired = all
-        registry.consul.tagprefix = snoop-
-        ui.addr = :9991
-        ui.color = blue
-        proxy.addr = :9990
-        EOH
+          registry.backend = consul
+          registry.consul.addr = ${consul_url}
+          registry.consul.checksRequired = all
+          registry.consul.tagprefix = snoop-
+          ui.addr = :9991
+          ui.color = blue
+          proxy.addr = :9990
+          EOH
       }
 
       resources {
-        cpu    = 100
+        cpu = 100
         memory = 100
         network {
           mbits = 1
