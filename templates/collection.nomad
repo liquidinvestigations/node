@@ -219,6 +219,7 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}"
         port = "http"
+        tags = ["snoop-/${name} strip=/${name} host=${name}.snoop.${liquid_domain}"]
         check {
           name = "http"
           initial_status = "critical"
