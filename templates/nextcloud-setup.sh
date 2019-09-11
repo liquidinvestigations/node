@@ -73,7 +73,7 @@ php occ config:system:set skeletondirectory --value ''
 php occ config:system:set updatechecker --value false --type boolean
 
 #install contacts before shutting down the app store
-php occ app:install contacts
+php occ app:install contacts || true
 
 php occ config:system:set has_internet_connection --value false --type boolean
 php occ config:system:set appstoreenabled --value false --type boolean
