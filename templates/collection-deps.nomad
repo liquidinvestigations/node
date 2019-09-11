@@ -92,8 +92,8 @@ job "collection-${name}-deps" {
       }
       ${ set_pg_password_template('snoop') }
       resources {
-        cpu = 400
-        memory = 400
+        cpu = 200
+        memory = 300
         network {
           mbits = 1
           port "pg" {}
