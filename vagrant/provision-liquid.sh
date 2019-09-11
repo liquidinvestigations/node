@@ -12,6 +12,7 @@ mkdir collections
 if ! [ -d collections/testdata ]; then
   git clone https://github.com/hoover/testdata collections/testdata
 fi
+cp -a collections/testadata collections/inactive
 
 cp examples/liquid.ini .
 cat vagrant/liquid-collections.ini >> liquid.ini
