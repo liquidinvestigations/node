@@ -6,6 +6,10 @@ job "ingress" {
   priority = 90
 
   group "ingress" {
+    constraint {
+      attribute = "${meta.ingress}"
+      operator  = "is_set"
+    }
     ${ continuous_reschedule() }
 
     task "traefik" {
