@@ -29,6 +29,7 @@ class Configuration:
 
         self.all_jobs = [
             liquid.Liquid(),
+            liquid.Ingress(),
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Deps(),
