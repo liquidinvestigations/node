@@ -5,6 +5,7 @@ job "collection-${name}-deps" {
   type = "service"
   priority = 65
 
+  {% if workers %}
   group "queue" {
     ${ group_disk() }
 
@@ -50,6 +51,7 @@ job "collection-${name}-deps" {
       }
     }
   }
+  {% endif %}
 
   group "db" {
     ${ group_disk() }

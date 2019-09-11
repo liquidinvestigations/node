@@ -5,132 +5,6 @@ job "collection-${name}" {
   type = "service"
   priority = 55
 
-  {% if workers %}
-  group "queue" {
-    ${ group_disk() }
-
-    task "rabbitmq" {
-      ${ task_logs() }
-
-      driver = "docker"
-      config {
-        image = "rabbitmq:3.7.3"
-        volumes = [
-          "${liquid_volumes}/collections/${name}/rabbitmq/rabbitmq:/var/lib/rabbitmq",
-        ]
-        port_map {
-          amqp = 5672
-        }
-        labels {
-          liquid_task = "snoop-${name}-rabbitmq"
-        }
-      }
-      resources {
-        memory = 700
-        cpu = 150
-        network {
-          port "amqp" {}
-        }
-      }
-      service {
-        name = "snoop-${name}-rabbitmq"
-        port = "amqp"
-        check {
-          name = "rabbitmq alive on tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-  {% endif %}
-
-  group "tika" {
-    ${ group_disk() }
-
-    task "tika" {
-      ${ task_logs() }
-
-      driver = "docker"
-      config {
-        image = "logicalspark/docker-tikaserver"
-        port_map {
-          tika = 9998
-        }
-        labels {
-          liquid_task = "snoop-${name}-tika"
-        }
-      }
-      resources {
-        memory = 800
-        cpu = 200
-        network {
-          port "tika" {}
-        }
-      }
-      service {
-        name = "snoop-${name}-tika"
-        port = "tika"
-        check {
-          name = "tika alive on http"
-          initial_status = "critical"
-          type = "http"
-          path = "/version"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-
-  group "db" {
-    ${ group_disk() }
-
-    ${ continuous_reschedule() }
-
-    task "pg" {
-      ${ task_logs() }
-
-      driver = "docker"
-      config {
-        image = "postgres:9.6"
-        volumes = [
-          "${liquid_volumes}/collections/${name}/pg/data:/var/lib/postgresql/data",
-        ]
-        labels {
-          liquid_task = "snoop-${name}-pg"
-        }
-        port_map {
-          pg = 5432
-        }
-      }
-      env {
-        POSTGRES_USER = "snoop"
-        POSTGRES_DATABASE = "snoop"
-      }
-      resources {
-        cpu = 400
-        memory = 400
-        network {
-          port "pg" {}
-        }
-      }
-      service {
-        name = "snoop-${name}-pg"
-        port = "pg"
-        check {
-          name = "postgres alive on tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-
   group "workers" {
     ${ group_disk() }
 
@@ -288,6 +162,11 @@ job "collection-${name}" {
         date
         ./manage.py migrate --noinput
         ./manage.py healthcheck
+
+        {% if workers %}
+        ./manage.py rundispatcher
+        {% endif %}
+
         date
         exec /runserver
         EOF
