@@ -23,10 +23,7 @@ job "ingress" {
           https = 443
           {%- endif %}
         }
-        volumes = [
-          "local/traefik.toml:/etc/traefik/traefik.toml:ro",
-          "${liquid_volumes}/liquid/traefik/acme:/etc/traefik/acme",
-        ]
+        volumes = ["local/traefik.toml:/etc/traefik/traefik.toml:ro"]
         labels {
           liquid_task = "liquid-ingress"
         }
