@@ -48,15 +48,8 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        (
-        set +x
-        if [ -z "$SNOOP_DB" ]; then
-          echo "database not ready"
-          sleep 5
-          exit 1
-        fi
-        )
         if  [ -z "$SNOOP_TIKA_URL" ] \
+                || [ -z "$SNOOP_DB" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
@@ -162,10 +155,6 @@ job "collection-${name}" {
         date
         ./manage.py migrate --noinput
         ./manage.py healthcheck
-
-        {% if workers %}
-        ./manage.py rundispatcher
-        {% endif %}
 
         date
         exec /runserver
