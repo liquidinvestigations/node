@@ -9,6 +9,7 @@ job "liquid" {
     ${ continuous_reschedule() }
 
     task "core" {
+      # Constraint required for hypothesis-usersync
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
