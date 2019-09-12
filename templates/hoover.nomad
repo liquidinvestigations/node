@@ -129,6 +129,7 @@ job "hoover" {
           registry.consul.addr = ${consul_url}
           registry.consul.checksRequired = all
           registry.consul.tagprefix = snoop-
+          registry.consul.kvpath = /liquid/hoover/fabio
           ui.addr = :9991
           ui.color = blue
           proxy.addr = :9990
