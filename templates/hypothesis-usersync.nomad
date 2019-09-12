@@ -1,7 +1,7 @@
 job "hypothesis-usersync" {
-  datacenters = [
-    "dc1"]
+  datacenters = ["dc1"]
   type = "batch"
+  priority = 60
 
   periodic {
     cron = "*/5 * * * *"
@@ -10,6 +10,13 @@ job "hypothesis-usersync" {
 
   group "usersync" {
     task "script" {
+
+      # Constraint required to ensure this, the hypothesis and the liquid-core containers all run on the same machine.
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "raw_exec"
 
       config {
