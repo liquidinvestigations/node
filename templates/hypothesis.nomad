@@ -303,7 +303,7 @@ job "hypothesis" {
     task "nginx" {
       driver = "docker"
       config = {
-        image = "liquidinvestigations/h-client:liquid-as-node"
+        image = "${config.image('h-client')}"
         port_map {
           http = 80
         }
