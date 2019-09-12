@@ -5,6 +5,7 @@ job "collection-${name}-deps" {
   type = "service"
   priority = 65
 
+  {% if workers %}
   group "queue" {
     ${ group_disk() }
 
@@ -50,6 +51,7 @@ job "collection-${name}-deps" {
       }
     }
   }
+  {% endif %}
 
   group "db" {
     ${ group_disk() }
@@ -90,8 +92,8 @@ job "collection-${name}-deps" {
       }
       ${ set_pg_password_template('snoop') }
       resources {
-        cpu = 400
-        memory = 400
+        cpu = 200
+        memory = 300
         network {
           mbits = 1
           port "pg" {}

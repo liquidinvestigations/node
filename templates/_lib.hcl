@@ -17,9 +17,9 @@ ephemeral_disk {
 {%- macro authproxy_group(name, host, upstream, threads=4, memory=150, user_header_template="{}") %}
   group "authproxy" {
     restart {
-      interval = "1m"
+      interval = "2m"
       attempts = 4
-      delay = "5s"
+      delay = "20s"
       mode = "delay"
     }
 
