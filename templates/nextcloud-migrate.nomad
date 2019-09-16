@@ -6,13 +6,13 @@ job "nextcloud-migrate" {
   priority = 45
 
   group "migrate" {
-    leader = true
-
     ${ group_disk() }
 
     ${ continuous_reschedule() }
 
     task "script" {
+      leader = true
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"

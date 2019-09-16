@@ -107,6 +107,8 @@ ephemeral_disk {
     task "promtail" {
       driver = "docker"
 
+      ${ task_logs() }
+
       config {
         image = "grafana/promtail:master"
         args = ["-config.file", "local/config.yaml"]
