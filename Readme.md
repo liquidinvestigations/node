@@ -2,7 +2,7 @@
 
 Scripts and configuration to run a Liquid Node
 
-[![Build Status](https://travis-ci.org/liquidinvestigations/node.svg?branch=master)](https://travis-ci.org/liquidinvestigations/node)
+[![Build Status](https://jenkins.liquiddemo.org/api/badges/liquidinvestigations/node/status.svg)](https://jenkins.liquiddemo.org/liquidinvestigations/node)
 
 
 ## Requirements
