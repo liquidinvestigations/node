@@ -39,14 +39,11 @@ ephemeral_disk {
       }
       template {
         data = <<-EOF
-          {{- range service "${upstream}" }}
-            UPSTREAM_APP_URL = "http://{{.Address}}:{{.Port}}"
-          {{- end }}
+          CONSUL_URL = ${consul_url|tojson}
+          UPSTREAM_SERVICE = ${upstream|tojson}
           DEBUG = {{key "liquid_debug" | toJSON }}
           USER_HEADER_TEMPLATE = ${user_header_template|tojson}
-          {{- range service "core" }}
-            LIQUID_INTERNAL_URL = "http://{{.Address}}:{{.Port}}"
-          {{- end }}
+          LIQUID_CORE_SERVICE = "core"
           LIQUID_PUBLIC_URL = "${config.liquid_http_protocol}://{{key "liquid_domain"}}"
           {{- with secret "liquid/${name}/auth.django" }}
             SECRET_KEY = {{.Data.secret_key | toJSON }}
