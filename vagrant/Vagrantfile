@@ -50,7 +50,7 @@ if Vagrant.has_plugin?('vagrant-env')
     vmck.image_path = 'cluster-master.qcow2.tar.gz'
     vmck.vmck_url = ENV['VMCK_URL']
     vmck.memory = 18999
-    vmck.cpus = 2
+    vmck.cpus = 3
     vmck.name = ENV['VMCK_NAME']
 
     override.vm.box = "base"
