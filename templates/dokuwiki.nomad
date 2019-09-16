@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group with context -%}
+{% from '_lib.hcl' import authproxy_group, promtail_task with context -%}
 
 job "dokuwiki" {
   datacenters = ["dc1"]
@@ -49,6 +49,8 @@ job "dokuwiki" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   ${- authproxy_group(

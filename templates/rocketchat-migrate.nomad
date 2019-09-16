@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, promtail_task -%}
 
 job "rocketchat-migrate" {
   datacenters = ["dc1"]
@@ -11,6 +11,8 @@ job "rocketchat-migrate" {
     ${ continuous_reschedule() }
 
     task "caboose" {
+      leader = true
+
       ${ task_logs() }
 
       driver = "docker"
@@ -40,5 +42,7 @@ job "rocketchat-migrate" {
         env = true
       }
     }
+
+    ${ promtail_task() }
   }
 }

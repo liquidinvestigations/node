@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, promtail_task -%}
 
 job "nextcloud-migrate" {
   datacenters = ["dc1"]
@@ -6,6 +6,8 @@ job "nextcloud-migrate" {
   priority = 45
 
   group "migrate" {
+    leader = true
+
     ${ group_disk() }
 
     ${ continuous_reschedule() }
@@ -74,5 +76,7 @@ job "nextcloud-migrate" {
         cpu = 200
       }
     }
+
+    ${ promtail_task() }
   }
 }

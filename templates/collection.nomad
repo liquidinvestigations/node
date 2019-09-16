@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
 
 job "collection-${name}" {
   datacenters = ["dc1"]
@@ -101,6 +101,8 @@ job "collection-${name}" {
         port = "flower"
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "api" {
@@ -219,5 +221,7 @@ job "collection-${name}" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }
