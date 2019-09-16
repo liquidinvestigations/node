@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
 
 job "collection-${name}-deps" {
   datacenters = ["dc1"]
@@ -50,6 +50,8 @@ job "collection-${name}-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
   {% endif %}
 
@@ -111,6 +113,8 @@ job "collection-${name}-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }
 

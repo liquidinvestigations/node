@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, task_logs with context -%}
+{% from '_lib.hcl' import authproxy_group, task_logs, promtail_task with context -%}
 
 job "hypothesis" {
   datacenters = ["dc1"]
@@ -143,6 +143,8 @@ job "hypothesis" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "h" {
@@ -296,6 +298,8 @@ job "hypothesis" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   ${- authproxy_group(
@@ -347,5 +351,7 @@ job "hypothesis" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }

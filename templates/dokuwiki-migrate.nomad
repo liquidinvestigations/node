@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, promtail_task -%}
 
 job "dokuwiki-migrate" {
   datacenters = ["dc1"]
@@ -11,6 +11,8 @@ job "dokuwiki-migrate" {
     ${ continuous_reschedule() }
 
     task "script" {
+      leader = true
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -110,5 +112,7 @@ job "dokuwiki-migrate" {
         cpu = 200
       }
     }
+
+    ${ promtail_task() }
   }
 }
