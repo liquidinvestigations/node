@@ -86,7 +86,7 @@ ephemeral_disk {
       }
     }
 
-    ${ promtail() }
+    ${ promtail_task() }
   }
 {%- endmacro %}
 
@@ -103,7 +103,7 @@ ephemeral_disk {
   }
 {%- endmacro %}
 
-{% macro promtail() %}
+{% macro promtail_task() %}
     task "promtail" {
       driver = "docker"
 
