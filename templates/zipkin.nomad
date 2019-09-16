@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs -%}
+{% from '_lib.hcl' import group_disk, task_logs, promtail_task -%}
 
 job "zipkin" {
   datacenters = ["dc1"]
@@ -42,5 +42,7 @@ job "zipkin" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }

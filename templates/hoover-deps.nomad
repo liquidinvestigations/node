@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
 
 job "hoover-deps" {
   datacenters = ["dc1"]
@@ -50,6 +50,8 @@ job "hoover-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "db" {
@@ -105,6 +107,8 @@ job "hoover-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "tika" {
@@ -140,5 +144,7 @@ job "hoover-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }

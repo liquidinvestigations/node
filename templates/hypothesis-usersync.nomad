@@ -1,3 +1,5 @@
+{% from '_lib.hcl' import promtail_task -%}
+
 job "hypothesis-usersync" {
   datacenters = ["dc1"]
   type = "batch"
@@ -10,6 +12,7 @@ job "hypothesis-usersync" {
 
   group "usersync" {
     task "script" {
+      leader = true
 
       # Constraint required to ensure this, the hypothesis and the liquid-core containers all run on the same machine.
       constraint {
@@ -41,5 +44,7 @@ job "hypothesis-usersync" {
         EOF
       }
     }
+
+    ${ promtail_task() }
   }
 }

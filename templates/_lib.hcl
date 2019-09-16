@@ -85,6 +85,8 @@ ephemeral_disk {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 {%- endmacro %}
 
@@ -100,3 +102,42 @@ ephemeral_disk {
     destination = "local/set_pg_password.sh"
   }
 {%- endmacro %}
+
+{% macro promtail_task() %}
+    task "promtail" {
+      driver = "docker"
+
+      ${ task_logs() }
+
+      config {
+        image = "grafana/promtail:master"
+        args = ["-config.file", "local/config.yaml"]
+      }
+
+      template {
+        destination = "local/config.yaml"
+        data = <<-EOH
+          positions:
+            filename: /tmp/positions.yaml
+          client:
+            url: http://{{ env "attr.unique.network.ip-address" }}:3100/api/prom/push
+          scrape_configs:
+          - job_name: system
+            entry_parser: raw
+            static_configs:
+            - targets:
+                - localhost
+              labels:
+                job: {{ env "NOMAD_JOB_NAME" }}
+                group: {{ env "NOMAD_GROUP_NAME" }}
+                __path__: /alloc/logs/*
+          EOH
+      }
+
+      resources {
+        cpu = 50
+        memory = 32
+        network { mbits = 1 }
+      }
+    }
+{% endmacro %}

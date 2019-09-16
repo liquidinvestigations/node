@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs -%}
+{% from '_lib.hcl' import group_disk, task_logs, promtail_task -%}
 
 job "hoover-ui" {
   datacenters = ["dc1"]
@@ -9,6 +9,8 @@ job "hoover-ui" {
     ${ group_disk() }
 
     task "ui" {
+      leader = true
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -32,5 +34,7 @@ job "hoover-ui" {
         memory = 900
       }
     }
+
+    ${ promtail_task() }
   }
 }

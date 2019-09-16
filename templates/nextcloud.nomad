@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group with context -%}
+{% from '_lib.hcl' import authproxy_group, promtail_task with context -%}
 
 job "nextcloud" {
   datacenters = ["dc1"]
@@ -73,6 +73,8 @@ job "nextcloud" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "db" {
@@ -129,6 +131,8 @@ job "nextcloud" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   ${- authproxy_group(

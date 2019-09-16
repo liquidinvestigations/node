@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule -%}
+{% from '_lib.hcl' import continuous_reschedule, promtail_task -%}
 
 job "liquid" {
   datacenters = ["dc1"]
@@ -95,5 +95,7 @@ job "liquid" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }
