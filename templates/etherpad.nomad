@@ -7,6 +7,7 @@ job "etherpad" {
 
   group "etherpad" {
     task "etherpad" {
+      leader = true
       driver = "docker"
       config {
         image = "${config.image('etherpad-lite')}"
@@ -67,6 +68,7 @@ job "etherpad" {
 
   group "db" {
     task "postgres" {
+      leader = true
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
