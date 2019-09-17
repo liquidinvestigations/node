@@ -60,7 +60,7 @@ CORE_AUTH_APPS = [
     {
         'name': 'etherpad',
         'vault_path': 'liquid/etherpad/auth.oauth2',
-        'callback': f'{config.app_url("etherpad")}/__auth/callback',
+        'callback': f'{config.app_url("etherpad")}/auth/callback',
     },
     {
         'name': 'hypothesis',
