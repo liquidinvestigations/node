@@ -27,6 +27,7 @@ job "etherpad" {
         }
       }
       env {
+        NODE_ENV = "production"
         TITLE = "${config.liquid_title}"
         PORT = "8080"
         POSTGRES_USER = "etherpad"
