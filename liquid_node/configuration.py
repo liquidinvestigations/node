@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .util import import_string
 from liquid_node.jobs import ci, Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, hypothesis
+    nextcloud, hypothesis, etherpad
 
 
 class Configuration:
@@ -41,6 +41,7 @@ class Configuration:
             nextcloud.Migrate(),
             hypothesis.Hypothesis(),
             hypothesis.UserSync(),
+            etherpad.Etherpad(),
         ]
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
