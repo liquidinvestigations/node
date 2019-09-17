@@ -58,6 +58,11 @@ CORE_AUTH_APPS = [
         'callback': f'{config.app_url("nextcloud")}/__auth/callback',
     },
     {
+        'name': 'etherpad',
+        'vault_path': 'liquid/etherpad/auth.oauth2',
+        'callback': f'{config.app_url("etherpad")}/__auth/callback',
+    },
+    {
         'name': 'hypothesis',
         'vault_path': 'liquid/hypothesis/auth.oauth2',
         'callback': f'{config.app_url("hypothesis")}/__auth/callback',
