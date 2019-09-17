@@ -32,6 +32,7 @@ job "etherpad" {
         PORT = "8080"
         POSTGRES_USER = "etherpad"
         POSTGRES_DATABASE = "etherpad"
+        LOGLEVEL = "DEBUG"
       }
       template {
         data = <<-EOF
@@ -47,19 +48,40 @@ job "etherpad" {
         destination = "local/etherpad-pg.env"
         env = true
       }
+
+      template {
+        data = <<-EOF
+        EP_OAUTH2_AUTHORIZATION_URL="${config.liquid_core_url}/o/authorize/"
+        EP_OAUTH2_USERNAME_KEY="name"
+        EP_OAUTH2_USERID_KEY="name"
+        EP_OAUTH2_PUBLIC_URL="${config.app_url('etherpad')}"
+
+        {{- range service "core" }}
+          EP_OAUTH2_TOKEN_URL="http://{{.Address}}:{{.Port}}/o/token/"
+          EP_OAUTH2_USERINFO_URL="http://{{.Address}}:{{.Port}}/accounts/profile"
+        {{- end }}
+        {{- with secret "liquid/etherpad/auth.oauth2" }}
+          EP_OAUTH2_CLIENT_ID={{.Data.client_id | toJSON }}
+          EP_OAUTH2_CLIENT_SECRET={{.Data.client_secret | toJSON }}
+        {{- end }}
+        EOF
+
+        destination = "local/etherpad-auth.env"
+        env = true
+      }
       service {
         name = "etherpad-app"
         port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:etherpad.${liquid_domain}",
+        ]
         check {
-          name = "http"
+          name = "tcp"
           initial_status = "critical"
-          type = "http"
-          path = "/"
+          type = "tcp"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
-          header {
-            Host = ["etherpad.${liquid_domain}"]
-          }
         }
       }
     }
@@ -122,11 +144,4 @@ job "etherpad" {
 
     ${ promtail_task() }
   }
-
-  ${- authproxy_group(
-      'etherpad',
-      host='etherpad.' + liquid_domain,
-      upstream='etherpad-app',
-    ) }
-
 }
