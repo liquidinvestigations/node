@@ -20,7 +20,7 @@ job "etherpad" {
       }
       resources {
         cpu = 100
-        memory = 150
+        memory = 250
         network {
           mbits = 1
           port "http" {}
@@ -32,7 +32,7 @@ job "etherpad" {
         PORT = "8080"
         POSTGRES_USER = "etherpad"
         POSTGRES_DATABASE = "etherpad"
-        LOGLEVEL = "DEBUG"
+        LOGLEVEL = "INFO"
       }
       template {
         data = <<-EOF
@@ -51,18 +51,18 @@ job "etherpad" {
 
       template {
         data = <<-EOF
-        EP_OAUTH2_AUTHORIZATION_URL="${config.liquid_core_url}/o/authorize/"
-        EP_OAUTH2_USERNAME_KEY="name"
-        EP_OAUTH2_USERID_KEY="name"
-        EP_OAUTH2_PUBLIC_URL="${config.app_url('etherpad')}"
+        EP_OAUTH2_AUTHORIZATION_URL = "${config.liquid_core_url}/o/authorize/"
+        EP_OAUTH2_USERNAME_KEY = "name"
+        EP_OAUTH2_USERID_KEY = "name"
+        EP_OAUTH2_PUBLIC_URL = "${config.app_url('etherpad')}"
 
         {{- range service "core" }}
-          EP_OAUTH2_TOKEN_URL="http://{{.Address}}:{{.Port}}/o/token/"
-          EP_OAUTH2_USERINFO_URL="http://{{.Address}}:{{.Port}}/accounts/profile"
+          EP_OAUTH2_TOKEN_URL = "http://{{.Address}}:{{.Port}}/o/token/"
+          EP_OAUTH2_USERINFO_URL = "http://{{.Address}}:{{.Port}}/accounts/profile"
         {{- end }}
         {{- with secret "liquid/etherpad/auth.oauth2" }}
-          EP_OAUTH2_CLIENT_ID={{.Data.client_id | toJSON }}
-          EP_OAUTH2_CLIENT_SECRET={{.Data.client_secret | toJSON }}
+          EP_OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
+          EP_OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
         EOF
 
@@ -123,10 +123,10 @@ job "etherpad" {
       }
       resources {
         cpu = 100
-        memory = 200
+        memory = 170
         network {
           mbits = 1
-          port "pg" { }
+          port "pg" {}
         }
       }
       service {
