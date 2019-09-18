@@ -58,9 +58,9 @@ CORE_AUTH_APPS = [
         'callback': f'{config.app_url("nextcloud")}/__auth/callback',
     },
     {
-        'name': 'etherpad',
-        'vault_path': 'liquid/etherpad/auth.oauth2',
-        'callback': f'{config.app_url("etherpad")}/auth/callback',
+        'name': 'codimd',
+        'vault_path': 'liquid/codimd/auth.oauth2',
+        'callback': f'{config.app_url("codimd")}/auth/callback',
     },
     {
         'name': 'hypothesis',
@@ -238,8 +238,8 @@ def deploy(*args):
         'liquid/hypothesis/auth.django',
         'liquid/hypothesis/hypothesis.secret_key',
         'liquid/hypothesis/hypothesis.postgres',
-        'liquid/etherpad/auth.django',
-        'liquid/etherpad/etherpad.postgres',
+        'liquid/codimd/auth.django',
+        'liquid/codimd/codimd.postgres',
         'liquid/ci/vmck.django',
         'liquid/ci/drone.secret',
     ]

@@ -1,7 +1,7 @@
 from liquid_node import jobs
 
 
-class Etherpad(jobs.Job):
-    name = 'etherpad'
+class Codimd(jobs.Job):
+    name = 'codimd'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'etherpad'
+    app = 'codimd'
