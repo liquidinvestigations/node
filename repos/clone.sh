@@ -14,7 +14,7 @@ for repo in hoover/snoop2 hoover/search hoover/ui liquidinvestigations/core liqu
       git pull -q --ff-only || echo "pull failed :("
     ); else (
       set -x
-      mkdir -p $repo
+      mkdir -p $( dirname $repo )
       if [ "$1" == 'ssh' ]; then
               git clone "git@github.com:$repo.git" $repo
       elif [ "$1" == 'https' ]; then
