@@ -32,6 +32,7 @@ job "codimd" {
         CMD_HOST = "0.0.0.0"
         CMD_PORT = "3000"
         CMD_DOMAIN = "codimd.${liquid_domain}"
+        CMD_PROTOCOL_USESSL = "{% if config.https_enabled %}true{% else %}false{% endif %}"
         CMD_ALLOW_ORIGIN = "codimd.${liquid_domain}"
         CMD_USECDN = "false"
         CMD_EMAIL = "false"
