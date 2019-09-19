@@ -58,13 +58,13 @@ CORE_AUTH_APPS = [
         'callback': f'{config.app_url("nextcloud")}/__auth/callback',
     },
     {
-        'name': 'codimd',
-        'vault_path': 'liquid/codimd/auth.oauth2',
+        'name': 'codimd-app',
+        'vault_path': 'liquid/codimd/app.auth.oauth2',
         'callback': f'{config.app_url("codimd")}/auth/oauth2/callback',
     },
     {
         'name': 'codimd-authproxy',
-        'vault_path': 'liquid/codimd/authproxy.oauth2',
+        'vault_path': 'liquid/codimd/auth.oauth2',
         'callback': f'{config.app_url("codimd")}/__auth/callback',
     },
     {
@@ -243,6 +243,7 @@ def deploy(*args):
         'liquid/hypothesis/auth.django',
         'liquid/hypothesis/hypothesis.secret_key',
         'liquid/hypothesis/hypothesis.postgres',
+        'liquid/codimd/auth.django',
         'liquid/codimd/codimd.session',
         'liquid/codimd/codimd.postgres',
         'liquid/ci/vmck.django',

@@ -68,7 +68,7 @@ job "codimd" {
           CMD_OAUTH2_TOKEN_URL = "http://{{.Address}}:{{.Port}}/o/token/"
           CMD_OAUTH2_USER_PROFILE_URL = "http://{{.Address}}:{{.Port}}/accounts/profile"
         {{- end }}
-        {{- with secret "liquid/codimd/auth.oauth2" }}
+        {{- with secret "liquid/codimd/app.auth.oauth2" }}
           CMD_OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
           CMD_OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
