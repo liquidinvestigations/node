@@ -118,7 +118,7 @@ ephemeral_disk {
           positions:
             filename: /tmp/positions.yaml
           client:
-            url: http://loki.service.consul:3100/api/prom/push
+            url: http://cluster-fabio.service.consul:9990/loki/api/prom/push
           scrape_configs:
           - job_name: system
             entry_parser: raw
