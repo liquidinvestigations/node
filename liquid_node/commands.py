@@ -238,7 +238,7 @@ def deploy(*args):
         'liquid/hypothesis/auth.django',
         'liquid/hypothesis/hypothesis.secret_key',
         'liquid/hypothesis/hypothesis.postgres',
-        'liquid/codimd/auth.django',
+        'liquid/codimd/codimd.session',
         'liquid/codimd/codimd.postgres',
         'liquid/ci/vmck.django',
         'liquid/ci/drone.secret',
