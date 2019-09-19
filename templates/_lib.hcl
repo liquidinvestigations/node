@@ -109,6 +109,7 @@ ephemeral_disk {
       config {
         image = "grafana/promtail:master"
         args = ["-config.file", "local/config.yaml"]
+        dns_servers = ["{%raw%}${attr.unique.network.ip-address}{%endraw%}"]
       }
 
       template {
@@ -117,7 +118,7 @@ ephemeral_disk {
           positions:
             filename: /tmp/positions.yaml
           client:
-            url: http://{{ env "attr.unique.network.ip-address" }}:3100/api/prom/push
+            url: http://loki.service.consul:3100/api/prom/push
           scrape_configs:
           - job_name: system
             entry_parser: raw
