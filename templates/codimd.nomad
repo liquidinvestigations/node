@@ -85,10 +85,6 @@ job "codimd" {
       service {
         name = "codimd-app"
         port = "http"
-        tags = [
-          "traefik.enable=true",
-          "traefik.frontend.rule=Host:codimd.${liquid_domain}",
-        ]
         check {
           name = "tcp"
           initial_status = "critical"
@@ -157,4 +153,10 @@ job "codimd" {
 
     ${ promtail_task() }
   }
+
+  ${- authproxy_group(
+      'codimd',
+      host='codimd.' + liquid_domain,
+      upstream='codimd-app',
+    ) }
 }
