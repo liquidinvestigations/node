@@ -60,7 +60,7 @@ CORE_AUTH_APPS = [
     {
         'name': 'codimd',
         'vault_path': 'liquid/codimd/auth.oauth2',
-        'callback': f'{config.app_url("codimd")}/auth/callback',
+        'callback': f'{config.app_url("codimd")}/auth/oauth2/callback',
     },
     {
         'name': 'hypothesis',

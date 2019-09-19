@@ -71,7 +71,7 @@ job "codimd" {
           CMD_OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
           CMD_OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
-        CMD_OAUTH2_PROVIDERNAME = "${config.liquid_title}"
+        CMD_OAUTH2_PROVIDERNAME = "Liquid"
         EOF
 
         destination = "local/codimd-auth.env"
