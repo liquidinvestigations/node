@@ -28,7 +28,7 @@ job "drone" {
       template {
         data = <<-EOF
           {{- with secret "liquid/ci/drone.secret" }}
-            SECRET_KEY = {{.Data.secret_key | toJSON }}
+            DRONE_SECRET = {{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
         destination = "local/drone.env"
