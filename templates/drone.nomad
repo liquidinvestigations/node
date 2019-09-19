@@ -72,7 +72,7 @@ job "drone" {
       ${ task_logs() }
       driver = "docker"
       config {
-        image = "drone/drone:1.2.0"
+        image = "drone/drone:1.4.0"
         volumes = [
           "/var/run/docker.sock:/var/run/docker.sock",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/drone:/data",
@@ -102,6 +102,7 @@ job "drone" {
           {{- with secret "liquid/ci/drone.secret" }}
             DRONE_SECRET_SECRET = {{.Data.secret_key | toJSON }}
           {{- end }}
+          DRONE_SECRET_SKIP_VERIFY = "true"
           {{- with secret "liquid/ci/drone.github" }}
             DRONE_GITHUB_CLIENT_ID = {{.Data.client_id | toJSON }}
             DRONE_GITHUB_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
