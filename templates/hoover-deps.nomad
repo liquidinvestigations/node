@@ -14,7 +14,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4"
+        image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.3"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data:/usr/share/elasticsearch/data",
