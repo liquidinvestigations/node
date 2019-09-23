@@ -33,6 +33,7 @@ class Configuration:
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Deps(),
+            hoover.System(),
             dokuwiki.Dokuwiki(),
             dokuwiki.Migrate(),
             rocketchat.Rocketchat(),
@@ -115,6 +116,7 @@ class Configuration:
         self.elasticsearch_memory_limit = self.ini.getint('liquid', 'elasticsearch_memory_limit',
                                                           fallback=2048)
 
+        self.tika_count = self.ini.get('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.get('liquid', 'tika_memory_limit', fallback=800)
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')

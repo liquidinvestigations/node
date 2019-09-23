@@ -47,6 +47,9 @@ job "hoover" {
         env = false
         destination = "local/startup.sh"
       }
+      env {
+        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+      }
       template {
         data = <<-EOF
           {{- if keyExists "liquid_debug" }}
@@ -62,9 +65,7 @@ job "hoover" {
             {{- end -}}
             @{{.Address}}:{{.Port}}/search"
           {{- end }}
-          {{- range service "hoover-es" }}
-            HOOVER_ES_URL = "http://{{.Address}}:{{.Port}}"
-          {{- end }}
+
           HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
           HOOVER_TITLE = "Hoover <a style="display:inline-block;margin-left:10px;" href="${config.liquid_core_url}">&#8594; ${config.liquid_title}</a>"
           HOOVER_HYPOTHESIS_EMBED = "https://hypothesis.${liquid_domain}/embed.js"
@@ -110,49 +111,4 @@ job "hoover" {
       host='hoover.' + liquid_domain,
       upstream='hoover-search',
     ) }
-
-  group "collections-lb" {
-    task "fabio" {
-      driver = "docker"
-      config {
-        image = "fabiolb/fabio:1.5.11-go1.11.5"
-        volumes = [
-          "local/fabio.properties:/etc/fabio/fabio.properties"
-        ]
-        port_map {
-          ui = 9991
-          lb = 9990
-        }
-      }
-      template {
-        destination = "local/fabio.properties"
-        data = <<-EOH
-          registry.backend = consul
-          registry.consul.addr = ${consul_url}
-          registry.consul.checksRequired = all
-          registry.consul.tagprefix = snoop-
-          registry.consul.kvpath = /liquid/hoover/fabio
-          ui.addr = :9991
-          ui.color = blue
-          proxy.addr = :9990
-          EOH
-      }
-
-      resources {
-        cpu = 100
-        memory = 100
-        network {
-          mbits = 1
-          port "lb" {
-            static = 8765
-          }
-          port "ui" {
-            static = 8764
-          }
-        }
-      }
-    }
-
-    ${ promtail_task() }
-  }
 }
