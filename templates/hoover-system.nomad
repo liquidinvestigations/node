@@ -26,6 +26,7 @@ job "hoover-system" {
           registry.consul.checksRequired = all
           registry.consul.tagprefix = snoop-
           registry.consul.kvpath = /liquid/hoover/fabio
+          registry.consul.register.enabled = false
           ui.addr = :9991
           ui.color = blue
           proxy.addr = :9990
