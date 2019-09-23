@@ -61,6 +61,10 @@ job "collection-${name}" {
         env = false
         destination = "local/startup.sh"
       }
+      env {
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es/"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+      }
       template {
         data = <<-EOF
         {{- if keyExists "liquid_debug" }}
@@ -72,12 +76,6 @@ job "collection-${name}" {
             {{.Data.secret_key }}
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-es" }}
-          SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{- range service "hoover-tika" }}
-          SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
@@ -147,9 +145,7 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        if  [ -z "$SNOOP_TIKA_URL" ] \
-                || [ -z "$SNOOP_ES_URL" ] \
-                || [ -z "$SNOOP_DB" ]; then
+        if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
           echo "incomplete configuration!"
           sleep 5
           exit 1
@@ -163,6 +159,10 @@ job "collection-${name}" {
         EOF
         env = false
         destination = "local/startup.sh"
+      }
+      env {
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es/"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
       }
       template {
         data = <<-EOF
@@ -179,12 +179,7 @@ job "collection-${name}" {
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
-        {{- range service "hoover-es" }}
-          SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{- range service "hoover-tika" }}
-          SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
+
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}

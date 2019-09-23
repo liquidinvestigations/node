@@ -93,6 +93,14 @@ def ensure_secret_key(path):
 def wait_for_service_health_checks(health_checks):
     """Waits health checks to become green for green_count times in a row. """
 
+    def pick_worst(a, b):
+        if not a and not b:
+            return 'missing'
+        for s in ['critical', 'warning', 'passing']:
+            if s in [a, b]:
+                return s
+        raise RuntimeError(f'Unknown status: "{a}" and "{b}"')
+
     def get_checks():
         """Generates a list of (service, check, status)
         for all failing checks after checking with Consul"""
@@ -101,10 +109,7 @@ def wait_for_service_health_checks(health_checks):
         for service in health_checks:
             for s in consul.get(f'/health/checks/{service}'):
                 key = service, s['Name']
-                if key in consul_status:
-                    consul_status[key] = 'appears twice. Maybe halt, restart Consul and try again?'
-                    continue
-                consul_status[key] = s['Status']
+                consul_status[key] = pick_worst(s['Status'], consul_status.get(key))
 
         for service, checks in health_checks.items():
             for check in checks:
