@@ -121,11 +121,11 @@ class Configuration:
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
 
-        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='3s')
-        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='2s')
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='11s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='9s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
-        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=10)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=8)
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:

@@ -49,7 +49,7 @@ if Vagrant.has_plugin?('vagrant-env')
   config.vm.provider :vmck do |vmck, override|
     vmck.image_path = 'cluster-master.qcow2.tar.gz'
     vmck.vmck_url = ENV['VMCK_URL']
-    vmck.memory = 20000
+    vmck.memory = 21000
     vmck.cpus = 3
     vmck.name = ENV['VMCK_NAME']
 
