@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .util import import_string
 from liquid_node.jobs import ci, Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, hypothesis
+    nextcloud, hypothesis, codimd
 
 
 class Configuration:
@@ -29,9 +29,11 @@ class Configuration:
 
         self.all_jobs = [
             liquid.Liquid(),
+            liquid.Ingress(),
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Deps(),
+            hoover.System(),
             dokuwiki.Dokuwiki(),
             dokuwiki.Migrate(),
             rocketchat.Rocketchat(),
@@ -39,6 +41,8 @@ class Configuration:
             nextcloud.Nextcloud(),
             nextcloud.Migrate(),
             hypothesis.Hypothesis(),
+            hypothesis.UserSync(),
+            codimd.Codimd(),
         ]
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
@@ -79,7 +83,7 @@ class Configuration:
                                     fallback=str((self.root / 'repos' / 'hypothesis')))
         self.hypothesis_repos_path = str(Path(h_repos_path).resolve())
 
-        self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=str(self.root / 'volumes'))
+        self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=None)
 
         self.liquid_collections = self.ini.get('liquid', 'collections',
                                                fallback=str(self.root / 'collections'))
@@ -112,6 +116,7 @@ class Configuration:
         self.elasticsearch_memory_limit = self.ini.getint('liquid', 'elasticsearch_memory_limit',
                                                           fallback=2048)
 
+        self.tika_count = self.ini.get('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.get('liquid', 'tika_memory_limit', fallback=800)
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
@@ -150,7 +155,11 @@ class Configuration:
 
             if cls == 'collection':
                 Configuration._validate_collection_name(name)
-                self.collections[name] = self.ini[key]
+                self.collections[name] = {
+                    'name': name,
+                    'workers': self.ini.getint(key, 'workers', fallback=0),
+                    'sync': self.ini.getboolean(key, 'sync', fallback=False),
+                }
 
             elif cls == 'job':
                 self.enabled_jobs.append(self.load_job(name, self.ini[key]))

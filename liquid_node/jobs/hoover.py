@@ -18,3 +18,9 @@ class Deps(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     pg_task = 'hoover-pg'
     app = 'hoover'
+
+
+class System(jobs.Job):
+    name = 'hoover-system'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'hoover'

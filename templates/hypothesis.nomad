@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, task_logs with context -%}
+{% from '_lib.hcl' import authproxy_group, task_logs, promtail_task with context -%}
 
 job "hypothesis" {
   datacenters = ["dc1"]
@@ -7,11 +7,16 @@ job "hypothesis" {
 
   group "db" {
     task "pg" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "postgres:9.4-alpine"
         volumes = [
-          "${liquid_volumes}/hypothesis/pg/data:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hypothesis/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "hypothesis-pg"
@@ -52,12 +57,17 @@ job "hypothesis" {
     }
 
     task "es" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "hypothesis/elasticsearch:latest"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
-          "${liquid_volumes}/hypothesis/es/data:/usr/share/elasticsearch/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hypothesis/es/data:/usr/share/elasticsearch/data",
         ]
         port_map {
           es = 9200
@@ -92,13 +102,18 @@ job "hypothesis" {
     }
 
     task "rabbitmq" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
       config {
         image = "rabbitmq:3.6-management-alpine"
         volumes = [
-          "${liquid_volumes}/hypothesis/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hypothesis/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
         port_map {
           amqp = 5672
@@ -128,10 +143,18 @@ job "hypothesis" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "h" {
     task "hypothesis" {
+      # Constraint required for hypothesis-usersync
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config = {
         image = "hypothesis/hypothesis"
@@ -244,7 +267,7 @@ job "hypothesis" {
           for username in h_users - liquid_users:
               run([
                   "bin/hypothesis", "user", "delete",
-                  "--username", username,
+                  username,
                   "--authority", authority,
               ])
           EOF
@@ -275,6 +298,8 @@ job "hypothesis" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   ${- authproxy_group(
@@ -288,7 +313,7 @@ job "hypothesis" {
     task "nginx" {
       driver = "docker"
       config = {
-        image = "liquidinvestigations/h-client:liquid-as-node"
+        image = "${config.image('h-client')}"
         port_map {
           http = 80
         }
@@ -326,5 +351,7 @@ job "hypothesis" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }

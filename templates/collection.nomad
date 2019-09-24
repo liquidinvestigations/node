@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
 
 job "collection-${name}" {
   datacenters = ["dc1"]
@@ -11,6 +11,15 @@ job "collection-${name}" {
     count = ${workers}
 
     task "snoop" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
@@ -19,9 +28,8 @@ job "collection-${name}" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
-          "${liquid_collections}/${name}:/opt/hoover/collection",
-          "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/${name}:/opt/hoover/collection",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
           flower = 5555
@@ -40,15 +48,8 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        (
-        set +x
-        if [ -z "$SNOOP_DB" ]; then
-          echo "database not ready"
-          sleep 5
-          exit 1
-        fi
-        )
         if  [ -z "$SNOOP_TIKA_URL" ] \
+                || [ -z "$SNOOP_DB" ] \
                 || [ -z "$SNOOP_ES_URL" ] \
                 || [ -z "$SNOOP_AMQP_URL" ]; then
           echo "incomplete configuration!"
@@ -59,6 +60,10 @@ job "collection-${name}" {
         EOF
         env = false
         destination = "local/startup.sh"
+      }
+      env {
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
       }
       template {
         data = <<-EOF
@@ -71,12 +76,6 @@ job "collection-${name}" {
             {{.Data.secret_key }}
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-es" }}
-          SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{- range service "hoover-tika" }}
-          SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
@@ -100,6 +99,8 @@ job "collection-${name}" {
         port = "flower"
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "api" {
@@ -108,6 +109,15 @@ job "collection-${name}" {
     ${ continuous_reschedule() }
 
     task "snoop" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
@@ -116,9 +126,8 @@ job "collection-${name}" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "${liquid_volumes}/gnupg:/opt/hoover/gnupg",
-          "${liquid_collections}/${name}:/opt/hoover/collection",
-          "${liquid_volumes}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/${name}:/opt/hoover/collection",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
           http = 80
@@ -136,17 +145,7 @@ job "collection-${name}" {
         data = <<-EOF
         #!/bin/sh
         set -ex
-        (
-        set +x
-        if [ -z "$SNOOP_DB" ]; then
-          echo "database not ready"
-          sleep 5
-          exit 1
-        fi
-        )
-        if  [ -z "$SNOOP_TIKA_URL" ] \
-                || [ -z "$SNOOP_ES_URL" ] \
-                || [ -z "$SNOOP_AMQP_URL" ]; then
+        if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
           echo "incomplete configuration!"
           sleep 5
           exit 1
@@ -154,11 +153,16 @@ job "collection-${name}" {
         date
         ./manage.py migrate --noinput
         ./manage.py healthcheck
+
         date
         exec /runserver
         EOF
         env = false
         destination = "local/startup.sh"
+      }
+      env {
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
       }
       template {
         data = <<-EOF
@@ -175,12 +179,7 @@ job "collection-${name}" {
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
-        {{- range service "hoover-es" }}
-          SNOOP_ES_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{- range service "hoover-tika" }}
-          SNOOP_TIKA_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
+
         {{- range service "snoop-${name}-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
@@ -203,6 +202,7 @@ job "collection-${name}" {
       service {
         name = "snoop-${name}"
         port = "http"
+        tags = ["snoop-/${name} strip=/${name} host=${name}.snoop.${liquid_domain}"]
         check {
           name = "http"
           initial_status = "critical"
@@ -216,5 +216,7 @@ job "collection-${name}" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }

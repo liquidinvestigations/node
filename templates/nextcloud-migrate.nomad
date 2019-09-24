@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, promtail_task -%}
 
 job "nextcloud-migrate" {
   datacenters = ["dc1"]
@@ -11,14 +11,25 @@ job "nextcloud-migrate" {
     ${ continuous_reschedule() }
 
     task "script" {
+      leader = true
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
       config {
         image = "${config.image('liquid-nextcloud')}"
         volumes = [
-          "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
-          "${liquid_collections}/uploads/data:/var/www/html/data/uploads/files",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud:/var/www/html",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
         ]
         args = ["sudo", "-Eu", "www-data", "bash", "/local/setup.sh"]
         labels {
@@ -65,5 +76,7 @@ job "nextcloud-migrate" {
         cpu = 200
       }
     }
+
+    ${ promtail_task() }
   }
 }

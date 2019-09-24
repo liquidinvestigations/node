@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, promtail_task with context -%}
 
 job "rocketchat" {
   datacenters = ["dc1"]
@@ -7,11 +7,16 @@ job "rocketchat" {
 
   group "db" {
     task "mongo" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "mongo:3.2"
         volumes = [
-          "${liquid_volumes}/rocketchat/mongo/data:/data/db",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/rocketchat/mongo/data:/data/db",
         ]
         args = ["mongod", "--smallfiles", "--replSet", "rs01"]
         labels {
@@ -23,7 +28,7 @@ job "rocketchat" {
       }
       resources {
         memory = 500
-        cpu = 400
+        cpu = 200
         network {
           mbits = 1
           port "mongo" {}
@@ -41,6 +46,8 @@ job "rocketchat" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "app" {
@@ -116,7 +123,7 @@ job "rocketchat" {
       }
       resources {
         memory = 1500
-        cpu = 400
+        cpu = 300
         network {
           mbits = 1
           port "web" {}
@@ -138,6 +145,8 @@ job "rocketchat" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   ${- authproxy_group(

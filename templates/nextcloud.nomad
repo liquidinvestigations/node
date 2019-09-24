@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group with context -%}
+{% from '_lib.hcl' import authproxy_group, promtail_task with context -%}
 
 job "nextcloud" {
   datacenters = ["dc1"]
@@ -7,12 +7,21 @@ job "nextcloud" {
 
   group "nc" {
     task "nextcloud" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "${config.image('liquid-nextcloud')}"
         volumes = [
-          "${liquid_volumes}/nextcloud/nextcloud:/var/www/html",
-          "${liquid_collections}/uploads/data:/var/www/html/data/uploads/files",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud:/var/www/html",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
         ]
         args = ["/bin/sh", "-c", "chown -R 33:33 /var/www/html/ && echo chown done && /entrypoint.sh apache2-foreground"]
         port_map {
@@ -52,7 +61,7 @@ job "nextcloud" {
         name = "nextcloud-app"
         port = "http"
         check {
-          name = "nextcloud alive on http"
+          name = "http"
           initial_status = "critical"
           type = "http"
           path = "/status.php"
@@ -64,15 +73,22 @@ job "nextcloud" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "db" {
     task "maria" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "mariadb:10.4"
         volumes = [
-          "${liquid_volumes}/nextcloud/mysql:/var/lib/mysql",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/mysql:/var/lib/mysql",
         ]
         labels {
           liquid_task = "nextcloud-maria"
@@ -107,7 +123,7 @@ job "nextcloud" {
         name = "nextcloud-maria"
         port = "maria"
         check {
-          name = "mariadb alive on tcp"
+          name = "tcp"
           initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
@@ -115,6 +131,8 @@ job "nextcloud" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   ${- authproxy_group(

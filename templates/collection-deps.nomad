@@ -1,21 +1,27 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
 
 job "collection-${name}-deps" {
   datacenters = ["dc1"]
   type = "service"
   priority = 65
 
+  {% if workers %}
   group "queue" {
     ${ group_disk() }
 
     task "rabbitmq" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
       config {
         image = "rabbitmq:3.7.3"
         volumes = [
-          "${liquid_volumes}/collections/${name}/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
         port_map {
           amqp = 5672
@@ -44,7 +50,10 @@ job "collection-${name}-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
+  {% endif %}
 
   group "db" {
     ${ group_disk() }
@@ -52,13 +61,18 @@ job "collection-${name}-deps" {
     ${ continuous_reschedule() }
 
     task "pg" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
 
       driver = "docker"
       config {
         image = "postgres:9.6"
         volumes = [
-          "${liquid_volumes}/collections/${name}/pg/data:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "snoop-${name}-pg"
@@ -80,8 +94,8 @@ job "collection-${name}-deps" {
       }
       ${ set_pg_password_template('snoop') }
       resources {
-        cpu = 400
-        memory = 400
+        cpu = 200
+        memory = 300
         network {
           mbits = 1
           port "pg" {}
@@ -99,6 +113,8 @@ job "collection-${name}-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }
 

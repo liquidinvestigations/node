@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs -%}
+{% from '_lib.hcl' import group_disk, task_logs, promtail_task -%}
 
 job "drone" {
   datacenters = ["dc1"]
@@ -28,7 +28,7 @@ job "drone" {
       template {
         data = <<-EOF
           {{- with secret "liquid/ci/drone.secret" }}
-            SECRET_KEY = {{.Data.secret_key | toJSON }}
+            DRONE_SECRET = {{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
         destination = "local/drone.env"
@@ -56,19 +56,26 @@ job "drone" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
 
   group "drone" {
     ${ group_disk() }
     task "drone" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ task_logs() }
       driver = "docker"
       config {
-        image = "drone/drone:1.2.0"
+        image = "drone/drone:1.4.0"
         volumes = [
           "/var/run/docker.sock:/var/run/docker.sock",
-          "${liquid_volumes}/drone:/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/drone:/data",
         ]
         port_map {
           http = 80
@@ -95,6 +102,7 @@ job "drone" {
           {{- with secret "liquid/ci/drone.secret" }}
             DRONE_SECRET_SECRET = {{.Data.secret_key | toJSON }}
           {{- end }}
+          DRONE_SECRET_SKIP_VERIFY = "true"
           {{- with secret "liquid/ci/drone.github" }}
             DRONE_GITHUB_CLIENT_ID = {{.Data.client_id | toJSON }}
             DRONE_GITHUB_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
@@ -131,5 +139,7 @@ job "drone" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }

@@ -2,7 +2,7 @@
 
 Scripts and configuration to run a Liquid Node
 
-[![Build Status](https://travis-ci.org/liquidinvestigations/node.svg?branch=master)](https://travis-ci.org/liquidinvestigations/node)
+[![Build Status](https://jenkins.liquiddemo.org/api/badges/liquidinvestigations/node/status.svg)](https://jenkins.liquiddemo.org/liquidinvestigations/node)
 
 
 ## Requirements
@@ -88,6 +88,7 @@ where `[liquid_domain]` is the value of `liquid.domain` from the `liquid.ini` fi
 
 
 ## Configuration
+
 ### Use Pipenv
 ```shell
 sudo apt update
@@ -97,6 +98,21 @@ pipenv install
 ```
 After taking these steps, the configuration will be run inside the virtual environment.
 
+### Configure the Nomad cluster
+
+The following Nomad Meta values need to be set:
+
+- `liquid_ingress = true` -- set on the one node that will listen on 80 and 443
+- `liquid_volumes = /path/to/volumes` -- the path on the host that will mount volumes
+- `liquid_collections = /path/to/collections` -- the path on the host that points to the original collections
+
+The job constraints are set up in such a way that one single node will need to have both flags set.
+
+The `./liquid *` commands require both paths mentioned above to function. Take
+care to set `[liquid] volumes` and `[liquid] collections` in `liquid.ini` to
+the same paths as `liquid_volumes` and `liquid_collections`.
+
+### Run Liquid Investigations
 The Liquid Investigations cluster configuration is read from `liquid.ini`.
 Start with the example configuration file:
 

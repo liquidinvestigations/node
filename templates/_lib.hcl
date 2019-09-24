@@ -16,7 +16,12 @@ ephemeral_disk {
 
 {%- macro authproxy_group(name, host, upstream, threads=4, memory=150, user_header_template="{}") %}
   group "authproxy" {
-    ${ continuous_reschedule() }
+    restart {
+      interval = "2m"
+      attempts = 4
+      delay = "20s"
+      mode = "delay"
+    }
 
     task "web" {
       driver = "docker"
@@ -34,14 +39,11 @@ ephemeral_disk {
       }
       template {
         data = <<-EOF
-          {{- range service "${upstream}" }}
-            UPSTREAM_APP_URL = "http://{{.Address}}:{{.Port}}"
-          {{- end }}
+          CONSUL_URL = ${consul_url|tojson}
+          UPSTREAM_SERVICE = ${upstream|tojson}
           DEBUG = {{key "liquid_debug" | toJSON }}
           USER_HEADER_TEMPLATE = ${user_header_template|tojson}
-          {{- range service "core" }}
-            LIQUID_INTERNAL_URL = "http://{{.Address}}:{{.Port}}"
-          {{- end }}
+          LIQUID_CORE_SERVICE = "core"
           LIQUID_PUBLIC_URL = "${config.liquid_http_protocol}://{{key "liquid_domain"}}"
           {{- with secret "liquid/${name}/auth.django" }}
             SECRET_KEY = {{.Data.secret_key | toJSON }}
@@ -80,6 +82,8 @@ ephemeral_disk {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 {%- endmacro %}
 
@@ -95,3 +99,43 @@ ephemeral_disk {
     destination = "local/set_pg_password.sh"
   }
 {%- endmacro %}
+
+{% macro promtail_task() %}
+    task "promtail" {
+      driver = "docker"
+
+      ${ task_logs() }
+
+      config {
+        image = "grafana/promtail:master"
+        args = ["-config.file", "local/config.yaml"]
+        dns_servers = ["{%raw%}${attr.unique.network.ip-address}{%endraw%}"]
+      }
+
+      template {
+        destination = "local/config.yaml"
+        data = <<-EOH
+          positions:
+            filename: /tmp/positions.yaml
+          client:
+            url: http://cluster-fabio.service.consul:9990/loki/api/prom/push
+          scrape_configs:
+          - job_name: system
+            entry_parser: raw
+            static_configs:
+            - targets:
+                - localhost
+              labels:
+                job: {{ env "NOMAD_JOB_NAME" }}
+                group: {{ env "NOMAD_GROUP_NAME" }}
+                __path__: /alloc/logs/*
+          EOH
+      }
+
+      resources {
+        cpu = 50
+        memory = 32
+        network { mbits = 1 }
+      }
+    }
+{% endmacro %}

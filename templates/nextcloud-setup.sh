@@ -71,6 +71,10 @@ php occ config:system:set overwriteprotocol --value $HTTP_PROTO
 php occ config:system:set htaccess.RewriteBase --value '/'
 php occ config:system:set skeletondirectory --value ''
 php occ config:system:set updatechecker --value false --type boolean
+
+#install contacts before shutting down the app store
+php occ app:install contacts || true
+
 php occ config:system:set has_internet_connection --value false --type boolean
 php occ config:system:set appstoreenabled --value false --type boolean
 
@@ -95,3 +99,6 @@ php occ app:disable systemtags
 php occ app:disable updatenotification
 
 echo "Configuration done"
+
+# scan the filesystem in case there are files initially (redeploy e.g.)
+php occ files:scan

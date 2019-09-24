@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
 
 job "hoover-deps" {
   datacenters = ["dc1"]
@@ -7,12 +7,17 @@ job "hoover-deps" {
 
   group "index" {
     task "es" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.4"
+        image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.3"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
-          "${liquid_volumes}/hoover/es/data:/usr/share/elasticsearch/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data:/usr/share/elasticsearch/data",
         ]
         port_map {
           es = 9200
@@ -35,6 +40,7 @@ job "hoover-deps" {
       service {
         name = "hoover-es"
         port = "es"
+        tags = ["snoop-/_es strip=/_es"]
         check {
           name = "http"
           initial_status = "critical"
@@ -45,17 +51,24 @@ job "hoover-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "db" {
     ${ continuous_reschedule() }
 
     task "pg" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "postgres:9.6"
         volumes = [
-          "${liquid_volumes}/hoover/pg/data:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "hoover-pg"
@@ -95,13 +108,18 @@ job "hoover-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 
   group "tika" {
+    count = ${config.tika_count}
+
     task "tika" {
       driver = "docker"
       config {
         image = "logicalspark/docker-tikaserver:1.20"
+        args = ["-spawnChild", "-maxFiles", "1000"]
         port_map {
           tika = 9998
         }
@@ -120,6 +138,7 @@ job "hoover-deps" {
       service {
         name = "hoover-tika"
         port = "tika"
+        tags = ["snoop-/_tika strip=/_tika"]
         check {
           name = "http"
           initial_status = "critical"
@@ -130,5 +149,7 @@ job "hoover-deps" {
         }
       }
     }
+
+    ${ promtail_task() }
   }
 }

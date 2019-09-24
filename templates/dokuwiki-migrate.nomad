@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, promtail_task -%}
 
 job "dokuwiki-migrate" {
   datacenters = ["dc1"]
@@ -11,13 +11,19 @@ job "dokuwiki-migrate" {
     ${ continuous_reschedule() }
 
     task "script" {
+      leader = true
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
       ${ task_logs() }
 
       driver = "docker"
       config {
         image = "alpine"
         volumes = [
-          "${liquid_volumes}/dokuwiki/data:/bitnami",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/dokuwiki/data:/bitnami",
         ]
         args = ["sh", "/local/migrate.sh"]
         labels {
@@ -106,5 +112,7 @@ job "dokuwiki-migrate" {
         cpu = 200
       }
     }
+
+    ${ promtail_task() }
   }
 }
