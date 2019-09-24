@@ -136,7 +136,7 @@ job "rocketchat" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/api/info"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
