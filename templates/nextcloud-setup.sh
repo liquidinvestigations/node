@@ -101,4 +101,4 @@ php occ app:disable updatenotification
 echo "Configuration done"
 
 # scan the filesystem in case there are files initially (redeploy e.g.)
-php occ files:scan
+php occ files:scan --all
