@@ -1,12 +1,12 @@
 #!/bin/bash -ex
 
 id $(whoami)
-
+ls -l liquid
 echo "Installing liquid" > /dev/null
 
 cd /opt/node
 sudo chown -R vagrant: .
-
+ls -l liquid
 mkdir volumes
 mkdir collections
 if ! [ -d collections/testdata ]; then
@@ -17,7 +17,7 @@ cp -a collections/testdata collections/inactive
 echo "Add some collections, check resources and deploy"
 cp examples/liquid.ini .
 cat vagrant/liquid-collections.ini >> liquid.ini
-
+ls -l liquid
 sudo apt-get install -qy python3-venv python3-pip
 sudo -H pip3 install pipenv
 pipenv install 
