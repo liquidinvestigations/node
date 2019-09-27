@@ -5,13 +5,8 @@ verify_ssl = true
 
 [packages]
 colorlog = "*"
-entrypoints = "*"
 flake8 = "*"
 Jinja2 = "*"
-MarkupSafe = "*"
-mccabe = "*"
-pycodestyle = "*"
-pyflakes = "*"
 
 [requires]
 python_version = "3.6"
