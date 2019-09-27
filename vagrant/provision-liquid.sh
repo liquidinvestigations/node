@@ -21,7 +21,7 @@ cat vagrant/liquid-collections.ini >> liquid.ini
 sudo apt-get install -qy python3-venv python3-pip
 sudo -H pip3 install pipenv
 pipenv install 
-chmod 777 ./liquid
+ls -l liquid
 ./liquid resources
 ./liquid deploy
 
