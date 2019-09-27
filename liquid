@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+# cd to file
 cd "$(dirname ${BASH_SOURCE[0]})"
 
 pipenv run ./liquid.py "$@"

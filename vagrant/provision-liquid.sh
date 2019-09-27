@@ -1,10 +1,12 @@
 #!/bin/bash -ex
 
 id $(whoami)
+
 echo "Installing liquid" > /dev/null
 
 cd /opt/node
 sudo chown -R vagrant: .
+
 mkdir volumes
 mkdir collections
 if ! [ -d collections/testdata ]; then
