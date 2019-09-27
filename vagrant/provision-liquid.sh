@@ -1,10 +1,11 @@
 #!/bin/bash -ex
 
 id $(whoami)
-ls -l liquid
 echo "Installing liquid" > /dev/null
 
 cd /opt/node
+
+ls -l liquid
 sudo chown -R vagrant: .
 ls -l liquid
 mkdir volumes
