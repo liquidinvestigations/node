@@ -17,6 +17,9 @@ cp -a collections/testdata collections/inactive
 echo "Add some collections, check resources and deploy"
 cp examples/liquid.ini .
 cat vagrant/liquid-collections.ini >> liquid.ini
+sudo apt-get install -qy python3-venv python3-pip
+sudo -H pip3 install pipenv
+pipenv install 
 ./liquid resources
 ./liquid deploy
 

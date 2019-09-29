@@ -89,6 +89,15 @@ where `[liquid_domain]` is the value of `liquid.domain` from the `liquid.ini` fi
 
 ## Configuration
 
+### Use Pipenv
+```shell
+sudo apt update
+sudo apt-get install python3-venv python3-pip git curl unzip
+pip3 install pipenv
+pipenv install
+```
+After taking these steps, the configuration will be run inside the virtual environment.
+
 ### Configure the Nomad cluster
 
 The following Nomad Meta values need to be set:
