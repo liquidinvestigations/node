@@ -28,7 +28,7 @@ job "hoover-deps" {
       }
       env {
         cluster.name = "hoover"
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m"
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+PrintGCDetails -XX:+UnlockDiagnosticVMOptions"
       }
       resources {
         memory = ${config.elasticsearch_memory_limit}
