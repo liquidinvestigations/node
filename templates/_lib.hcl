@@ -14,7 +14,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream, threads=24, memory=200, user_header_template="{}") %}
+{%- macro authproxy_group(name, host, upstream, threads=24, memory=200, user_header_template="{}", count=1) %}
   group "authproxy" {
     restart {
       interval = "2m"
@@ -22,6 +22,8 @@ ephemeral_disk {
       delay = "20s"
       mode = "delay"
     }
+
+    count = ${count}
 
     task "web" {
       driver = "docker"

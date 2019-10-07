@@ -139,8 +139,9 @@ job "nextcloud" {
       'nextcloud',
       host='nextcloud.' + liquid_domain,
       upstream='nextcloud-app',
-      threads=100,
-      memory=370,
+      threads=80,
+      memory=350,
+      count=3,
     ) }
 
 }
