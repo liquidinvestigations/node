@@ -42,7 +42,7 @@ job "hoover" {
         /wait
         ./manage.py migrate
         ./manage.py healthcheck
-        exec ./runserver
+        exec waitress-serve --port 80 --threads=80 hoover.site.wsgi:application
         EOF
         env = false
         destination = "local/startup.sh"
