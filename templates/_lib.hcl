@@ -79,8 +79,8 @@ ephemeral_disk {
           initial_status = "critical"
           type = "http"
           path = "/__auth/logout"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
+          interval = "3s"
+          timeout = "2s"
         }
       }
     }
