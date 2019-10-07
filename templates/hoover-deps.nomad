@@ -5,7 +5,7 @@ job "hoover-deps" {
   type = "service"
   priority = 60
 
-  group "index" {
+  group "es-master" {
     task "es" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -20,7 +20,8 @@ job "hoover-deps" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data:/usr/share/elasticsearch/data",
         ]
         port_map {
-          es = 9200
+          http = 9200
+          transport = 9300
         }
         labels {
           liquid_task = "hoover-es"
@@ -28,24 +29,133 @@ job "hoover-deps" {
       }
       env {
         cluster.name = "hoover"
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+PrintGCDetails -XX:+UnlockDiagnosticVMOptions"
+        node.name = "master"
+
+        http.port = "9200"
+        http.publish_port = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
+        http.bind_host = "0.0.0.0"
+        http.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+
+        transport.port = "9300"
+        transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
+        transport.bind_host = "0.0.0.0"
+        transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
       resources {
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
-          port "es" {}
+          port "http" {}
+          port "transport" {}
         }
       }
       service {
-        name = "hoover-es"
-        port = "es"
+        name = "hoover-es-master"
+        port = "http"
         tags = ["snoop-/_es strip=/_es"]
         check {
           name = "http"
           initial_status = "critical"
           type = "http"
           path = "/_cluster/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+      service {
+        name = "hoover-es-master-transport"
+        port = "transport"
+        check {
+          name = "transport"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+
+    ${ promtail_task() }
+  }
+
+  group "es-data" {
+    count = ${config.elasticsearch_data_node_count}
+
+    task "es" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.3"
+        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && env && /usr/local/bin/docker-entrypoint.sh"]
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data-{% raw %}${NOMAD_ALLOC_INDEX}{% endraw %}:/usr/share/elasticsearch/data",
+        ]
+        port_map {
+          http = 9200
+          transport = 9300
+        }
+        labels {
+          liquid_task = "hoover-es"
+        }
+      }
+      env {
+        node.master = "false"
+        cluster.name = "hoover"
+        node.name = "data-{% raw %}${NOMAD_ALLOC_INDEX}{% endraw %}"
+
+        http.port = "9200"
+        http.publish_port = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
+        http.bind_host = "0.0.0.0"
+        http.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+
+        transport.port = "9300"
+        transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
+        transport.bind_host = "0.0.0.0"
+        transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
+      }
+      template {
+        data = <<-EOF
+          discovery.zen.ping.unicast.hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
+          EOF
+        destination = "local/es-master.env"
+        env = true
+      }
+      resources {
+        memory = ${config.elasticsearch_memory_limit}
+        network {
+          mbits = 1
+          port "http" {}
+          port "transport" {}
+        }
+      }
+      service {
+        name = "{% raw %}${BASE}-${NOMAD_ALLOC_INDEX}{% endraw %}"
+        port = "http"
+        tags = ["snoop-/_es strip=/_es"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/_cluster/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+      service {
+        name = "hoover-es-data-transport"
+        port = "transport"
+        check {
+          name = "transport"
+          initial_status = "critical"
+          type = "tcp"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
