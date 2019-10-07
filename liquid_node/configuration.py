@@ -114,7 +114,7 @@ class Configuration:
         self.elasticsearch_heap_size = self.ini.getint('liquid', 'elasticsearch_heap_size',
                                                        fallback=1024)
         self.elasticsearch_memory_limit = self.ini.getint('liquid', 'elasticsearch_memory_limit',
-                                                          fallback=1600)
+                                                          fallback=1536)
         self.elasticsearch_data_node_count = self.ini.getint('liquid', 'elasticsearch_data_node_count', fallback=0)  # noqa: E501
 
         self.tika_count = self.ini.get('liquid', 'tika_count', fallback=1)
