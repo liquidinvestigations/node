@@ -26,6 +26,11 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-es"
         }
+        ulimit {
+          memlock = "-1"
+          nofile = "65536"
+          nproc = "8192"
+        }
       }
       env {
         cluster.name = "hoover"
@@ -103,6 +108,11 @@ job "hoover-deps" {
         }
         labels {
           liquid_task = "hoover-es"
+        }
+        ulimit {
+          memlock = "-1"
+          nofile = "65536"
+          nproc = "8192"
         }
       }
       env {
