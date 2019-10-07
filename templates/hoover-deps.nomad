@@ -80,6 +80,7 @@ job "hoover-deps" {
     ${ promtail_task() }
   }
 
+  {% if config.elasticsearch_data_node_count %}
   group "es-data" {
     count = ${config.elasticsearch_data_node_count}
 
@@ -164,6 +165,7 @@ job "hoover-deps" {
 
     ${ promtail_task() }
   }
+  {% endif %}
 
   group "db" {
     ${ continuous_reschedule() }
