@@ -137,7 +137,7 @@ job "hoover-deps" {
         }
       }
       service {
-        name = "{% raw %}${BASE}-${NOMAD_ALLOC_INDEX}{% endraw %}"
+        name = "hoover-es-data"
         port = "http"
         tags = ["snoop-/_es strip=/_es"]
         check {
