@@ -15,7 +15,7 @@ job "hoover-deps" {
       driver = "docker"
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.3"
-        args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
+        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data:/usr/share/elasticsearch/data",
         ]
@@ -28,7 +28,7 @@ job "hoover-deps" {
       }
       env {
         cluster.name = "hoover"
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m"
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+PrintGCDetails -XX:+UnlockDiagnosticVMOptions"
       }
       resources {
         memory = ${config.elasticsearch_memory_limit}
