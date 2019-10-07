@@ -1,23 +1,11 @@
 {% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
 
-job "hoover-deps" {
-  datacenters = ["dc1"]
-  type = "service"
-  priority = 60
-
-  group "es-master" {
-    task "es" {
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
+{%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.3"
         args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data:/usr/share/elasticsearch/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/${data_dir_name}:/usr/share/elasticsearch/data",
         ]
         port_map {
           http = 9200
@@ -32,6 +20,23 @@ job "hoover-deps" {
           nproc = "8192"
         }
       }
+
+{%- endmacro %}
+
+job "hoover-deps" {
+  datacenters = ["dc1"]
+  type = "service"
+  priority = 60
+
+  group "es-master" {
+    task "es" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      ${ elasticsearch_docker_config('data') }
       env {
         cluster.name = "hoover"
         node.name = "master"
@@ -96,25 +101,7 @@ job "hoover-deps" {
       }
 
       driver = "docker"
-      config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.3"
-        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && env && /usr/local/bin/docker-entrypoint.sh"]
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/data-{% raw %}${NOMAD_ALLOC_INDEX}{% endraw %}:/usr/share/elasticsearch/data",
-        ]
-        port_map {
-          http = 9200
-          transport = 9300
-        }
-        labels {
-          liquid_task = "hoover-es"
-        }
-        ulimit {
-          memlock = "-1"
-          nofile = "65536"
-          nproc = "8192"
-        }
-      }
+      ${elasticsearch_docker_config('data-${NOMAD_ALLOC_INDEX}') }
       env {
         node.master = "false"
         cluster.name = "hoover"
