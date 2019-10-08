@@ -567,3 +567,27 @@ def getsecret(path=None):
         for section in vault.list():
             for key in vault.list(section):
                 print(f'{section}{key}')
+
+
+def launchocr(*args):
+    """Launch either a batch or a daily batch OCR process."""
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('name')
+    parser.add_argument('--periodic', dest='periodic')
+    options = parser.parse_args(args)
+
+    assert options.name in config.collections, 'unknown collection name: ' + options.name
+    assert options.periodic in [None, 'hourly', 'daily', 'weekly', 'monthly']
+    data_dir = Path(config.liquid_collections) / options.name / 'data'
+    assert data_dir.is_dir(), \
+        f'{data_dir} should be a directory where all collection data is stored.'
+
+    settings = {
+        'name': options.name,
+        'periodic': options.periodic,
+    }
+    hcl = get_collection_job(options.name, settings, 'collection-ocr.nomad')
+    spec = nomad.parse(hcl)
+    nomad.run(spec)
+    log.info('Launched OCR job for {name}')

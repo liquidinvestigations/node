@@ -48,6 +48,7 @@ def main():
         commands.purge,
         commands.getsecret,
         commands.importfromdockersetup,
+        commands.launchocr,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
