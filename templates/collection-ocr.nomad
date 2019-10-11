@@ -3,11 +3,11 @@
 job "collection-${name}-ocr{% if periodic %}-${periodic}{% endif %}" {
   datacenters = ["dc1"]
   type = "batch"
-  priority = 35
+  priority = 25
 
   {% if periodic %}
   periodic {
-    cron  = "@${periodic}"
+    cron  = "${periodic}"
     prohibit_overlap = true
   }
   {% endif %}
@@ -39,6 +39,20 @@ job "collection-${name}-ocr{% if periodic %}-${periodic}{% endif %}" {
       resources {
         memory = 2048
         cpu = 3000
+      }
+
+      env {
+        {% if threads_per_worker %}
+        OMP_NUM_THREADS = "${threads_per_worker}"
+        {% endif %}
+
+        {% if workers %}
+        WORKER_COUNT = "${workers}"
+        {% endif %}
+
+        {% if nice %}
+        WORKER_NICE = "${nice}"
+        {% endif %}
       }
     }
     ${ promtail_task() }

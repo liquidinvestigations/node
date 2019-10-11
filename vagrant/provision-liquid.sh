@@ -23,8 +23,7 @@ pipenv install
 ./liquid resources
 ./liquid deploy
 
-./liquid launchocr testdata
-./liquid launchocr testdata --periodic=daily
+./liquid launchocr testdata --periodic @yearly --nice 9 --workers 1 --threads_per_worker 1
 
 echo "Turn workers off, others on, and deploy"
 cp examples/liquid.ini .

@@ -573,21 +573,19 @@ def launchocr(*args):
     """Launch either a batch or a daily batch OCR process."""
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('name')
-    parser.add_argument('--periodic', dest='periodic')
+    parser.add_argument('name', help='collection name')
+    parser.add_argument('--periodic', dest='periodic', help='cron expression')
+    parser.add_argument('--workers', dest='workers', help='worker process count')
+    parser.add_argument('--threads_per_worker', dest='threads_per_worker', help='default and max value is 4.')
+    parser.add_argument('--nice', dest='nice', help='argument to `nice -n`.')
     options = parser.parse_args(args)
 
     assert options.name in config.collections, 'unknown collection name: ' + options.name
-    assert options.periodic in [None, 'hourly', 'daily', 'weekly', 'monthly']
     data_dir = Path(config.liquid_collections) / options.name / 'data'
     assert data_dir.is_dir(), \
         f'{data_dir} should be a directory where all collection data is stored.'
 
-    settings = {
-        'name': options.name,
-        'periodic': options.periodic,
-    }
-    hcl = get_collection_job(options.name, settings, 'collection-ocr.nomad')
+    hcl = get_collection_job(options.name, vars(options), 'collection-ocr.nomad')
     spec = nomad.parse(hcl)
     nomad.run(spec)
-    log.info('Launched OCR job for {name}')
+    log.info(f'Launched OCR job {spec["Name"]}')

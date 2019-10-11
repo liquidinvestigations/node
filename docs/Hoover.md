@@ -36,3 +36,18 @@ In order to remove a collection, take the following steps:
 1. Remove the corresponding collection section from the `liquid.ini` file.
 2. Run `./liquid collectionsgc`
 3. Run `./liquid purge`
+
+
+### Tesseract Batch OCR
+
+Use the following commands to run Tesseract OCR on the collection data's
+`/data/ocr/<language-code>` paths, outputting PDFs its `ocr` directory.
+
+```shell
+./liquid launchocr testdata
+./liquid shell snoop-testdata-api ./manage.py createocrsource tesseract-batch /opt/hoover/collection/ocr/tesseract-batch
+./liquid shell snoop-testdata-api ./manage.py rundispatcher
+```
+
+To run the batch job periodically use `--periodic=@daily` (or any other [cron expression accepted by Nomad](https://www.nomadproject.io/docs/job-specification/periodic.html#cron)).
+To stop it from staturating 12 cores for each collection, start (or update) the jobs with `--workers 1 --threads_per_worker 1 --nice 10`.
