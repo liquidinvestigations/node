@@ -14,7 +14,8 @@ job "dokuwiki" {
 
       driver = "docker"
       config = {
-        image = "bitnami/dokuwiki:0.20180422.201901061035"
+        image = "${config.image('liquid-dokuwiki')}"
+        force_pull = "true"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/dokuwiki/data:/bitnami",
         ]
@@ -24,6 +25,12 @@ job "dokuwiki" {
         port_map {
           php = 80
         }
+      }
+      env {
+        LIQUID_CORE_URL = "${config.liquid_core_url}"
+        LIQUID_TITLE = "${config.liquid_title}"
+        LIQUID_DOMAIN = "${config.liquid_domain}"
+        LIQUID_HTTP_PROTOCOL = "${config.liquid_http_protocol}"
       }
       resources {
         memory = 500

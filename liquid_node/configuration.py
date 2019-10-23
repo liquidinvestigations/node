@@ -35,7 +35,6 @@ class Configuration:
             hoover.Deps(),
             hoover.System(),
             dokuwiki.Dokuwiki(),
-            dokuwiki.Migrate(),
             rocketchat.Rocketchat(),
             rocketchat.Migrate(),
             nextcloud.Nextcloud(),
