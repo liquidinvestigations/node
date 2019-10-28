@@ -5,9 +5,3 @@ class Dokuwiki(jobs.Job):
     name = 'dokuwiki'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'dokuwiki'
-
-
-class Migrate(jobs.Job):
-    name = 'dokuwiki-migrate'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'dokuwiki'
