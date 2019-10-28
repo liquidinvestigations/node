@@ -195,7 +195,7 @@ Set up the `testdata` collection. First download the data:
 
 ```shell
 mkdir -p collections
-git clone https://github.com/hoover/testdata collections/testdata
+git clone https://github.com/liquidinvestigations/testdata collections/testdata
 ```
 
 Next define the collection in `liquid.ini`:
