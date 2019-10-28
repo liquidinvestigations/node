@@ -40,17 +40,17 @@ def set_volumes_paths(substitutions={}):
     repos = {
         'snoop2': {
             'org': 'hoover',
-            'local': os.path.join(config.hoover_repos_path, 'snoop2'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'hoover-snoop2'),
             'target': '/opt/hoover/snoop'
         },
         'search': {
             'org': 'hoover',
-            'local': os.path.join(config.hoover_repos_path, 'search'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'hoover-search'),
             'target': '/opt/hoover/search'
         },
         'ui': {
             'org': 'hoover',
-            'local': os.path.join(config.hoover_repos_path, 'ui/src'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'hoover-ui/src'),
             'target': '/opt/hoover/ui/src'
         },
         'core': {
@@ -65,12 +65,12 @@ def set_volumes_paths(substitutions={}):
         },
         'h_h': {
             'org': 'hypothesis',
-            'local': os.path.join(config.hypothesis_repos_path, 'h/h'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'h/h'),
             'target': '/var/lib/hypothesis/h',
         },
         'h_conf': {
             'org': 'hypothesis',
-            'local': os.path.join(config.hypothesis_repos_path, 'h/conf'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'h/conf'),
             'target': '/var/lib/hypothesis/conf',
         },
     }
