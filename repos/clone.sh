@@ -14,7 +14,7 @@ else
         exit 1
 fi
 
-for repo in liquidinvestigations/hoover-snoop2 liquidinvestigations/hoover-search liquidinvestigations/hoover-ui liquidinvestigations/core liquidinvestigations/authproxy liquidinvestigations/h; do
+for repo in liquidinvestigations/hoover-snoop2 liquidinvestigations/hoover-search liquidinvestigations/hoover-ui liquidinvestigations/core liquidinvestigations/authproxy liquidinvestigations/hypothesis-h; do
   (
     echo
     echo "[[ $repo ]]"
