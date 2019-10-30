@@ -14,7 +14,17 @@ else
         exit 1
 fi
 
-for repo in liquidinvestigations/hoover-snoop2 liquidinvestigations/hoover-search liquidinvestigations/hoover-ui liquidinvestigations/core liquidinvestigations/authproxy liquidinvestigations/hypothesis-h liquidinvestigations/codimd-server; do
+repos=(
+        liquidinvestigations/hoover-snoop2
+        liquidinvestigations/hoover-search
+        liquidinvestigations/hoover-ui
+        liquidinvestigations/core
+        liquidinvestigations/authproxy
+        liquidinvestigations/hypothesis-h
+        liquidinvestigations/codimd-server
+)
+
+for repo in "${repos[@]}"; do
   (
     echo
     echo "[[ $repo ]]"
