@@ -65,17 +65,17 @@ def set_volumes_paths(substitutions={}):
         },
         'h_h': {
             'org': 'hypothesis',
-            'local': os.path.join(config.liquidinvestigations_repos_path, 'h/h'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'hypothesis-h/h'),
             'target': '/var/lib/hypothesis/h',
         },
         'h_conf': {
             'org': 'hypothesis',
-            'local': os.path.join(config.liquidinvestigations_repos_path, 'h/conf'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'hypothesis-h/conf'),
             'target': '/var/lib/hypothesis/conf',
         },
         'codimd-server': {
             'org': 'liquidinvestigations',
-            'local': os.path.join(config.liquidinvestigations_repos_path, 'codimd'),
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'codimd-server'),
             'target': '/app',
         },
     }
