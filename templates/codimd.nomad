@@ -17,6 +17,9 @@ job "codimd" {
         labels {
           liquid_task = "codimd"
         }
+        volumes = [
+          ${liquidinvestigations_codimd_server_repo}
+        ]
       }
       resources {
         cpu = 100

@@ -73,7 +73,7 @@ def set_volumes_paths(substitutions={}):
             'local': os.path.join(config.liquidinvestigations_repos_path, 'hypothesis-h/conf'),
             'target': '/var/lib/hypothesis/conf',
         },
-        'codimd-server': {
+        'codimd_server': {
             'org': 'liquidinvestigations',
             'local': os.path.join(config.liquidinvestigations_repos_path, 'codimd-server'),
             'target': '/app',
