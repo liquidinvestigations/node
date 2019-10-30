@@ -10,7 +10,7 @@ sudo chown -R vagrant: .
 mkdir volumes
 mkdir collections
 if ! [ -d collections/testdata ]; then
-  git clone https://github.com/hoover/testdata collections/testdata
+  git clone https://github.com/liquidinvestigations/testdata collections/testdata
 fi
 cp -a collections/testdata collections/inactive
 

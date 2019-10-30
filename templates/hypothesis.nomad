@@ -157,7 +157,7 @@ job "hypothesis" {
 
       driver = "docker"
       config = {
-        image = "hypothesis/hypothesis"
+        image = "${config.image('hypothesis-h')}"
         entrypoint = ["/local/entrypoint"]
         labels {
           liquid_task = "hypothesis-h"
