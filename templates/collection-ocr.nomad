@@ -29,7 +29,7 @@ job "collection-${name}-ocr{% if periodic %}-${periodic}{% endif %}" {
       config {
         image = "liquidinvestigations/tesseract-batch:latest"
         volumes = [
-          "{% raw %}${meta.liquid_collections}{% endraw %}/${name}/data:/data",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/${name}/data/ocr:/data",
           "{% raw %}${meta.liquid_collections}{% endraw %}/${name}/ocr/tesseract-batch:/ocr",
         ]
         labels {
