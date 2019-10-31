@@ -11,3 +11,9 @@ class Migrate(jobs.Job):
     name = 'nextcloud-migrate'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud'
+
+
+class Periodic(jobs.Job):
+    name = 'nextcloud-periodic'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'nextcloud'

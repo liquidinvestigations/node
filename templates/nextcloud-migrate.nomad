@@ -8,7 +8,14 @@ job "nextcloud-migrate" {
   group "migrate" {
     ${ group_disk() }
 
-    ${ continuous_reschedule() }
+    reschedule {
+      attempts       = 6
+      interval       = "1h"
+      delay          = "30s"
+      delay_function = "exponential"
+      max_delay      = "300s"
+      unlimited      = false
+    }
 
     task "script" {
       leader = true
