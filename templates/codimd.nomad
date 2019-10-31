@@ -95,6 +95,10 @@ job "codimd" {
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
+        check_restart {
+          limit = 3
+          grace = "90s"
+        }
       }
     }
 

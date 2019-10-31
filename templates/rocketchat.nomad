@@ -143,6 +143,10 @@ job "rocketchat" {
             Host = ["rocketchat.${liquid_domain}"]
           }
         }
+        check_restart {
+          limit = 3
+          grace = "90s"
+        }
       }
     }
 
