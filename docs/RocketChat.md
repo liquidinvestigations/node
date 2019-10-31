@@ -1,4 +1,11 @@
-# RocketChat OAuth2 with Liquid Core
+# RocketChat
+
+RocketChat provides a chat service and is hosted at
+`rocketchat.<liquid_domain>`. It requires manual configuration to let users log
+in with accounts from `liquid-core`, see the steps below.
+
+
+## Set up authentication
 
 Rocket.Chat can directly authenticate users with the `liquid-core` oauth2
 server. Most of the configuration is automated, but there is one manual step
