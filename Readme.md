@@ -15,9 +15,9 @@ for instructions.
 Install system dependencies:
 
 ```shell
-sudo apt update
-sudo apt-get install python3-venv python3-pip git curl unzip
-pip3 install pipenv
+sudo apt-get update
+sudo apt-get install -y python3-venv python3-pip git curl unzip
+sudo pip3 install pipenv
 ```
 
 Clone this repository, `cd` into it, then install Python dependencies:
