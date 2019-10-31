@@ -27,7 +27,7 @@ job "collection-${name}-ocr{% if periodic %}-${periodic}{% endif %}" {
 
       driver = "docker"
       config {
-        image = "liquidinvestigations/tesseract-batch:latest"
+        image = "liquidinvestigations/tesseract-batch:pdf2pdfocr"
         volumes = [
           "{% raw %}${meta.liquid_collections}{% endraw %}/${name}/data/ocr:/data",
           "{% raw %}${meta.liquid_collections}{% endraw %}/${name}/ocr/tesseract-batch:/ocr",
