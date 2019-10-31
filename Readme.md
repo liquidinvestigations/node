@@ -7,7 +7,7 @@ Scripts and configuration to run a Liquid Node
 
 ## Installation
 
-### Cluster
+### Dependencies
 
 The Liquid bundle runs inside a cluster, see [docs/Cluster.md](docs/Cluster.md)
 for instructions.
@@ -26,6 +26,8 @@ Clone this repository, `cd` into it, then install Python dependencies:
 pipenv install
 ```
 
+### Configuration
+
 The Liquid Investigations cluster configuration is read from `liquid.ini`. See
 [docs/Configuration.md](docs/Configuration.md) for details. Start with the
 example configuration file:
@@ -34,11 +36,17 @@ example configuration file:
 cp examples/liquid.ini .
 ```
 
-Then deploy to the cluster:
+### Deployment
+
+The `deploy` command pushes the configuration to the cluster. It configures
+secrets, starts all the apps, and triggers collection processing. Run it
+whenever you make changes to the configuration:
 
 ```shell
 ./liquid deploy
 ```
+
+### Final steps
 
 The liquid instance will listen by default on port 80 on the local machine. If
 you don't have a DNS domain pointing to the macine, you can add entries to
@@ -55,8 +63,8 @@ Create an initial admin user:
 ./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
-Finally, configure RocketChat to use `liquid-core`'s oauth2 provider to
-authenticate users:
+Configure RocketChat to use `liquid-core`'s oauth2 provider to authenticate
+users:
 [docs/RocketChat.md#set-up-authentication](docs/RocketChat.md#set-up-authentication)
 
 
