@@ -18,6 +18,8 @@ Install system dependencies:
 sudo apt-get update
 sudo apt-get install -y python3-venv python3-pip git curl unzip
 sudo pip3 install pipenv
+echo 'vm.max_map_count=262144' | sudo tee -a /etc/sysctl.d/es.conf
+sudo sysctl --system
 ```
 
 Clone this repository, `cd` into it, then install Python dependencies:
