@@ -37,7 +37,7 @@ job "nextcloud-periodic" {
         ]
         args = ["sudo", "-Eu", "www-data", "bash", "/local/periodic.sh"]
         labels {
-          liquid_task = "nextcloud-migrate"
+          liquid_task = "nextcloud-periodic"
         }
       }
       template {
