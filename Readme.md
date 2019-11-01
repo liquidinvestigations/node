@@ -65,6 +65,11 @@ Create an initial admin user:
 ./liquid shell liquid-core ./manage.py createsuperuser
 ```
 
+With enabled Two-factor authentication (`two_factor_auth = true` in `liquid.ini`), create an invitation for the initial admin user:
+```shell
+./liquid shell liquid-core ./manage.py invite root
+```
+
 Configure RocketChat to use `liquid-core`'s oauth2 provider to authenticate
 users:
 [docs/RocketChat.md#set-up-authentication](docs/RocketChat.md#set-up-authentication)
