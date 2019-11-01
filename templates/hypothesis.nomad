@@ -275,7 +275,7 @@ job "hypothesis" {
           destination = "local/usersync.py"
       }
       resources {
-        memory = 1000
+        memory = ${config.hypothesis_memory_limit}
         cpu = 200
         network {
           mbits = 1

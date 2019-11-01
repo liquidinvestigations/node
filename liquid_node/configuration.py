@@ -120,6 +120,15 @@ class Configuration:
         self.tika_count = self.ini.get('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.get('liquid', 'tika_memory_limit', fallback=800)
 
+        self.hypothesis_memory_limit = \
+            self.ini.getint('liquid',
+                            'hypothesis_memory_limit',
+                            fallback=1024)
+        self.nextcloud_memory_limit = \
+            self.ini.getint('liquid',
+                            'nextcloud_memory_limit',
+                            fallback=512)
+
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='11s')
