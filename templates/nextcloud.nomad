@@ -33,7 +33,7 @@ job "nextcloud" {
       }
       resources {
         cpu = 100
-        memory = 512
+        memory = ${config.nextcloud_memory_limit}
         network {
           mbits = 1
           port "http" {}
