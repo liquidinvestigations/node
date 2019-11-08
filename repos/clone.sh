@@ -2,6 +2,7 @@
 set -e
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
+. repos.sh
 
 if [ "$1" == 'ssh' ]; then
         echo "using ssh"
@@ -13,16 +14,6 @@ else
         echo "       $0 ssh   - clone repos with ssh"
         exit 1
 fi
-
-repos=(
-        liquidinvestigations/hoover-snoop2
-        liquidinvestigations/hoover-search
-        liquidinvestigations/hoover-ui
-        liquidinvestigations/core
-        liquidinvestigations/authproxy
-        liquidinvestigations/hypothesis-h
-        liquidinvestigations/codimd-server
-)
 
 logs=$(mktemp -d)
 for repo in "${repos[@]}"; do
