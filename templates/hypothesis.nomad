@@ -296,6 +296,14 @@ job "hypothesis" {
             Host = ["hypothesis.${liquid_domain}"]
           }
         }
+        check {
+          name = "check-workers-script"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "ps aux -o comm,args | grep '^python .* celery worker'"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
 
