@@ -2,8 +2,9 @@
 set -e
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
+. repos.sh
 
-for repo in hoover/snoop2 hoover/search hoover/ui liquidinvestigations/core liquidinvestigations/authproxy hypothesis/h; do (
+for repo in "${repos[@]}"; do (
   echo
     echo "[[ $repo ]]"
   if [ -d $repo ]; then

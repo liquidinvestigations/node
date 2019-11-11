@@ -1,0 +1,9 @@
+repos=(
+        liquidinvestigations/hoover-snoop2
+        liquidinvestigations/hoover-search
+        liquidinvestigations/hoover-ui
+        liquidinvestigations/core
+        liquidinvestigations/authproxy
+        liquidinvestigations/hypothesis-h
+        liquidinvestigations/codimd-server
+)
