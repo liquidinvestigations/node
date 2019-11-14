@@ -1,6 +1,6 @@
 # Configuration
 
-The Liquid bundle can be configured by setting options in `liquid.ini`.
+The Liquid bundle can be configured by setting options in `liquid.ini`. See the [reference configuration file](../examples/liquid.ini) for a description of the different options.
 
 
 ## Maintenance
