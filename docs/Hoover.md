@@ -9,7 +9,7 @@ The Liquid Investigations bundle includes Hoover ([hoover-search][],
 [hoover-ui]: https://github.com/liquidinvestigations/hoover-ui
 [Nextcloud]: ./Nextcloud.md
 
-## Testdata
+## Example: Testdata
 Set up the `testdata` collection. First download the data:
 
 ```shell
@@ -30,15 +30,44 @@ Then let the `deploy` command pick up the new collection:
 ./liquid deploy
 ```
 
+## Adding collections
+
+All collections are loaded from the `liquid_collections` directory configured in `liquid.ini`.
+The directories directly under `liquid_collections` can also be symlinks.
+
+To add new collections simply append to the `liquid.ini` file:
+
+```ini
+[collection:always-changes]
+workers = 3
+sync = True
+
+[collection:static-data]
+workers = 1
+```
+
+... and run `./liquid deploy`. The requested number of workers and their dependencies will be deployed on the Nomad cluster; see them run on the Nomad UI.
+
+---
+
+The two parameters control:
+- `workers`: the Snoop worker count for this collection
+- `sync`: wether the workers should track the collection data and re-process changed/new documents
+
+The collection names must follow the [elasticsearch index naming guide](https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-create-index.html#indices-create-index), namely **lowercase alphanumeric**, **dashes** and **numbers** only.
+
 
 ## Removing collections
+
 In order to remove a collection, take the following steps:
 1. Remove the corresponding collection section from the `liquid.ini` file.
 2. Run `./liquid collectionsgc`
 3. Run `./liquid purge`
 
 
-### Tesseract Batch OCR
+## Tesseract Batch OCR
+
+**Warning:** This implementation outputs data in the `liquid_collection` directory for the selected collection. 
 
 Use the following commands to run Tesseract OCR on the collection data's
 `/data/ocr/<language-code>` paths, outputting PDFs its `ocr` directory.
