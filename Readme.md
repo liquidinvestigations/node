@@ -55,8 +55,8 @@ you don't have a DNS domain pointing to the macine, you can add entries to
 `/etc/hosts`:
 
 ```
-10.66.60.1 liquid.example.com
-10.66.60.1 hoover.liquid.example.com
+10.66.60.1 liquid.example.org
+10.66.60.1 hoover.liquid.example.org
 ...
 ```
 
