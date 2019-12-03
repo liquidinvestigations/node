@@ -7,6 +7,3 @@ verify_ssl = true
 colorlog = "*"
 flake8 = "*"
 Jinja2 = "*"
-
-[requires]
-python_version = "3.6"
