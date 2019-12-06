@@ -212,7 +212,7 @@ def check_system_config():
     if os.uname().sysname == 'Darwin':
         return
 
-    assert int(run("sysctl -n vm.max_map_count")) >= 262144, \
+    assert int(run("cat /proc/sys/vm/max_map_count")) >= 262144, \
         'the "vm.max_map_count" kernel parameter is too low, check readme'
 
 
