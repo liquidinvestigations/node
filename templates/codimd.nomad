@@ -31,7 +31,8 @@ job "codimd" {
       }
       env {
         NODE_ENV = "production"
-        TITLE = "${config.liquid_title}"
+        LIQUID_URL = "${config.liquid_http_protocol}://${liquid_domain}"
+        LIQUID_TITLE = "${config.liquid_title}"
         CMD_HOST = "0.0.0.0"
         CMD_PORT = "3000"
         CMD_DOMAIN = "codimd.${liquid_domain}"
