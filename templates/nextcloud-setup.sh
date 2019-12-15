@@ -2,19 +2,13 @@
 
 set -ex
 
-if [ -z "$NEXTCLOUD_INTERNAL_STATUS_URL" ]; then
-    echo "Missing NEXTCLOUD_INTERNAL_STATUS_URL - please wait for apache to boot up"
-    sleep 6
-    exit 1
-fi
-
 if [ -z "$MYSQL_HOST" ]; then
     echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
     sleep 6
     exit 1
 fi
 
-INSTALLED=$(curl --silent --header "Host: $NEXTCLOUD_HOST" $NEXTCLOUD_INTERNAL_STATUS_URL | jq .installed)
+INSTALLED=$(php /var/www/html/occ status --output=json | jq .installed)
 if [ "$INSTALLED" == "false" ]; then
     echo "Installing nextcloud"
 
