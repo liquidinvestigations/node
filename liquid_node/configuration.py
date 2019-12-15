@@ -169,6 +169,9 @@ class Configuration:
                     'name': name,
                     'workers': self.ini.getint(key, 'workers', fallback=0),
                     'sync': self.ini.getboolean(key, 'sync', fallback=False),
+                    'rabbitmq_memory_limit': self.ini.getint(key,
+                                                             'rabbitmq_memory_limit',
+                                                             fallback=700),
                 }
 
             elif cls == 'job':

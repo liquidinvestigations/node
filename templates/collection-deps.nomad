@@ -31,7 +31,7 @@ job "collection-${name}-deps" {
         }
       }
       resources {
-        memory = 700
+        memory = ${rabbitmq_memory_limit}
         cpu = 150
         network {
           mbits = 1
