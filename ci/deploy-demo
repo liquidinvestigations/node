@@ -10,9 +10,7 @@ git --version
 docker --version
 python --version
 
-
 ./liquid alloc drone drone
-sleep 5
 
 #liquid liquid.py halt
 #sleep 13
@@ -20,5 +18,6 @@ sleep 5
 git fetch -a
 git checkout master
 git pull
+git status
 
 ./liquid deploy

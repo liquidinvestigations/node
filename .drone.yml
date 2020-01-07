@@ -40,16 +40,16 @@ depends_on:
 
 steps:
 - name: do it
-  image: docker
+  image: python:3.7-stretch
   privileged: true
   volumes:
   - name: docker-sock
     path: /var/run/docker.sock
+  - name: node
+    path: /opt/node
   commands:
-  - while docker ps deploy-demo; do sleep 5 && echo waiting; done
-  - CONTAINER=$(./ci/launch-deploy-demo-container)
-  - docker logs -f $CONTAINER &
-  - sleep 10
+  - cd /opt/node
+  - ci/deploy-demo
 
 trigger:
   status:
@@ -63,3 +63,6 @@ volumes:
 - name: docker-sock
   host:
       path: /var/run/docker.sock
+- name: node
+  host:
+      path: /opt/node
