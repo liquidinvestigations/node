@@ -49,7 +49,22 @@ steps:
     path: /opt/node
   commands:
   - cd /opt/node
-  - ci/deploy-demo
+  - curl https://get.docker.com/ | sh -
+  - apt-get -yqq update
+  - apt-get -yqq install python3-venv python3-pip git curl unzip
+  - pip3 install pipenv
+  - pipenv install
+  - git --version
+  - docker --version
+  - python --version
+  - ./liquid alloc drone drone
+  # - liquid liquid.py halt
+  # - sleep 13
+  - git fetch -a
+  - git checkout demo
+  - git pull
+  - git status
+  - ./liquid deploy
 
 trigger:
   status:
