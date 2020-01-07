@@ -1,11 +1,6 @@
 kind: pipeline
 name: test
 
-# magic undocumented feature!
-# https://discourse.drone.io/t/how-to-limit-build-concurrency-per-project/3500
-concurrency:
-  limit: 3
-
 steps:
 - name: flake8
   image: python:3.7
@@ -13,6 +8,19 @@ steps:
   - pip install flake8 > /dev/null
   - flake8
 
+---
+kind: pipeline
+name: qemu
+
+# magic undocumented feature!
+# https://discourse.drone.io/t/how-to-limit-build-concurrency-per-project/3500
+concurrency:
+  limit: 2
+
+depends_on:
+- test
+
+steps:
 - name: deploy to qemu
   image: vmck/vagrant-vmck:0.2.1
   commands:
@@ -38,7 +46,7 @@ steps:
   - sleep 10
 
 depends_on:
-- test
+- qemu
 
 trigger:
   status:
