@@ -54,9 +54,6 @@ job "nextcloud-migrate" {
       template {
         data = <<-EOF
         HTTP_PROTO = "${config.liquid_http_protocol}"
-        {{- range service "nextcloud-app" }}
-          NEXTCLOUD_INTERNAL_STATUS_URL = "http://{{.Address}}:{{.Port}}/status.php"
-        {{- end }}
         NEXTCLOUD_HOST = "nextcloud.{{ key "liquid_domain" }}"
         NEXTCLOUD_ADMIN_USER = "admin"
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
