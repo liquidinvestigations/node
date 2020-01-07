@@ -32,6 +32,12 @@ steps:
 kind: pipeline
 name: deploy to demo
 
+concurrency:
+  limit: 1
+
+depends_on:
+- qemu
+
 steps:
 - name: do it
   image: docker
@@ -41,18 +47,15 @@ steps:
     path: /var/run/docker.sock
   commands:
   - while docker ps deploy-demo; do sleep 5 && echo waiting; done
-  - CONTAINER=$(./vagrant/launch-deploy-demo-container)
+  - CONTAINER=$(./ci/launch-deploy-demo-container)
   - docker logs -f $CONTAINER &
   - sleep 10
-
-depends_on:
-- qemu
 
 trigger:
   status:
   - success
   branch:
-  - master
+  - demo
   event:
   - push
 

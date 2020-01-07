@@ -1,7 +1,5 @@
 #!/bin/sh -ex
 
-echo "Cowardly refusing to deploy"; exit 0
-
 docker run -d --rm \
         --name deploy-demo \
         -v /opt/node:/opt/node \
@@ -9,4 +7,4 @@ docker run -d --rm \
         -v /opt/cluster:/opt/cluster \
         -w /opt/node \
         python:3.7-stretch \
-        /opt/node/vagrant/deploy-demo
+        /opt/node/ci/deploy-demo
