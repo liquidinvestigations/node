@@ -21,6 +21,16 @@
         }
       }
 
+      env {
+        xpack.license.self_generated.type = "basic"
+        xpack.monitoring.collection.enabled = "true"
+        xpack.monitoring.collection.interval = "30s"
+        xpack.monitoring.collection.cluster.stats.timeout = "30s"
+        xpack.monitoring.collection.node.stats.timeout = "30s"
+        xpack.monitoring.collection.index.stats.timeout = "30s"
+        xpack.monitoring.collection.index.recovery.timeout = "30s"
+        xpack.monitoring.history.duration = "32d"
+      }
 {%- endmacro %}
 
 job "hoover-deps" {
@@ -50,9 +60,6 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-
-        xpack.license.self_generated.type = "basic"
-        xpack.monitoring.collection.enabled = "true"
 
         ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
@@ -119,9 +126,6 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-
-        xpack.license.self_generated.type = "basic"
-        xpack.monitoring.collection.enabled = "true"
 
         ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
