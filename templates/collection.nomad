@@ -163,7 +163,7 @@ job "collection-${name}" {
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
         SNOOP_STATS_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_STATS_ES_PREFIX = "_snoopstats-"
+        SNOOP_STATS_ES_PREFIX = ".hoover-snoopstats-"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
       }
       template {
