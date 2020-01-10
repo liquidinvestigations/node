@@ -47,6 +47,8 @@ steps:
     path: /var/run/docker.sock
   - name: node
     path: /opt/node
+  - name: cluster-var
+    path: /opt/cluster/var
   commands:
   - cd /opt/node
   - curl https://get.docker.com/ | sh -
@@ -60,9 +62,8 @@ steps:
   - ./liquid alloc drone drone
   # - liquid liquid.py halt
   # - sleep 13
-  - git fetch -a
-  - git checkout demo
-  - git pull
+  - git fetch -ap
+  - git reset --hard origin/demo
   - git status
   - ./liquid deploy
 
@@ -81,3 +82,6 @@ volumes:
 - name: node
   host:
       path: /opt/node
+- name: cluster-var
+  host:
+      path: /opt/cluster/var
