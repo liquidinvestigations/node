@@ -360,6 +360,8 @@ def deploy(*args):
     if options.checks:
         wait_for_service_health_checks(health_checks)
 
+    createstatsindex()
+
     # Run initcollection for all unregistered collections
     already_initialized = sorted(get_search_collections())
     for collection in sorted(config.collections.keys()):
@@ -465,6 +467,10 @@ def initcollection(name):
         f'http://{nomad.get_address()}:8765/{name}/collection/json',
         '--public',
     )
+
+
+def createstatsindex():
+    docker.exec_('hoover-search', './manage.py', 'createstatsindex')
 
 
 def purge(force=False):
