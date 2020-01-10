@@ -24,9 +24,3 @@ class System(jobs.Job):
     name = 'hoover-system'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hoover'
-
-
-class Stats(jobs.Job):
-    name = 'hoover-stats'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'hoover'
