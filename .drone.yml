@@ -32,27 +32,47 @@ steps:
 kind: pipeline
 name: deploy to demo
 
+concurrency:
+  limit: 1
+
+depends_on:
+- qemu
+
 steps:
 - name: do it
-  image: docker
+  image: python:3.7-stretch
   privileged: true
   volumes:
   - name: docker-sock
     path: /var/run/docker.sock
+  - name: node
+    path: /opt/node
+  - name: cluster-var
+    path: /opt/cluster/var
   commands:
-  - while docker ps deploy-demo; do sleep 5 && echo waiting; done
-  - CONTAINER=$(./vagrant/launch-deploy-demo-container)
-  - docker logs -f $CONTAINER &
-  - sleep 10
-
-depends_on:
-- qemu
+  - cd /opt/node
+  - curl https://get.docker.com/ | sh -
+  - apt-get -yqq update
+  - apt-get -yqq install python3-venv python3-pip git curl unzip
+  - pip3 install pipenv
+  - pipenv install
+  - git --version
+  - docker --version
+  - python --version
+  - ./liquid alloc drone drone
+  # - liquid liquid.py halt
+  # - sleep 13
+  - git status -s || ( echo "GIT TREE DIRTY" && exit 1 )
+  - git fetch -ap
+  - git reset --hard origin/demo
+  - git status
+  - ./liquid deploy
 
 trigger:
   status:
   - success
   branch:
-  - master
+  - demo
   event:
   - push
 
@@ -60,3 +80,9 @@ volumes:
 - name: docker-sock
   host:
       path: /var/run/docker.sock
+- name: node
+  host:
+      path: /opt/node
+- name: cluster-var
+  host:
+      path: /opt/cluster/var
