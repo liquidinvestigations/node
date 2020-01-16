@@ -62,6 +62,7 @@ steps:
   - ./liquid alloc drone drone
   # - liquid liquid.py halt
   # - sleep 13
+  - git status -s || ( echo "GIT TREE DIRTY" && exit 1 )
   - git fetch -ap
   - git reset --hard origin/demo
   - git status
