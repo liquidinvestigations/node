@@ -11,7 +11,7 @@ job "nextcloud-migrate" {
     reschedule {
       attempts       = 6
       interval       = "1h"
-      delay          = "30s"
+      delay          = "40s"
       delay_function = "exponential"
       max_delay      = "300s"
       unlimited      = false

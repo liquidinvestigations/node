@@ -172,6 +172,12 @@ class Configuration:
                     'rabbitmq_memory_limit': self.ini.getint(key,
                                                              'rabbitmq_memory_limit',
                                                              fallback=700),
+                    'worker_memory_limit': self.ini.getint(key,
+                                                           'worker_memory_limit',
+                                                           fallback=400),
+                    'worker_process_count': self.ini.getint(key,
+                                                            'worker_process_count',
+                                                            fallback=1),
                 }
 
             elif cls == 'job':

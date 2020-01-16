@@ -66,6 +66,7 @@ job "collection-${name}" {
         SNOOP_STATS_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
         SNOOP_STATS_ES_PREFIX = ".hoover-snoopstats-"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+        SNOOP_WORKER_COUNT = "${worker_process_count}"
       }
       template {
         data = <<-EOF
@@ -90,7 +91,7 @@ job "collection-${name}" {
         env = true
       }
       resources {
-        memory = 400
+        memory = ${worker_memory_limit}
         network {
           mbits = 1
           port "flower" {}
