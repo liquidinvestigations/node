@@ -76,7 +76,7 @@ job "nextcloud-migrate" {
         env = true
       }
       resources {
-        memory = 100
+        memory = 700
         cpu = 200
       }
     }
