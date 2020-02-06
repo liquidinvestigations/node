@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task, airflow_env_template, dask_env_template with context -%}
 
 job "collection-${name}-deps" {
   datacenters = ["dc1"]
@@ -55,7 +55,7 @@ job "collection-${name}-deps" {
   }
   {% endif %}
 
-  group "db" {
+  group "snoop-db" {
     ${ group_disk() }
 
     ${ continuous_reschedule() }
@@ -117,17 +117,142 @@ job "collection-${name}-deps" {
     ${ promtail_task() }
   }
 
-  group "dask-scheduler" {
-    ephemeral_disk {
-      migrate = true
-      size    = "500"
-      sticky  = true
+  group "airflow-db" {
+    ${ group_disk() }
+
+    ${ continuous_reschedule() }
+
+    task "pg" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "postgres:9.6"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/airflow-pg/data:/var/lib/postgresql/data",
+        ]
+        labels {
+          liquid_task = "snoop-${name}-airflow-pg"
+        }
+        port_map {
+          pg = 5432
+        }
+      }
+      template {
+        data = <<EOF
+          POSTGRES_USER = "airflow"
+          POSTGRES_DB = "airflow"
+          {{- with secret "liquid/collections/${name}/airflow.postgres" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/postgres.env"
+        env = true
+      }
+      ${ set_pg_password_template('airflow') }
+      resources {
+        cpu = 200
+        memory = 300
+        network {
+          mbits = 1
+          port "pg" {}
+        }
+      }
+      service {
+        name = "snoop-${name}-airflow-pg"
+        port = "pg"
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
     }
+
+    ${ promtail_task() }
+  }
+
+  group "logs-minio" {
+    ${ group_disk() }
+
+    ${ continuous_reschedule() }
+
+    task "minio" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "minio/minio:RELEASE.2020-01-25T02-50-51Z"
+        args = ["server", "/data"]
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/airflow-minio/data:/data",
+        ]
+        labels {
+          liquid_task = "snoop-${name}-airflow-minio"
+        }
+        port_map {
+          http = 9000
+        }
+      }
+      template {
+        data = <<EOF
+          {{- with secret "liquid/collections/${name}/logs.minio.key" }}
+            MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
+          {{- with secret "liquid/collections/${name}/logs.minio.secret" }}
+            MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/postgres.env"
+        env = true
+      }
+      ${ set_pg_password_template('airflow') }
+      resources {
+        cpu = 200
+        memory = 300
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+      service {
+        name = "snoop-${name}-airflow-minio"
+        port = "http"
+        check {
+          name = "http"
+          type = "http"
+          initial_status = "critical"
+          path = "/minio/health/live"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+
+    ${ promtail_task() }
+  }
+
+  group "dask-scheduler" {
     task "scheduler" {
       driver = "docker"
       config {
-        image = "daskdev/dask:2.9.2"
-        args = ["dask-scheduler", "--local-directory", "/data"]
+        image = "${config.image('hoover-snoop2')}"
+        force_pull = "true"
+
+        args = ["dask-scheduler", "--local-directory", "/data", "--dashboard-prefix", "/_dask/${name}/scheduler"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/dask-scheduler:/data",
         ]
@@ -140,16 +265,12 @@ job "collection-${name}-deps" {
           liquid_task = "dask-scheduler-${name}"
         }
       }
-      env {
-        "DASK_DISTRIBUTED__ADMIN__TICK__INTERVAL" = "1000ms"
-        "DASK_DISTRIBUTED__WORKER__PROFILE__INTERVAL" = "100ms"
-        "DASK_DISTRIBUTED__WORKER__PROFILE__CYCLE" = "10000ms"
-        "DASK_DISTRIBUTED__SCHEDULER__WORK_STEALING" = "True"
-        "DASK_DISTRIBUTED__SCHEDULER__ALLOWED_FAILURES" = "2"
-      }
+
+      ${ dask_env_template() }
+
       resources {
-        memory = 400
-        cpu = 200
+        memory = 500
+        cpu = 400
         network {
           mbits = 1
           port "http" {}
@@ -159,10 +280,11 @@ job "collection-${name}-deps" {
       service {
         name = "dask-scheduler-${name}-ui"
         port = "http"
+        tags = ["snoop-/_dask/${name}/scheduler"]
         check {
           name = "http"
           initial_status = "critical"
-          path = "/"
+          path = "/_dask/${name}/scheduler/"
           type = "http"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
@@ -181,6 +303,7 @@ job "collection-${name}-deps" {
       }
     }
   }
+
 
   group "dask-notebook" {
     task "notebook" {

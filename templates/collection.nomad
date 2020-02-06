@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, set_pg_password_template, promtail_task, airflow_env_template, dask_env_template with context -%}
 
 job "collection-${name}" {
   datacenters = ["dc1"]
@@ -25,6 +25,8 @@ job "collection-${name}" {
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
+        force_pull = "true"
+
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
@@ -47,13 +49,11 @@ job "collection-${name}" {
         SYNC_FILES = "${sync}"
       }
 
-      env {
-        "DASK_DISTRIBUTED__ADMIN__TICK__INTERVAL" = "1000ms"
-        "DASK_DISTRIBUTED__WORKER__PROFILE__INTERVAL" = "100ms"
-        "DASK_DISTRIBUTED__WORKER__PROFILE__CYCLE" = "10000ms"
-        "DASK_DISTRIBUTED__SCHEDULER__WORK_STEALING" = "True"
-        "DASK_DISTRIBUTED__SCHEDULER__ALLOWED_FAILURES" = "2"
+      ${ airflow_env_template() }
 
+      ${ dask_env_template() }
+
+      env {
         HOST = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
         WORKER_PORT = "{% raw %}${NOMAD_HOST_PORT_worker}{% endraw %}"
         DASH_PORT = "{% raw %}${NOMAD_HOST_PORT_dashboard}{% endraw %}"
@@ -78,12 +78,13 @@ job "collection-${name}" {
                 --contact-address "tcp://$HOST:$WORKER_PORT" \
                 --dashboard-address "0.0.0.0:$DASH_PORT" \
                 --no-nanny \
-                --nthreads 3 \
+                --nthreads 1 \
                 --nprocs 1 \
                 --memory-limit "${worker_memory_limit}M" \
                 --local-directory "/dask-worker" \
                 --preload "/opt/hoover/snoop/django_setup.py" \
-                --death-timeout "30" \
+                --dashboard-prefix "/_dask/${name}/worker" \
+                --death-timeout "40" \
                 "$SNOOP_DASK_SCHEDULER_URL"
         EOF
         env = false
@@ -132,10 +133,11 @@ job "collection-${name}" {
       service {
         name = "dask-worker-ui-${name}"
         port = "dashboard"
+        tags = ["snoop-/_dask/${name}/worker"]
         check {
           name = "http"
           initial_status = "critical"
-          path = "/"
+          path = "/_dask/${name}/worker/"
           type = "http"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
@@ -276,5 +278,95 @@ job "collection-${name}" {
     }
 
     ${ promtail_task() }
+  }
+
+  group "airflow-scheduler" {
+    task "scheduler" {
+      driver = "docker"
+      config {
+        image = "${config.image('hoover-snoop2')}"
+        args = ["bash", "/local/startup.sh"]
+        volumes = [ ${hoover_snoop2_repo} ]
+
+        labels {
+          liquid_task = "airflow-scheduler-${name}"
+        }
+      }
+
+      template {
+        data = <<-EOF
+          #!/bin/bash
+          exec airflow scheduler --pid /local/pid.txt
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      ${ airflow_env_template() }
+
+      resources {
+        memory = 700
+        cpu = 200
+        network {
+          mbits = 1
+        }
+      }
+    }
+  }
+
+  group "airflow-webserver" {
+    task "webserver" {
+      driver = "docker"
+      config {
+        image = "${config.image('hoover-snoop2')}"
+        force_pull = "true"
+
+        args = ["bash", "/local/startup.sh"]
+        volumes = [ ${hoover_snoop2_repo} ]
+
+        port_map {
+          http = 8080
+        }
+        labels {
+          liquid_task = "airflow-webserver-${name}"
+        }
+      }
+
+      template {
+        data = <<-EOF
+          #!/bin/bash
+          airflow upgradedb
+          airflow connections --delete --conn_id minio_logs || true
+          airflow connections --add --conn_id minio_logs --conn_type s3 --conn_extra "$AIRFLOW_MINIO_LOGS_EXTRA"
+          exec airflow webserver --pid /local/pid.txt
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      ${ airflow_env_template() }
+
+      resources {
+        memory = 900
+        cpu = 200
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+      service {
+        name = "airflow-webserver-${name}"
+        tags = ["snoop-/_airflow/${name}"]
+        port = "http"
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/_airflow/${name}/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
   }
 }

@@ -1,3 +1,50 @@
+{%- macro airflow_env_template() %}
+      template {
+        data = <<-EOF
+        {{- range service "snoop-${name}-airflow-pg" }}
+          AIRFLOW__CORE__SQL_ALCHEMY_CONN = "postgresql+psycopg2://airflow:
+          {{- with secret "liquid/collections/${name}/airflow.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/airflow"
+        {{- end }}
+        {{ range service "dask-scheduler-${name}" -}}
+          AIRFLOW__DASK__CLUSTER_ADDRESS = "{{.Address}}:{{.Port}}"
+        {{- end }}
+        {{ range service "telegraf" -}}
+          AIRFLOW__SCHEDULER__STATSD_HOST = "{{.Address}}"
+        {{- end }}
+        {{ range service "telegraf" -}}
+          AIRFLOW__SCHEDULER__STATSD_PORT = "8125"
+        {{- end }}
+        AIRFLOW__WEBSERVER__BASE_URL = "http://"{%raw%}${attr.unique.network.ip-address}{%endraw%}":8765/_airflow/${name}"
+
+        {{ range service "snoop-${name}-airflow-minio" -}}
+          AIRFLOW_MINIO_LOGS_EXTRA = " {
+          {{- with secret "liquid/collections/${name}/logs.minio.key" -}}
+            \"aws_access_key_id\": \"{{.Data.secret_key}}\",
+          {{- end -}}
+          {{- with secret "liquid/collections/${name}/logs.minio.secret" -}}
+            \"aws_secret_access_key\": \"{{.Data.secret_key}}\",
+          {{- end -}}
+          \"host\": \"http://{{.Address}}:{{.Port}}\" }"
+        {{- end -}}
+        EOF
+        destination = "local/airflow.env"
+        env = true
+      }
+{%- endmacro %}
+
+{%- macro dask_env_template() %}
+      env {
+        "DASK_DISTRIBUTED__ADMIN__TICK__INTERVAL" = "1000ms"
+        "DASK_DISTRIBUTED__WORKER__PROFILE__INTERVAL" = "100ms"
+        "DASK_DISTRIBUTED__WORKER__PROFILE__CYCLE" = "10000ms"
+        "DASK_DISTRIBUTED__SCHEDULER__WORK_STEALING" = "True"
+        "DASK_DISTRIBUTED__SCHEDULER__ALLOWED_FAILURES" = "2"
+      }
+{%- endmacro %}
+
 {%- macro continuous_reschedule() %}
 {%- endmacro %}
 

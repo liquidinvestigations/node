@@ -301,6 +301,9 @@ def deploy(*args):
         if options.secrets:
             ensure_secret_key(f'liquid/collections/{name}/snoop.django')
             ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
+            ensure_secret_key(f'liquid/collections/{name}/airflow.postgres')
+            ensure_secret_key(f'liquid/collections/{name}/logs.minio.key')
+            ensure_secret_key(f'liquid/collections/{name}/logs.minio.secret')
 
     ensure_secret('liquid/rocketchat/adminuser', lambda: {
         'username': 'rocketchatadmin',
@@ -346,6 +349,7 @@ def deploy(*args):
     if options.secrets:
         for collection in sorted(config.collections.keys()):
             docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_pg_password.sh')
+            docker.exec_(f'snoop-{collection}-airflow-pg', 'sh', '/local/set_pg_password.sh')
         docker.exec_(f'hoover-pg', 'sh', '/local/set_pg_password.sh')
 
     # wait until all deps are healthy
