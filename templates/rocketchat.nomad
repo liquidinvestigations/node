@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, promtail_task with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule with context -%}
 
 job "rocketchat" {
   datacenters = ["dc1"]
@@ -46,8 +46,6 @@ job "rocketchat" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
   group "app" {
@@ -149,8 +147,6 @@ job "rocketchat" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
   ${- authproxy_group(

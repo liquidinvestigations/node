@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, promtail_task -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
 
 job "rocketchat-migrate" {
   datacenters = ["dc1"]
@@ -42,7 +42,5 @@ job "rocketchat-migrate" {
         env = true
       }
     }
-
-    ${ promtail_task() }
   }
 }

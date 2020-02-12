@@ -1,5 +1,3 @@
-{% from '_lib.hcl' import promtail_task -%}
-
 job "hoover-system" {
   datacenters = ["dc1"]
   type = "system"
@@ -47,7 +45,5 @@ job "hoover-system" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 }

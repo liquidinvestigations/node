@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, promtail_task with context -%}
+{% from '_lib.hcl' import authproxy_group with context -%}
 
 job "codimd" {
   datacenters = ["dc1"]
@@ -103,8 +103,6 @@ job "codimd" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
   group "db" {
@@ -159,8 +157,6 @@ job "codimd" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
   ${- authproxy_group(

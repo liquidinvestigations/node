@@ -1,5 +1,3 @@
-{% from '_lib.hcl' import promtail_task -%}
-
 job "hypothesis-usersync" {
   datacenters = ["dc1"]
   type = "batch"
@@ -44,7 +42,5 @@ job "hypothesis-usersync" {
         EOF
       }
     }
-
-    ${ promtail_task() }
   }
 }

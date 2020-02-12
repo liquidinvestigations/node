@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, promtail_task -%}
+{% from '_lib.hcl' import group_disk, task_logs -%}
 
 job "hoover-ui" {
   datacenters = ["dc1"]
@@ -34,7 +34,5 @@ job "hoover-ui" {
         memory = 900
       }
     }
-
-    ${ promtail_task() }
   }
 }

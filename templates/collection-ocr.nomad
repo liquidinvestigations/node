@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, promtail_task -%}
+{% from '_lib.hcl' import group_disk, task_logs -%}
 
 job "collection-${name}-ocr{% if periodic %}-${periodic}{% endif %}" {
   datacenters = ["dc1"]
@@ -56,6 +56,5 @@ job "collection-${name}-ocr{% if periodic %}-${periodic}{% endif %}" {
         {% endif %}
       }
     }
-    ${ promtail_task() }
   }
 }
