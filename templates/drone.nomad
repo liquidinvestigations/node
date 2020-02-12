@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, promtail_task -%}
+{% from '_lib.hcl' import group_disk, task_logs -%}
 
 job "drone" {
   datacenters = ["dc1"]
@@ -56,8 +56,6 @@ job "drone" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
 
@@ -142,7 +140,5 @@ job "drone" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 }

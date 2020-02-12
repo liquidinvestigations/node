@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
 
 job "hoover" {
   datacenters = ["dc1"]
@@ -102,8 +102,6 @@ job "hoover" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
   ${- authproxy_group(

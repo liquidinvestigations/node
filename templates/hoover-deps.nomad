@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, promtail_task with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
@@ -96,8 +96,6 @@ job "hoover-deps" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
   {% if config.elasticsearch_data_node_count %}
@@ -169,8 +167,6 @@ job "hoover-deps" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
   {% endif %}
 
@@ -227,8 +223,6 @@ job "hoover-deps" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 
   group "tika" {
@@ -272,7 +266,5 @@ job "hoover-deps" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 }

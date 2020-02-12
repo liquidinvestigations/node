@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule, promtail_task -%}
+{% from '_lib.hcl' import continuous_reschedule -%}
 
 job "ingress" {
   datacenters = ["dc1"]
@@ -153,7 +153,5 @@ job "ingress" {
         }
       }
     }
-
-    ${ promtail_task() }
   }
 }

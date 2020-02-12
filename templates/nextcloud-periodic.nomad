@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, promtail_task -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
 
 job "nextcloud-periodic" {
   datacenters = ["dc1"]
@@ -56,7 +56,5 @@ job "nextcloud-periodic" {
         cpu = 200
       }
     }
-
-    ${ promtail_task() }
   }
 }
