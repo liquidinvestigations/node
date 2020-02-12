@@ -19,12 +19,14 @@ job "collection-${name}-deps" {
 
       driver = "docker"
       config {
-        image = "rabbitmq:3.7.3"
+        image = "rabbitmq:3.7.3-management-alpine"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/collections/${name}/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
         port_map {
           amqp = 5672
+          http = 15672
+          clustering = 25672
         }
         labels {
           liquid_task = "snoop-${name}-rabbitmq"
@@ -36,17 +38,27 @@ job "collection-${name}-deps" {
         network {
           mbits = 1
           port "amqp" {}
+          port "http" {}
         }
       }
       service {
         name = "snoop-${name}-rabbitmq"
         port = "amqp"
+      }
+      service {
+        name = "snoop-${name}-rabbitmq-http"
+        port = "http"
         check {
-          name = "tcp"
+          name = "http"
           initial_status = "critical"
-          type = "tcp"
+          type = "http"
+          path = "/api/healthchecks/node"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
+          header {
+            # guest:guest
+            Authorization = ["Basic Z3Vlc3Q6Z3Vlc3Q="]
+          }
         }
       }
     }
