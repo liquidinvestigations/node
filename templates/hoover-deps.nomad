@@ -232,7 +232,7 @@ job "hoover-deps" {
       driver = "docker"
       config {
         image = "logicalspark/docker-tikaserver:1.22"
-        args = ["-spawnChild", "-maxFiles", "1000", "--config", "/local/tika.xml"]
+        args = ["-spawnChild", "-maxFiles", "1000"]
         port_map {
           tika = 9998
         }
@@ -248,6 +248,10 @@ job "hoover-deps" {
           mbits = 1
           port "tika" {}
         }
+      }
+
+      env {
+        TIKA_CONFIG = "/local/tika.xml"
       }
 
       template {
