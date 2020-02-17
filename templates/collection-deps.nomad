@@ -5,6 +5,8 @@ job "collection-${name}-deps" {
   type = "service"
   priority = 65
 
+  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
   {% if workers %}
   group "queue" {
     ${ group_disk() }

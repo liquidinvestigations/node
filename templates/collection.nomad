@@ -5,6 +5,8 @@ job "collection-${name}" {
   type = "service"
   priority = 55
 
+  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
   group "workers" {
     ${ group_disk() }
 

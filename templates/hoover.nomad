@@ -5,6 +5,8 @@ job "hoover" {
   type = "service"
   priority = 60
 
+  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
   group "web" {
     task "search" {
       constraint {

@@ -16,6 +16,9 @@ ephemeral_disk {
 
 {%- macro authproxy_group(name, host, upstream, threads=24, memory=200, user_header_template="{}", count=1) %}
   group "authproxy" {
+
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
     restart {
       interval = "2m"
       attempts = 4

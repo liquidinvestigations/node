@@ -38,6 +38,8 @@ job "hoover-deps" {
   type = "service"
   priority = 60
 
+  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
   group "es-master" {
     task "es" {
       constraint {
