@@ -12,6 +12,8 @@ job "collection-${name}" {
 
     count = ${workers}
 
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
     task "snoop" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"

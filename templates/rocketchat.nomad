@@ -5,6 +5,8 @@ job "rocketchat" {
   type = "service"
   priority = 30
 
+  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
   group "db" {
     task "mongo" {
       constraint {
