@@ -434,13 +434,13 @@ def launchocr(*args):
     parser.add_argument('--nice', dest='nice', help='argument to `nice -n`.')
     options = parser.parse_args(args)
 
-    assert options.name in config.collections, 'unknown collection name: ' + options.name
+    collection_names = [c['name'] for c in config.snoop_collections]
+    assert options.name in collection_names, 'unknown collection name: ' + options.name
     data_dir = Path(config.liquid_collections) / options.name / 'data'
     assert data_dir.is_dir(), \
         f'{data_dir} should be a directory where all collection data is stored.'
 
-    raise RuntimeError("TODO update to single snoop for multiple collections")
-    # hcl = get_collection_job(options.name, vars(options), 'collection-ocr.nomad')
-    # spec = nomad.parse(hcl)
-    # nomad.run(spec)
-    # log.info(f'Launched OCR job {spec["Name"]}')
+    hcl = get_job(config.templates / 'collection-ocr.nomad', vars(options))
+    spec = nomad.parse(hcl)
+    nomad.run(spec)
+    log.info(f'Launched OCR job {spec["Name"]}')
