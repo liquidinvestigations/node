@@ -7,21 +7,15 @@ import base64
 import json
 import argparse
 
-from liquid_node.collections import push_collections_titles
-from liquid_node.import_from_docker import validate_names, ensure_docker_setup_stopped, \
-    add_collections_ini, import_index
 from liquid_node.jobs import wait_for_stopped_jobs
-from .collections import get_collections_to_purge, purge_collection
 from .configuration import config
 from .consul import consul
-from .jobs import get_job, get_collection_job, hoover
+from .jobs import get_job, hoover
 from .nomad import nomad
 from .process import run
 from .util import first
-from .collections import get_search_collections
 from .docker import docker
 from .vault import vault
-from .import_from_docker import import_collection
 
 
 log = logging.getLogger(__name__)
@@ -181,11 +175,6 @@ def resources():
 
     def get_all_res():
         jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
-        for name, settings in config.collections.items():
-            job = get_collection_job(name, settings, 'collection.nomad')
-            jobs.append(nomad.parse(job))
-            deps_job = get_collection_job(name, settings, 'collection-deps.nomad')
-            jobs.append(nomad.parse(deps_job))
         for spec in jobs:
             yield from nomad.get_resources(spec)
 
@@ -238,6 +227,8 @@ def deploy(*args):
         'liquid/hoover/auth.django',
         'liquid/hoover/search.django',
         'liquid/hoover/search.postgres',
+        'liquid/hoover/snoop.django',
+        'liquid/hoover/snoop.postgres',
         'liquid/authdemo/auth.django',
         'liquid/nextcloud/nextcloud.admin',
         'liquid/nextcloud/nextcloud.uploads',
@@ -277,6 +268,8 @@ def deploy(*args):
 
     def start(job, hcl):
         log.info('Starting %s...', job)
+        with open(f'/tmp/node-{job}.hcl', 'w') as f:
+            f.write(hcl)
         spec = nomad.parse(hcl)
         nomad.run(spec)
         job_checks = {}
@@ -292,15 +285,6 @@ def deploy(*args):
     hov_deps = hoover.Deps()
     database_tasks = [hov_deps.pg_task]
     deps_jobs = [(hov_deps.name, get_job(hov_deps.template))]
-    for name, settings in config.collections.items():
-        job = get_collection_job(name, settings)
-        jobs.append((f'collection-{name}', job))
-        deps_job = get_collection_job(name, settings, 'collection-deps.nomad')
-        deps_jobs.append((f'collection-{name}-deps', deps_job))
-        database_tasks.append('snoop-' + name + '-pg')
-        if options.secrets:
-            ensure_secret_key(f'liquid/collections/{name}/snoop.django')
-            ensure_secret_key(f'liquid/collections/{name}/snoop.postgres')
 
     ensure_secret('liquid/rocketchat/adminuser', lambda: {
         'username': 'rocketchatadmin',
@@ -344,9 +328,8 @@ def deploy(*args):
 
     # run the set password script
     if options.secrets:
-        for collection in sorted(config.collections.keys()):
-            docker.exec_(f'snoop-{collection}-pg', 'sh', '/local/set_pg_password.sh')
         docker.exec_(f'hoover-pg', 'sh', '/local/set_pg_password.sh')
+        docker.exec_(f'snoop-pg', 'sh', '/local/set_pg_password.sh')
 
     # wait until all deps are healthy
     if options.checks:
@@ -362,16 +345,6 @@ def deploy(*args):
 
     createstatsindex()
 
-    # Run initcollection for all unregistered collections
-    already_initialized = sorted(get_search_collections())
-    for collection in sorted(config.collections.keys()):
-        if collection not in already_initialized:
-            log.info('Initializing collection: %s', collection)
-            initcollection(collection)
-        else:
-            log.info('Already initialized collection: %s', collection)
-
-    push_collections_titles()
     log.info("Deploy done!")
 
 
@@ -379,8 +352,6 @@ def halt():
     """Stop all the jobs in nomad."""
 
     jobs = [j.name for j in config.all_jobs]
-    jobs.extend(f'collection-{name}' for name in config.collections)
-    jobs.extend(f'collection-{name}-deps' for name in config.collections)
     for job in jobs:
         log.info('Stopping %s...', job)
         nomad.stop(job)
@@ -388,30 +359,12 @@ def halt():
 
 def gc():
     """Stop all jobs that should not be running in the current deploy configuration:
-    - jobs from collections that are no longer declared in the ini file
     - jobs from disabled applications.
     """
-    collectionsgc()
-
     stopped_jobs = []
     for job in config.disabled_jobs:
         nomad.stop(job.name)
         stopped_jobs.append(job.name)
-
-    wait_for_stopped_jobs(stopped_jobs)
-
-
-def collectionsgc():
-    """Stop jobs from collections that are no longer declared in the ini file."""
-
-    stopped_jobs = []
-    for job in nomad.jobs():
-        if job['ID'].startswith('collection-'):
-            collection_name = job['ID'].split('-')[1]
-            if collection_name not in config.collections and job['Status'] == 'running':
-                log.info('Stopping %s...', job['ID'])
-                nomad.stop(job['ID'])
-                stopped_jobs.append(job['ID'])
 
     wait_for_stopped_jobs(stopped_jobs)
 
@@ -442,112 +395,8 @@ def alloc(job, group):
     print(first(running, 'running allocations'))
 
 
-def initcollection(name):
-    """Initialize collection with given name.
-
-    Create the snoop database, create the search index, run dispatcher, add collection
-    to search.
-
-    :param name: the collection name
-    """
-
-    if name not in config.collections:
-        raise RuntimeError('Collection %s does not exist in the liquid.ini file.', name)
-
-    if name in get_search_collections():
-        log.warning(f'Collection "{name}" was already initialized.')
-        return
-
-    docker.exec_(f'snoop-{name}-api', './manage.py', 'initcollection')
-
-    docker.exec_(
-        'hoover-search',
-        './manage.py', 'addcollection', name,
-        '--index', name,
-        f'http://{nomad.get_address()}:8765/{name}/collection/json',
-    )
-
-
 def createstatsindex():
     docker.exec_('hoover-search', './manage.py', 'createstatsindex')
-
-
-def purge(force=False):
-    """Purge collections no longer declared in the ini file
-
-    Remove the residual data and the hoover search index for collections that are no
-    longer declared in the ini file.
-    """
-
-    to_purge = get_collections_to_purge()
-    if not to_purge:
-        print('No collections to purge.')
-        return
-
-    if to_purge:
-        print('The following collections will be purged:')
-        for coll in to_purge:
-            print(' - ', coll)
-        print('')
-
-    if not force:
-        confirm = None
-        while confirm not in ['y', 'n']:
-            print('Please confirm collections purge [y/n]: ', end='')
-            confirm = input().lower()
-            if confirm not in ['y', 'n']:
-                print(f'Invalid input: {confirm}')
-
-    if force or confirm == 'y':
-        for coll in to_purge:
-            print(f'Purging collection {coll}...')
-            purge_collection(coll)
-    else:
-        print('No collections will be purged')
-
-
-def deletecollection(name):
-    """Delete a collection by name"""
-    nomad.stop(f'collection-{name}')
-    purge_collection(name)
-
-
-def importfromdockersetup(path, method='link'):
-    """Import collections from existing docker-setup deployment.
-
-    :param path: path to the docker-setup deployment
-    :param move: if true, move data from the docker-setup deployment, otherwise copy data
-    """
-    docker_setup = Path(path).resolve()
-
-    docker_compose_file = docker_setup / 'docker-compose.yml'
-    if not docker_compose_file.is_file():
-        raise RuntimeError(f'Path {docker_setup} is not a docker-setup deployment.')
-
-    collections_json = docker_setup / 'settings' / 'collections.json'
-    if not collections_json.is_file():
-        log.info(f'Unable to find any collections in {docker_setup}.')
-        return
-
-    if config.collections:
-        raise RuntimeError('Please remove existing collections before importing.')
-    if get_collections_to_purge():
-        raise RuntimeError('Please purge existing collections before importing')
-
-    with open(str(collections_json)) as collections_file:
-        collections = json.load(collections_file)
-    validate_names(collections)
-
-    ensure_docker_setup_stopped()
-    halt()
-
-    for name, settings in collections.items():
-        import_collection(name, settings, docker_setup, method)
-    import_index(docker_setup, method)
-
-    add_collections_ini(collections)
-    print()
-    print('After adding the lines, re-run "./liquid deploy"')
 
 
 def shell(name, *args):
