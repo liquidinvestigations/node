@@ -44,6 +44,7 @@ job "hoover" {
         /wait
         ./manage.py migrate
         ./manage.py healthcheck
+        ./manage.py synccollections "$SNOOP_COLLECTIONS"
         exec waitress-serve --port 80 --threads=80 hoover.site.wsgi:application
         EOF
         env = false
@@ -51,6 +52,8 @@ job "hoover" {
       }
       env {
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765"
       }
       template {
         data = <<-EOF
