@@ -131,6 +131,11 @@ class Configuration:
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
 
+        self.snoop_workers = self.ini.getint('snoop', 'workers', fallback=1)
+        self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
+        self.snoop_worker_memory_limit = self.ini.getint('snoop', 'worker_memory_limit', fallback=400)
+        self.snoop_worker_process_count = self.ini.getint('snoop', 'worker_process_count', fallback=1)
+
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='11s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='9s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
@@ -156,7 +161,7 @@ class Configuration:
                 self.ci_docker_registry_env = ''
             self.enabled_jobs.append(ci.Drone())
 
-        self.collections = OrderedDict()
+        self.snoop_collections = []
         for key in self.ini:
             if ':' not in key:
                 continue
@@ -165,20 +170,11 @@ class Configuration:
 
             if cls == 'collection':
                 Configuration._validate_collection_name(name)
-                self.collections[name] = {
+                self.snoop_collections.append({
                     'name': name,
-                    'workers': self.ini.getint(key, 'workers', fallback=0),
+                    'process': self.ini.getboolean(key, 'process', fallback=False),
                     'sync': self.ini.getboolean(key, 'sync', fallback=False),
-                    'rabbitmq_memory_limit': self.ini.getint(key,
-                                                             'rabbitmq_memory_limit',
-                                                             fallback=700),
-                    'worker_memory_limit': self.ini.getint(key,
-                                                           'worker_memory_limit',
-                                                           fallback=400),
-                    'worker_process_count': self.ini.getint(key,
-                                                            'worker_process_count',
-                                                            fallback=1),
-                }
+                })
 
             elif cls == 'job':
                 self.enabled_jobs.append(self.load_job(name, self.ini[key]))

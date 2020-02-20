@@ -111,4 +111,213 @@ job "hoover" {
       host='hoover.' + liquid_domain,
       upstream='hoover-search',
     ) }
+
+  group "workers" {
+
+    count = ${config.snoop_workers}
+
+    task "snoop" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('hoover-snoop2')}"
+        args = ["sh", "/local/startup.sh"]
+        volumes = [
+          ${hoover_snoop2_repo}
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
+        ]
+        port_map {
+          flower = 5555
+        }
+        labels {
+          liquid_task = "snoop-worker"
+        }
+      }
+      env {
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
+        SYNC_FILES = "${sync}"
+      }
+      template {
+        data = <<-EOF
+          #!/bin/sh
+          set -ex
+          # exec tail -f /dev/null
+          if  [ -z "$SNOOP_TIKA_URL" ] \
+                  || [ -z "$SNOOP_DB" ] \
+                  || [ -z "$SNOOP_ES_URL" ] \
+                  || [ -z "$SNOOP_AMQP_URL" ]; then
+            echo "incomplete configuration!"
+            sleep 5
+            exit 1
+          fi
+          exec ./manage.py runworkers
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+      env {
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        SNOOP_STATS_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        SNOOP_STATS_ES_PREFIX = ".hoover-snoopstats-"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+        SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
+      }
+      template {
+        data = <<-EOF
+        {{- if keyExists "liquid_debug" }}
+          DEBUG = {{key "liquid_debug" | toJSON }}
+        {{- end }}
+        {{- range service "hoover-snoop-pg" }}
+          SNOOP_DB = "postgresql://snoop:
+          {{- with secret "liquid/hoover/snoop.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop"
+        {{- end }}
+        {{- range service "hoover-rabbitmq" }}
+          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
+        {{- end }}
+        {{ range service "zipkin" }}
+          TRACING_URL = "http://{{.Address}}:{{.Port}}"
+        {{- end }}
+        EOF
+        destination = "local/snoop.env"
+        env = true
+      }
+      resources {
+        memory = ${config.snoop_worker_memory_limit}
+        network {
+          mbits = 1
+          port "flower" {}
+        }
+      }
+      service {
+        name = "hoover-snoop-flower"
+        port = "flower"
+      }
+    }
+  }
+
+  group "snoop-api" {
+
+    ${ continuous_reschedule() }
+
+    task "snoop" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('hoover-snoop2')}"
+        args = ["sh", "/local/startup.sh"]
+        volumes = [
+          ${hoover_snoop2_repo}
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
+        ]
+        port_map {
+          http = 80
+        }
+        labels {
+          liquid_task = "snoop-api"
+        }
+      }
+      env {
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
+      }
+      template {
+        data = <<-EOF
+          #!/bin/sh
+          set -ex
+          if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
+            echo "incomplete configuration!"
+            sleep 5
+            exit 1
+          fi
+          date
+          ./manage.py migrate --noinput
+          ./manage.py migratecollections
+          ./manage.py healthcheck
+          date
+          exec /runserver
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+      env {
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        SNOOP_STATS_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        SNOOP_STATS_ES_PREFIX = ".hoover-snoopstats-"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+      }
+      template {
+        data = <<-EOF
+        {{- if keyExists "liquid_debug" }}
+          DEBUG = {{ key "liquid_debug" | toJSON }}
+        {{- end }}
+        {{- with secret "liquid/hoover/snoop.django" }}
+          SECRET_KEY = {{.Data.secret_key | toJSON }}
+        {{- end }}
+        {{- range service "hoover-snoop-pg" }}
+          SNOOP_DB = "postgresql://snoop:
+          {{- with secret "liquid/hoover/snoop.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop"
+        {{- end }}
+
+        {{- range service "hoover-rabbitmq" }}
+          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
+        {{- end }}
+        SNOOP_HOSTNAME = "snoop.{{ key "liquid_domain" }}"
+        {{- range service "zipkin" }}
+          TRACING_URL = "http://{{.Address}}:{{.Port}}"
+        {{- end }}
+        EOF
+        destination = "local/snoop.env"
+        env = true
+      }
+      resources {
+        memory = 400
+        cpu = 200
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+      service {
+        name = "hoover-snoop"
+        port = "http"
+        tags = ["snoop-/ host=snoop.${liquid_domain}"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/_health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["snoop.${liquid_domain}"]
+          }
+        }
+      }
+    }
+  }
 }
