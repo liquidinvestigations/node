@@ -40,7 +40,6 @@ cat vagrant/liquid-collections-alt.ini >> liquid.ini
 
 echo "Remove all collections, gc"
 cp -f examples/liquid.ini .
-./liquid collectionsgc
 ./liquid nomadgc
 ./liquid deploy --no-secrets --no-checks
 
