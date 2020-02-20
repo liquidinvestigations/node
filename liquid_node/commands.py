@@ -439,7 +439,8 @@ def launchocr(*args):
     assert data_dir.is_dir(), \
         f'{data_dir} should be a directory where all collection data is stored.'
 
-    hcl = get_collection_job(options.name, vars(options), 'collection-ocr.nomad')
-    spec = nomad.parse(hcl)
-    nomad.run(spec)
-    log.info(f'Launched OCR job {spec["Name"]}')
+    raise RuntimeError("TODO update to single snoop for multiple collections")
+    # hcl = get_collection_job(options.name, vars(options), 'collection-ocr.nomad')
+    # spec = nomad.parse(hcl)
+    # nomad.run(spec)
+    # log.info(f'Launched OCR job {spec["Name"]}')
