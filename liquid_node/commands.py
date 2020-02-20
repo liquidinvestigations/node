@@ -343,8 +343,6 @@ def deploy(*args):
     if options.checks:
         wait_for_service_health_checks(health_checks)
 
-    createstatsindex()
-
     log.info("Deploy done!")
 
 
@@ -393,10 +391,6 @@ def alloc(job, group):
         if a['ClientStatus'] == 'running' and a['TaskGroup'] == group
     ]
     print(first(running, 'running allocations'))
-
-
-def createstatsindex():
-    docker.exec_('hoover-search', './manage.py', 'createstatsindex')
 
 
 def shell(name, *args):
