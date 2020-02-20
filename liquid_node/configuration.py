@@ -1,6 +1,5 @@
 import configparser
 import time
-from collections import OrderedDict
 from distutils.util import strtobool
 from pathlib import Path
 
