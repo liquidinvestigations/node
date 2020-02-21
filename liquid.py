@@ -6,6 +6,7 @@ import sys
 import logging
 import argparse
 from liquid_node import commands
+from liquid_node import backup
 from urllib.error import HTTPError
 
 
@@ -49,6 +50,7 @@ def main():
         commands.getsecret,
         commands.importfromdockersetup,
         commands.launchocr,
+        backup.backup,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
