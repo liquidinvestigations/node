@@ -42,7 +42,8 @@ class JsonApi:
         with urlopen(req) as res:
             if res.status >= 200 and res.status < 300:
                 content = res.read()
-                if res.headers.get('Content-Type') == 'application/json' and len(content):
+                content_type = res.headers.get('Content-Type') or ""
+                if content_type.startswith('application/json') and len(content):
                     return json.loads(content)
                 else:
                     return None
