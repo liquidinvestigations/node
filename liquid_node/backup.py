@@ -4,7 +4,6 @@ from pathlib import Path
 from time import time, sleep
 
 from liquid_node.nomad import nomad
-from liquid_node.configuration import config
 from liquid_node.jsonapi import JsonApi
 
 log = logging.getLogger(__name__)
