@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from time import time, sleep
 
+from liquid_node.configuration import config
 from liquid_node.nomad import nomad
 from liquid_node.jsonapi import JsonApi
 
@@ -10,18 +11,14 @@ log = logging.getLogger(__name__)
 
 
 def backup(dest, *targets):
-    dest = Path(dest).resolve()
-    dest.mkdir(parents=True, exist_ok=True)
-    for target in targets:
-        if target.startswith("collection:"):
-            name = target.split(":", 1)[1]
-            backup_collection(dest, name)
-        else:
-            raise RuntimeError("Can't back up %r" % target)
+    for name in config.collections:
+        dest = Path(dest).resolve() / f"collection-{name}"
+        dest.mkdir(parents=True, exist_ok=True)
+        backup_collection(dest, name)
 
 
 def backup_collection_pg(dest, name):
-    dest_file = dest / f"collection-{name}-pg.sql.gz"
+    dest_file = dest / "pg.sql.gz"
     log.info(f"Dumping collection {name} pg to {dest_file}")
     cmd = (
         f"./liquid dockerexec snoop-testdata-pg "
@@ -32,7 +29,7 @@ def backup_collection_pg(dest, name):
 
 
 def backup_collection_blobs(dest, name):
-    dest_file = dest / f"collection-{name}-blobs.tgz"
+    dest_file = dest / "blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     cmd = (
         f"./liquid dockerexec snoop-testdata-api "
@@ -43,7 +40,7 @@ def backup_collection_blobs(dest, name):
 
 
 def backup_collection_es(dest, name):
-    dest_file = dest / f"collection-{name}-es.tgz"
+    dest_file = dest / "es.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
     try:
@@ -71,7 +68,7 @@ def backup_collection_es(dest, name):
         log.info(f"Snapshot done in {int(time()-t0)}s")
         tar_cmd = (
             f"./liquid dockerexec hoover-es "
-            f"tar c -C /es_repo backup-{name} "
+            f"tar c -C /es_repo/backup-{name} . "
             f"| gzip -1 > {dest_file}"
         )
         subprocess.check_call(tar_cmd, shell=True)
