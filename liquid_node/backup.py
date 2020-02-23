@@ -36,7 +36,7 @@ def backup_collection_blobs(dest, name):
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     cmd = (
         f"./liquid dockerexec snoop-testdata-api "
-        f"tar c -C /opt/hoover/collection/data . "
+        f"tar c -C blobs . "
         f"> {dest_file}"
     )
     subprocess.check_call(cmd, shell=True)
