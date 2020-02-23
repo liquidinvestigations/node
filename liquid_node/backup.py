@@ -21,29 +21,29 @@ def backup(dest, *targets):
 
 
 def backup_collection_pg(dest, name):
-    dest_file = dest / f"collection-{name}-pg.sql"
+    dest_file = dest / f"collection-{name}-pg.sql.gz"
     log.info(f"Dumping collection {name} pg to {dest_file}")
     cmd = (
         f"./liquid dockerexec snoop-testdata-pg "
         f"pg_dump -U snoop -Ox -t 'data_*' -t django_migrations "
-        f"> {dest_file}"
+        f"| gzip -1 > {dest_file}"
     )
     subprocess.check_call(cmd, shell=True)
 
 
 def backup_collection_blobs(dest, name):
-    dest_file = dest / f"collection-{name}-blobs.tar"
+    dest_file = dest / f"collection-{name}-blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     cmd = (
         f"./liquid dockerexec snoop-testdata-api "
         f"tar c -C blobs . "
-        f"> {dest_file}"
+        f"| gzip -1 > {dest_file}"
     )
     subprocess.check_call(cmd, shell=True)
 
 
 def backup_collection_es(dest, name):
-    dest_file = dest / f"collection-{name}-es.tar"
+    dest_file = dest / f"collection-{name}-es.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
     try:
@@ -72,7 +72,7 @@ def backup_collection_es(dest, name):
         tar_cmd = (
             f"./liquid dockerexec hoover-es "
             f"tar c -C /es_repo backup-{name} "
-            f"> {dest_file}"
+            f"| gzip -1 > {dest_file}"
         )
         subprocess.check_call(tar_cmd, shell=True)
     finally:
