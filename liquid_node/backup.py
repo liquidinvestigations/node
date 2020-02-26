@@ -21,7 +21,7 @@ def backup_collection_pg(dest, name):
     dest_file = dest / "pg.sql.gz"
     log.info(f"Dumping collection {name} pg to {dest_file}")
     cmd = (
-        f"./liquid dockerexec snoop-testdata-pg "
+        f"./liquid dockerexec snoop-{name}-pg "
         f"pg_dump -U snoop -Ox -t 'data_*' -t django_migrations "
         f"| gzip -1 > {dest_file}"
     )
@@ -32,7 +32,7 @@ def backup_collection_blobs(dest, name):
     dest_file = dest / "blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     cmd = (
-        f"./liquid dockerexec snoop-testdata-api "
+        f"./liquid dockerexec snoop-{name}-api "
         f"tar c -C blobs . "
         f"| gzip -1 > {dest_file}"
     )
