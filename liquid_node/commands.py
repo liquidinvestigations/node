@@ -465,7 +465,6 @@ def initcollection(name):
         './manage.py', 'addcollection', name,
         '--index', name,
         f'http://{nomad.get_address()}:8765/{name}/collection/json',
-        '--public',
     )
 
 
