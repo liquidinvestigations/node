@@ -41,7 +41,7 @@ def backup_collection_blobs(dest, name):
 
 def backup_collection_es(dest, name):
     dest_file = dest / "es.tgz"
-    log.info(f"Dumping collection {name} blobs to {dest_file}")
+    log.info(f"Dumping collection {name} es snapshot to {dest_file}")
     es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
     try:
         es.put(f"/_snapshot/backup-{name}", {
