@@ -10,9 +10,10 @@ from liquid_node.jsonapi import JsonApi
 log = logging.getLogger(__name__)
 
 
-def retry(count=3, wait_sec=15):
+def retry(count=4, wait_sec=5, exp=2):
     def _retry(f):
         def wrapper(*args, **kwargs):
+            current_wait = wait_sec
             for i in range(count):
                 try:
                     return f(*args, **kwargs)
@@ -21,8 +22,9 @@ def retry(count=3, wait_sec=15):
                     if i == count - 1:
                         raise
 
-                    log.warning("#%s/%s retrying in %s sec", i + 1, count, wait_sec)
-                    sleep(wait_sec)
+                    log.warning("#%s/%s retrying in %s sec", i + 1, count, current_wait)
+                    current_wait = int(current_wait * exp)
+                    sleep(current_wait)
                     continue
         return wrapper
 
