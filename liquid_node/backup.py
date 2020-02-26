@@ -10,6 +10,25 @@ from liquid_node.jsonapi import JsonApi
 log = logging.getLogger(__name__)
 
 
+def retry(count=3, wait_sec=15):
+    def _retry(f):
+        def wrapper(*args, **kwargs):
+            for i in range(count):
+                try:
+                    return f(*args, **kwargs)
+                except Exception as e:
+                    log.exception(e)
+                    if i == count - 1:
+                        raise
+
+                    log.warning("#%s/%s retrying in %s sec", i + 1, count, wait_sec)
+                    sleep(wait_sec)
+                    continue
+        return wrapper
+
+    return _retry
+
+
 def backup(dest, *targets):
     for name in config.collections:
         collection_dir = Path(dest).resolve() / f"collection-{name}"
@@ -17,28 +36,31 @@ def backup(dest, *targets):
         backup_collection(collection_dir, name)
 
 
+@retry()
 def backup_collection_pg(dest, name):
     dest_file = dest / "pg.sql.gz"
     log.info(f"Dumping collection {name} pg to {dest_file}")
     cmd = (
-        f"./liquid dockerexec snoop-{name}-pg "
+        f"set -eo pipefail; ./liquid dockerexec snoop-{name}-pg "
         f"pg_dump -U snoop -Ox -t 'data_*' -t django_migrations "
         f"| gzip -1 > {dest_file}"
     )
-    subprocess.check_call(cmd, shell=True)
+    subprocess.check_call(["/bin/bash", "-c", cmd])
 
 
+@retry()
 def backup_collection_blobs(dest, name):
     dest_file = dest / "blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     cmd = (
-        f"./liquid dockerexec snoop-{name}-api "
+        f"set -eo pipefail; ./liquid dockerexec snoop-{name}-api "
         f"tar c -C blobs . "
         f"| gzip -1 > {dest_file}"
     )
-    subprocess.check_call(cmd, shell=True)
+    subprocess.check_call(["/bin/bash", "-c", cmd])
 
 
+@retry()
 def backup_collection_es(dest, name):
     dest_file = dest / "es.tgz"
     log.info(f"Dumping collection {name} es snapshot to {dest_file}")

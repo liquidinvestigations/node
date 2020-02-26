@@ -21,9 +21,9 @@ class Docker:
         containers = self.containers([('liquid_task', name)])
         container_id = first(containers, f'{name} containers')
 
-        docker_exec_cmd = ['docker', 'exec']
+        docker_exec_cmd = ['docker', 'exec', '-i']
         if tty:
-            docker_exec_cmd += ['-it']
+            docker_exec_cmd += ['-t']
         docker_exec_cmd += [container_id] + list(args or (['bash'] if tty else []))
 
         return docker_exec_cmd
