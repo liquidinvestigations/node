@@ -60,6 +60,11 @@ job "collection-${name}" {
           sleep 5
           exit 1
         fi
+        ./manage.py healthcheck || (
+                echo "migrations not run, sleeping"
+                sleep 30
+                exit 1
+        )
         exec ./manage.py runworkers
         EOF
         env = false
