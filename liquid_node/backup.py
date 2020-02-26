@@ -12,9 +12,9 @@ log = logging.getLogger(__name__)
 
 def backup(dest, *targets):
     for name in config.collections:
-        dest = Path(dest).resolve() / f"collection-{name}"
-        dest.mkdir(parents=True, exist_ok=True)
-        backup_collection(dest, name)
+        collection_dir = Path(dest).resolve() / f"collection-{name}"
+        collection_dir.mkdir(parents=True, exist_ok=True)
+        backup_collection(collection_dir, name)
 
 
 def backup_collection_pg(dest, name):
