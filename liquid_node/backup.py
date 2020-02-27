@@ -2,6 +2,7 @@ import logging
 import subprocess
 from pathlib import Path
 from time import time, sleep
+from urllib.error import HTTPError
 
 from liquid_node.configuration import config
 from liquid_node.nomad import nomad
@@ -140,6 +141,64 @@ def backup_collection_es(dest, name):
         subprocess.check_call(rm_cmd, shell=True)
 
 
+@retry()
+def restore_collection_es(src, name):
+    src_file = src / "es.tgz"
+    if not src_file.is_file():
+        log.warn(f"No es backup at {src_file}, skipping es restore")
+        return
+    log.info(f"Restoring collection {name} es snapshot from {src_file}")
+    es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
+    try:
+        es.put(f"/_snapshot/restore-{name}", {
+            "type": "fs",
+            "settings": {
+                "location": f"/es_repo/restore-{name}",
+            },
+        })
+        tar_cmd = (
+            f"./liquid dockerexec hoover-es bash -c "
+            f"'set -exo pipefail;"
+            f" rm -rf /es_repo/restore-{name};"
+            f" mkdir /es_repo/restore-{name};"
+            f" tar xz -C /es_repo/restore-{name} ' "
+            f"< {src_file}"
+        )
+        subprocess.check_call(tar_cmd, shell=True)
+        try:
+            es.delete(f"/{name}")
+        except HTTPError as e:
+            if e.code != 404:
+                raise
+        resp = es.get(f"/_snapshot/restore-{name}/snapshot")
+        assert len(resp["snapshots"]) == 1
+        assert len(resp["snapshots"][0]["indices"]) == 1
+        old_name = resp["snapshots"][0]["indices"][0]
+        es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
+            "indices": old_name,
+            "include_global_state": False,
+            "rename_pattern": ".+",
+            "rename_replacement": name,
+        })
+        t0 = time()
+        while True:
+            res = es.get(f"/{name}/_recovery")
+            if name in res:
+                if all(s["stage"] == "DONE" for s in res[name]["shards"]):
+                    break
+            sleep(1)
+            continue
+        log.info(f"Snapshot done in {int(time()-t0)}s")
+    finally:
+        es.delete(f"/_snapshot/restore-{name}/snapshot")
+        es.delete(f"/_snapshot/restore-{name}")
+        rm_cmd = (
+            f"./liquid dockerexec hoover-es "
+            f"rm -rf /es_repo/restore-{name} "
+        )
+        subprocess.check_call(rm_cmd, shell=True)
+
+
 def backup_collection(dest, name):
     backup_collection_pg(dest, name)
     backup_collection_blobs(dest, name)
@@ -150,4 +209,4 @@ def restore_collection(src, name):
     src = Path(src).resolve()
     restore_collection_pg(src, name)
     restore_collection_blobs(src, name)
-    # restore_collection_es(src, name)
+    restore_collection_es(src, name)
