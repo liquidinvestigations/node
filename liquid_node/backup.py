@@ -33,7 +33,8 @@ def retry(count=4, wait_sec=5, exp=2):
 
 
 def backup(dest, *targets):
-    for name in config.collections:
+    for collection in config.snoop_collections:
+        name = collection["name"]
         collection_dir = Path(dest).resolve() / f"collection-{name}"
         collection_dir.mkdir(parents=True, exist_ok=True)
         backup_collection(collection_dir, name)
@@ -44,8 +45,8 @@ def backup_collection_pg(dest, name):
     dest_file = dest / "pg.sql.gz"
     log.info(f"Dumping collection {name} pg to {dest_file}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-{name}-pg "
-        f"pg_dump -U snoop -Ox -t 'data_*' -t django_migrations "
+        f"set -eo pipefail; ./liquid dockerexec snoop-pg "
+        f"pg_dump -U snoop collection_{name} -Ox "
         f"| gzip -1 > {dest_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
@@ -74,8 +75,8 @@ def backup_collection_blobs(dest, name):
     dest_file = dest / "blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-{name}-api "
-        f"tar c -C blobs . "
+        f"set -eo pipefail; ./liquid dockerexec snoop-api "
+        f"tar c -C blobs/{name} . "
         f"| gzip -1 > {dest_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
@@ -188,7 +189,7 @@ def restore_collection_es(src, name):
                     break
             sleep(1)
             continue
-        log.info(f"Snapshot done in {int(time()-t0)}s")
+        log.info(f"Restore done in {int(time()-t0)}s")
     finally:
         es.delete(f"/_snapshot/restore-{name}/snapshot")
         es.delete(f"/_snapshot/restore-{name}")
