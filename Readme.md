@@ -75,6 +75,11 @@ users:
 [docs/RocketChat.md#set-up-authentication](docs/RocketChat.md#set-up-authentication)
 
 
+## Maintenance
+For instructions and best practices on running a liquid node, see
+[docs/Maintenance.md](docs/Maintenance.md).
+
+
 ## Development
 You can enable debugging, modify code for the applications, and more, see
 [docs/Development.md](docs/Development.md).
