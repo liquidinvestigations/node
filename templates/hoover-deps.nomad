@@ -235,7 +235,7 @@ job "hoover-deps" {
     task "tika" {
       driver = "docker"
       config {
-        image = "logicalspark/docker-tikaserver:1.20"
+        image = "logicalspark/docker-tikaserver:1.22"
         args = ["-spawnChild", "-maxFiles", "1000"]
         port_map {
           tika = 9998
@@ -244,6 +244,7 @@ job "hoover-deps" {
           liquid_task = "hoover-tika"
         }
       }
+
       resources {
         memory = ${config.tika_memory_limit}
         cpu = 200
@@ -252,6 +253,25 @@ job "hoover-deps" {
           port "tika" {}
         }
       }
+
+      env {
+        TIKA_CONFIG = "/local/tika.xml"
+      }
+
+      template {
+        data = <<-EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <properties>
+            <parsers>
+                <parser class="org.apache.tika.parser.DefaultParser">
+                    <parser-exclude class="org.apache.tika.parser.ocr.TesseractOCRParser"/>
+                </parser>
+            </parsers>
+          </properties>
+          EOF
+        destination = "local/tika.xml"
+      }
+
       service {
         name = "hoover-tika"
         port = "tika"
@@ -386,4 +406,3 @@ job "hoover-deps" {
     }
   }
 }
-
