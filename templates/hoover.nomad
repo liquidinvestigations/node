@@ -169,8 +169,6 @@ job "hoover" {
       }
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_STATS_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_STATS_ES_PREFIX = ".hoover-snoopstats-"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
@@ -265,8 +263,6 @@ job "hoover" {
       }
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_STATS_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_STATS_ES_PREFIX = ".hoover-snoopstats-"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
