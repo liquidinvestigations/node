@@ -341,7 +341,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "postgres:9.6"
+        image = "postgres:12.2"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/pg/data:/var/lib/postgresql/data",
         ]
