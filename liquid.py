@@ -46,6 +46,7 @@ def main():
         commands.getsecret,
         commands.launchocr,
         backup.backup,
+        backup.restore_collection,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)

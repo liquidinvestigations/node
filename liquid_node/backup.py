@@ -63,6 +63,22 @@ def backup_collection_blobs(dest, name):
 
 
 @retry()
+def restore_collection_blobs(src, name):
+    src_file = src / "blobs.tgz"
+    if not src_file.is_file():
+        log.warn(f"No blobs backup at {src_file}, skipping blob restore")
+        return
+    log.info(f"Restoring collection {name} blobs from {src_file}")
+    cmd = (
+        f"set -eo pipefail; ./liquid dockerexec snoop-api bash -c "
+        f"'set -exo pipefail; rm -rf blobs/{name};"
+        f" mkdir blobs/{name}; tar xz -C blobs/{name}' "
+        f"< {src_file}"
+    )
+    subprocess.check_call(["/bin/bash", "-c", cmd])
+
+
+@retry()
 def backup_collection_es(dest, name):
     dest_file = dest / "es.tgz"
     log.info(f"Dumping collection {name} es snapshot to {dest_file}")
@@ -110,3 +126,8 @@ def backup_collection(dest, name):
     backup_collection_pg(dest, name)
     backup_collection_blobs(dest, name)
     backup_collection_es(dest, name)
+
+
+def restore_collection(src, name):
+    src = Path(src).resolve()
+    restore_collection_blobs(src, name)
