@@ -65,9 +65,12 @@ def backup_collection_pg(dest, name):
 def backup_collection_blobs(dest, name):
     dest_file = dest / "blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
+    # tar raises a warning with an exit code of 1 if
+    # the files change during archive creation.
+    # We know we only create the files with an atomic move, so
+    # we can ignore this error with `|| [[ $? -eq 1 ]]`.
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-{name}-api "
-        f"tar c -C blobs . "
+        f"set -eo pipefail; ( ./liquid dockerexec snoop-{name}-api tar c --exclude ./tmp -C blobs . || [[ $? -eq 1 ]] ) "
         f"| gzip -1 > {dest_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
