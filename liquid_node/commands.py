@@ -268,8 +268,6 @@ def deploy(*args):
 
     def start(job, hcl):
         log.info('Starting %s...', job)
-        with open(f'/tmp/node-{job}.hcl', 'w') as f:
-            f.write(hcl)
         spec = nomad.parse(hcl)
         nomad.run(spec)
         job_checks = {}
