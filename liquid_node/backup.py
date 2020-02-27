@@ -51,6 +51,24 @@ def backup_collection_pg(dest, name):
 
 
 @retry()
+def restore_collection_pg(src, name):
+    src_file = src / "pg.sql.gz"
+    if not src_file.is_file():
+        log.warn(f"No pg backup at {src_file}, skipping pgrestore")
+        return
+    log.info(f"Restoring collection {name} pg from {src_file}")
+    cmd = (
+        f"set -eo pipefail; ./liquid dockerexec snoop-pg bash -c "
+        f"'set -exo pipefail;"
+        f"dropdb -U snoop --if-exists collection_{name};"
+        f" createdb -U snoop collection_{name};"
+        f" zcat | psql -U snoop collection_{name}' > /dev/null "
+        f"< {src_file}"
+    )
+    subprocess.check_call(["/bin/bash", "-c", cmd])
+
+
+@retry()
 def backup_collection_blobs(dest, name):
     dest_file = dest / "blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
@@ -130,4 +148,6 @@ def backup_collection(dest, name):
 
 def restore_collection(src, name):
     src = Path(src).resolve()
+    restore_collection_pg(src, name)
     restore_collection_blobs(src, name)
+    # restore_collection_es(src, name)
