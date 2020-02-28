@@ -70,7 +70,8 @@ def backup_collection_blobs(dest, name):
     # We know we only create the files with an atomic move, so
     # we can ignore this error with `|| [[ $? -eq 1 ]]`.
     cmd = (
-        f"set -eo pipefail; ( ./liquid dockerexec snoop-{name}-api tar c --exclude ./tmp -C blobs . || [[ $? -eq 1 ]] ) "
+        f"set -eo pipefail; ( ./liquid dockerexec snoop-{name}-api "
+        f"tar c --exclude ./tmp -C blobs . || [[ $? -eq 1 ]] ) "
         f"| gzip -1 > {dest_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
