@@ -1,4 +1,5 @@
 import logging
+import argparse
 import subprocess
 from pathlib import Path
 from time import time, sleep
@@ -32,12 +33,21 @@ def retry(count=4, wait_sec=5, exp=2):
     return _retry
 
 
-def backup(dest, *targets):
-    for collection in config.snoop_collections:
-        name = collection["name"]
-        collection_dir = Path(dest).resolve() / f"collection-{name}"
+def backup(*args):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--no-blobs', action='store_false', dest='blobs')
+    parser.add_argument('--no-es', action='store_false', dest='es')
+    parser.add_argument('--no-pg', action='store_false', dest='pg')
+    parser.add_argument('dest')
+    options = parser.parse_args(args)
+    for name in config.collections:
+        collection_dir = Path(options.dest).resolve() / f"collection-{name}"
         collection_dir.mkdir(parents=True, exist_ok=True)
-        backup_collection(collection_dir, name)
+        backup_collection(dest=collection_dir,
+                          name=name,
+                          save_blobs=options.blobs,
+                          save_es=options.es,
+                          save_pg=options.pg)
 
 
 @retry()
@@ -74,9 +84,13 @@ def restore_collection_pg(src, name):
 def backup_collection_blobs(dest, name):
     dest_file = dest / "blobs.tgz"
     log.info(f"Dumping collection {name} blobs to {dest_file}")
+    # tar raises a warning with an exit code of 1 if
+    # the files change during archive creation.
+    # We know we only create the files with an atomic move, so
+    # we can ignore this error with `|| [[ $? -eq 1 ]]`.
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-api "
-        f"tar c -C blobs/{name} . "
+        f"set -eo pipefail; ( ./liquid dockerexec snoop-{name}-api "
+        f"tar c --exclude ./tmp -C blobs . || [[ $? -eq 1 ]] ) "
         f"| gzip -1 > {dest_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
@@ -200,10 +214,21 @@ def restore_collection_es(src, name):
         subprocess.check_call(rm_cmd, shell=True)
 
 
-def backup_collection(dest, name):
-    backup_collection_pg(dest, name)
-    backup_collection_blobs(dest, name)
-    backup_collection_es(dest, name)
+def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
+    if save_pg:
+        backup_collection_pg(dest, name)
+    else:
+        log.info("skipping saving pg")
+
+    if save_es:
+        backup_collection_es(dest, name)
+    else:
+        log.info("skipping saving es")
+
+    if save_blobs:
+        backup_collection_blobs(dest, name)
+    else:
+        log.info("skipping saving blobs")
 
 
 def restore_collection(src, name):
