@@ -23,16 +23,6 @@ pipenv install
 ./liquid resources
 ./liquid deploy
 
-echo "Do a backup"
-#until ./liquid shell snoop-testdata-api ./manage.py workisdone 2>/dev/null; do sleep 5; done
-./liquid backup ./backup
-zcat backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
-tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'
-#tar tz < backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
-./liquid backup ./backup --no-es --no-pg
-./liquid backup ./backup --no-blobs
-./liquid restore_collection ./backup/collection-testdata testdata2
-
 ./liquid launchocr testdata --periodic @yearly --nice 9 --workers 1 --threads_per_worker 1
 
 echo "Turn workers off, others on, and deploy"
@@ -41,10 +31,21 @@ cat vagrant/liquid-collections-alt.ini >> liquid.ini
 ./liquid resources
 ./liquid deploy --no-secrets
 
-echo "Remove all collections, gc"
+echo "Do a backup"
+#until ./liquid shell snoop-testdata-api ./manage.py workisdone 2>/dev/null; do sleep 5; done
+./liquid backup ./backup
+zcat backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
+tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'
+#tar tz < backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
+./liquid backup ./backup2 --no-es --no-pg
+./liquid backup ./backup3 --no-blobs
+./liquid restore_collection ./backup/collection-testdata testdata2
+
+echo "Remove all collections, gc, restore from backup"
 cp -f examples/liquid.ini .
 ./liquid nomadgc
-./liquid deploy --no-secrets --no-checks
+./liquid deploy --no-secrets
+./liquid restore_all_collections ./backup
 
 echo "Disable some apps, deploy"
 cp -f examples/liquid.ini .

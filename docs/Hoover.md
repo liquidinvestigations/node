@@ -21,7 +21,7 @@ Next define the collection in `liquid.ini`:
 
 ```ini
 [collection:testdata]
-workers = 1
+process = True
 ```
 
 Then let the `deploy` command pick up the new collection:
@@ -39,11 +39,11 @@ To add new collections simply append to the `liquid.ini` file:
 
 ```ini
 [collection:always-changes]
-workers = 3
+process = True
 sync = True
 
 [collection:static-data]
-workers = 1
+process = True
 ```
 
 ... and run `./liquid deploy`. The requested number of workers and their dependencies will be deployed on the Nomad cluster; see them run on the Nomad UI.
