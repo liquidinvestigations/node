@@ -291,4 +291,118 @@ job "hoover-deps" {
       }
     }
   }
+
+  {% if config.snoop_workers %}
+  group "queue" {
+
+    task "rabbitmq" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "rabbitmq:3.7.3-management-alpine"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+        ]
+        port_map {
+          amqp = 5672
+          http = 15672
+          clustering = 25672
+        }
+        labels {
+          liquid_task = "snoop-rabbitmq"
+        }
+      }
+      resources {
+        memory = ${config.snoop_rabbitmq_memory_limit}
+        cpu = 150
+        network {
+          mbits = 1
+          port "amqp" {}
+          port "http" {}
+        }
+      }
+      service {
+        name = "hoover-rabbitmq"
+        port = "amqp"
+      }
+      service {
+        name = "hoover-rabbitmq-http"
+        port = "http"
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/api/healthchecks/node"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            # guest:guest
+            Authorization = ["Basic Z3Vlc3Q6Z3Vlc3Q="]
+          }
+        }
+      }
+    }
+  }
+  {% endif %}
+
+  group "snoop-db" {
+
+    ${ continuous_reschedule() }
+
+    task "pg" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "postgres:12.2"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/pg/data:/var/lib/postgresql/data",
+        ]
+        labels {
+          liquid_task = "snoop-pg"
+        }
+        port_map {
+          pg = 5432
+        }
+      }
+      template {
+        data = <<EOF
+          POSTGRES_USER = "snoop"
+          POSTGRES_DATABASE = "snoop"
+          {{- with secret "liquid/hoover/snoop.postgres" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/postgres.env"
+        env = true
+      }
+      ${ set_pg_password_template('snoop') }
+      resources {
+        cpu = 200
+        memory = 300
+        network {
+          mbits = 1
+          port "pg" {}
+        }
+      }
+      service {
+        name = "hoover-snoop-pg"
+        port = "pg"
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
 }

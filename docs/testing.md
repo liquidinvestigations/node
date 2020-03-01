@@ -26,7 +26,7 @@ In the search UI admin interface, collections, the `testdata` should show up in 
 In `liquid.ini` file remove the lines:
 ```
 [collection:testdata]
-workers = 1
+process = true
 ```
 
 Run the following command:

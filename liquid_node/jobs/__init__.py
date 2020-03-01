@@ -93,21 +93,6 @@ def set_volumes_paths(substitutions={}):
     return substitutions
 
 
-def get_collection_job(name, settings, template='collection.nomad'):
-    """Return the collection job description
-
-    :param name: collection name
-    :param settings: dictionary containing the collection job options
-    :returns: collection job description
-    :rtype: str
-    """
-
-    from ..configuration import config
-
-    substitutions = dict(settings)
-    return get_job(config.templates / template, substitutions)
-
-
 def render(template, subs):
     from ..configuration import config
 

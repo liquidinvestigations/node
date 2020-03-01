@@ -39,7 +39,9 @@ def backup(*args):
     parser.add_argument('--no-pg', action='store_false', dest='pg')
     parser.add_argument('dest')
     options = parser.parse_args(args)
-    for name in config.collections:
+    for collection in config.snoop_collections:
+        name = collection['name']
+
         collection_dir = Path(options.dest).resolve() / f"collection-{name}"
         collection_dir.mkdir(parents=True, exist_ok=True)
         backup_collection(dest=collection_dir,
@@ -54,9 +56,27 @@ def backup_collection_pg(dest, name):
     dest_file = dest / "pg.sql.gz"
     log.info(f"Dumping collection {name} pg to {dest_file}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-{name}-pg "
-        f"pg_dump -U snoop -Ox -t 'data_*' -t django_migrations "
+        f"set -eo pipefail; ./liquid dockerexec snoop-pg "
+        f"pg_dump -U snoop collection_{name} -Ox "
         f"| gzip -1 > {dest_file}"
+    )
+    subprocess.check_call(["/bin/bash", "-c", cmd])
+
+
+@retry()
+def restore_collection_pg(src, name):
+    src_file = src / "pg.sql.gz"
+    if not src_file.is_file():
+        log.warn(f"No pg backup at {src_file}, skipping pgrestore")
+        return
+    log.info(f"Restoring collection {name} pg from {src_file}")
+    cmd = (
+        f"set -eo pipefail; ./liquid dockerexec snoop-pg bash -c "
+        f"'set -exo pipefail;"
+        f"dropdb -U snoop --if-exists collection_{name};"
+        f" createdb -U snoop collection_{name};"
+        f" zcat | psql -U snoop collection_{name}' > /dev/null "
+        f"< {src_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
 
@@ -70,9 +90,25 @@ def backup_collection_blobs(dest, name):
     # We know we only create the files with an atomic move, so
     # we can ignore this error with `|| [[ $? -eq 1 ]]`.
     cmd = (
-        f"set -eo pipefail; ( ./liquid dockerexec snoop-{name}-api "
-        f"tar c --exclude ./tmp -C blobs . || [[ $? -eq 1 ]] ) "
+        f"set -exo pipefail; ( ./liquid dockerexec snoop-api "
+        f"tar c --exclude ./tmp -C blobs/{name} . || [[ $? -eq 1 ]] ) "
         f"| gzip -1 > {dest_file}"
+    )
+    subprocess.check_call(["/bin/bash", "-c", cmd])
+
+
+@retry()
+def restore_collection_blobs(src, name):
+    src_file = src / "blobs.tgz"
+    if not src_file.is_file():
+        log.warn(f"No blobs backup at {src_file}, skipping blob restore")
+        return
+    log.info(f"Restoring collection {name} blobs from {src_file}")
+    cmd = (
+        f"set -eo pipefail; ./liquid dockerexec snoop-api bash -c "
+        f"'set -exo pipefail; rm -rf blobs/{name};"
+        f" mkdir blobs/{name}; tar xz -C blobs/{name}' "
+        f"< {src_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
 
@@ -121,6 +157,76 @@ def backup_collection_es(dest, name):
         subprocess.check_call(rm_cmd, shell=True)
 
 
+@retry()
+def restore_collection_es(src, name):
+    src_file = src / "es.tgz"
+    if not src_file.is_file():
+        log.warn(f"No es backup at {src_file}, skipping es restore")
+        return
+    log.info(f"Restoring collection {name} es snapshot from {src_file}")
+    es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
+    try:
+        # create snapshot repo
+        es.put(f"/_snapshot/restore-{name}", {
+            "type": "fs",
+            "settings": {
+                "location": f"/es_repo/restore-{name}",
+            },
+        })
+        # populate its directory
+        tar_cmd = (
+            f"./liquid dockerexec hoover-es bash -c "
+            f"'set -exo pipefail;"
+            f" rm -rf /es_repo/restore-{name};"
+            f" mkdir /es_repo/restore-{name};"
+            f" tar xz -C /es_repo/restore-{name} ' "
+            f"< {src_file}"
+        )
+        subprocess.check_call(tar_cmd, shell=True)
+
+        # examine unpacked snapshot
+        resp = es.get(f"/_snapshot/restore-{name}/snapshot")
+        assert len(resp["snapshots"]) == 1
+        assert len(resp["snapshots"][0]["indices"]) == 1
+        old_name = resp["snapshots"][0]["indices"][0]
+
+        # reset index and close it
+        reset_cmd = (
+            f"./liquid dockerexec snoop-api "
+            f"./manage.py resetcollectionindex {name}"
+        )
+        subprocess.check_call(reset_cmd, shell=True)
+        es.post(f"/{name}/_close")
+
+        # restore snapshot
+        es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
+            "indices": old_name,
+            "include_global_state": False,
+            "rename_pattern": ".+",
+            "rename_replacement": name,
+        })
+
+        # wait for completion
+        t0 = time()
+        while True:
+            res = es.get(f"/{name}/_recovery")
+            if name in res:
+                if all(s["stage"] == "DONE" for s in res[name]["shards"]):
+                    break
+            sleep(1)
+            continue
+        es.post(f"/{name}/_open")
+        log.info(f"Restore done in {int(time()-t0)}s")
+    finally:
+        es.delete(f"/_snapshot/restore-{name}/snapshot")
+        es.delete(f"/_snapshot/restore-{name}")
+        rm_cmd = (
+            f"./liquid dockerexec hoover-es "
+            f"rm -rf /es_repo/restore-{name} "
+        )
+        subprocess.check_call(rm_cmd, shell=True)
+
+
 def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
     if save_pg:
         backup_collection_pg(dest, name)
@@ -136,3 +242,26 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
         backup_collection_blobs(dest, name)
     else:
         log.info("skipping saving blobs")
+
+
+def restore_collection(src, name):
+    log.info("restoring collection data from %s as %s", src, name)
+
+    assert (name not in (c['name'] for c in config.snoop_collections)), \
+        f"collection {name} already defined in liquid.ini, please remove it"
+
+    config._validate_collection_name(name)
+
+    src = Path(src).resolve()
+    restore_collection_pg(src, name)
+    restore_collection_es(src, name)
+    restore_collection_blobs(src, name)
+
+
+def restore_all_collections(backup_root):
+    backup_root = Path(backup_root).resolve()
+    PREFIX = 'collection-'
+    for src in backup_root.iterdir():
+        if src.is_dir() and src.name.startswith(PREFIX):
+            name = src.name[len(PREFIX):]
+            restore_collection(src, name)

@@ -41,16 +41,13 @@ def main():
         commands.deploy,
         commands.resources,
         commands.gc,
-        commands.collectionsgc,
         commands.nomadgc,
         commands.halt,
-        commands.initcollection,
-        commands.deletecollection,
-        commands.purge,
         commands.getsecret,
-        commands.importfromdockersetup,
         commands.launchocr,
         backup.backup,
+        backup.restore_collection,
+        backup.restore_all_collections,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
