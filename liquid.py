@@ -47,6 +47,7 @@ def main():
         commands.launchocr,
         backup.backup,
         backup.restore_collection,
+        backup.restore_all_collections,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)

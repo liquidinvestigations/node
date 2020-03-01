@@ -40,7 +40,9 @@ def backup(*args):
     parser.add_argument('--no-pg', action='store_false', dest='pg')
     parser.add_argument('dest')
     options = parser.parse_args(args)
-    for name in config.collections:
+    for collection in config.snoop_collections:
+        name = collection['name']
+
         collection_dir = Path(options.dest).resolve() / f"collection-{name}"
         collection_dir.mkdir(parents=True, exist_ok=True)
         backup_collection(dest=collection_dir,
@@ -165,12 +167,14 @@ def restore_collection_es(src, name):
     log.info(f"Restoring collection {name} es snapshot from {src_file}")
     es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
     try:
+        # create snapshot repo
         es.put(f"/_snapshot/restore-{name}", {
             "type": "fs",
             "settings": {
                 "location": f"/es_repo/restore-{name}",
             },
         })
+        # populate its directory
         tar_cmd = (
             f"./liquid dockerexec hoover-es bash -c "
             f"'set -exo pipefail;"
@@ -180,21 +184,30 @@ def restore_collection_es(src, name):
             f"< {src_file}"
         )
         subprocess.check_call(tar_cmd, shell=True)
-        try:
-            es.delete(f"/{name}")
-        except HTTPError as e:
-            if e.code != 404:
-                raise
+
+        # examine unpacked snapshot
         resp = es.get(f"/_snapshot/restore-{name}/snapshot")
         assert len(resp["snapshots"]) == 1
         assert len(resp["snapshots"][0]["indices"]) == 1
         old_name = resp["snapshots"][0]["indices"][0]
+
+        # reset index and close it
+        reset_cmd = (
+            f"./liquid dockerexec snoop-api "
+            f"./manage.py resetcollectionindex {name}"
+        )
+        subprocess.check_call(reset_cmd, shell=True)
+        es.post(f"/{name}/_close")
+
+        # restore snapshot
         es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
             "indices": old_name,
             "include_global_state": False,
             "rename_pattern": ".+",
             "rename_replacement": name,
         })
+
+        # wait for completion
         t0 = time()
         while True:
             res = es.get(f"/{name}/_recovery")
@@ -203,6 +216,7 @@ def restore_collection_es(src, name):
                     break
             sleep(1)
             continue
+        es.post(f"/{name}/_open")
         log.info(f"Restore done in {int(time()-t0)}s")
     finally:
         es.delete(f"/_snapshot/restore-{name}/snapshot")
@@ -232,7 +246,23 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
 
 
 def restore_collection(src, name):
+    log.info("restoring collection data from %s as %s", src, name)
+
+    assert (name not in (c['name'] for c in config.snoop_collections)), \
+            f"collection {name} already defined in liquid.ini, please remove it"
+
+    config._validate_collection_name(name)
+
     src = Path(src).resolve()
     restore_collection_pg(src, name)
     restore_collection_es(src, name)
     restore_collection_blobs(src, name)
+
+
+def restore_all_collections(backup_root):
+    backup_root = Path(backup_root).resolve()
+    PREFIX = 'collection-'
+    for src in backup_root.iterdir():
+        if src.is_dir() and src.name.startswith(PREFIX):
+            name = src.name[len(PREFIX):]
+            restore_collection(src, name)
