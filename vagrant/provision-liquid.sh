@@ -31,6 +31,7 @@ tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'
 #tar tz < backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
 ./liquid backup ./backup --no-es --no-pg
 ./liquid backup ./backup --no-blobs
+./liquid restore_collection ./backup/collection-testdata testdata2
 
 ./liquid launchocr testdata --periodic @yearly --nice 9 --workers 1 --threads_per_worker 1
 
