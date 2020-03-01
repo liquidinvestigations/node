@@ -234,5 +234,5 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
 def restore_collection(src, name):
     src = Path(src).resolve()
     restore_collection_pg(src, name)
-    restore_collection_blobs(src, name)
     restore_collection_es(src, name)
+    restore_collection_blobs(src, name)
