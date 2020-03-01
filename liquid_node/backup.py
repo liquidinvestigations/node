@@ -3,7 +3,6 @@ import argparse
 import subprocess
 from pathlib import Path
 from time import time, sleep
-from urllib.error import HTTPError
 
 from liquid_node.configuration import config
 from liquid_node.nomad import nomad
@@ -249,7 +248,7 @@ def restore_collection(src, name):
     log.info("restoring collection data from %s as %s", src, name)
 
     assert (name not in (c['name'] for c in config.snoop_collections)), \
-            f"collection {name} already defined in liquid.ini, please remove it"
+        f"collection {name} already defined in liquid.ini, please remove it"
 
     config._validate_collection_name(name)
 
