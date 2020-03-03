@@ -286,7 +286,6 @@ job "hoover" {
         {{- range service "hoover-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
-        SNOOP_HOSTNAME = "snoop.{{ key "liquid_domain" }}"
         {{- range service "zipkin" }}
           TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
