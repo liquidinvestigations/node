@@ -51,9 +51,9 @@ job "hoover" {
         destination = "local/startup.sh"
       }
       env {
-        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765"
+        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/snoop"
       }
       template {
         data = <<-EOF
@@ -168,8 +168,8 @@ job "hoover" {
         destination = "local/startup.sh"
       }
       env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
       }
@@ -241,6 +241,7 @@ job "hoover" {
       }
       env {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
+        SNOOP_URL_PREFIX = "snoop/"
       }
       template {
         data = <<-EOF
@@ -262,8 +263,8 @@ job "hoover" {
         destination = "local/startup.sh"
       }
       env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
       template {
@@ -304,7 +305,7 @@ job "hoover" {
       service {
         name = "hoover-snoop"
         port = "http"
-        tags = ["snoop-/ host=snoop.${liquid_domain}"]
+        tags = ["fabio-/snoop"]
         check {
           name = "http"
           initial_status = "critical"

@@ -78,7 +78,7 @@ job "hoover-deps" {
       service {
         name = "hoover-es-master"
         port = "http"
-        tags = ["snoop-/_es strip=/_es"]
+        tags = ["fabio-/_es strip=/_es"]
         check {
           name = "http"
           initial_status = "critical"
@@ -149,7 +149,7 @@ job "hoover-deps" {
       service {
         name = "hoover-es-data"
         port = "http"
-        tags = ["snoop-/_es strip=/_es"]
+        tags = ["fabio-/_es strip=/_es"]
         check {
           name = "http"
           initial_status = "critical"
@@ -275,7 +275,7 @@ job "hoover-deps" {
       service {
         name = "hoover-tika"
         port = "tika"
-        tags = ["snoop-/_tika strip=/_tika"]
+        tags = ["fabio-/_tika strip=/_tika"]
         check {
           name = "http"
           initial_status = "critical"
@@ -342,7 +342,7 @@ job "hoover-deps" {
       service {
         name = "hoover-rabbitmq-http"
         port = "http"
-        tags = ["snoop-/_rabbit strip=/_rabbit"]
+        tags = ["fabio-/_rabbit strip=/_rabbit"]
         check {
           name = "http"
           initial_status = "critical"

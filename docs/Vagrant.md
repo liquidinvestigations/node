@@ -20,7 +20,6 @@ will be ignored by git.
 
 Vagrant will forward the following http ports:
   * `guest: 80, host: 1380` - public web server
-  * `guest: 8765, host: 18765` - internal web server
   * `guest: 8500, host: 18500` - consul
   * `guest: 8200, host: 18200` - vault
   * `guest: 4646, host: 14646` - nomad

@@ -32,7 +32,6 @@ class Configuration:
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Deps(),
-            hoover.System(),
             dokuwiki.Dokuwiki(),
             rocketchat.Rocketchat(),
             rocketchat.Migrate(),
