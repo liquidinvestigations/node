@@ -303,7 +303,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "rabbitmq:3.7.3-management-alpine"
+        image = "rabbitmq:3.8.2-management-alpine"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq/rabbitmq:/var/lib/rabbitmq",
         ]
@@ -316,6 +316,15 @@ job "hoover-deps" {
           liquid_task = "snoop-rabbitmq"
         }
       }
+
+      template {
+        data = <<-EOF
+          management.path_prefix = /_rabbit
+          management.cors.allow_origins.1 = *
+          EOF
+        destination = "/etc/rabbitmq/rabbitmq.conf"
+      }
+
       resources {
         memory = ${config.snoop_rabbitmq_memory_limit}
         cpu = 150
@@ -329,9 +338,11 @@ job "hoover-deps" {
         name = "hoover-rabbitmq"
         port = "amqp"
       }
+
       service {
         name = "hoover-rabbitmq-http"
         port = "http"
+        tags = ["snoop-/_rabbit strip=/_rabbit"]
         check {
           name = "http"
           initial_status = "critical"
