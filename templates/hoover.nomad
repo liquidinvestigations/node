@@ -309,7 +309,7 @@ job "hoover" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/_health"
+          path = "/snoop/_health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {

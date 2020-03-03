@@ -12,7 +12,12 @@ class Nomad(JsonApi):
         return self.post(f'jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
 
     def run(self, spec):
-        return self.post(f'jobs', {'job': spec})
+        self.post(f'jobs', {'job': spec})
+
+        job_id = spec['ID']
+        self.post(f'job/{job_id}/evaluate',
+                  {'JobID': job_id,
+                   "EvalOptions": {"ForceReschedule": True}})
 
     def get_health_checks(self, spec):
         """Generates (service, check_name_list) tuples for the supplied job"""
