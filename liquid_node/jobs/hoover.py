@@ -16,5 +16,5 @@ class Ui(jobs.Job):
 class Deps(jobs.Job):
     name = 'hoover-deps'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    pg_task = 'hoover-pg'
+    pg_tasks = ['search-pg', 'snoop-pg']
     app = 'hoover'

@@ -2,7 +2,7 @@
 {%- endmacro %}
 
 {%- macro shutdown_delay() %}
-      shutdown_delay = "10s"
+      shutdown_delay = "3s"
       kill_timeout = "29s"
 {%- endmacro %}
 

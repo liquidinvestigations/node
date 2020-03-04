@@ -63,7 +63,7 @@ job "hoover" {
           {{- with secret "liquid/hoover/search.django" }}
             SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- range service "hoover-pg" }}
+          {{- range service "search-pg" }}
             HOOVER_DB = "postgresql://search:
             {{- with secret "liquid/hoover/search.postgres" -}}
               {{.Data.secret_key }}
@@ -178,7 +178,7 @@ job "hoover" {
         {{- if keyExists "liquid_debug" }}
           DEBUG = {{key "liquid_debug" | toJSON }}
         {{- end }}
-        {{- range service "hoover-snoop-pg" }}
+        {{- range service "snoop-pg" }}
           SNOOP_DB = "postgresql://snoop:
           {{- with secret "liquid/hoover/snoop.postgres" -}}
             {{.Data.secret_key }}
@@ -279,7 +279,7 @@ job "hoover" {
         {{- with secret "liquid/hoover/snoop.django" }}
           SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
-        {{- range service "hoover-snoop-pg" }}
+        {{- range service "snoop-pg" }}
           SNOOP_DB = "postgresql://snoop:
           {{- with secret "liquid/hoover/snoop.postgres" -}}
             {{.Data.secret_key }}

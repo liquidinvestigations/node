@@ -195,7 +195,7 @@ job "hoover-deps" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/pg/data:/var/lib/postgresql/data",
         ]
         labels {
-          liquid_task = "hoover-pg"
+          liquid_task = "search-pg"
         }
         port_map {
           pg = 5432
@@ -223,7 +223,7 @@ job "hoover-deps" {
         }
       }
       service {
-        name = "hoover-pg"
+        name = "search-pg"
         port = "pg"
         check {
           name = "tcp"
@@ -495,7 +495,7 @@ job "hoover-deps" {
       }
 
       service {
-        name = "hoover-snoop-pg"
+        name = "snoop-pg"
         port = "pg"
         check {
           name = "tcp"
