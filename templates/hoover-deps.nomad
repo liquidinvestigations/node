@@ -400,8 +400,9 @@ job "hoover-deps" {
         image = "postgres:12.2"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/pg/data:/var/lib/postgresql/data",
-          "local/conf:/var/lib/postgresql/data/postgresql.conf",
+          "local/conf:/etc/postgresql.conf",
         ]
+        args = ["-c", "config_file=/etc/postgresql.conf"]
         labels {
           liquid_task = "snoop-pg"
         }
