@@ -400,6 +400,7 @@ job "hoover-deps" {
         image = "postgres:12.2"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/pg/data:/var/lib/postgresql/data",
+          "local/conf:/var/lib/postgresql/data/postgresql.conf",
         ]
         labels {
           liquid_task = "snoop-pg"
@@ -407,7 +408,60 @@ job "hoover-deps" {
         port_map {
           pg = 5432
         }
+        shm_size = ${config.snoop_postgres_memory_limit * 1024 * 1024}
+        ulimit { stack = 3072 }
       }
+
+      template {
+        destination = "local/conf"
+        data = <<-EOF
+          listen_addresses = '*'
+          port = 5432                             # (change requires restart)
+          max_connections = 100                   # (change requires restart)
+          shared_buffers = ${config.snoop_postgres_memory_limit}MB  # min 128kB
+          huge_pages = try                        # on, off, or try
+          temp_buffers = 32MB                     # min 800kB
+          max_prepared_transactions = 0          # zero disables the feature
+          work_mem = 32MB                         # min 64kB
+          maintenance_work_mem = 64MB             # min 1MB
+          autovacuum_work_mem = -1                # min 1MB, or -1 to use maintenance_work_mem
+          max_stack_depth = 3MB                  # min 100kB
+          #shared_memory_type = mmap              # the default is the first option
+                                                  # supported by the operating system:
+                                                  #   mmap
+                                                  #   sysv
+                                                  #   windows
+                                                  # (change requires restart)
+          dynamic_shared_memory_type = posix      # the default is the first option
+                                                  # supported by the operating system:
+                                                  #   posix
+                                                  #   sysv
+                                                  #   windows
+                                                  #   mmap
+
+          effective_io_concurrency = 3            # 1-1000; 0 disables prefetching
+          max_worker_processes = 6                # (change requires restart)
+          wal_writer_delay = 500ms                # 1-10000 milliseconds
+          wal_writer_flush_after = 4MB            # measured in pages, 0 disables
+          #checkpoint_timeout = 5min              # range 30s-1d
+          max_wal_size = 1GB
+          min_wal_size = 80MB
+          #checkpoint_completion_target = 0.5     # checkpoint target duration, 0.0 - 1.0
+          #checkpoint_flush_after = 256kB         # measured in pages, 0 disables
+          #checkpoint_warning = 30s               # 0 disables
+          log_timezone = 'Etc/UTC'
+          cluster_name = 'snoop'                  # added to process titles if nonempty
+          datestyle = 'iso, mdy'
+          #intervalstyle = 'postgres'
+          timezone = 'Etc/UTC'
+          lc_messages = 'en_US.utf8'                      # locale for system error message
+          lc_monetary = 'en_US.utf8'                      # locale for monetary formatting
+          lc_numeric = 'en_US.utf8'                       # locale for number formatting
+          lc_time = 'en_US.utf8'                          # locale for time formatting
+          default_text_search_config = 'pg_catalog.english'
+          EOF
+      }
+
       template {
         data = <<EOF
           POSTGRES_USER = "snoop"
@@ -419,15 +473,18 @@ job "hoover-deps" {
         destination = "local/postgres.env"
         env = true
       }
+
       ${ set_pg_password_template('snoop') }
+
       resources {
         cpu = 200
-        memory = 300
+        memory = 768
         network {
           mbits = 1
           port "pg" {}
         }
       }
+
       service {
         name = "hoover-snoop-pg"
         port = "pg"
