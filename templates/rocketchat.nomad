@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule with context -%}
 
 job "rocketchat" {
   datacenters = ["dc1"]

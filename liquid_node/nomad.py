@@ -15,6 +15,9 @@ class Nomad(JsonApi):
         self.post(f'jobs', {'job': spec})
 
         job_id = spec['ID']
+        if spec.get('Periodic'):
+            # HTTP 500 - "can't evaluate periodic job"
+            return
         self.post(f'job/{job_id}/evaluate',
                   {'JobID': job_id,
                    "EvalOptions": {"ForceReschedule": True}})

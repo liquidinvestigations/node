@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs -%}
+{% from '_lib.hcl' import shutdown_delay, group_disk, task_logs -%}
 
 job "zipkin" {
   datacenters = ["dc1"]
