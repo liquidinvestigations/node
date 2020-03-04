@@ -15,6 +15,7 @@ job "rocketchat" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "mongo:3.2"
         volumes = [

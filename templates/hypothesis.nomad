@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, task_logs with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs with context -%}
 
 job "hypothesis" {
   datacenters = ["dc1"]
@@ -13,6 +13,7 @@ job "hypothesis" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "postgres:9.4-alpine"
         volumes = [
@@ -24,6 +25,8 @@ job "hypothesis" {
         port_map {
           pg = 5432
         }
+        # 128MB, the default postgresql shared_memory config
+        shm_size = 134217728
       }
       template {
         data = <<-EOF
@@ -63,6 +66,7 @@ job "hypothesis" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "hypothesis/elasticsearch:latest"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
@@ -110,6 +114,7 @@ job "hypothesis" {
       ${ task_logs() }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "rabbitmq:3.6-management-alpine"
         volumes = [

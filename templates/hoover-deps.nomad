@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
@@ -50,7 +50,10 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+
       ${ elasticsearch_docker_config('data') }
+      ${ shutdown_delay() }
+
       env {
         cluster.name = "hoover"
         node.name = "master"
@@ -113,6 +116,7 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       ${elasticsearch_docker_config('data-${NOMAD_ALLOC_INDEX}') }
       env {
         node.master = "false"
@@ -184,6 +188,7 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "postgres:9.6"
         volumes = [
@@ -195,6 +200,8 @@ job "hoover-deps" {
         port_map {
           pg = 5432
         }
+        # 128MB, the default postgresql shared_memory config
+        shm_size = 134217728
       }
       template {
         data = <<EOF
@@ -302,6 +309,7 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "rabbitmq:3.8.2-management-alpine"
         volumes = [
@@ -396,6 +404,7 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "postgres:12.2"
         volumes = [

@@ -83,6 +83,7 @@ job "nextcloud" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "mariadb:10.4"
         volumes = [
