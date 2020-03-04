@@ -51,12 +51,17 @@ def backup(*args):
                           save_pg=options.pg)
 
 
+SNOOP_PG_ALLOC = "hoover-deps:pg"
+SNOOP_ES_ALLOC = "hoover-deps:es"
+SNOOP_API_ALLOC = "hoover:snoop"
+
+
 @retry()
 def backup_collection_pg(dest, name):
     dest_file = dest / "pg.sql.gz"
     log.info(f"Dumping collection {name} pg to {dest_file}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-pg "
+        f"set -eo pipefail; ./liquid dockerexec {SNOOP_PG_ALLOC} "
         f"pg_dump -U snoop collection_{name} -Ox "
         f"| gzip -1 > {dest_file}"
     )
@@ -71,7 +76,7 @@ def restore_collection_pg(src, name):
         return
     log.info(f"Restoring collection {name} pg from {src_file}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-pg bash -c "
+        f"set -eo pipefail; ./liquid dockerexec {SNOOP_PG_ALLOC} bash -c "
         f"'set -exo pipefail;"
         f"dropdb -U snoop --if-exists collection_{name};"
         f" createdb -U snoop collection_{name};"
@@ -90,7 +95,7 @@ def backup_collection_blobs(dest, name):
     # We know we only create the files with an atomic move, so
     # we can ignore this error with `|| [[ $? -eq 1 ]]`.
     cmd = (
-        f"set -exo pipefail; ( ./liquid dockerexec snoop-api "
+        f"set -exo pipefail; ( ./liquid dockerexec {SNOOP_API_ALLOC} "
         f"tar c --exclude ./tmp -C blobs/{name} . || [[ $? -eq 1 ]] ) "
         f"| gzip -1 > {dest_file}"
     )
@@ -105,7 +110,7 @@ def restore_collection_blobs(src, name):
         return
     log.info(f"Restoring collection {name} blobs from {src_file}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec snoop-api bash -c "
+        f"set -eo pipefail; ./liquid dockerexec {SNOOP_API_ALLOC} bash -c "
         f"'set -exo pipefail; rm -rf blobs/{name};"
         f" mkdir blobs/{name}; tar xz -C blobs/{name}' "
         f"< {src_file}"
@@ -142,7 +147,7 @@ def backup_collection_es(dest, name):
                 raise RuntimeError("Something went wrong: %r" % snapshot)
         log.info(f"Snapshot done in {int(time()-t0)}s")
         tar_cmd = (
-            f"./liquid dockerexec hoover-es "
+            f"./liquid dockerexec {SNOOP_ES_ALLOC} "
             f"tar c -C /es_repo/backup-{name} . "
             f"| gzip -1 > {dest_file}"
         )
@@ -151,7 +156,7 @@ def backup_collection_es(dest, name):
         es.delete(f"/_snapshot/backup-{name}/snapshot")
         es.delete(f"/_snapshot/backup-{name}")
         rm_cmd = (
-            f"./liquid dockerexec hoover-es "
+            f"./liquid dockerexec {SNOOP_ES_ALLOC} "
             f"rm -rf /es_repo/backup-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
@@ -175,7 +180,7 @@ def restore_collection_es(src, name):
         })
         # populate its directory
         tar_cmd = (
-            f"./liquid dockerexec hoover-es bash -c "
+            f"./liquid dockerexec {SNOOP_ES_ALLOC} bash -c "
             f"'set -exo pipefail;"
             f" rm -rf /es_repo/restore-{name};"
             f" mkdir /es_repo/restore-{name};"
@@ -192,7 +197,7 @@ def restore_collection_es(src, name):
 
         # reset index and close it
         reset_cmd = (
-            f"./liquid dockerexec snoop-api "
+            f"./liquid dockerexec {SNOOP_API_ALLOC} "
             f"./manage.py resetcollectionindex {name}"
         )
         subprocess.check_call(reset_cmd, shell=True)
@@ -221,7 +226,7 @@ def restore_collection_es(src, name):
         es.delete(f"/_snapshot/restore-{name}/snapshot")
         es.delete(f"/_snapshot/restore-{name}")
         rm_cmd = (
-            f"./liquid dockerexec hoover-es "
+            f"./liquid dockerexec {SNOOP_ES_ALLOC} "
             f"rm -rf /es_repo/restore-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)

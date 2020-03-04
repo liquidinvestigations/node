@@ -20,7 +20,7 @@ class Docker:
         :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
         """
 
-        [job, task] = name.split('-')
+        [job, task] = name.split(':')
 
         def allocs():
             for alloc in nomad.job_allocations(job):
