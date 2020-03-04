@@ -51,7 +51,7 @@ def backup(*args):
                           save_pg=options.pg)
 
 
-SNOOP_PG_ALLOC = "hoover-deps:pg"
+SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
 SNOOP_API_ALLOC = "hoover:snoop"
 
