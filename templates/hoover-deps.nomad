@@ -174,10 +174,10 @@ job "hoover-deps" {
   }
   {% endif %}
 
-  group "db" {
+  group "search-pg" {
     ${ continuous_reschedule() }
 
-    task "pg" {
+    task "search-pg" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -293,7 +293,7 @@ job "hoover-deps" {
   }
 
   {% if config.snoop_workers %}
-  group "queue" {
+  group "rabbitmq" {
 
     task "rabbitmq" {
       constraint {
@@ -349,11 +349,11 @@ job "hoover-deps" {
   }
   {% endif %}
 
-  group "snoop-db" {
+  group "snoop-pg" {
 
     ${ continuous_reschedule() }
 
-    task "pg" {
+    task "snoop-pg" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"

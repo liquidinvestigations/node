@@ -15,7 +15,7 @@ auth_staff_only = true
 To invalidate any existing login session, run `killsessions`:
 
 ```shell
-./liquid shell liquid-core ./manage.py killsessions
+./liquid shell liquid:core ./manage.py killsessions
 ```
 
 

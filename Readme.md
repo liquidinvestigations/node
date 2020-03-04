@@ -62,12 +62,12 @@ you don't have a DNS domain pointing to the macine, you can add entries to
 
 Create an initial admin user:
 ```shell
-./liquid shell liquid-core ./manage.py createsuperuser
+./liquid shell liquid:core ./manage.py createsuperuser
 ```
 
 With enabled Two-factor authentication (`two_factor_auth = true` in `liquid.ini`), create an invitation for the initial admin user:
 ```shell
-./liquid shell liquid-core ./manage.py invite root
+./liquid shell liquid:core ./manage.py invite root
 ```
 
 Configure RocketChat to use `liquid-core`'s oauth2 provider to authenticate

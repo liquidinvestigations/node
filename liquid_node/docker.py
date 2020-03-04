@@ -1,6 +1,8 @@
 from .process import run
 from .util import first
+from liquid_node.configuration import config
 from liquid_node.process import run_fg
+from liquid_node.nomad import nomad
 
 
 class Docker:
@@ -18,14 +20,32 @@ class Docker:
         :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
         """
 
-        containers = self.containers([('liquid_task', name)])
-        container_id = first(containers, f'{name} containers')
+        [job, task] = name.split(':')
+
+        def allocs():
+            for alloc in nomad.job_allocations(job):
+                if task not in alloc['TaskStates']:
+                    continue
+                if alloc['ClientStatus'] != 'running':
+                    continue
+                yield alloc['ID']
+
+        alloc_id = first(list(allocs()), f'{name} allocs')
 
         docker_exec_cmd = ['docker', 'exec', '-i']
+
         if tty:
             docker_exec_cmd += ['-t']
-        docker_exec_cmd += [container_id] + list(args or (['bash'] if tty else []))
 
+        docker_exec_cmd += [
+            'cluster',
+            '/app/bin/nomad', 'alloc', 'exec',
+            '-address', config.nomad_url,
+            '-task', task,
+            alloc_id,
+        ]
+
+        docker_exec_cmd += list(args or (['bash'] if tty else []))
         return docker_exec_cmd
 
     def shell(self, name, *args):
