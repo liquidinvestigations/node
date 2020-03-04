@@ -306,23 +306,40 @@ job "hoover-deps" {
         image = "rabbitmq:3.8.2-management-alpine"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "local/conf:/etc/rabbitmq/rabbitmq.conf",
+          "local/plugins:/etc/rabbitmq/enabled_plugins",
         ]
         port_map {
           amqp = 5672
           http = 15672
-          clustering = 25672
+          prom = 15692
         }
         labels {
           liquid_task = "snoop-rabbitmq"
         }
       }
 
+      #env { RABBITMQ_CONFIG_FILE = "/local/rabbitmq" }
+
       template {
+        destination = "local/conf"
         data = <<-EOF
+          collect_statistics_interval = 16000
           management.path_prefix = /_rabbit
           management.cors.allow_origins.1 = *
+          management.enable_queue_totals = true
+          listeners.tcp.default = 5672
+          management.tcp.port = 15672
+          loopback_users.guest = false
+          total_memory_available_override_value = ${config.snoop_rabbitmq_memory_limit * 1024 * 1024}
           EOF
-        destination = "/etc/rabbitmq/rabbitmq.conf"
+      }
+
+      template {
+        destination = "local/plugins"
+        data = <<-EOF
+          [rabbitmq_prometheus,rabbitmq_management].
+          EOF
       }
 
       resources {
@@ -332,22 +349,30 @@ job "hoover-deps" {
           mbits = 1
           port "amqp" {}
           port "http" {}
+          port "prom" {}
         }
       }
+
       service {
         name = "hoover-rabbitmq"
         port = "amqp"
       }
 
       service {
+        name = "hoover-rabbitmq-prom"
+        port = "prom"
+        tags = ["fabio-/_rabbit_prom"]
+      }
+
+      service {
         name = "hoover-rabbitmq-http"
         port = "http"
-        tags = ["fabio-/_rabbit strip=/_rabbit"]
+        tags = ["fabio-/_rabbit"]
         check {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/api/healthchecks/node"
+          path = "/_rabbit/api/healthchecks/node"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {

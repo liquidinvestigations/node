@@ -257,7 +257,11 @@ job "hoover" {
           ./manage.py migratecollections
           ./manage.py healthcheck
           date
-          exec /runserver
+          if [[ "$DEBUG" == "true" ]]; then
+            exec ./manage.py runserver 0.0.0.0:80
+          else
+            exec /runserver
+          fi
           EOF
         env = false
         destination = "local/startup.sh"
