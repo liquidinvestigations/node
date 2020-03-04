@@ -409,7 +409,6 @@ job "hoover-deps" {
           pg = 5432
         }
         shm_size = ${config.snoop_postgres_memory_limit * 1024 * 1024}
-        ulimit { stack = 3072 }
       }
 
       template {
@@ -425,7 +424,7 @@ job "hoover-deps" {
           work_mem = 32MB                         # min 64kB
           maintenance_work_mem = 64MB             # min 1MB
           autovacuum_work_mem = -1                # min 1MB, or -1 to use maintenance_work_mem
-          max_stack_depth = 3MB                  # min 100kB
+          #max_stack_depth = 3MB                  # min 100kB
           #shared_memory_type = mmap              # the default is the first option
                                                   # supported by the operating system:
                                                   #   mmap
@@ -441,7 +440,7 @@ job "hoover-deps" {
 
           effective_io_concurrency = 3            # 1-1000; 0 disables prefetching
           max_worker_processes = 6                # (change requires restart)
-          wal_writer_delay = 500ms                # 1-10000 milliseconds
+          wal_writer_delay = 300ms                # 1-10000 milliseconds
           wal_writer_flush_after = 4MB            # measured in pages, 0 disables
           #checkpoint_timeout = 5min              # range 30s-1d
           max_wal_size = 1GB
