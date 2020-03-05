@@ -51,9 +51,9 @@ job "hoover" {
         destination = "local/startup.sh"
       }
       env {
-        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
+        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765"
+        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/snoop"
       }
       template {
         data = <<-EOF
@@ -63,7 +63,7 @@ job "hoover" {
           {{- with secret "liquid/hoover/search.django" }}
             SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- range service "hoover-pg" }}
+          {{- range service "search-pg" }}
             HOOVER_DB = "postgresql://search:
             {{- with secret "liquid/hoover/search.postgres" -}}
               {{.Data.secret_key }}
@@ -168,8 +168,8 @@ job "hoover" {
         destination = "local/startup.sh"
       }
       env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
       }
@@ -178,7 +178,7 @@ job "hoover" {
         {{- if keyExists "liquid_debug" }}
           DEBUG = {{key "liquid_debug" | toJSON }}
         {{- end }}
-        {{- range service "hoover-snoop-pg" }}
+        {{- range service "snoop-pg" }}
           SNOOP_DB = "postgresql://snoop:
           {{- with secret "liquid/hoover/snoop.postgres" -}}
             {{.Data.secret_key }}
@@ -241,6 +241,7 @@ job "hoover" {
       }
       env {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
+        SNOOP_URL_PREFIX = "snoop/"
       }
       template {
         data = <<-EOF
@@ -256,14 +257,18 @@ job "hoover" {
           ./manage.py migratecollections
           ./manage.py healthcheck
           date
-          exec /runserver
+          if [[ "$DEBUG" == "true" ]]; then
+            exec ./manage.py runserver 0.0.0.0:80
+          else
+            exec /runserver
+          fi
           EOF
         env = false
         destination = "local/startup.sh"
       }
       env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:8765/_tika/"
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
       template {
@@ -274,7 +279,7 @@ job "hoover" {
         {{- with secret "liquid/hoover/snoop.django" }}
           SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
-        {{- range service "hoover-snoop-pg" }}
+        {{- range service "snoop-pg" }}
           SNOOP_DB = "postgresql://snoop:
           {{- with secret "liquid/hoover/snoop.postgres" -}}
             {{.Data.secret_key }}
@@ -285,7 +290,6 @@ job "hoover" {
         {{- range service "hoover-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
-        SNOOP_HOSTNAME = "snoop.{{ key "liquid_domain" }}"
         {{- range service "zipkin" }}
           TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
@@ -304,12 +308,12 @@ job "hoover" {
       service {
         name = "hoover-snoop"
         port = "http"
-        tags = ["snoop-/ host=snoop.${liquid_domain}"]
+        tags = ["fabio-/snoop"]
         check {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/_health"
+          path = "/snoop/_health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {

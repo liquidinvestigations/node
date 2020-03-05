@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group with context -%}
 
 job "codimd" {
   datacenters = ["dc1"]
@@ -114,6 +114,7 @@ job "codimd" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "postgres:11.5"
         volumes = [
@@ -125,6 +126,8 @@ job "codimd" {
         port_map {
           pg = 5432
         }
+        # 128MB, the default postgresql shared_memory config
+        shm_size = 134217728
       }
       template {
         data = <<-EOF

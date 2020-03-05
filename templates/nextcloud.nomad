@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group with context -%}
 
 job "nextcloud" {
   datacenters = ["dc1"]
@@ -83,6 +83,7 @@ job "nextcloud" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "mariadb:10.4"
         volumes = [

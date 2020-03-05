@@ -280,10 +280,6 @@ def deploy(*args):
 
     jobs = [(job.name, get_job(job.template)) for job in config.enabled_jobs]
 
-    hov_deps = hoover.Deps()
-    database_tasks = [hov_deps.pg_task]
-    deps_jobs = [(hov_deps.name, get_job(hov_deps.template))]
-
     ensure_secret('liquid/rocketchat/adminuser', lambda: {
         'username': 'rocketchatadmin',
         'pass': random_secret(64),
@@ -307,13 +303,16 @@ def deploy(*args):
     # check if there are jobs to stop
     nomad_jobs = set(job['ID'] for job in nomad.jobs())
     jobs_to_stop = nomad_jobs.intersection(set(job.name for job in config.disabled_jobs))
-    print(f'jobs to stop: {jobs_to_stop}')
+    log.info(f'jobs to stop: {jobs_to_stop}')
     if jobs_to_stop:
         for job in jobs_to_stop:
             nomad.stop(job)
         wait_for_stopped_jobs(jobs_to_stop)
 
     # only start deps jobs + hoover
+    hov_deps = hoover.Deps()
+    deps_jobs = [(hov_deps.name, get_job(hov_deps.template))]
+
     health_checks = {}
     for job, hcl in deps_jobs:
         job_checks = start(job, hcl)
@@ -321,7 +320,7 @@ def deploy(*args):
 
     # wait for database health checks
     if options.checks:
-        pg_checks = {k: v for k, v in health_checks.items() if k in database_tasks}
+        pg_checks = {k: v for k, v in health_checks.items() if k in hov_deps.pg_tasks}
         wait_for_service_health_checks(pg_checks)
 
     # run the set password script

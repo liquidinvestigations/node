@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs -%}
+{% from '_lib.hcl' import shutdown_delay, group_disk, task_logs -%}
 
 job "zipkin" {
   datacenters = ["dc1"]
@@ -13,6 +13,7 @@ job "zipkin" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
 
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch:7.5.1"
@@ -107,6 +108,7 @@ job "zipkin" {
       ${ task_logs() }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "openzipkin/zipkin"
         labels {

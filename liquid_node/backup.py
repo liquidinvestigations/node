@@ -122,7 +122,7 @@ def restore_collection_blobs(src, name):
 def backup_collection_es(dest, name):
     dest_file = dest / "es.tgz"
     log.info(f"Dumping collection {name} es snapshot to {dest_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
+    es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
     try:
         es.put(f"/_snapshot/backup-{name}", {
             "type": "fs",
@@ -169,7 +169,7 @@ def restore_collection_es(src, name):
         log.warn(f"No es backup at {src_file}, skipping es restore")
         return
     log.info(f"Restoring collection {name} es snapshot from {src_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:8765/_es")
+    es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
     try:
         # create snapshot repo
         es.put(f"/_snapshot/restore-{name}", {

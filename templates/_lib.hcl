@@ -1,6 +1,11 @@
 {%- macro continuous_reschedule() %}
 {%- endmacro %}
 
+{%- macro shutdown_delay() %}
+      shutdown_delay = "3s"
+      kill_timeout = "29s"
+{%- endmacro %}
+
 {%- macro task_logs() %}
 logs {
   max_files     = 5

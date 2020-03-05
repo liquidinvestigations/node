@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
@@ -50,7 +50,10 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+
       ${ elasticsearch_docker_config('data') }
+      ${ shutdown_delay() }
+
       env {
         cluster.name = "hoover"
         node.name = "master"
@@ -78,7 +81,7 @@ job "hoover-deps" {
       service {
         name = "hoover-es-master"
         port = "http"
-        tags = ["snoop-/_es strip=/_es"]
+        tags = ["fabio-/_es strip=/_es"]
         check {
           name = "http"
           initial_status = "critical"
@@ -113,6 +116,7 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       ${elasticsearch_docker_config('data-${NOMAD_ALLOC_INDEX}') }
       env {
         node.master = "false"
@@ -149,7 +153,7 @@ job "hoover-deps" {
       service {
         name = "hoover-es-data"
         port = "http"
-        tags = ["snoop-/_es strip=/_es"]
+        tags = ["fabio-/_es strip=/_es"]
         check {
           name = "http"
           initial_status = "critical"
@@ -184,17 +188,20 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "postgres:9.6"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/pg/data:/var/lib/postgresql/data",
         ]
         labels {
-          liquid_task = "hoover-pg"
+          liquid_task = "search-pg"
         }
         port_map {
           pg = 5432
         }
+        # 128MB, the default postgresql shared_memory config
+        shm_size = 134217728
       }
       template {
         data = <<EOF
@@ -216,7 +223,7 @@ job "hoover-deps" {
         }
       }
       service {
-        name = "hoover-pg"
+        name = "search-pg"
         port = "pg"
         check {
           name = "tcp"
@@ -275,7 +282,7 @@ job "hoover-deps" {
       service {
         name = "hoover-tika"
         port = "tika"
-        tags = ["snoop-/_tika strip=/_tika"]
+        tags = ["fabio-/_tika strip=/_tika"]
         check {
           name = "http"
           initial_status = "critical"
@@ -302,20 +309,47 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
-        image = "rabbitmq:3.7.3-management-alpine"
+        image = "rabbitmq:3.8.2-management-alpine"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq/rabbitmq:/var/lib/rabbitmq",
+          "local/conf:/etc/rabbitmq/rabbitmq.conf",
+          "local/plugins:/etc/rabbitmq/enabled_plugins",
         ]
         port_map {
           amqp = 5672
           http = 15672
-          clustering = 25672
+          prom = 15692
         }
         labels {
           liquid_task = "snoop-rabbitmq"
         }
       }
+
+      #env { RABBITMQ_CONFIG_FILE = "/local/rabbitmq" }
+
+      template {
+        destination = "local/conf"
+        data = <<-EOF
+          collect_statistics_interval = 16000
+          management.path_prefix = /_rabbit
+          management.cors.allow_origins.1 = *
+          management.enable_queue_totals = true
+          listeners.tcp.default = 5672
+          management.tcp.port = 15672
+          loopback_users.guest = false
+          total_memory_available_override_value = ${config.snoop_rabbitmq_memory_limit * 1024 * 1024}
+          EOF
+      }
+
+      template {
+        destination = "local/plugins"
+        data = <<-EOF
+          [rabbitmq_prometheus,rabbitmq_management].
+          EOF
+      }
+
       resources {
         memory = ${config.snoop_rabbitmq_memory_limit}
         cpu = 150
@@ -323,20 +357,30 @@ job "hoover-deps" {
           mbits = 1
           port "amqp" {}
           port "http" {}
+          port "prom" {}
         }
       }
+
       service {
         name = "hoover-rabbitmq"
         port = "amqp"
       }
+
+      service {
+        name = "hoover-rabbitmq-prom"
+        port = "prom"
+        tags = ["fabio-/_rabbit_prom"]
+      }
+
       service {
         name = "hoover-rabbitmq-http"
         port = "http"
+        tags = ["fabio-/_rabbit"]
         check {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/api/healthchecks/node"
+          path = "/_rabbit/api/healthchecks/node"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
@@ -360,18 +404,73 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "postgres:12.2"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/pg/data:/var/lib/postgresql/data",
+          "local/conf:/etc/postgresql.conf",
         ]
+        args = ["-c", "config_file=/etc/postgresql.conf"]
         labels {
           liquid_task = "snoop-pg"
         }
         port_map {
           pg = 5432
         }
+        shm_size = ${config.snoop_postgres_memory_limit * 1024 * 1024}
       }
+
+      template {
+        destination = "local/conf"
+        data = <<-EOF
+          listen_addresses = '*'
+          port = 5432                             # (change requires restart)
+          max_connections = 100                   # (change requires restart)
+          shared_buffers = ${config.snoop_postgres_memory_limit}MB  # min 128kB
+          huge_pages = try                        # on, off, or try
+          temp_buffers = 32MB                     # min 800kB
+          max_prepared_transactions = 0          # zero disables the feature
+          work_mem = 32MB                         # min 64kB
+          maintenance_work_mem = 64MB             # min 1MB
+          autovacuum_work_mem = -1                # min 1MB, or -1 to use maintenance_work_mem
+          #max_stack_depth = 3MB                  # min 100kB
+          #shared_memory_type = mmap              # the default is the first option
+                                                  # supported by the operating system:
+                                                  #   mmap
+                                                  #   sysv
+                                                  #   windows
+                                                  # (change requires restart)
+          dynamic_shared_memory_type = posix      # the default is the first option
+                                                  # supported by the operating system:
+                                                  #   posix
+                                                  #   sysv
+                                                  #   windows
+                                                  #   mmap
+
+          effective_io_concurrency = 3            # 1-1000; 0 disables prefetching
+          max_worker_processes = 6                # (change requires restart)
+          wal_writer_delay = 300ms                # 1-10000 milliseconds
+          wal_writer_flush_after = 4MB            # measured in pages, 0 disables
+          #checkpoint_timeout = 5min              # range 30s-1d
+          max_wal_size = 1GB
+          min_wal_size = 80MB
+          #checkpoint_completion_target = 0.5     # checkpoint target duration, 0.0 - 1.0
+          #checkpoint_flush_after = 256kB         # measured in pages, 0 disables
+          #checkpoint_warning = 30s               # 0 disables
+          log_timezone = 'Etc/UTC'
+          cluster_name = 'snoop'                  # added to process titles if nonempty
+          datestyle = 'iso, mdy'
+          #intervalstyle = 'postgres'
+          timezone = 'Etc/UTC'
+          lc_messages = 'en_US.utf8'                      # locale for system error message
+          lc_monetary = 'en_US.utf8'                      # locale for monetary formatting
+          lc_numeric = 'en_US.utf8'                       # locale for number formatting
+          lc_time = 'en_US.utf8'                          # locale for time formatting
+          default_text_search_config = 'pg_catalog.english'
+          EOF
+      }
+
       template {
         data = <<EOF
           POSTGRES_USER = "snoop"
@@ -383,17 +482,20 @@ job "hoover-deps" {
         destination = "local/postgres.env"
         env = true
       }
+
       ${ set_pg_password_template('snoop') }
+
       resources {
         cpu = 200
-        memory = 300
+        memory = 768
         network {
           mbits = 1
           port "pg" {}
         }
       }
+
       service {
-        name = "hoover-snoop-pg"
+        name = "snoop-pg"
         port = "pg"
         check {
           name = "tcp"

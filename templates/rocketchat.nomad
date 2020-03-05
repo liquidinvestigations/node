@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule with context -%}
 
 job "rocketchat" {
   datacenters = ["dc1"]
@@ -15,6 +15,7 @@ job "rocketchat" {
       }
 
       driver = "docker"
+      ${ shutdown_delay() }
       config {
         image = "mongo:3.2"
         volumes = [

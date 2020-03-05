@@ -32,7 +32,6 @@ class Configuration:
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Deps(),
-            hoover.System(),
             dokuwiki.Dokuwiki(),
             rocketchat.Rocketchat(),
             rocketchat.Migrate(),
@@ -132,8 +131,9 @@ class Configuration:
 
         self.snoop_workers = self.ini.getint('snoop', 'workers', fallback=1)
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
-        self.snoop_worker_memory_limit = self.ini.getint('snoop', 'worker_memory_limit', fallback=400)
-        self.snoop_worker_process_count = self.ini.getint('snoop', 'worker_process_count', fallback=1)
+        self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1600)
+        self.snoop_worker_memory_limit = self.ini.getint('snoop', 'worker_memory_limit', fallback=800)
+        self.snoop_worker_process_count = self.ini.getint('snoop', 'worker_process_count', fallback=4)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='11s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='9s')
