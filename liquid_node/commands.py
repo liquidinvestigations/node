@@ -325,8 +325,8 @@ def deploy(*args):
 
     # run the set password script
     if options.secrets:
-        docker.exec_(f'search-pg', 'sh', '/local/set_pg_password.sh')
-        docker.exec_(f'snoop-pg', 'sh', '/local/set_pg_password.sh')
+        docker.exec_(f'hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
+        docker.exec_(f'hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
 
     # wait until all deps are healthy
     if options.checks:
