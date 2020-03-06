@@ -318,19 +318,14 @@ def deploy(*args):
         job_checks = start(job, hcl)
         health_checks.update(job_checks)
 
-    # wait for database health checks
+    # wait until all deps are healthy
     if options.checks:
-        pg_checks = {k: v for k, v in health_checks.items() if k in hov_deps.pg_tasks}
-        wait_for_service_health_checks(pg_checks)
+        wait_for_service_health_checks(health_checks)
 
     # run the set password script
     if options.secrets:
         docker.exec_(f'hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
         docker.exec_(f'hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
-
-    # wait until all deps are healthy
-    if options.checks:
-        wait_for_service_health_checks(health_checks)
 
     for job, hcl in jobs:
         job_checks = start(job, hcl)
