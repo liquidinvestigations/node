@@ -123,7 +123,7 @@ job "hoover" {
 
     count = ${config.snoop_workers}
 
-    task "snoop" {
+    task "workers" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -213,7 +213,7 @@ job "hoover" {
     }
   }
 
-  group "snoop-api" {
+  group "snoop" {
 
     ${ continuous_reschedule() }
 

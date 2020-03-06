@@ -5,7 +5,7 @@ job "nextcloud" {
   type = "service"
   priority = 65
 
-  group "nc" {
+  group "nextcloud" {
     task "nextcloud" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -75,7 +75,7 @@ job "nextcloud" {
     }
   }
 
-  group "db" {
+  group "maria" {
     task "maria" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
