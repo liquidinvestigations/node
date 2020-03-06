@@ -98,12 +98,16 @@ job "hoover" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/_ping"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
             Host = ["hoover.${liquid_domain}"]
           }
+        }
+        check_restart {
+          limit = 3
+          grace = "65s"
         }
       }
     }
