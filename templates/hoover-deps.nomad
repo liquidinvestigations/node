@@ -487,7 +487,7 @@ job "hoover-deps" {
 
       resources {
         cpu = 200
-        memory = 768
+        memory = ${config.snoop_postgres_memory_limit}
         network {
           mbits = 1
           port "pg" {}
