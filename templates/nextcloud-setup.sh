@@ -54,7 +54,7 @@ php occ config:system:set updatechecker --value false --type boolean
 php occ config:system:set has_internet_connection --value true --type boolean
 php occ config:system:set appstoreenabled --value true --type boolean
 
-php occ upgrade
+php occ upgrade --no-interaction
 
 echo "Unpacking theme"
 rm -rf /var/www/html/themes/liquid || true

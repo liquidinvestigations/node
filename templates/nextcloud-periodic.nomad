@@ -17,6 +17,8 @@ job "nextcloud-periodic" {
     task "script" {
       leader = true
 
+      ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -26,34 +28,23 @@ job "nextcloud-periodic" {
         operator = "is_set"
       }
 
-      ${ task_logs() }
+      driver = "raw_exec"
 
-      driver = "docker"
       config {
-        image = "${config.image('liquid-nextcloud')}"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud:/var/www/html",
-          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
-        ]
-        args = ["sudo", "-Eu", "www-data", "bash", "/local/periodic.sh"]
-        labels {
-          liquid_task = "nextcloud-periodic"
-        }
+        command = "sh"
+        args    = ["local/periodic.sh"]
       }
+
       template {
-        data = <<EOF
-          set -ex
-          cd /var/www/html
-          php occ files:scan --all
-        EOF
         destination = "local/periodic.sh"
-      }
-      env {
-        TIMESTAMP = "${config.timestamp}"
-      }
-      resources {
-        memory = 100
-        cpu = 200
+        perms = "755"
+        data = <<-EOF
+          #!/bin/sh
+          set -ex
+
+          container_id="$(docker ps -q -f label=liquid_task=nextcloud)"
+          docker exec $container_id sudo -Eu www-data php occ files:scan --all
+        EOF
       }
     }
   }
