@@ -10,7 +10,7 @@ if [ -z "$MYSQL_HOST" ]; then
 fi
 
 set +e
-INSTALLED=$(php /var/www/html/occ status --output=json | jq '.installed' || echo "error")
+INSTALLED=$((php /var/www/html/occ status --output=json | sed -r 's/(^|\})[^{}]+(\{|$)/\1\2/g')| jq '.installed' || echo "error")
 set -e
 
 if [ "$INSTALLED" == "false" ]; then
