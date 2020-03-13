@@ -10,6 +10,8 @@ if [ -z "$MYSQL_HOST" ]; then
 fi
 
 set +e
+# php /var/www/html/occ status --output=json returns something like "Nextcloud is not installed" + JSON ,creating a JSON parse Error
+# the sed regex removes everything that isnt inside the JSON {} brackets
 INSTALLED=$((php /var/www/html/occ status --output=json | sed -r 's/(^|\})[^{}]+(\{|$)/\1\2/g')| jq '.installed' || echo "error")
 set -e
 
