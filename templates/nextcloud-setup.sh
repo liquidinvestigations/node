@@ -48,8 +48,8 @@ php occ config:system:set overwriteprotocol --value $HTTP_PROTO
 php occ config:system:set htaccess.RewriteBase --value '/'
 php occ config:system:set skeletondirectory --value ''
 php occ config:system:set updatechecker --value false --type boolean
-php occ config:system:set has_internet_connection --value false --type boolean
-php occ config:system:set appstoreenabled --value false --type boolean
+php occ config:system:set has_internet_connection --value true --type boolean
+php occ config:system:set appstoreenabled --value true --type boolean
 
 echo "Unpacking theme"
 rm -rf /var/www/html/themes/liquid || true
@@ -61,13 +61,18 @@ php occ config:system:set theme --value liquid
 
 #install contacts before shutting down the app store
 php occ app:install contacts || true
+php occ app:install calendar || true
+php occ app:install deck     || true
+php occ app:install polls    || true
 
+php occ app:enable  calendar
+php occ app:disable contacts
 php occ app:disable theming
 php occ app:disable accessibility
 php occ app:disable activity
 php occ app:disable comments
 php occ app:disable federation
-php occ app:disable files_pdfviewer
+php occ app:enable files_pdfviewer
 php occ app:disable files_versions
 php occ app:disable files_videoplayer
 php occ app:disable files_sharing
@@ -81,6 +86,9 @@ php occ app:disable support
 php occ app:disable survey_client
 php occ app:disable systemtags
 php occ app:disable updatenotification
+
+php occ config:system:set has_internet_connection --value false --type boolean
+php occ config:system:set appstoreenabled --value false --type boolean
 
 echo "Configuration done"
 
