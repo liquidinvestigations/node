@@ -71,7 +71,7 @@ php occ app:install deck     || true
 php occ app:install polls    || true
 
 php occ app:enable  calendar
-php occ app:disable contacts
+php occ app:enable  contacts
 php occ app:disable theming
 php occ app:disable accessibility
 php occ app:disable activity
