@@ -12,10 +12,11 @@ fi
 set +e
 # php /var/www/html/occ status --output=json returns something like "Nextcloud is not installed" + JSON ,creating a JSON parse Error
 # the sed regex removes everything that isnt inside the JSON {} brackets
-INSTALLED=$((php /var/www/html/occ status --output=json | sed -r 's/(^|\})[^{}]+(\{|$)/\1\2/g')| jq '.installed' || echo "error")
+php /var/www/html/occ status --output=json
+INSTALLED=$( ( php /var/www/html/occ status --output=json | sed -r 's/(^|\})[^{}]+(\{|$)/\1\2/g' ) | jq '.installed' || echo "error" )
 set -e
 
-if [ "$INSTALLED" == "false" ]; then
+if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
     echo "Installing nextcloud"
 
     php /var/www/html/occ maintenance:install \
@@ -52,6 +53,8 @@ php occ config:system:set skeletondirectory --value ''
 php occ config:system:set updatechecker --value false --type boolean
 php occ config:system:set has_internet_connection --value true --type boolean
 php occ config:system:set appstoreenabled --value true --type boolean
+
+php occ upgrade --no-interaction
 
 echo "Unpacking theme"
 rm -rf /var/www/html/themes/liquid || true
