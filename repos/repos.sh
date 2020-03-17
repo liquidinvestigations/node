@@ -6,4 +6,5 @@ repos=(
         liquidinvestigations/authproxy
         liquidinvestigations/hypothesis-h
         liquidinvestigations/codimd-server
+        liquidinvestigations/h-client
 )

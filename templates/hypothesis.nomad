@@ -228,6 +228,7 @@ job "hypothesis" {
           
           APP_URL = "${config.liquid_http_protocol}://hypothesis.${liquid_domain}"
           CLIENT_URL = "${config.liquid_http_protocol}://client.hypothesis.${liquid_domain}"
+          CLIENT_RPC_ALLOWED_ORIGINS = "${config.liquid_http_protocol}://client.hypothesis.${liquid_domain} ${config.liquid_http_protocol}://hypothesis.${liquid_domain} ${config.liquid_http_protocol}://dokuwiki.${liquid_domain} ${config.liquid_http_protocol}://hoover.${liquid_domain} ${config.liquid_http_protocol}://${liquid_domain}"
           PROXY_AUTH = "true"
           AUTHORITY = ${liquid_domain|tojson}
           {{- with secret "liquid/hypothesis/hypothesis.secret_key" }}
@@ -335,6 +336,7 @@ job "hypothesis" {
       template {
         data = <<-EOF
           LIQUID_DOMAIN = ${liquid_domain|tojson}
+          LIQUID_HTTP_PROTO = ${config.liquid_http_protocol|tojson}
           EOF
         destination = "local/bake.env"
         env = true
