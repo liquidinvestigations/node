@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -ex
+set -o pipefail
 
 sleep 7
 
@@ -9,17 +10,28 @@ if [ -z "$MYSQL_HOST" ]; then
     exit 1
 fi
 
+cd /var/www/html
+
 set +e
-# php /var/www/html/occ status --output=json returns something like "Nextcloud is not installed" + JSON ,creating a JSON parse Error
-# the sed regex removes everything that isnt inside the JSON {} brackets
-php /var/www/html/occ status --output=json
-INSTALLED=$( ( php /var/www/html/occ status --output=json | sed -r 's/(^|\})[^{}]+(\{|$)/\1\2/g' ) | jq '.installed' || echo "error" )
+# `php occ status --output=json` returns something like "Nextcloud is not
+# installed" + JSON, creating a JSON parse Error; `jq` fill fail thus saving
+# $INSTALLED as "error". Using `pipefail` we can capure  errors of `php status`
+# too as the "error" value in $INSTALLED.
+php occ status --output=json
+INSTALLED=$( set -o pipefail; php occ status --output=json | jq '.installed' || echo "error" )
 set -e
+
+if [[ "$INSTALLED" =~ "true" || "$INSTALLED" =~ "error" ]]; then
+    echo "Trying to upgrade nextcloud"
+    php occ upgrade --no-interaction || true
+    php occ app:update --no-interaction --all || true
+fi
+
 
 if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
     echo "Installing nextcloud"
 
-    php /var/www/html/occ maintenance:install \
+    php occ maintenance:install \
             --no-interaction \
             --verbose \
             --database mysql \
@@ -54,13 +66,11 @@ php occ config:system:set updatechecker --value false --type boolean
 php occ config:system:set has_internet_connection --value true --type boolean
 php occ config:system:set appstoreenabled --value true --type boolean
 
-php occ upgrade --no-interaction
-
 echo "Unpacking theme"
-rm -rf /var/www/html/themes/liquid || true
-cp -r /liquid/theme /var/www/html/themes/liquid
-chown -R www-data:www-data /var/www/html/themes/liquid
-chmod g+s /var/www/html/themes/liquid
+rm -rf themes/liquid || true
+cp -r /liquid/theme themes/liquid
+chown -R www-data:www-data themes/liquid
+chmod g+s themes/liquid
 
 php occ config:system:set theme --value liquid
 
