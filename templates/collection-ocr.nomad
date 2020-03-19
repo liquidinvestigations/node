@@ -55,6 +55,10 @@ job "collection-${name}-ocr{% if periodic %}-${periodic}{% endif %}" {
         WORKER_NICE = "${nice}"
         {% endif %}
       }
+
+      env {
+        TIMESTAMP = "${config.timestamp}"
+      }
     }
   }
 }

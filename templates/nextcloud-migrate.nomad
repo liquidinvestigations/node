@@ -38,6 +38,10 @@ job "nextcloud-migrate" {
         args    = ["local/migrate.sh"]
       }
 
+      env {
+        TIMESTAMP = "${config.timestamp}"
+      }
+
       template {
         destination = "local/migrate.sh"
         perms = "755"

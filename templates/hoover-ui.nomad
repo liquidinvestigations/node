@@ -30,6 +30,11 @@ job "hoover-ui" {
         }
         args = ["npm", "run", "build"]
       }
+
+      env {
+        TIMESTAMP = "${config.timestamp}"
+      }
+
       resources {
         memory = 1300
       }
