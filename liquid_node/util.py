@@ -1,3 +1,4 @@
+from time import sleep
 import logging
 from importlib import import_module
 
@@ -35,3 +36,24 @@ def import_string(dotted_path):
     except AttributeError as err:
         msg = f"Module {module_path!r} does not define {class_name!r}"
         raise ImportError(msg) from err
+
+
+def retry(count=4, wait_sec=5, exp=2):
+    def _retry(f):
+        def wrapper(*args, **kwargs):
+            current_wait = wait_sec
+            for i in range(count):
+                try:
+                    return f(*args, **kwargs)
+                except Exception as e:
+                    log.exception(e)
+                    if i == count - 1:
+                        raise
+
+                    log.warning("#%s/%s retrying in %s sec", i + 1, count, current_wait)
+                    current_wait = int(current_wait * exp)
+                    sleep(current_wait)
+                    continue
+        return wrapper
+
+    return _retry

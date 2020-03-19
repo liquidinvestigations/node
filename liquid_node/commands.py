@@ -13,7 +13,7 @@ from .consul import consul
 from .jobs import get_job, hoover
 from .nomad import nomad
 from .process import run
-from .util import first
+from .util import first, retry
 from .docker import docker
 from .vault import vault
 
@@ -324,8 +324,8 @@ def deploy(*args):
 
     # run the set password script
     if options.secrets:
-        docker.exec_(f'hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
-        docker.exec_(f'hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
+        retry()(docker.exec_)(f'hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
+        retry()(docker.exec_)(f'hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
 
     for job, hcl in jobs:
         job_checks = start(job, hcl)

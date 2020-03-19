@@ -7,29 +7,9 @@ from time import time, sleep
 from liquid_node.configuration import config
 from liquid_node.nomad import nomad
 from liquid_node.jsonapi import JsonApi
+from .util import retry
 
 log = logging.getLogger(__name__)
-
-
-def retry(count=4, wait_sec=5, exp=2):
-    def _retry(f):
-        def wrapper(*args, **kwargs):
-            current_wait = wait_sec
-            for i in range(count):
-                try:
-                    return f(*args, **kwargs)
-                except Exception as e:
-                    log.exception(e)
-                    if i == count - 1:
-                        raise
-
-                    log.warning("#%s/%s retrying in %s sec", i + 1, count, current_wait)
-                    current_wait = int(current_wait * exp)
-                    sleep(current_wait)
-                    continue
-        return wrapper
-
-    return _retry
 
 
 def backup(*args):
