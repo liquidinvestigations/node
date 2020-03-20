@@ -8,6 +8,7 @@ job "hoover" {
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
   group "web" {
+    count = ${config.hoover_web_count}
     task "search" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -20,7 +21,7 @@ job "hoover" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_search_repo}
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build:ro",
         ]
         port_map {
           http = 80
@@ -85,7 +86,7 @@ job "hoover" {
         env = true
       }
       resources {
-        memory = 300
+        memory = ${config.hoover_web_memory_limit}
         network {
           mbits = 1
           port "http" {}

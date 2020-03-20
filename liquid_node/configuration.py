@@ -128,8 +128,13 @@ class Configuration:
                             fallback=512)
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
+
         self.hoover_authproxy_memory_limit = self.ini.getint('liquid',
                                                              'hoover_authproxy_memory_limit', fallback=500)
+        self.hoover_web_memory_limit = self.ini.getint('liquid',
+                                                       'hoover_web_memory_limit', fallback=300)
+        self.hoover_web_count = self.ini.getint('liquid',
+                                                'hoover_web_count', fallback=2)
 
         self.snoop_workers = self.ini.getint('snoop', 'workers', fallback=1)
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
