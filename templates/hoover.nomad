@@ -47,7 +47,7 @@ job "hoover" {
         ./manage.py migrate
         ./manage.py healthcheck
         ./manage.py synccollections "$SNOOP_COLLECTIONS"
-        exec waitress-serve --port 80 --threads=80 hoover.site.wsgi:application
+        exec waitress-serve --port 80 --threads=20 hoover.site.wsgi:application
         EOF
         env = false
         destination = "local/startup.sh"
