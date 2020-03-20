@@ -9,6 +9,7 @@ job "hoover" {
 
   group "web" {
     count = ${config.hoover_web_count}
+
     task "search" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -228,7 +229,8 @@ job "hoover" {
     }
   }
 
-  group "snoop" {
+  group "snoop-web" {
+    count = ${config.hoover_web_count}
 
     ${ continuous_reschedule() }
 
@@ -248,7 +250,7 @@ job "hoover" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections:ro",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
@@ -317,7 +319,7 @@ job "hoover" {
         env = true
       }
       resources {
-        memory = 400
+        memory = ${config.hoover_web_memory_limit}
         cpu = 200
         network {
           mbits = 1
