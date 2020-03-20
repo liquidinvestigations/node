@@ -128,6 +128,9 @@ job "hoover" {
       'hoover',
       host='hoover.' + liquid_domain,
       upstream='hoover-search',
+      threads=50,
+      memory=700,
+      count=3,
     ) }
 
   group "workers" {
