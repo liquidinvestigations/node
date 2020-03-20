@@ -37,15 +37,16 @@ class Nomad(JsonApi):
                     yield service['Name'], [name(check) for check in service['Checks'] or []]
 
     def get_resources(self, spec):
-        """Generates (task, type, resources) tuples with resource stranzas for
+        """Generates (task, count, type, resources) tuples with resource stranzas for
         the supplied job."""
 
         for group in spec['TaskGroups'] or []:
             group_name = f'{spec["Name"]}-{group["Name"]}'
-            yield group_name, spec['Type'], {'EphemeralDiskMB': group['EphemeralDisk']['SizeMB']}
+            count = group['Count']
+            yield group_name, count, spec['Type'], {'EphemeralDiskMB': group['EphemeralDisk']['SizeMB']}
             for task in group['Tasks'] or []:
                 name = f'{group_name}-{task["Name"]}'
-                yield name, spec['Type'], task['Resources']
+                yield name, count, spec['Type'], task['Resources']
 
     def jobs(self):
         return self.get(f'jobs')

@@ -129,7 +129,7 @@ job "hoover" {
       host='hoover.' + liquid_domain,
       upstream='hoover-search',
       threads=50,
-      memory=700,
+      memory=config.hoover_authproxy_memory_limit,
       count=3,
     ) }
 

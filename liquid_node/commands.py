@@ -179,13 +179,13 @@ def resources():
             yield from nomad.get_resources(spec)
 
     total = defaultdict(int)
-    for name, _type, res in get_all_res():
+    for name, count, _type, res in get_all_res():
         for key in ['MemoryMB', 'CPU', 'EphemeralDiskMB']:
             if key not in res:
                 continue
             if res[key] is None:
                 raise RuntimeError("Please update Nomad to 0.9.3+")
-            total[f'{_type} {key}'] += res[key]
+            total[f'{_type} {key}'] += res[key] * count
 
     print('Resource requirement totals: ')
     for key, value in sorted(total.items()):
