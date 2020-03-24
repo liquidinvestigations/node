@@ -384,13 +384,13 @@ def alloc(job, group):
 
 
 def shell(name, *args):
-    """Open a shell in a docker container tagged with liquid_task=`name`"""
+    """Open a shell in a docker container addressed as JOB:TASK"""
 
     docker.shell(name, *args)
 
 
 def dockerexec(name, *args):
-    """Run `docker exec` in a container tagged with liquid_task=`name`"""
+    """Run `nomad exec` in a container addressed as JOB:TASK"""
 
     docker.exec_(name, *args)
 

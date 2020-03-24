@@ -28,8 +28,11 @@ class Docker:
         if tty:
             docker_exec_cmd += ['-t']
 
-        docker_exec_cmd += [name] + list(args or (['bash'] if tty else []))
+        docker_exec_cmd += [name, '--'] + list(args or (['bash'] if tty else []))
         return docker_exec_cmd
+
+    def exec_command_str(self, *args, **kwargs):
+        return " ".join(self.exec_command(*args, **kwargs))
 
     def shell(self, name, *args):
         """Run the given command in a docker container tagged with liquid_task=`name`.
