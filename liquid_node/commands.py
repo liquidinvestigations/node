@@ -201,7 +201,7 @@ def check_system_config():
     if os.uname().sysname == 'Darwin':
         return
 
-    assert int(run("cat /proc/sys/vm/max_map_count")) >= 262144, \
+    assert int(run("cat /proc/sys/vm/max_map_count", shell=True)) >= 262144, \
         'the "vm.max_map_count" kernel parameter is too low, check readme'
 
 
@@ -294,10 +294,8 @@ def deploy(*args):
         for app in core_auth_apps:
             log.info('Auth %s -> %s', app['name'], app['callback'])
             cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
-            containers = docker.containers([('liquid_task', 'liquid-core')])
-            container_id = first(containers, 'liquid-core containers')
-            docker_exec_cmd = ['docker', 'exec', container_id] + cmd
-            tokens = json.loads(run(docker_exec_cmd, shell=False))
+            output = docker.exec_('liquid:core', *cmd)
+            tokens = json.loads(output)
             vault.set(app['vault_path'], tokens)
 
     # check if there are jobs to stop
