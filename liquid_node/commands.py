@@ -294,7 +294,7 @@ def deploy(*args):
         for app in core_auth_apps:
             log.info('Auth %s -> %s', app['name'], app['callback'])
             cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
-            output = docker.exec_('liquid:core', *cmd)
+            output = retry()(docker.exec_)('liquid:core', *cmd)
             tokens = json.loads(output)
             vault.set(app['vault_path'], tokens)
 
