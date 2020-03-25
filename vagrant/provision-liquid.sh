@@ -29,12 +29,10 @@ echo "Turn workers off, others on, and deploy"
 cp examples/liquid.ini .
 cat vagrant/liquid-collections-alt.ini >> liquid.ini
 ./liquid resources
-./liquid deploy --no-secrets
-./liquid shell hoover:snoop ./manage.py rundispatcher
-sleep 20
+./liquid deploy
 
 echo "Do a backup"
-#until ./liquid shell snoop-testdata-api ./manage.py workisdone 2>/dev/null; do sleep 5; done
+# until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>/dev/null; do sleep 5; done
 ./liquid backup ./backup
 zcat backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
 tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'

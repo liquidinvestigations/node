@@ -12,7 +12,7 @@ from .configuration import config
 from .consul import consul
 from .jobs import get_job, hoover
 from .nomad import nomad
-from .process import run
+from .process import run, run_fg
 from .util import first, retry
 from .docker import docker
 from .vault import vault
@@ -390,9 +390,9 @@ def shell(name, *args):
 
 
 def dockerexec(name, *args):
-    """Run `nomad exec` in a container addressed as JOB:TASK"""
+    """Run `nomad alloc exec` in a container addressed as JOB:TASK"""
 
-    docker.exec_(name, *args)
+    run_fg(docker.exec_command(name, *args, tty=False), shell=False)
 
 
 def getsecret(path=None):
