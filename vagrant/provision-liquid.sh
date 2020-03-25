@@ -30,6 +30,8 @@ cp examples/liquid.ini .
 cat vagrant/liquid-collections-alt.ini >> liquid.ini
 ./liquid resources
 ./liquid deploy --no-secrets
+./liquid shell hoover:snoop ./manage.py rundispatcher
+sleep 20
 
 echo "Do a backup"
 #until ./liquid shell snoop-testdata-api ./manage.py workisdone 2>/dev/null; do sleep 5; done
