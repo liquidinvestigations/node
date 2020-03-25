@@ -49,8 +49,7 @@ job "nextcloud-migrate" {
           #!/bin/sh
           set -ex
 
-          container_id="$(docker ps -q -f label=liquid_task=nextcloud)"
-          docker exec $container_id sudo -Eu www-data bash /local/setup.sh
+          ${exec_command('nextcloud:nextcloud', 'sudo', '-Eu', 'www-data', 'bash', '/local/setup.sh')}
         EOF
       }
     }

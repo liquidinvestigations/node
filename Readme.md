@@ -9,7 +9,7 @@ Scripts and configuration to run a Liquid Node
 
 ### Dependencies
 
-The Liquid bundle runs inside a cluster, see [docs/Cluster.md](docs/Cluster.md)
+The Liquid bundle runs inside a Nomad cluster, see [docs/Cluster.md](docs/Cluster.md)
 for instructions.
 
 Install system dependencies:

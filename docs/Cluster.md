@@ -24,7 +24,18 @@ Whichever option you choose, you will also need to:
 
 [liquidinvestigations/cluster][cluster] is a self-configuring cluster of
 Consul + Vault + Nomad. It's optimised for local development, testing, and
-demo/staging servers. Add the following to `cluster.ini`, assuming the `node`
+demo/staging servers.
+
+Use the [Docker installation method for cluster](https://github.com/liquidinvestigations/cluster/blob/master/docs/Docker-Installation.md#options-using-bindockersh) with a version later than `0.9.0`:
+
+```shell
+cd /opt/cluster
+git checkout v0.9.0
+vim cluster.ini
+./bin/docker.sh --rm --image liquidinvestigations/cluster:0.9.0
+```
+
+Add the following to `cluster.ini`, assuming the `node`
 repo was cloned in `/opt/node`:
 
 ```ini
@@ -40,20 +51,16 @@ liquid_volumes = /opt/node/volumes
 liquid_collections = /opt/node/collections
 ```
 
+
+**Note:** the system currently assumes that `cluster` is running in 
+
 [cluster]: https://github.com/liquidinvestigations/cluster
 
 
-## Install a Cluster Manually
+## Install a *Nomad + Vault + Consul* Cluster Manually
 
-Download Consul, Vault and Nomad. For production environments follow their
-manuals. For development run them all in `-dev` mode:
-
-```shell
-./consul agent -dev &
-./vault agent -dev &
-./nomad agent -dev &
-```
-
+This project assumes that Nomad, Consul and Vault are running as instructed above.
+If more flexibility is needed, open an issue.
 
 ## Nomad configuration
 

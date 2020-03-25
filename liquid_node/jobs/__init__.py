@@ -2,6 +2,7 @@ import logging
 import os
 from pathlib import Path
 from time import time, sleep
+from ..docker import docker
 
 import jinja2
 
@@ -30,6 +31,8 @@ def set_volumes_paths(substitutions={}):
     substitutions['check_timeout'] = config.check_timeout
     substitutions['consul_socket'] = os.path.realpath(config.consul_socket)
     substitutions['consul_url'] = config.consul_url
+
+    substitutions['exec_command'] = docker.exec_command_str
 
     substitutions['https_enabled'] = config.https_enabled
     if config.https_enabled:

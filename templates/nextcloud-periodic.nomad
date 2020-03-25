@@ -42,8 +42,7 @@ job "nextcloud-periodic" {
           #!/bin/sh
           set -ex
 
-          container_id="$(docker ps -q -f label=liquid_task=nextcloud)"
-          docker exec $container_id sudo -Eu www-data php occ files:scan --all
+          ${exec_command('nextcloud:nextcloud', 'sudo', '-Eu', 'www-data', 'php', 'occ', 'files:scan', '--all')}
         EOF
       }
     }
