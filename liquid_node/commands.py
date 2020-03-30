@@ -232,7 +232,7 @@ def deploy(*args):
         'liquid/authdemo/auth.django',
         'liquid/nextcloud/nextcloud.admin',
         'liquid/nextcloud/nextcloud.uploads',
-        'liquid/nextcloud/nextcloud.maria',
+        'liquid/nextcloud/nextcloud.postgres',
         'liquid/dokuwiki/auth.django',
         'liquid/nextcloud/auth.django',
         'liquid/rocketchat/auth.django',
