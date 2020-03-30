@@ -5,6 +5,64 @@ job "nextcloud" {
   type = "service"
   priority = 65
 
+  group "nc-db" {
+  task "nextcloud-pg" {
+    leader = true
+    constraint {
+      attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+      operator = "is_set"
+    }
+
+    driver = "docker"
+    ${ shutdown_delay() }
+    config {
+      image = "postgres:11.5"
+      volumes = [
+        "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql",
+      ]
+      labels {
+        liquid_task = "nextcloud-pg"
+      }
+      port_map {
+        nc-pg = 3306
+      }
+      # 128MB, the default postgresql shared_memory config
+      shm_size = 134217728
+    }
+    template {
+      data = <<-EOF
+      POSTGRES_DB = "nextcloud"
+      POSTGRES_USER = "nextcloud"
+      {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
+        POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+      {{- end }}
+      EOF
+      destination = "local/nc-pg.env"
+      env = true
+    }
+    resources {
+      cpu = 100
+      memory = 250
+      network {
+        mbits = 1
+        port "nc-pg" {
+          static = 8767
+        }
+      }
+    }
+    service {
+      name = "nextcloud-pg"
+      port = "nc-pg"
+      check {
+        name = "tcp"
+        initial_status = "critical"
+        type = "tcp"
+        interval = "${check_interval}"
+        timeout = "${check_timeout}"
+      }
+    }
+  }
+
   group "nextcloud" {
     task "nextcloud" {
       constraint {
@@ -93,63 +151,6 @@ job "nextcloud" {
           header {
             Host = ["nextcloud.${liquid_domain}"]
           }
-        }
-      }
-    }
-  }
-
-  group "maria" {
-    task "maria" {
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
-      ${ shutdown_delay() }
-      config {
-        image = "mariadb:10.4"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/mysql:/var/lib/mysql",
-        ]
-        labels {
-          liquid_task = "nextcloud-maria"
-        }
-        port_map {
-          maria = 3306
-        }
-      }
-      template {
-        data = <<-EOF
-        MYSQL_RANDOM_ROOT_PASSWORD = "yes"
-        MYSQL_DATABASE = "nextcloud"
-        MYSQL_USER = "nextcloud"
-        {{- with secret "liquid/nextcloud/nextcloud.maria" }}
-          MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
-        {{- end }}
-        EOF
-        destination = "local/maria.env"
-        env = true
-      }
-      resources {
-        cpu = 100
-        memory = 250
-        network {
-          mbits = 1
-          port "maria" {
-            static = 8767
-          }
-        }
-      }
-      service {
-        name = "nextcloud-maria"
-        port = "maria"
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
         }
       }
     }
