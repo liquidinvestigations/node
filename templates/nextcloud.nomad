@@ -113,12 +113,12 @@ job "nextcloud" {
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
-        {{- range service "nextcloud-maria" }}
+        {{- range service "nextcloud-pg" }}
           MYSQL_HOST = "{{.Address}}:{{.Port}}"
         {{- end }}
         MYSQL_DB = "nextcloud"
         MYSQL_USER = "nextcloud"
-        {{- with secret "liquid/nextcloud/nextcloud.maria" }}
+        {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
           MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
