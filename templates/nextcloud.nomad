@@ -72,7 +72,7 @@ job "nextcloud" {
         {{- end }}
         TIMESTAMP = "${config.timestamp}"
         EOF
-        destination = "local/nextcloud-migrate.env"
+        destination = "local/nextcloud-pg.env"
         env = true
       }
       template {
@@ -102,9 +102,9 @@ job "nextcloud" {
     }
   }
 
-  group "nc-db" {
-    task "nextcloud-pg" {
-      #leader = true
+  group "db" {
+    task "postgres" {
+      leader = true
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -121,7 +121,7 @@ job "nextcloud" {
           liquid_task = "nextcloud-pg"
         }
         port_map {
-          nc-pg = 5432
+          pg = 5432
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
@@ -134,7 +134,7 @@ job "nextcloud" {
           POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         EOF
-        destination = "local/ncpg.env"
+        destination = "local/pg.env"
         env = true
       }
       resources {

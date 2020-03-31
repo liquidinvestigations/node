@@ -34,7 +34,7 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
     php occ maintenance:install \
             --no-interaction \
             --verbose \
-            --database pgsql \
+            --database postgresql \
             --database-name $POSTGRES_DB \
             --database-host $POSTGRES_HOST \
             --database-user $POSTGRES_USER \
