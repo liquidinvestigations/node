@@ -5,12 +5,6 @@ set -o pipefail
 
 sleep 7
 
-if [ -z "$NEXTCLOUD_INTERNAL_STATUS_URL" ]; then
-    echo "Missing NEXTCLOUD_INTERNAL_STATUS_URL - please wait for apache to boot up"
-    sleep 6
-    exit 1
-fi
-
 if [ -z "$MYSQL_HOST" ]; then
     echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
     exit 1
@@ -40,7 +34,7 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
     php occ maintenance:install \
             --no-interaction \
             --verbose \
-            --database mysql \
+            --database pgsql \
             --database-name $MYSQL_DB \
             --database-host $MYSQL_HOST \
             --database-user $MYSQL_USER \

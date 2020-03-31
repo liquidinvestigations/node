@@ -5,65 +5,6 @@ job "nextcloud" {
   type = "service"
   priority = 65
 
-  group "nc-db" {
-    task "nextcloud-pg" {
-      leader = true
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
-      ${ shutdown_delay() }
-      config {
-        image = "postgres:11.5"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql",
-        ]
-        labels {
-          liquid_task = "nextcloud-pg"
-        }
-        port_map {
-          nc-pg = 3306
-        }
-        # 128MB, the default postgresql shared_memory config
-        shm_size = 134217728
-      }
-      template {
-        data = <<-EOF
-        POSTGRES_DB = "nextcloud"
-        POSTGRES_USER = "nextcloud"
-        {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
-          POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
-        {{- end }}
-        EOF
-        destination = "local/nc-pg.env"
-        env = true
-      }
-      resources {
-        cpu = 100
-        memory = 250
-        network {
-          mbits = 1
-          port "ncpg" {
-            static = 8767
-          }
-        }
-      }
-      service {
-        name = "nextcloud-pg"
-        port = "ncpg"
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-
   group "nextcloud" {
     task "nextcloud" {
       constraint {
@@ -152,6 +93,65 @@ job "nextcloud" {
           header {
             Host = ["nextcloud.${liquid_domain}"]
           }
+        }
+      }
+    }
+  }
+
+  group "nc-db" {
+    task "nextcloud-pg" {
+      #leader = true
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      ${ shutdown_delay() }
+      config {
+        image = "postgres:latest"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql",
+        ]
+        labels {
+          liquid_task = "nextcloud-pg"
+        }
+        port_map {
+          nc-pg = 3306
+        }
+        # 128MB, the default postgresql shared_memory config
+        shm_size = 134217728
+      }
+      template {
+        data = <<-EOF
+        POSTGRES_DB = "nextcloud"
+        POSTGRES_USER = "nextcloud"
+        {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
+          POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+        {{- end }}
+        EOF
+        destination = "local/nc-pg.env"
+        env = true
+      }
+      resources {
+        cpu = 100
+        memory = 250
+        network {
+          mbits = 1
+          port "ncpg" {
+            static = 8767
+          }
+        }
+      }
+      service {
+        name = "nextcloud-pg"
+        port = "ncpg"
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
       }
     }
