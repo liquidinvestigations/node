@@ -5,8 +5,8 @@ set -o pipefail
 
 sleep 7
 
-if [ -z "$MYSQL_HOST" ]; then
-    echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
+if [ -z "$POSTGRES_HOST" ]; then
+    echo "Missing POSTGRES_HOST - please wait for the DB to spin up before running setup"
     exit 1
 fi
 
@@ -35,10 +35,10 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
             --no-interaction \
             --verbose \
             --database pgsql \
-            --database-name $MYSQL_DB \
-            --database-host $MYSQL_HOST \
-            --database-user $MYSQL_USER \
-            --database-pass $MYSQL_PASSWORD \
+            --database-name $POSTGRES_DB \
+            --database-host $POSTGRES_HOST \
+            --database-user $POSTGRES_USER \
+            --database-pass $POSTGRES_PASSWORD \
             --admin-user=$NEXTCLOUD_ADMIN_USER \
             --admin-pass=$NEXTCLOUD_ADMIN_PASSWORD
 
@@ -55,7 +55,7 @@ fi
 
 echo "Configuring..."
 php occ config:system:set trusted_domains 0 --value '*'
-php occ config:system:set dbhost --value $MYSQL_HOST
+php occ config:system:set dbhost --value $POSTGRES_HOST
 php occ config:system:set overwrite.cli.url --value $HTTP_PROTO://$NEXTCLOUD_HOST
 php occ config:system:set allow_user_to_change_display_name --value false --type boolean
 php occ config:system:set overwritehost --value $NEXTCLOUD_HOST

@@ -56,12 +56,16 @@ job "nextcloud" {
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- range service "nextcloud-pg" }}
-          MYSQL_HOST = "{{.Address}}:{{.Port}}"
+          POSTGRES_HOST = "postgresql://nextcloud:
+          {{- with secret "liquid/nextcloud/nextcloud.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/nextcloud"
         {{- end }}
-        MYSQL_DB = "nextcloud"
-        MYSQL_USER = "nextcloud"
+        POSTGRES_DB = "nextcloud"
+        POSTGRES_USER = "nextcloud"
         {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
-          MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
+          POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
           UPLOADS_USER_PASSWORD = {{.Data.secret_key | toJSON }}
@@ -111,13 +115,13 @@ job "nextcloud" {
       config {
         image = "postgres:latest"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "nextcloud-pg"
         }
         port_map {
-          nc-pg = 3306
+          nc-pg = 5432
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
@@ -130,22 +134,20 @@ job "nextcloud" {
           POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         EOF
-        destination = "local/nc-pg.env"
+        destination = "local/ncpg.env"
         env = true
       }
       resources {
         cpu = 100
-        memory = 250
+        memory = 500
         network {
           mbits = 1
-          port "ncpg" {
-            static = 8767
-          }
+          port "pg" {}
         }
       }
       service {
         name = "nextcloud-pg"
-        port = "ncpg"
+        port = "pg"
         check {
           name = "tcp"
           initial_status = "critical"
