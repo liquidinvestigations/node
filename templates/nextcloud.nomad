@@ -56,11 +56,7 @@ job "nextcloud" {
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- range service "nextcloud-pg" }}
-          POSTGRES_HOST = "postgresql://nextcloud:
-          {{- with secret "liquid/nextcloud/nextcloud.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/nextcloud"
+          POSTGRES_HOST = "{{.Address}}:{{.Port}}"
         {{- end }}
         POSTGRES_DB = "nextcloud"
         POSTGRES_USER = "nextcloud"
@@ -113,7 +109,7 @@ job "nextcloud" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "postgres:latest"
+        image = "postgres:alpine"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql/data",
         ]
@@ -134,7 +130,7 @@ job "nextcloud" {
           POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         EOF
-        destination = "local/pg.env"
+        destination = "local/db.env"
         env = true
       }
       resources {
