@@ -96,7 +96,7 @@ def backup_sqlite3(dest_file, dbname, alloc):
     log.info(f"Dumping sqlite3 from alloc {alloc} db {dbname} to {tmp_file}")
     cmd = (
         f"set -exo pipefail; ./liquid dockerexec {alloc} "
-        f"sqlite3 -readonly {dbname} '.schema\n.dump' "
+        f"sqlite3 -readonly -batch {dbname} .schema .dump "
         f"| gzip -1 > {tmp_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
@@ -115,7 +115,7 @@ def restore_sqlite3(src_file, dbname, alloc):
     cmd = (
         f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
         f"'set -exo pipefail;"
-        f" zcat | sqlite3 {dbname} \".restore -\" ' > /dev/null "
+        f" zcat | sqlite3 -batch {dbname} \".restore -\" ' > /dev/null "
         f"< {src_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])

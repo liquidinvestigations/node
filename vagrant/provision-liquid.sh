@@ -50,7 +50,7 @@ cp -f examples/liquid.ini .
 ./liquid restore_all_collections ./backup
 
 echo "Restore apps"
-./liquid restore_apps
+./liquid restore_apps ./backup
 
 echo "Disable some apps, deploy"
 cp -f examples/liquid.ini .
