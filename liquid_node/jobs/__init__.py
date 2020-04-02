@@ -29,7 +29,6 @@ def set_volumes_paths(substitutions={}):
     substitutions['liquid_2fa'] = config.liquid_2fa
     substitutions['check_interval'] = config.check_interval
     substitutions['check_timeout'] = config.check_timeout
-    substitutions['consul_socket'] = os.path.realpath(config.consul_socket)
     substitutions['consul_url'] = config.consul_url
 
     substitutions['exec_command'] = docker.exec_command_str
