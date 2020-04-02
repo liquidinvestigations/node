@@ -17,18 +17,57 @@ def backup(*args):
     parser.add_argument('--no-blobs', action='store_false', dest='blobs')
     parser.add_argument('--no-es', action='store_false', dest='es')
     parser.add_argument('--no-pg', action='store_false', dest='pg')
+    parser.add_argument('--no-collections', action='store_false', dest='collections')
+    parser.add_argument('--no-apps', action='store_false', dest='apps')
     parser.add_argument('dest')
     options = parser.parse_args(args)
+    dest = Path(options.dest).resolve()
+    dest.mkdir(parents=True, exist_ok=True)
+
+    if not options.apps:
+        log.warning('not backing up app data (--no-apps)')
+    else:
+        backup_sqlite3(dest / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
+        backup_pg(dest / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
+        backup_pg(dest / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
+
+        if config.is_app_enabled('codimd'):
+            backup_pg(dest / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd:postgres')
+
+        if config.is_app_enabled('dokuwiki'):
+            backup_files(dest / 'dokuwiki.tgz', '/bitnami/dokuwiki', [], 'dokuwiki:php')
+
+    if not options.collections:
+        log.warning('not backing up collection data (--no-collections)')
+        return
+
     for collection in config.snoop_collections:
         name = collection['name']
 
-        collection_dir = Path(options.dest).resolve() / f"collection-{name}"
+        collection_dir = dest / f"collection-{name}"
         collection_dir.mkdir(parents=True, exist_ok=True)
         backup_collection(dest=collection_dir,
                           name=name,
                           save_blobs=options.blobs,
                           save_es=options.es,
                           save_pg=options.pg)
+
+
+def restore_apps(*args):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('src')
+    options = parser.parse_args(args)
+    src = Path(options.src).resolve()
+
+    restore_sqlite3(src / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
+    restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
+    restore_pg(src / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
+
+    if config.is_app_enabled('codimd'):
+        restore_pg(src / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd:postgres')
+
+    if config.is_app_enabled('dokuwiki'):
+        restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
 
 
 SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
@@ -41,7 +80,7 @@ def backup_pg(dest_file, username, dbname, alloc):
     tmp_file = Path(str(dest_file) + '.tmp')
     log.info(f"Dumping postgres from alloc {alloc} user {username} db {dbname} to {tmp_file}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec {alloc} "
+        f"set -exo pipefail; ./liquid dockerexec {alloc} "
         f"pg_dump -U {username} {dbname} -Ox "
         f"| gzip -1 > {tmp_file}"
     )
@@ -49,6 +88,37 @@ def backup_pg(dest_file, username, dbname, alloc):
 
     log.info(f"Renaming {tmp_file} to {dest_file}")
     tmp_file.rename(dest_file)
+
+
+@retry()
+def backup_sqlite3(dest_file, dbname, alloc):
+    tmp_file = Path(str(dest_file) + '.tmp')
+    log.info(f"Dumping sqlite3 from alloc {alloc} db {dbname} to {tmp_file}")
+    cmd = (
+        f"set -exo pipefail; ./liquid dockerexec {alloc} "
+        f"sqlite3 -readonly {dbname} '.schema\n.dump' "
+        f"| gzip -1 > {tmp_file}"
+    )
+    subprocess.check_call(["/bin/bash", "-c", cmd])
+
+    log.info(f"Renaming {tmp_file} to {dest_file}")
+    tmp_file.rename(dest_file)
+
+
+@retry()
+def restore_sqlite3(src_file, dbname, alloc):
+    if not src_file.is_file():
+        log.warn(f"No sqlite3 backup at {src_file}, skipping sqlite .restore")
+        return
+
+    log.info(f"Restore sqlite3 from {src_file} to alloc {alloc} db {dbname}")
+    cmd = (
+        f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
+        f"'set -exo pipefail;"
+        f" zcat | sqlite3 {dbname} \".restore -\" ' > /dev/null "
+        f"< {src_file}"
+    )
+    subprocess.check_call(["/bin/bash", "-c", cmd])
 
 
 @retry()
@@ -119,7 +189,7 @@ def restore_collection_blobs(src, name):
         log.warn(f"No blobs backup at {src_file}, skipping blob restore")
         return
     log.info(f"Restoring collection {name} blobs from {src_file}")
-    restore_files(src / "blobs.tgz", "blobs/" + name, ['./tmp'], SNOOP_API_ALLOC)
+    restore_files(src / "blobs.tgz", "blobs/" + name, SNOOP_API_ALLOC)
 
 
 @retry()

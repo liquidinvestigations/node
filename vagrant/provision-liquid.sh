@@ -34,11 +34,13 @@ cat vagrant/liquid-collections-alt.ini >> liquid.ini
 echo "Do a backup"
 # until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>/dev/null; do sleep 5; done
 ./liquid backup ./backup
+ls -aRlh ./backup
+
 zcat backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
 tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'
 #tar tz < backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
-./liquid backup ./backup2 --no-es --no-pg
-./liquid backup ./backup3 --no-blobs
+./liquid backup ./backup2 --no-es --no-pg --no-apps
+./liquid backup ./backup3 --no-blobs --no-apps
 ./liquid restore_collection ./backup/collection-testdata testdata2
 
 echo "Remove all collections, gc, restore from backup"
@@ -46,6 +48,9 @@ cp -f examples/liquid.ini .
 ./liquid nomadgc
 ./liquid deploy --no-secrets
 ./liquid restore_all_collections ./backup
+
+echo "Restore apps"
+./liquid restore_apps
 
 echo "Disable some apps, deploy"
 cp -f examples/liquid.ini .

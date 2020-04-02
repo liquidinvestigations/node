@@ -48,6 +48,7 @@ def main():
         backup.backup,
         backup.restore_collection,
         backup.restore_all_collections,
+        backup.restore_apps,
     ])
     (options, extra_args) = parser.parse_known_args()
     options.cmd(*extra_args)
