@@ -56,8 +56,15 @@ job "nextcloud" {
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         {{- range service "nextcloud-pg" }}
-          POSTGRES_HOST = "{{.Address}}:{{.Port}}"
+          POSTGRES_HOST = "postgresql://nextcloud:
+          {{- with secret "liquid/nextcloud/nextcloud.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/nextcloud"
         {{- end }}
+        #{{- range service "nextcloud-pg" }}
+        #  POSTGRES_HOST = "{{.Address}}:{{.Port}}"
+        #{{- end }}
         POSTGRES_DB = "nextcloud"
         POSTGRES_USER = "nextcloud"
         {{- with secret "liquid/nextcloud/nextcloud.postgres" }}

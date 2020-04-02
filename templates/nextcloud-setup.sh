@@ -18,6 +18,7 @@ set +e
 # $INSTALLED as "error". Using `pipefail` we can capure  errors of `php status`
 # too as the "error" value in $INSTALLED.
 php occ status --output=json
+
 INSTALLED=$( set -o pipefail; php occ status --output=json | jq '.installed' || echo "error" )
 set -e
 
