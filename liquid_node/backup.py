@@ -38,14 +38,17 @@ SNOOP_API_ALLOC = "hoover:snoop"
 
 @retry()
 def backup_collection_pg(dest, name):
-    dest_file = dest / "pg.sql.gz"
-    log.info(f"Dumping collection {name} pg to {dest_file}")
+    tmp_file = dest / "pg.sql.gz.tmp"
+    log.info(f"Dumping collection {name} pg to {tmp_file}")
     cmd = (
         f"set -eo pipefail; ./liquid dockerexec {SNOOP_PG_ALLOC} "
         f"pg_dump -U snoop collection_{name} -Ox "
-        f"| gzip -1 > {dest_file}"
+        f"| gzip -1 > {tmp_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
+
+    dest_file = dest / "pg.sql.gz"
+    tmp_file.rename(dest_file)
 
 
 @retry()
@@ -68,8 +71,8 @@ def restore_collection_pg(src, name):
 
 @retry()
 def backup_collection_blobs(dest, name):
-    dest_file = dest / "blobs.tgz"
-    log.info(f"Dumping collection {name} blobs to {dest_file}")
+    tmp_file = dest / "blobs.tgz.tmp"
+    log.info(f"Dumping collection {name} blobs to {tmp_file}")
     # tar raises a warning with an exit code of 1 if
     # the files change during archive creation.
     # We know we only create the files with an atomic move, so
@@ -77,9 +80,12 @@ def backup_collection_blobs(dest, name):
     cmd = (
         f"set -exo pipefail; ( ./liquid dockerexec {SNOOP_API_ALLOC} "
         f"tar c --exclude ./tmp -C blobs/{name} . || [[ $? -eq 1 ]] ) "
-        f"| gzip -1 > {dest_file}"
+        f"| gzip -1 > {tmp_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
+
+    dest_file = dest / "blobs.tgz"
+    tmp_file.rename(dest_file)
 
 
 @retry()
@@ -100,8 +106,8 @@ def restore_collection_blobs(src, name):
 
 @retry()
 def backup_collection_es(dest, name):
-    dest_file = dest / "es.tgz"
-    log.info(f"Dumping collection {name} es snapshot to {dest_file}")
+    tmp_file = dest / "es.tgz.tmp"
+    log.info(f"Dumping collection {name} es snapshot to {tmp_file}")
     es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
     try:
         es.put(f"/_snapshot/backup-{name}", {
@@ -129,9 +135,12 @@ def backup_collection_es(dest, name):
         tar_cmd = (
             f"./liquid dockerexec {SNOOP_ES_ALLOC} "
             f"tar c -C /es_repo/backup-{name} . "
-            f"| gzip -1 > {dest_file}"
+            f"| gzip -1 > {tmp_file}"
         )
         subprocess.check_call(tar_cmd, shell=True)
+
+        dest_file = dest / "es.tgz"
+        tmp_file.rename(dest_file)
     finally:
         es.delete(f"/_snapshot/backup-{name}/snapshot")
         es.delete(f"/_snapshot/backup-{name}")
