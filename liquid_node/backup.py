@@ -86,6 +86,9 @@ def backup_pg(dest_file, username, dbname, alloc):
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
 
+    log.info(f"Verify {tmp_file} by printing contents to /dev/null")
+    subprocess.check_call(["/bin/bash", "-c", f"zcat {tmp_file} > /dev/null"])
+
     log.info(f"Renaming {tmp_file} to {dest_file}")
     tmp_file.rename(dest_file)
 
@@ -100,6 +103,9 @@ def backup_sqlite3(dest_file, dbname, alloc):
         f"| gzip -1 > {tmp_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
+
+    log.info(f"Verify {tmp_file} by printing contents to /dev/null")
+    subprocess.check_call(["/bin/bash", "-c", f"zcat {tmp_file} > /dev/null"])
 
     log.info(f"Renaming {tmp_file} to {dest_file}")
     tmp_file.rename(dest_file)
@@ -162,6 +168,10 @@ def backup_files(dest_file, path, exclude, alloc):
         f"| gzip -1 > {tmp_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
+
+    log.info(f"Verify {tmp_file} by listing contents to /dev/null")
+    subprocess.check_call(["/bin/bash", "-c", f"tar -ztvf {tmp_file} > /dev/null"])
+
     log.info(f"Renaming {tmp_file} to {dest_file}")
     tmp_file.rename(dest_file)
 
@@ -220,12 +230,8 @@ def backup_collection_es(dest, name):
             else:
                 raise RuntimeError("Something went wrong: %r" % snapshot)
         log.info(f"Snapshot done in {int(time()-t0)}s")
-        tar_cmd = (
-            f"./liquid dockerexec {SNOOP_ES_ALLOC} "
-            f"tar c -C /es_repo/backup-{name} . "
-            f"| gzip -1 > {tmp_file}"
-        )
-        subprocess.check_call(tar_cmd, shell=True)
+
+        backup_files(tmp_file, f"/es_repo/backup-{name}", [], SNOOP_ES_ALLOC)
 
         dest_file = dest / "es.tgz"
         tmp_file.rename(dest_file)
@@ -256,15 +262,7 @@ def restore_collection_es(src, name):
             },
         })
         # populate its directory
-        tar_cmd = (
-            f"./liquid dockerexec {SNOOP_ES_ALLOC} bash -c "
-            f"'set -exo pipefail;"
-            f" rm -rf /es_repo/restore-{name};"
-            f" mkdir /es_repo/restore-{name};"
-            f" tar xz -C /es_repo/restore-{name} ' "
-            f"< {src_file}"
-        )
-        subprocess.check_call(tar_cmd, shell=True)
+        restore_files(src_file, f"/es_repo/restore-{name}", SNOOP_ES_ALLOC)
 
         # examine unpacked snapshot
         resp = es.get(f"/_snapshot/restore-{name}/snapshot")
