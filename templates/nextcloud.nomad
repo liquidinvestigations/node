@@ -66,7 +66,7 @@ job "nextcloud" {
           POSTGRES_HOST = "{{.Address}}:{{.Port}}"
         {{- end }}
         POSTGRES_DB = "nextcloud"
-        POSTGRES_USER = "nextcloud"
+        POSTGRES_USER = "nextcloudAdmin"
         {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
           POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
@@ -107,7 +107,6 @@ job "nextcloud" {
 
   group "db" {
     task "postgres" {
-      leader = true
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -116,7 +115,7 @@ job "nextcloud" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "postgres:alpine"
+        image = "postgres:latest"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql/data",
         ]
@@ -132,7 +131,7 @@ job "nextcloud" {
       template {
         data = <<-EOF
         POSTGRES_DB = "nextcloud"
-        POSTGRES_USER = "nextcloud"
+        POSTGRES_USER = "nextcloudAdmin"
         {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
           POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}

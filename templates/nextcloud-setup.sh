@@ -46,7 +46,7 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
     (
     set +x
     export OC_PASS="$UPLOADS_USER_PASSWORD"
-    php occ user:add --password-from-env --display-name="uploads" uploads
+    php occ user:add --password-from-env --display-name="upload" upload
     php occ config:system:set trusted_domains 0 --value '*'
     )
 
@@ -111,7 +111,11 @@ echo "Configuration done"
 (
 set +x
 export OC_PASS="$UPLOADS_USER_PASSWORD"
-php occ user:resetpassword --password-from-env uploads
+php occ user:add --password-from-env --display-name="upload" upload
+php occ config:system:set trusted_domains 0 --value '*'
+echo "uploads done"
+export OC_PASS="$UPLOADS_USER_PASSWORD"
+php occ user:resetpassword --password-from-env upload
 export OC_PASS="$NEXTCLOUD_ADMIN_PASSWORD"
 php occ user:resetpassword --password-from-env $NEXTCLOUD_ADMIN_USER
 )
