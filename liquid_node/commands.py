@@ -344,6 +344,8 @@ def halt():
         log.info('Stopping %s...', job)
         nomad.stop(job)
 
+    wait_for_stopped_jobs(jobs)
+
 
 def gc():
     """Stop all jobs that should not be running in the current deploy configuration:
