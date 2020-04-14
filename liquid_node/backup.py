@@ -69,6 +69,8 @@ def restore_apps(*args):
     if config.is_app_enabled('dokuwiki'):
         restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
 
+    log.info("Restore done; please run `./liquid halt && sleep 15 && ./liquid deploy`")
+
 
 SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
@@ -337,6 +339,8 @@ def restore_collection(src, name):
     restore_collection_es(src, name)
     restore_collection_blobs(src, name)
 
+    log.info("Collection deployed; please add it to `./liquid.ini` and re-run `./liquid deploy`")
+
 
 def restore_all_collections(backup_root):
     backup_root = Path(backup_root).resolve()
@@ -345,3 +349,5 @@ def restore_all_collections(backup_root):
         if src.is_dir() and src.name.startswith(PREFIX):
             name = src.name[len(PREFIX):]
             restore_collection(src, name)
+
+    log.info("Restore done; please run `./liquid halt && sleep 15 && ./liquid deploy`")
