@@ -54,19 +54,19 @@ echo "Restore apps"
 
 echo "Restore apps after wipe"
 docker stop -t 90 cluster
-sudo rm -vrf /opt/node/volumes/*
-sudo rm -vrf /opt/cluster/var/*
+sudo rm -rf /opt/node/volumes/*
+sudo rm -rf /opt/cluster/var/*
 docker start cluster
 docker exec cluster ./cluster.py wait
 ./liquid deploy
-./liquid restore_apps ./backup
 ./liquid restore_all_collections ./backup
-./liquid deploy
+./liquid restore_apps ./backup
 
 echo "Disable some apps, deploy"
 cp -f examples/liquid.ini .
 cat vagrant/liquid-apps.ini >> liquid.ini
 ./liquid deploy --no-secrets
+./liquid backup ./backup2 --no-es --no-pg
 
 echo "Disable some more apps, gc"
 echo "default_app_status = off" >> liquid.ini
