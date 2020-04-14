@@ -5,6 +5,63 @@ job "nextcloud" {
   type = "service"
   priority = 65
 
+  group "db" {
+    task "postgres" {
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      ${ shutdown_delay() }
+      config {
+        image = "postgres:latest"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql/data",
+        ]
+        labels {
+          liquid_task = "nextcloud-pg"
+        }
+        port_map {
+          pg = 5432
+        }
+        # 128MB, the default postgresql shared_memory config
+        shm_size = 134217728
+      }
+      template {
+        data = <<-EOF
+        POSTGRES_DB = "nextcloud"
+        POSTGRES_USER = "nextcloudAdmin"
+
+        {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
+          POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+        {{- end }}
+        EOF
+        destination = "local/db.env"
+        env = true
+      }
+      resources {
+        cpu = 100
+        memory = 500
+        network {
+          mbits = 1
+          port "pg" {}
+        }
+      }
+      service {
+        name = "nextcloud-pg"
+        port = "pg"
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
   group "nextcloud" {
     task "nextcloud" {
       constraint {
@@ -55,24 +112,22 @@ job "nextcloud" {
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
-        #{{- range service "nextcloud-pg" }}
-        #  POSTGRES_HOST = "postgresql://nextcloud:
-        #  {{- with secret "liquid/nextcloud/nextcloud.postgres" -}}
-        #    {{.Data.secret_key }}
-        #  {{- end -}}
-        #  @{{.Address}}:{{.Port}}/nextcloud"
-        #{{- end }}
-        {{- range service "nextcloud-pg" }}
-          POSTGRES_HOST = "{{.Address}}:{{.Port}}"
-        {{- end }}
+
         POSTGRES_DB = "nextcloud"
         POSTGRES_USER = "nextcloudAdmin"
+
         {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
           POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
+
         {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
           UPLOADS_USER_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
+
+        {{- range service "nextcloud-pg" }}
+          POSTGRES_HOST = "{{.Address}}:{{.Port}}"
+        {{- end }}
+
         TIMESTAMP = "${config.timestamp}"
         EOF
         destination = "local/nextcloud-pg.env"
@@ -100,62 +155,6 @@ job "nextcloud" {
           header {
             Host = ["nextcloud.${liquid_domain}"]
           }
-        }
-      }
-    }
-  }
-
-  group "db" {
-    task "postgres" {
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
-      ${ shutdown_delay() }
-      config {
-        image = "postgres:latest"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql/data",
-        ]
-        labels {
-          liquid_task = "nextcloud-pg"
-        }
-        port_map {
-          pg = 5432
-        }
-        # 128MB, the default postgresql shared_memory config
-        shm_size = 134217728
-      }
-      template {
-        data = <<-EOF
-        POSTGRES_DB = "nextcloud"
-        POSTGRES_USER = "nextcloudAdmin"
-        {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
-          POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
-        {{- end }}
-        EOF
-        destination = "local/db.env"
-        env = true
-      }
-      resources {
-        cpu = 100
-        memory = 500
-        network {
-          mbits = 1
-          port "pg" {}
-        }
-      }
-      service {
-        name = "nextcloud-pg"
-        port = "pg"
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
         }
       }
     }
