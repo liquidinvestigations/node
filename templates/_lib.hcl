@@ -1,4 +1,17 @@
 {%- macro continuous_reschedule() %}
+    restart {
+      attempts = 5
+      delay    = "11s"
+      interval = "3m"
+      mode     = "fail"
+    }
+    reschedule {
+      attempts       = 0
+      delay          = "11s"
+      delay_function = "exponential"
+      max_delay      = "19m"
+      unlimited      = true
+    }
 {%- endmacro %}
 
 {%- macro shutdown_delay() %}
