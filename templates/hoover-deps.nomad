@@ -43,6 +43,7 @@ job "hoover-deps" {
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
   group "es-master" {
+    ${ continuous_reschedule() }
     task "es" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -107,6 +108,7 @@ job "hoover-deps" {
 
   {% if config.elasticsearch_data_node_count %}
   group "es-data" {
+    ${ continuous_reschedule() }
     count = ${config.elasticsearch_data_node_count}
 
     task "es" {
@@ -301,6 +303,7 @@ job "hoover-deps" {
 
   {% if config.snoop_workers %}
   group "rabbitmq" {
+    ${ continuous_reschedule() }
 
     task "rabbitmq" {
       constraint {
@@ -394,7 +397,6 @@ job "hoover-deps" {
   {% endif %}
 
   group "snoop-pg" {
-
     ${ continuous_reschedule() }
 
     task "snoop-pg" {

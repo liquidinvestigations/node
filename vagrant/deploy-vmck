@@ -9,7 +9,7 @@ echo "Starting Vagrant"
 set -x
 set +e
 vagrant up --provider=vmck --no-provision
-echo 'sudo shutdown +30' | vagrant ssh
+echo 'sudo shutdown +45' | vagrant ssh
 vagrant provision
 ret=$?
 

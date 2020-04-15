@@ -8,6 +8,7 @@ from liquid_node.configuration import config
 from liquid_node.nomad import nomad
 from liquid_node.jsonapi import JsonApi
 from .util import retry
+from . import commands
 
 log = logging.getLogger(__name__)
 
@@ -60,14 +61,23 @@ def restore_apps(*args):
     src = Path(options.src).resolve()
 
     restore_sqlite3(src / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
+    nomad.restart('liquid', 'core')
     restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
+    nomad.restart('hoover', 'search')
     restore_pg(src / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
+    nomad.restart('hoover', 'snoop')
 
     if config.is_app_enabled('codimd'):
         restore_pg(src / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd:postgres')
+        nomad.restart('codimd', 'codimd')
 
     if config.is_app_enabled('dokuwiki'):
         restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
+        nomad.restart('dokuwiki', 'php')
+
+    log.info("Restore done; deploying")
+    commands.halt()
+    commands.deploy()
 
 
 SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
@@ -99,7 +109,7 @@ def backup_sqlite3(dest_file, dbname, alloc):
     log.info(f"Dumping sqlite3 from alloc {alloc} db {dbname} to {tmp_file}")
     cmd = (
         f"set -exo pipefail; ./liquid dockerexec {alloc} "
-        f"sqlite3 -readonly -batch {dbname} .schema .dump "
+        f"sqlite3 -readonly -batch {dbname} .dump "
         f"| gzip -1 > {tmp_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
@@ -118,13 +128,16 @@ def restore_sqlite3(src_file, dbname, alloc):
         return
 
     log.info(f"Restore sqlite3 from {src_file} to alloc {alloc} db {dbname}")
-    cmd = (
-        f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
-        f"'set -exo pipefail;"
-        f" zcat | sqlite3 -batch {dbname} \".restore -\" ' > /dev/null "
-        f"< {src_file}"
+    cmds = (
+        f"./liquid dockerexec {alloc} rm -f {dbname}",
+        (
+            f"set -exo pipefail; ./liquid dockerexec {alloc} bash -c "
+            f"'set -exo pipefail; zcat | sqlite3 -batch {dbname}' < {src_file}"
+        ),
     )
-    subprocess.check_call(["/bin/bash", "-c", cmd])
+
+    for cmd in cmds:
+        subprocess.check_call(["/bin/bash", "-c", cmd])
 
 
 @retry()
@@ -336,6 +349,9 @@ def restore_collection(src, name):
     restore_collection_pg(src, name)
     restore_collection_es(src, name)
     restore_collection_blobs(src, name)
+
+    log.info("Collection data restored")
+    log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
 
 
 def restore_all_collections(backup_root):

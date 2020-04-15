@@ -19,7 +19,7 @@ cp examples/liquid.ini .
 cat vagrant/liquid-collections.ini >> liquid.ini
 sudo apt-get install -qy python3-venv python3-pip
 sudo -H pip3 install pipenv
-pipenv install 
+pipenv install
 ./liquid resources
 ./liquid deploy
 
@@ -52,10 +52,21 @@ cp -f examples/liquid.ini .
 echo "Restore apps"
 ./liquid restore_apps ./backup
 
+echo "Restore apps after wipe"
+docker stop -t 90 cluster
+sudo rm -rf /opt/node/volumes/*
+sudo rm -rf /opt/cluster/var/*
+docker start cluster
+docker exec cluster ./cluster.py wait
+./liquid deploy
+./liquid restore_all_collections ./backup
+./liquid restore_apps ./backup
+
 echo "Disable some apps, deploy"
 cp -f examples/liquid.ini .
 cat vagrant/liquid-apps.ini >> liquid.ini
 ./liquid deploy --no-secrets
+./liquid backup ./backup2 --no-es --no-pg
 
 echo "Disable some more apps, gc"
 echo "default_app_status = off" >> liquid.ini

@@ -1,6 +1,11 @@
+import logging
+
 from .configuration import config
 from .jsonapi import JsonApi
 from .util import first
+
+
+log = logging.getLogger(__name__)
 
 
 class Nomad(JsonApi):
@@ -53,6 +58,23 @@ class Nomad(JsonApi):
 
     def job_allocations(self, job):
         return self.get(f'job/{job}/allocations')
+
+    def restart(self, job, task):
+        def allocs():
+            for alloc in self.job_allocations(job):
+                if task not in alloc['TaskStates']:
+                    continue
+                if alloc['ClientStatus'] != 'running':
+                    continue
+                yield alloc['ID']
+
+        hit = False
+        for alloc_id in allocs():
+            log.info(f'Restarting allocation for job "{job}", task "{task}", id {alloc_id}')
+            self.post(f'allocation/{alloc_id}/stop')
+            hit = True
+        if not hit:
+            raise RuntimeError(f'no allocs to restart job="{job}" task="{task}"')
 
     def agent_members(self):
         return self.get('agent/members')['Members']
