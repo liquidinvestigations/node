@@ -3,7 +3,7 @@
 job "nextcloud-database" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 64
+  priority = 100
 
   group "nextcloud-database" {
     task "nextcloud-database" {
