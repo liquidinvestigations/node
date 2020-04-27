@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
 job "hoover" {
   datacenters = ["dc1"]
@@ -9,8 +9,10 @@ job "hoover" {
 
   group "web" {
     count = ${config.hoover_web_count}
+    ${ group_disk() }
 
     task "search" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -136,10 +138,12 @@ job "hoover" {
     ) }
 
   group "workers" {
-
     count = ${config.snoop_workers}
+    ${ group_disk() }
 
     task "workers" {
+      ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -231,10 +235,12 @@ job "hoover" {
 
   group "snoop-web" {
     count = ${config.hoover_web_count}
-
     ${ continuous_reschedule() }
+    ${ group_disk() }
 
     task "snoop" {
+      ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
