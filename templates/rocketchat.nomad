@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, group_disk, task_logs with context -%}
 
 job "rocketchat" {
   datacenters = ["dc1"]
@@ -8,7 +8,9 @@ job "rocketchat" {
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
   group "db" {
+    ${ group_disk() }
     task "mongo" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -53,8 +55,10 @@ job "rocketchat" {
 
   group "app" {
     ${ continuous_reschedule() }
+    ${ group_disk() }
 
     task "rocketchat" {
+      ${ task_logs() }
       driver = "docker"
       config {
         image = "rocket.chat:1.1.1"

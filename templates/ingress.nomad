@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule -%}
+{% from '_lib.hcl' import continuous_reschedule, group_disk, task_logs -%}
 
 job "ingress" {
   datacenters = ["dc1"]
@@ -6,6 +6,7 @@ job "ingress" {
   priority = 90
 
   group "ingress" {
+    ${ group_disk() }
     constraint {
       attribute = "{% raw %}${meta.liquid_ingress}{% endraw %}"
       operator  = "is_set"
@@ -13,6 +14,7 @@ job "ingress" {
     ${ continuous_reschedule() }
 
     task "traefik" {
+      ${ task_logs() }
       driver = "docker"
       config {
         image = "traefik:1.7"

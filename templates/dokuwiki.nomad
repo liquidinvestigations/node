@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group with context -%}
+{% from '_lib.hcl' import authproxy_group, group_disk, task_logs with context -%}
 
 job "dokuwiki" {
   datacenters = ["dc1"]
@@ -6,7 +6,9 @@ job "dokuwiki" {
   priority = 65
 
   group "dokuwiki" {
+    ${ group_disk() }
     task "php" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
