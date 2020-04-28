@@ -6,7 +6,10 @@ job "zipkin" {
   priority = 25
 
   group "es" {
+    ${ group_disk() }
+
     task "es" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -62,7 +65,11 @@ job "zipkin" {
   }
 
   group "kibana" {
+    ${ group_disk() }
+
     task "kibana" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "docker.elastic.co/kibana/kibana:7.5.1"

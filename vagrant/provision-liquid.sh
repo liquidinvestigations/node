@@ -54,9 +54,11 @@ echo "Restore apps"
 
 echo "Restore apps after wipe"
 docker kill cluster
-docker kill $(docker ps -qa)
+docker kill $(docker ps -q)
+docker ps
 sudo rm -rf /opt/node/volumes/*
 sudo rm -rf /opt/cluster/var/*
+echo
 docker start cluster
 docker exec cluster ./cluster.py wait
 ./liquid deploy

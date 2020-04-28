@@ -22,11 +22,11 @@
 {%- macro task_logs() %}
 logs {
   max_files     = 3
-  max_file_size = 5
+  max_file_size = 3
 }
 {%- endmacro %}
 
-{%- macro group_disk(size=32) %}
+{%- macro group_disk(size=20) %}
 ephemeral_disk {
   size = ${size}
 }

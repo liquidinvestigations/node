@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, group_disk, task_logs with context -%}
 
 job "nextcloud" {
   datacenters = ["dc1"]
@@ -6,7 +6,10 @@ job "nextcloud" {
   priority = 65
 
   group "nextcloud" {
+    ${ group_disk() }
     task "nextcloud" {
+      ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -99,7 +102,10 @@ job "nextcloud" {
   }
 
   group "maria" {
+    ${ group_disk() }
     task "maria" {
+      ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
