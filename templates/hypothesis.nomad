@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk with context -%}
 
 job "hypothesis" {
   datacenters = ["dc1"]
@@ -6,7 +6,9 @@ job "hypothesis" {
   priority = 65
 
   group "db" {
+    ${ group_disk() }
     task "pg" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -60,6 +62,7 @@ job "hypothesis" {
     }
 
     task "es" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -106,12 +109,11 @@ job "hypothesis" {
     }
 
     task "rabbitmq" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
-
-      ${ task_logs() }
 
       driver = "docker"
       ${ shutdown_delay() }
@@ -151,7 +153,9 @@ job "hypothesis" {
   }
 
   group "h" {
+    ${ group_disk() }
     task "hypothesis" {
+      ${ task_logs() }
       # Constraint required for hypothesis-usersync
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -322,7 +326,9 @@ job "hypothesis" {
     ) }
 
   group "client" {
+    ${ group_disk() }
     task "nginx" {
+      ${ task_logs() }
       driver = "docker"
       config = {
         image = "${config.image('h-client')}"

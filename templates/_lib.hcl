@@ -21,12 +21,12 @@
 
 {%- macro task_logs() %}
 logs {
-  max_files     = 5
-  max_file_size = 1
+  max_files     = 3
+  max_file_size = 3
 }
 {%- endmacro %}
 
-{%- macro group_disk(size=50) %}
+{%- macro group_disk(size=20) %}
 ephemeral_disk {
   size = ${size}
 }
@@ -34,7 +34,7 @@ ephemeral_disk {
 
 {%- macro authproxy_group(name, host, upstream, threads=24, memory=300, user_header_template="{}", count=1) %}
   group "authproxy" {
-
+    ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     restart {
@@ -47,6 +47,8 @@ ephemeral_disk {
     count = ${count}
 
     task "web" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "${config.image('liquid-authproxy')}"

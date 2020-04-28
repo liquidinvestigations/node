@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, set_pg_password_template with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
@@ -44,7 +44,9 @@ job "hoover-deps" {
 
   group "es-master" {
     ${ continuous_reschedule() }
+    ${ group_disk() }
     task "es" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -109,9 +111,11 @@ job "hoover-deps" {
   {% if config.elasticsearch_data_node_count %}
   group "es-data" {
     ${ continuous_reschedule() }
+    ${ group_disk() }
     count = ${config.elasticsearch_data_node_count}
 
     task "es" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -182,8 +186,11 @@ job "hoover-deps" {
 
   group "search-pg" {
     ${ continuous_reschedule() }
+    ${ group_disk() }
 
     task "search-pg" {
+      ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -241,7 +248,12 @@ job "hoover-deps" {
   group "tika" {
     count = ${config.tika_count}
 
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
     task "tika" {
+      ${ task_logs() }
+
       driver = "docker"
       config {
         image = "logicalspark/docker-tikaserver:1.22"
@@ -304,8 +316,11 @@ job "hoover-deps" {
   {% if config.snoop_workers %}
   group "rabbitmq" {
     ${ continuous_reschedule() }
+    ${ group_disk() }
 
     task "rabbitmq" {
+      ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -398,8 +413,10 @@ job "hoover-deps" {
 
   group "snoop-pg" {
     ${ continuous_reschedule() }
+    ${ group_disk() }
 
     task "snoop-pg" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"

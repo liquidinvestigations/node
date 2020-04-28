@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk with context -%}
 
 job "codimd" {
   datacenters = ["dc1"]
@@ -6,7 +6,9 @@ job "codimd" {
   priority = 66
 
   group "codimd" {
+    ${ group_disk() }
     task "codimd" {
+      ${ task_logs() }
       leader = true
       driver = "docker"
       config {
@@ -106,7 +108,9 @@ job "codimd" {
   }
 
   group "db" {
+    ${ group_disk() }
     task "postgres" {
+      ${ task_logs() }
       leader = true
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"

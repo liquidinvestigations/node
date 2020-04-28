@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule -%}
+{% from '_lib.hcl' import continuous_reschedule, group_disk, task_logs -%}
 
 job "liquid" {
   datacenters = ["dc1"]
@@ -7,8 +7,10 @@ job "liquid" {
 
   group "core" {
     ${ continuous_reschedule() }
+    ${ group_disk() }
 
     task "core" {
+      ${ task_logs() }
       # Constraint required for hypothesis-usersync
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
