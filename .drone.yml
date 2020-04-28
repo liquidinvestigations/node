@@ -15,7 +15,7 @@ name: qemu
 # magic undocumented feature!
 # https://discourse.drone.io/t/how-to-limit-build-concurrency-per-project/3500
 concurrency:
-  limit: 3
+  limit: 2
 
 depends_on:
 - test
