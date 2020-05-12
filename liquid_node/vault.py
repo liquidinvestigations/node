@@ -35,7 +35,7 @@ class Vault(JsonApi):
 
         if 'liquid/' not in mounts['data']:
             log.info("Creating kv secrets engine `liquid`")
-            self.post(f'sys/mounts/liquid', {'type': 'kv'})
+            self.post('sys/mounts/liquid', {'type': 'kv'})
 
     def list(self, prefix=''):
         return self.get(f'{prefix}?list=true')['data']['keys']

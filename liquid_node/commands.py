@@ -322,8 +322,8 @@ def deploy(*args):
 
     # run the set password script
     if options.secrets:
-        retry()(docker.exec_)(f'hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
-        retry()(docker.exec_)(f'hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
+        retry()(docker.exec_)('hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
+        retry()(docker.exec_)('hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
 
     for job, hcl in jobs:
         job_checks = start(job, hcl)

@@ -14,10 +14,10 @@ class Nomad(JsonApi):
         super().__init__(endpoint + '/v1/')
 
     def parse(self, hcl):
-        return self.post(f'jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
+        return self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
 
     def run(self, spec):
-        self.post(f'jobs', {'job': spec})
+        self.post('jobs', {'job': spec})
 
         job_id = spec['ID']
         if spec.get('Periodic'):
@@ -54,7 +54,7 @@ class Nomad(JsonApi):
                 yield name, count, spec['Type'], task['Resources']
 
     def jobs(self):
-        return self.get(f'jobs')
+        return self.get('jobs')
 
     def job_allocations(self, job):
         return self.get(f'job/{job}/allocations')
