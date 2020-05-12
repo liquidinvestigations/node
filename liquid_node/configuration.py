@@ -8,6 +8,13 @@ from liquid_node.jobs import ci, Job, liquid, hoover, dokuwiki, rocketchat, \
     nextcloud, hypothesis, codimd
 
 
+def split_lang_codes(option):
+    option = option.strip()
+    if not option:
+        return []
+    return option.split(',')
+
+
 class Configuration:
     ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
                 'hypothesis',)
@@ -179,6 +186,7 @@ class Configuration:
                     'name': name,
                     'process': self.ini.getboolean(key, 'process', fallback=False),
                     'sync': self.ini.getboolean(key, 'sync', fallback=False),
+                    'ocr_languages': split_lang_codes(self.ini.get(key, 'ocr_languages', fallback='')),
                 })
 
             elif cls == 'job':
