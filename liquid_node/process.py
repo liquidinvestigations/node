@@ -21,4 +21,5 @@ def run_fg(cmd, **kwargs):
 
     log.debug("+ %s", cmd)
     kwargs.setdefault('shell', True)
-    subprocess.check_call(cmd, **kwargs)
+    kwargs.setdefault('check', True)
+    subprocess.run(cmd, **kwargs)
