@@ -44,7 +44,6 @@ def main():
         commands.nomadgc,
         commands.halt,
         commands.getsecret,
-        commands.launchocr,
         backup.backup,
         backup.restore_collection,
         backup.restore_all_collections,

@@ -1,4 +1,3 @@
-from pathlib import Path
 from collections import defaultdict
 from time import time, sleep
 import logging
@@ -407,26 +406,3 @@ def getsecret(path=None):
         for section in vault.list():
             for key in vault.list(section):
                 print(f'{section}{key}')
-
-
-def launchocr(*args):
-    """Launch either a batch or a daily batch OCR process."""
-
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('name', help='collection name')
-    parser.add_argument('--periodic', dest='periodic', help='cron expression')
-    parser.add_argument('--workers', dest='workers', help='worker process count')
-    parser.add_argument('--threads_per_worker', dest='threads_per_worker', help='default and max value is 4.')
-    parser.add_argument('--nice', dest='nice', help='argument to `nice -n`.')
-    options = parser.parse_args(args)
-
-    collection_names = [c['name'] for c in config.snoop_collections]
-    assert options.name in collection_names, 'unknown collection name: ' + options.name
-    data_dir = Path(config.liquid_collections) / options.name / 'data'
-    assert data_dir.is_dir(), \
-        f'{data_dir} should be a directory where all collection data is stored.'
-
-    hcl = get_job(config.templates / 'collection-ocr.nomad', vars(options))
-    spec = nomad.parse(hcl)
-    nomad.run(spec)
-    log.info(f'Launched OCR job {spec["Name"]}')
