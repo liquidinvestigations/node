@@ -12,7 +12,6 @@ mkdir collections
 if ! [ -d collections/testdata ]; then
   git clone https://github.com/liquidinvestigations/testdata collections/testdata
 fi
-cp -a collections/testdata collections/inactive
 
 echo "Add some collections, check resources and deploy"
 cp examples/liquid.ini .
