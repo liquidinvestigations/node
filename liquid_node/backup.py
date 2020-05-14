@@ -215,11 +215,26 @@ def restore_collection_blobs(src, name):
     restore_files(src / "blobs.tgz", "blobs/" + name, SNOOP_API_ALLOC)
 
 
+def is_index_available(es_client, name):
+    shards = es_client.get(f'/_cat/shards/{name}?format=json')
+    # check that no primary shards are INITIALIZING, RELOCATING or UNASSIGNED
+    return not any(s['prirep'] == 'p' and s['state'] != "STARTED"
+                   for s in shards)
+
+
 @retry()
 def backup_collection_es(dest, name):
     tmp_file = dest / "es.tgz.tmp"
     log.info(f"Dumping collection {name} es snapshot to {tmp_file}")
     es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
+
+    # wait until the index is available
+    log.info(f'Waiting until shards for index "{name}" are all available.')
+    while not is_index_available(es, name):
+        log.warning(f'index "{name}" has UNASSIGNED shards; waiting...')
+        sleep(3)
+    log.info('All primary shards started. Running backup...')
+
     try:
         es.put(f"/_snapshot/backup-{name}", {
             "type": "fs",
@@ -266,6 +281,14 @@ def restore_collection_es(src, name):
         return
     log.info(f"Restoring collection {name} es snapshot from {src_file}")
     es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
+
+    # wait until the index is available
+    log.info(f'Waiting until shards for index "{name}" are all available...')
+    while not is_index_available(es, name):
+        log.warning(f'index "{name}" has UNASSIGNED shards; waiting...')
+        sleep(3)
+    log.info('All primary shards started. Running restore...')
+
     try:
         # create snapshot repo
         es.put(f"/_snapshot/restore-{name}", {

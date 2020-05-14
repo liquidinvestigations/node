@@ -7,8 +7,6 @@ import logging
 import argparse
 from liquid_node import commands
 from liquid_node import backup
-from urllib.error import HTTPError
-
 
 import colorlog
 
@@ -68,6 +66,6 @@ if __name__ == '__main__':
 
     try:
         main()
-    except HTTPError as e:
-        log.exception("HTTP Error %r: %r", e, e.file.read())
-        sys.exit(1)
+    except Exception as e:
+        log.exception(e)
+        sys.exit(66)
