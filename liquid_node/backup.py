@@ -282,13 +282,6 @@ def restore_collection_es(src, name):
     log.info(f"Restoring collection {name} es snapshot from {src_file}")
     es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
 
-    # wait until the index is available
-    log.info(f'Waiting until shards for index "{name}" are all available...')
-    while not is_index_available(es, name):
-        log.warning(f'index "{name}" has UNASSIGNED shards; waiting...')
-        sleep(3)
-    log.info('All primary shards started. Running restore...')
-
     try:
         # create snapshot repo
         es.put(f"/_snapshot/restore-{name}", {
