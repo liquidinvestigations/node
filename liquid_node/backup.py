@@ -38,6 +38,13 @@ def backup(*args):
         if config.is_app_enabled('dokuwiki'):
             backup_files(dest / 'dokuwiki.tgz', '/bitnami/dokuwiki', [], 'dokuwiki:php')
 
+        if config.is_app_enabled('hypothesis'):
+            collection_dir = dest / "hypothesis"
+            collection_dir.mkdir(parents=True, exist_ok=True)
+            backup_pg(collection_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
+            backup_collection_es(dest / 'hypothesis' , 'hypothesis', '/_h_es')
+            backup_files(collection_dir / 'hypothesis.tgz', '/opt/rabbitmq/', [], 'hypothesis:rabbitmq')
+
     if not options.collections:
         log.warning('not backing up collection data (--no-collections)')
         return
@@ -75,6 +82,14 @@ def restore_apps(*args):
         restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
         nomad.restart('dokuwiki', 'php')
 
+    if config.is_app_enabled('hypothesis'):
+        restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
+        restore_files(src / 'hypothesis/hypothesis.tgz', '/opt/rabbitmq/', 'hypothesis:rabbitmq')
+        restore_collection_es(src / 'hypothesis/', 'hypothesis', '/_h_es')
+        nomad.restart('hypothesis', 'pg')
+        nomad.restart('hypothesis', 'es')
+        nomad.restart('hypothesis', 'rabbitmq')
+
     log.info("Restore done; deploying")
     commands.halt()
     commands.deploy()
@@ -82,6 +97,7 @@ def restore_apps(*args):
 
 SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
+HYPOTHESIS_ES_ALLOC = "hypothesis:es"
 SNOOP_API_ALLOC = "hoover:snoop"
 
 
@@ -223,10 +239,10 @@ def is_index_available(es_client, name):
 
 
 @retry()
-def backup_collection_es(dest, name):
+def backup_collection_es(dest, name, url_adder):
     tmp_file = dest / "es.tgz.tmp"
     log.info(f"Dumping collection {name} es snapshot to {tmp_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
+    es = JsonApi(f"http://{nomad.get_address()}:9990{url_adder}")
 
     # wait until the index is available
     log.info(f'Waiting until shards for index "{name}" are all available.')
@@ -240,7 +256,7 @@ def backup_collection_es(dest, name):
             "type": "fs",
             "settings": {
                 "location": f"/es_repo/backup-{name}",
-            },
+                },
         })
         es.put(f"/_snapshot/backup-{name}/snapshot", {
             "indices": name,
@@ -258,8 +274,10 @@ def backup_collection_es(dest, name):
             else:
                 raise RuntimeError("Something went wrong: %r" % snapshot)
         log.info(f"Snapshot done in {int(time()-t0)}s")
-
-        backup_files(tmp_file, f"/es_repo/backup-{name}", [], SNOOP_ES_ALLOC)
+        if url_adder == '/_h_es':
+            backup_files(tmp_file, f"/es_repo/backup-{name}", [], HYPOTHESIS_ES_ALLOC)
+        else:
+            backup_files(tmp_file, f"/es_repo/backup-{name}", [], SNOOP_ES_ALLOC)
 
         dest_file = dest / "es.tgz"
         tmp_file.rename(dest_file)
@@ -274,13 +292,13 @@ def backup_collection_es(dest, name):
 
 
 @retry()
-def restore_collection_es(src, name):
+def restore_collection_es(src, name, url_adder):
     src_file = src / "es.tgz"
     if not src_file.is_file():
         log.warn(f"No es backup at {src_file}, skipping es restore")
         return
     log.info(f"Restoring collection {name} es snapshot from {src_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
+    es = JsonApi(f"http://{nomad.get_address()}:9990{url_adder}")
 
     # wait until the index is available
     log.info(f'Waiting until shards for index "{name}" are all available...')
@@ -298,7 +316,12 @@ def restore_collection_es(src, name):
             },
         })
         # populate its directory
-        restore_files(src_file, f"/es_repo/restore-{name}", SNOOP_ES_ALLOC)
+        if url_adder == "/_h_es":
+            print(f"USING {HYPOTHESIS_ES_ALLOC}")
+            restore_files(src_file, f"/es_repo/restore-{name}", HYPOTHESIS_ES_ALLOC)
+        else:
+            print(f"USING {SNOOP_ES_ALLOC}")
+            restore_files(src_file, f"/es_repo/restore-{name}", SNOOP_ES_ALLOC)
 
         # examine unpacked snapshot
         resp = es.get(f"/_snapshot/restore-{name}/snapshot")
@@ -336,10 +359,17 @@ def restore_collection_es(src, name):
     finally:
         es.delete(f"/_snapshot/restore-{name}/snapshot")
         es.delete(f"/_snapshot/restore-{name}")
-        rm_cmd = (
-            f"./liquid dockerexec {SNOOP_ES_ALLOC} "
-            f"rm -rf /es_repo/restore-{name} "
-        )
+
+        if url_adder == "/_h_es":
+            rm_cmd = (
+                f"./liquid dockerexec {HYPOTHESIS_ES_ALLOC} "
+                f"rm -rf /es_repo/restore-{name} "
+            )
+        else:
+            rm_cmd = (
+                f"./liquid dockerexec {SNOOP_ES_ALLOC} "
+                f"rm -rf /es_repo/restore-{name} "
+            )
         subprocess.check_call(rm_cmd, shell=True)
 
 
@@ -350,7 +380,7 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
         log.info("skipping saving pg")
 
     if save_es:
-        backup_collection_es(dest, name)
+        backup_collection_es(dest, name, "/_es")
     else:
         log.info("skipping saving es")
 
@@ -370,7 +400,7 @@ def restore_collection(src, name):
 
     src = Path(src).resolve()
     restore_collection_pg(src, name)
-    restore_collection_es(src, name)
+    restore_collection_es(src, name, '/_es')
     restore_collection_blobs(src, name)
 
     log.info("Collection data restored")
