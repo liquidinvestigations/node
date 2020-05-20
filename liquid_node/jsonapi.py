@@ -38,9 +38,7 @@ class JsonApi:
             req_headers,
             method=method,
         )
-        print(req_url)
-        print(req_body)
-        print(req_headers)
+
         with urlopen(req) as res:
             if res.status >= 200 and res.status < 300:
                 content = res.read()
@@ -53,17 +51,13 @@ class JsonApi:
                 raise HTTPError(url, res.status, res.msg, res.headers, res)
 
     def get(self, url):
-        print("GET + " + url)
         return self.request('GET', url)
 
     def post(self, url, data=None):
-        print("POST + " + url)
         return self.request('POST', url, data)
 
     def put(self, url, data):
-        print("PUT + " + url)
         return self.request('PUT', url, data)
 
     def delete(self, url):
-        print("DELETE + " + url)
         return self.request('DELETE', url)

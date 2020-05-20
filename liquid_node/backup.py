@@ -84,11 +84,9 @@ def restore_apps(*args):
 
     if config.is_app_enabled('hypothesis'):
         restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
-        restore_files(src / 'hypothesis/hypothesis.tgz', '/opt/rabbitmq/', 'hypothesis:rabbitmq')
         restore_collection_es(src / 'hypothesis/', 'hypothesis', '/_h_es')
         nomad.restart('hypothesis', 'pg')
         nomad.restart('hypothesis', 'es')
-        nomad.restart('hypothesis', 'rabbitmq')
 
     log.info("Restore done; deploying")
     commands.halt()
@@ -302,6 +300,7 @@ def restore_collection_es(src, name, url_adder):
 
     # wait until the index is available
     log.info(f'Waiting until shards for index "{name}" are all available...')
+    es.post(f"/{name}/_open")
     while not is_index_available(es, name):
         log.warning(f'index "{name}" has UNASSIGNED shards; waiting...')
         sleep(3)
@@ -317,10 +316,8 @@ def restore_collection_es(src, name, url_adder):
         })
         # populate its directory
         if url_adder == "/_h_es":
-            print(f"USING {HYPOTHESIS_ES_ALLOC}")
             restore_files(src_file, f"/es_repo/restore-{name}", HYPOTHESIS_ES_ALLOC)
         else:
-            print(f"USING {SNOOP_ES_ALLOC}")
             restore_files(src_file, f"/es_repo/restore-{name}", SNOOP_ES_ALLOC)
 
         # examine unpacked snapshot
@@ -337,14 +334,27 @@ def restore_collection_es(src, name, url_adder):
         subprocess.check_call(reset_cmd, shell=True)
         es.post(f"/{name}/_close")
 
-        # restore snapshot
-        es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
-            "indices": old_name,
-            "include_global_state": False,
-            "rename_pattern": ".+",
-            "rename_replacement": name,
-        })
+        if url_adder == "/_h_es":
+            # restore snapshot
+            es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
+                "indices": old_name,
+                "include_global_state": False,
+                # "rename_pattern": ".+",
+                "rename_replacement": name,
+            })
+        else:
+            # restore snapshot
+            es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
+                "indices": old_name,
+                "include_global_state": False,
+                "rename_pattern": ".+",
+                "rename_replacement": name,
+            })
 
+        if url_adder == "/_h_es":
+            es.post(f"/{name}/_open")
+            sleep(10)
+        else:
         # wait for completion
         t0 = time()
         while True:
@@ -356,6 +366,7 @@ def restore_collection_es(src, name, url_adder):
             continue
         es.post(f"/{name}/_open")
         log.info(f"Restore done in {int(time()-t0)}s")
+
     finally:
         es.delete(f"/_snapshot/restore-{name}/snapshot")
         es.delete(f"/_snapshot/restore-{name}")
