@@ -282,10 +282,16 @@ def backup_collection_es(dest, name, url_adder):
     finally:
         es.delete(f"/_snapshot/backup-{name}/snapshot")
         es.delete(f"/_snapshot/backup-{name}")
-        rm_cmd = (
-            f"./liquid dockerexec {SNOOP_ES_ALLOC} "
-            f"rm -rf /es_repo/backup-{name} "
-        )
+        if url_adder == "/_h_es":
+            rm_cmd = (
+                f"./liquid dockerexec {HYPOTHESIS_ES_ALLOC} "
+                f"rm -rf /es_repo/backup-{name} "
+            )
+        else:
+            rm_cmd = (
+                f"./liquid dockerexec {SNOOP_ES_ALLOC} "
+                f"rm -rf /es_repo/backup-{name} "
+            )
         subprocess.check_call(rm_cmd, shell=True)
 
 
@@ -356,16 +362,16 @@ def restore_collection_es(src, name, url_adder):
             sleep(10)
         else:
         # wait for completion
-        t0 = time()
-        while True:
-            res = es.get(f"/{name}/_recovery")
-            if name in res:
-                if all(s["stage"] == "DONE" for s in res[name]["shards"]):
-                    break
-            sleep(1)
-            continue
-        es.post(f"/{name}/_open")
-        log.info(f"Restore done in {int(time()-t0)}s")
+            t0 = time()
+            while True:
+                res = es.get(f"/{name}/_recovery")
+                if name in res:
+                    if all(s["stage"] == "DONE" for s in res[name]["shards"]):
+                        break
+                sleep(1)
+                continue
+            es.post(f"/{name}/_open")
+            log.info(f"Restore done in {int(time()-t0)}s")
 
     finally:
         es.delete(f"/_snapshot/restore-{name}/snapshot")
