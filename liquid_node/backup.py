@@ -403,7 +403,7 @@ def restore_hypothesis_es(src, name):
         old_name = resp["snapshots"][0]["indices"][0]
 
         # delete index instead of resetting it
-        old_index = es.get(f"/_cat/indices?format=json")
+        old_index = es.get("/_cat/indices?format=json")
         old_index_name = old_index[0]["index"]
         es.delete(f"/{old_index_name}")
 
