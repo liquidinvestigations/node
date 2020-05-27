@@ -42,7 +42,7 @@ def backup(*args):
             collection_dir = dest / "hypothesis"
             collection_dir.mkdir(parents=True, exist_ok=True)
             backup_pg(collection_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
-            backup_collection_es(dest / 'hypothesis' , 'hypothesis', '/_h_es')
+            backup_collection_es(dest / 'hypothesis', 'hypothesis', '/_h_es')
             backup_files(collection_dir / 'hypothesis.tgz', '/opt/rabbitmq/', [], 'hypothesis:rabbitmq')
 
     if not options.collections:
@@ -254,7 +254,7 @@ def backup_collection_es(dest, name, es_url):
             "type": "fs",
             "settings": {
                 "location": f"/es_repo/backup-{name}",
-                },
+            },
         })
         es.put(f"/_snapshot/backup-{name}/snapshot", {
             "indices": name,
@@ -367,6 +367,7 @@ def restore_collection_es(src, name):
         )
         subprocess.check_call(rm_cmd, shell=True)
 
+
 @retry()
 def restore_hypothesis_es(src, name):
     src_file = src / "es.tgz"
@@ -403,14 +404,14 @@ def restore_hypothesis_es(src, name):
 
         # delete index instead of resetting it
         old_index = es.get(f"/_cat/indices?format=json")
-        old_index_name = dele[0]["index"]
+        old_index_name = old_index[0]["index"]
         es.delete(f"/{old_index_name}")
 
         # restore snapshot
         es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
             "indices": old_name,
             "include_global_state": False,
-            #"rename_pattern": ".+",
+            # "rename_pattern": ".+",
             "rename_replacement": name,
         })
 
@@ -435,7 +436,6 @@ def restore_hypothesis_es(src, name):
             f"rm -rf /es_repo/restore-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
-
 
 
 def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
