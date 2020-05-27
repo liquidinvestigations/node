@@ -237,10 +237,10 @@ def is_index_available(es_client, name):
 
 
 @retry()
-def backup_collection_es(dest, name, url_adder):
+def backup_collection_es(dest, name, es_url):
     tmp_file = dest / "es.tgz.tmp"
     log.info(f"Dumping collection {name} es snapshot to {tmp_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990{url_adder}")
+    es = JsonApi(f"http://{nomad.get_address()}:9990{es_url}")
 
     # wait until the index is available
     log.info(f'Waiting until shards for index "{name}" are all available.')
@@ -272,7 +272,7 @@ def backup_collection_es(dest, name, url_adder):
             else:
                 raise RuntimeError("Something went wrong: %r" % snapshot)
         log.info(f"Snapshot done in {int(time()-t0)}s")
-        if url_adder == '/_h_es':
+        if es_url == '/_h_es':
             backup_files(tmp_file, f"/es_repo/backup-{name}", [], HYPOTHESIS_ES_ALLOC)
         else:
             backup_files(tmp_file, f"/es_repo/backup-{name}", [], SNOOP_ES_ALLOC)
@@ -282,7 +282,7 @@ def backup_collection_es(dest, name, url_adder):
     finally:
         es.delete(f"/_snapshot/backup-{name}/snapshot")
         es.delete(f"/_snapshot/backup-{name}")
-        if url_adder == "/_h_es":
+        if es_url == "/_h_es":
             rm_cmd = (
                 f"./liquid dockerexec {HYPOTHESIS_ES_ALLOC} "
                 f"rm -rf /es_repo/backup-{name} "
@@ -401,10 +401,10 @@ def restore_hypothesis_es(src, name):
         assert len(resp["snapshots"][0]["indices"]) == 1
         old_name = resp["snapshots"][0]["indices"][0]
 
-        # reset index and close it
-        dele = es.get(f"/_cat/indices?format=json")
-        oname = dele[0]["index"]
-        es.delete(f"/{oname}")
+        # delete index instead of resetting it
+        old_index = es.get(f"/_cat/indices?format=json")
+        old_index_name = dele[0]["index"]
+        es.delete(f"/{old_index_name}")
 
         # restore snapshot
         es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
