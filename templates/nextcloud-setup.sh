@@ -3,23 +3,28 @@
 set -ex
 set -o pipefail
 
-sleep 7
-
 if [ -z "$POSTGRES_HOST" ]; then
+    env
     echo "Missing POSTGRES_HOST - please wait for the DB to spin up before running setup"
+    sleep 7
     exit 1
 fi
 
+# https://github.com/nextcloud/docker/issues/820#issuecomment-515898904
+while ! pgrep -x "apache2" > /dev/null ; do
+    sleep 1
+done
+
 cd /var/www/html
 
-set +e
+php occ status --output=json
 # `php occ status --output=json` returns something like "Nextcloud is not
 # installed" + JSON, creating a JSON parse Error; `jq` fill fail thus saving
 # $INSTALLED as "error". Using `pipefail` we can capure  errors of `php status`
 # too as the "error" value in $INSTALLED.
-php occ status --output=json
 
-INSTALLED=$( set -o pipefail; php occ status --output=json | jq '.installed' || echo "error" )
+set +e
+INSTALLED=$( set -o pipefail; php occ status --output=json | tail -n 1 | jq '.installed' || echo "error" )
 set -e
 
 if [[ "$INSTALLED" =~ "true" || "$INSTALLED" =~ "error" ]]; then
@@ -27,6 +32,11 @@ if [[ "$INSTALLED" =~ "true" || "$INSTALLED" =~ "error" ]]; then
     php occ upgrade --no-interaction || true
     php occ app:update --no-interaction --all || true
 fi
+
+
+set +e
+INSTALLED=$( set -o pipefail; php occ status --output=json | tail -n 1 | jq '.installed' || echo "error" )
+set -e
 
 
 if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
@@ -43,15 +53,7 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
             --admin-user=$NEXTCLOUD_ADMIN_USER \
             --admin-pass=$NEXTCLOUD_ADMIN_PASSWORD
 
-    (
-    set +x
-    export OC_PASS="$UPLOADS_USER_PASSWORD"
-    php occ user:add --password-from-env --display-name="upload" upload
-    php occ config:system:set trusted_domains 0 --value '*'
-    )
-
-    echo "Installation successful -- now restarting (aka failing) the migrate job"
-    exit 66
+    echo "Installation successful"
 fi
 
 echo "Configuring..."
@@ -109,18 +111,28 @@ php occ config:system:set appstoreenabled --value false --type boolean
 echo "Configuration done"
 
 (
-set +x
-export OC_PASS="$UPLOADS_USER_PASSWORD"
-php occ user:add --password-from-env --display-name="upload" upload
-php occ config:system:set trusted_domains 0 --value '*'
-echo "uploads done"
-export OC_PASS="$UPLOADS_USER_PASSWORD"
-php occ user:resetpassword --password-from-env upload
-export OC_PASS="$NEXTCLOUD_ADMIN_PASSWORD"
-php occ user:resetpassword --password-from-env $NEXTCLOUD_ADMIN_USER
+  set +x
+  export OC_PASS="$UPLOADS_USER_PASSWORD"
+  set -x
+  php occ user:add --password-from-env --display-name="uploads" uploads || true
+  echo "uploads user created"
+
+  set +x
+  export OC_PASS="$UPLOADS_USER_PASSWORD"
+  set -x
+  php occ user:resetpassword --password-from-env uploads
+
+  set +x
+  export OC_PASS="$NEXTCLOUD_ADMIN_PASSWORD"
+  set -x
+  php occ user:resetpassword --password-from-env $NEXTCLOUD_ADMIN_USER
 )
-echo "uploads and admin password set
-"
+echo "uploads and admin password set"
 
 # scan the filesystem in case there are files initially (redeploy e.g.)
 php occ files:scan --all
+
+while pgrep -x "apache2" > /dev/null ; do
+    sleep 10
+done
+echo "apache died"
