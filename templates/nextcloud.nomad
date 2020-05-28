@@ -23,9 +23,9 @@ job "nextcloud" {
       config {
         image = "${config.image('liquid-nextcloud')}"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud/data:/var/www/html/data",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud/config:/var/www/html/config",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud/themes:/var/www/html/themes",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud18/data:/var/www/html/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud18/config:/var/www/html/config",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud18/themes:/var/www/html/themes",
           "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
         ]
         args = ["/bin/sh", "-c", "chown -R 33:33 /var/www/html/ && echo chown done && /entrypoint.sh apache2-foreground"]

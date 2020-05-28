@@ -15,9 +15,9 @@ job "nextcloud-database" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "postgres:latest"
+        image = "postgres:12"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/postgres12:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "nextcloud-pg"
@@ -45,7 +45,10 @@ job "nextcloud-database" {
         memory = 500
         network {
           mbits = 1
-          port "pg" {}
+          # save port as static because there's no simple way to update it
+          port "pg" {
+            static = 8666
+          }
         }
       }
       service {
