@@ -58,20 +58,25 @@ job "nextcloud" {
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
-        {{- range service "nextcloud-maria" }}
-          MYSQL_HOST = "{{.Address}}:{{.Port}}"
+
+        POSTGRES_DB = "nextcloud"
+        POSTGRES_USER = "nextcloudAdmin"
+
+        {{- with secret "liquid/nextcloud/nextcloud.postgres" }}
+          POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
-        MYSQL_DB = "nextcloud"
-        MYSQL_USER = "nextcloud"
-        {{- with secret "liquid/nextcloud/nextcloud.maria" }}
-          MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
-        {{- end }}
+
         {{- with secret "liquid/nextcloud/nextcloud.uploads" }}
           UPLOADS_USER_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
+
+        {{- range service "nextcloud-pg" }}
+          POSTGRES_HOST = "{{.Address}}:{{.Port}}"
+        {{- end }}
+
         TIMESTAMP = "${config.timestamp}"
         EOF
-        destination = "local/nextcloud-migrate.env"
+        destination = "local/nextcloud-pg.env"
         env = true
       }
       template {
@@ -96,66 +101,6 @@ job "nextcloud" {
           header {
             Host = ["nextcloud.${liquid_domain}"]
           }
-        }
-      }
-    }
-  }
-
-  group "maria" {
-    ${ group_disk() }
-    task "maria" {
-      ${ task_logs() }
-
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
-      ${ shutdown_delay() }
-      config {
-        image = "mariadb:10.4"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/mysql:/var/lib/mysql",
-        ]
-        labels {
-          liquid_task = "nextcloud-maria"
-        }
-        port_map {
-          maria = 3306
-        }
-      }
-      template {
-        data = <<-EOF
-        MYSQL_RANDOM_ROOT_PASSWORD = "yes"
-        MYSQL_DATABASE = "nextcloud"
-        MYSQL_USER = "nextcloud"
-        {{- with secret "liquid/nextcloud/nextcloud.maria" }}
-          MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
-        {{- end }}
-        EOF
-        destination = "local/maria.env"
-        env = true
-      }
-      resources {
-        cpu = 100
-        memory = 250
-        network {
-          mbits = 1
-          port "maria" {
-            static = 8767
-          }
-        }
-      }
-      service {
-        name = "nextcloud-maria"
-        port = "maria"
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
         }
       }
     }

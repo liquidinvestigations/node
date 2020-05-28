@@ -5,8 +5,8 @@ set -o pipefail
 
 sleep 7
 
-if [ -z "$MYSQL_HOST" ]; then
-    echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
+if [ -z "$POSTGRES_HOST" ]; then
+    echo "Missing POSTGRES_HOST - please wait for the DB to spin up before running setup"
     exit 1
 fi
 
@@ -18,6 +18,7 @@ set +e
 # $INSTALLED as "error". Using `pipefail` we can capure  errors of `php status`
 # too as the "error" value in $INSTALLED.
 php occ status --output=json
+
 INSTALLED=$( set -o pipefail; php occ status --output=json | jq '.installed' || echo "error" )
 set -e
 
@@ -34,18 +35,18 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
     php occ maintenance:install \
             --no-interaction \
             --verbose \
-            --database mysql \
-            --database-name $MYSQL_DB \
-            --database-host $MYSQL_HOST \
-            --database-user $MYSQL_USER \
-            --database-pass $MYSQL_PASSWORD \
+            --database pgsql \
+            --database-name $POSTGRES_DB \
+            --database-host $POSTGRES_HOST \
+            --database-user $POSTGRES_USER \
+            --database-pass $POSTGRES_PASSWORD \
             --admin-user=$NEXTCLOUD_ADMIN_USER \
             --admin-pass=$NEXTCLOUD_ADMIN_PASSWORD
 
     (
     set +x
     export OC_PASS="$UPLOADS_USER_PASSWORD"
-    php occ user:add --password-from-env --display-name="uploads" uploads
+    php occ user:add --password-from-env --display-name="upload" upload
     php occ config:system:set trusted_domains 0 --value '*'
     )
 
@@ -55,7 +56,7 @@ fi
 
 echo "Configuring..."
 php occ config:system:set trusted_domains 0 --value '*'
-php occ config:system:set dbhost --value $MYSQL_HOST
+php occ config:system:set dbhost --value $POSTGRES_HOST
 php occ config:system:set overwrite.cli.url --value $HTTP_PROTO://$NEXTCLOUD_HOST
 php occ config:system:set allow_user_to_change_display_name --value false --type boolean
 php occ config:system:set overwritehost --value $NEXTCLOUD_HOST
@@ -110,7 +111,11 @@ echo "Configuration done"
 (
 set +x
 export OC_PASS="$UPLOADS_USER_PASSWORD"
-php occ user:resetpassword --password-from-env uploads
+php occ user:add --password-from-env --display-name="upload" upload
+php occ config:system:set trusted_domains 0 --value '*'
+echo "uploads done"
+export OC_PASS="$UPLOADS_USER_PASSWORD"
+php occ user:resetpassword --password-from-env upload
 export OC_PASS="$NEXTCLOUD_ADMIN_PASSWORD"
 php occ user:resetpassword --password-from-env $NEXTCLOUD_ADMIN_USER
 )

@@ -17,3 +17,9 @@ class Periodic(jobs.Job):
     name = 'nextcloud-periodic'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud'
+
+
+class Database(jobs.Job):
+    name = 'nextcloud-database'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'nextcloud'
