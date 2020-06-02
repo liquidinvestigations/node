@@ -39,11 +39,10 @@ def backup(*args):
             backup_files(dest / 'dokuwiki.tgz', '/bitnami/dokuwiki', [], 'dokuwiki:php')
 
         if config.is_app_enabled('hypothesis'):
-            collection_dir = dest / "hypothesis"
-            collection_dir.mkdir(parents=True, exist_ok=True)
-            backup_pg(collection_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
-            backup_collection_es(dest / 'hypothesis', 'hypothesis', '/_h_es')
-            backup_files(collection_dir / 'hypothesis.tgz', '/opt/rabbitmq/', [], 'hypothesis:rabbitmq')
+            backup_dir = dest / "hypothesis"
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            backup_pg(backup_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
+            backup_es(dest / 'hypothesis', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
 
     if not options.collections:
         log.warning('not backing up collection data (--no-collections)')
@@ -84,7 +83,7 @@ def restore_apps(*args):
 
     if config.is_app_enabled('hypothesis'):
         restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
-        restore_hypothesis_es(src / 'hypothesis/', 'hypothesis')
+        restore_es(src / 'hypothesis/', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
         nomad.restart('hypothesis', 'pg')
         nomad.restart('hypothesis', 'es')
 
@@ -237,10 +236,10 @@ def is_index_available(es_client, name):
 
 
 @retry()
-def backup_collection_es(dest, name, es_url):
+def backup_es(dest, name, es_url_suffix, es_alloc_id):
     tmp_file = dest / "es.tgz.tmp"
     log.info(f"Dumping collection {name} es snapshot to {tmp_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990{es_url}")
+    es = JsonApi(f"http://{nomad.get_address()}:9990{es_url_suffix}")
 
     # wait until the index is available
     log.info(f'Waiting until shards for index "{name}" are all available.')
@@ -272,45 +271,28 @@ def backup_collection_es(dest, name, es_url):
             else:
                 raise RuntimeError("Something went wrong: %r" % snapshot)
         log.info(f"Snapshot done in {int(time()-t0)}s")
-        if es_url == '/_h_es':
-            backup_files(tmp_file, f"/es_repo/backup-{name}", [], HYPOTHESIS_ES_ALLOC)
-        else:
-            backup_files(tmp_file, f"/es_repo/backup-{name}", [], SNOOP_ES_ALLOC)
+        backup_files(tmp_file, f"/es_repo/backup-{name}", [], es_alloc_id)
 
         dest_file = dest / "es.tgz"
         tmp_file.rename(dest_file)
     finally:
         es.delete(f"/_snapshot/backup-{name}/snapshot")
         es.delete(f"/_snapshot/backup-{name}")
-        if es_url == "/_h_es":
-            rm_cmd = (
-                f"./liquid dockerexec {HYPOTHESIS_ES_ALLOC} "
-                f"rm -rf /es_repo/backup-{name} "
-            )
-        else:
-            rm_cmd = (
-                f"./liquid dockerexec {SNOOP_ES_ALLOC} "
-                f"rm -rf /es_repo/backup-{name} "
-            )
+        rm_cmd = (
+            f"./liquid dockerexec {es_alloc_id} "
+            f"rm -rf /es_repo/backup-{name} "
+        )
         subprocess.check_call(rm_cmd, shell=True)
 
 
 @retry()
-def restore_collection_es(src, name):
+def restore_es(src, name, es_url_suffix, es_alloc_id):
     src_file = src / "es.tgz"
     if not src_file.is_file():
         log.warn(f"No es backup at {src_file}, skipping es restore")
         return
-    log.info(f"Restoring collection {name} es snapshot from {src_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990/_es")
-
-    # # wait until the index is available
-    # log.info(f'Waiting until shards for index "{name}" are all available...')
-    # es.post(f"/{name}/_open")
-    # while not is_index_available(es, name):
-    #     log.warning(f'index "{name}" has UNASSIGNED shards; waiting...')
-    #     sleep(3)
-    # log.info('All primary shards started. Running restore...')
+    log.info(f"Restoring {name} es snapshot from {src_file}")
+    es = JsonApi(f"http://{nomad.get_address()}:9990{es_url_suffix}")
 
     try:
         # create snapshot repo
@@ -321,7 +303,7 @@ def restore_collection_es(src, name):
             },
         })
         # populate its directory
-        restore_files(src_file, f"/es_repo/restore-{name}", SNOOP_ES_ALLOC)
+        restore_files(src_file, f"/es_repo/restore-{name}", es_alloc_id)
 
         # examine unpacked snapshot
         resp = es.get(f"/_snapshot/restore-{name}/snapshot")
@@ -329,96 +311,32 @@ def restore_collection_es(src, name):
         assert len(resp["snapshots"][0]["indices"]) == 1
         old_name = resp["snapshots"][0]["indices"][0]
 
-        # reset index and close it
-        reset_cmd = (
-            f"./liquid dockerexec {SNOOP_API_ALLOC} "
-            f"./manage.py resetcollectionindex {name}"
-        )
-        subprocess.check_call(reset_cmd, shell=True)
-        es.post(f"/{name}/_close")
+        if es_alloc_id == SNOOP_ES_ALLOC:
+            # reset index and close it
+            reset_cmd = (
+                f"./liquid dockerexec {SNOOP_API_ALLOC} "
+                f"./manage.py resetcollectionindex {name}"
+            )
+            subprocess.check_call(reset_cmd, shell=True)
+            es.post(f"/{name}/_close")
+        else:
+            # delete index instead of resetting it
+            old_index = es.get("/_cat/indices?format=json")
+            old_index_name = old_index[0]["index"]
+            es.delete(f"/{old_index_name}")
 
         # restore snapshot
         es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
             "indices": old_name,
             "include_global_state": False,
             "rename_pattern": ".+",
-            "rename_replacement": name,
+            "rename_replacement": old_name,
         })
 
         # wait for completion
         t0 = time()
         while True:
             res = es.get(f"/{name}/_recovery")
-            if name in res:
-                if all(s["stage"] == "DONE" for s in res[name]["shards"]):
-                    break
-            sleep(1)
-            continue
-        es.post(f"/{name}/_open")
-        log.info(f"Restore done in {int(time()-t0)}s")
-
-    finally:
-        es.delete(f"/_snapshot/restore-{name}/snapshot")
-        es.delete(f"/_snapshot/restore-{name}")
-
-        rm_cmd = (
-            f"./liquid dockerexec {SNOOP_ES_ALLOC} "
-            f"rm -rf /es_repo/restore-{name} "
-        )
-        subprocess.check_call(rm_cmd, shell=True)
-
-
-@retry()
-def restore_hypothesis_es(src, name):
-    src_file = src / "es.tgz"
-    if not src_file.is_file():
-        log.warn(f"No es backup at {src_file}, skipping es restore")
-        return
-    log.info(f"Restoring {name} es snapshot from {src_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990/_h_es")
-
-    # # wait until the index is available
-    # log.info(f'Waiting until shards for index "{name}" are all available...')
-    # es.post(f"/{name}/_open")
-    # while not is_index_available(es, name):
-    #     log.warning(f'index "{name}" has UNASSIGNED shards; waiting...')
-    #     sleep(3)
-    # log.info('All primary shards started. Running restore...')
-
-    try:
-        # create snapshot repo
-        es.put(f"/_snapshot/restore-{name}", {
-            "type": "fs",
-            "settings": {
-                "location": f"/es_repo/restore-{name}",
-            },
-        })
-        # populate its directory
-        restore_files(src_file, f"/es_repo/restore-{name}", HYPOTHESIS_ES_ALLOC)
-
-        # examine unpacked snapshot
-        resp = es.get(f"/_snapshot/restore-{name}/snapshot")
-        assert len(resp["snapshots"]) == 1
-        assert len(resp["snapshots"][0]["indices"]) == 1
-        old_name = resp["snapshots"][0]["indices"][0]
-
-        # delete index instead of resetting it
-        old_index = es.get("/_cat/indices?format=json")
-        old_index_name = old_index[0]["index"]
-        es.delete(f"/{old_index_name}")
-
-        # restore snapshot
-        es.post(f"/_snapshot/restore-{name}/snapshot/_restore", {
-            "indices": old_name,
-            "include_global_state": False,
-            # "rename_pattern": ".+",
-            "rename_replacement": name,
-        })
-
-        # wait for completion
-        t0 = time()
-        while True:
-            res = es.get(f"/{old_name}/_recovery")
             if old_name in res:
                 if all(s["stage"] == "DONE" for s in res[old_name]["shards"]):
                     break
@@ -432,7 +350,7 @@ def restore_hypothesis_es(src, name):
         es.delete(f"/_snapshot/restore-{name}")
 
         rm_cmd = (
-            f"./liquid dockerexec {HYPOTHESIS_ES_ALLOC} "
+            f"./liquid dockerexec {es_alloc_id} "
             f"rm -rf /es_repo/restore-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
@@ -445,7 +363,7 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
         log.info("skipping saving pg")
 
     if save_es:
-        backup_collection_es(dest, name, "/_es")
+        backup_es(dest, name, "/_es", SNOOP_ES_ALLOC)
     else:
         log.info("skipping saving es")
 
@@ -465,7 +383,7 @@ def restore_collection(src, name):
 
     src = Path(src).resolve()
     restore_collection_pg(src, name)
-    restore_collection_es(src, name)
+    restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
     restore_collection_blobs(src, name)
 
     log.info("Collection data restored")
