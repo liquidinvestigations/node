@@ -320,7 +320,7 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
             subprocess.check_call(reset_cmd, shell=True)
             es.post(f"/{name}/_close")
         else:
-            # delete index instead of resetting it
+            # delete index instead of resetting it beacuse resetting isnt implemented
             old_index = es.get("/_cat/indices?format=json")
             old_index_name = old_index[0]["index"]
             es.delete(f"/{old_index_name}")
@@ -330,15 +330,16 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
             "indices": old_name,
             "include_global_state": False,
             "rename_pattern": ".+",
-            "rename_replacement": old_name,
+            "rename_replacement": name,
+            "include_aliases": False,
         })
 
         # wait for completion
         t0 = time()
         while True:
             res = es.get(f"/{name}/_recovery")
-            if old_name in res:
-                if all(s["stage"] == "DONE" for s in res[old_name]["shards"]):
+            if name in res:
+                if all(s["stage"] == "DONE" for s in res[name]["shards"]):
                     break
             sleep(1)
             continue
