@@ -181,7 +181,6 @@ job "hoover" {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-        SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
       }
       template {
         data = <<-EOF
@@ -215,7 +214,15 @@ job "hoover" {
       service {
         name = "hoover-snoop-flower"
         port = "flower"
-        tags = ["fabio-/flower"]
+        tags = ["fabio-/flower strip=/flower"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
@@ -258,7 +265,6 @@ job "hoover" {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-        SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
       }
       template {
         data = <<-EOF
@@ -313,6 +319,16 @@ job "hoover" {
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
         ]
+        mounts = [
+          {
+            type = "tmpfs"
+            target = "/tmp"
+            readonly = false
+            tmpfs_options {
+              #size = 3221225472  # 3G
+            }
+          }
+        ]
         labels {
           liquid_task = "snoop-workers"
         }
@@ -344,6 +360,7 @@ job "hoover" {
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
+        SNOOP_TOTAL_WORKER_COUNT = "${config.snoop_worker_process_count * config.snoop_workers}"
       }
       template {
         data = <<-EOF
