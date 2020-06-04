@@ -21,12 +21,14 @@ job "nextcloud" {
 
       driver = "docker"
       config {
+        privileged = true  # for internal bind mount
+        force_pull = true
         image = "${config.image('liquid-nextcloud')}"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud18:/var/www/html",
-          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/data:rshared",
         ]
-        args = ["/bin/bash", "-c", "set -ex; chown 33:33 -R /var/www/html{,/data} && ( /entrypoint.sh apache2-foreground & sudo -Eu www-data /local/setup.sh )"]
+        args = ["/bin/bash", "-c", "set -ex; chown www-data: /var/www/html{,/data} && ( /entrypoint.sh apache2-foreground & sudo -Eu www-data /local/setup.sh )"]
         port_map {
           http = 80
         }

@@ -316,7 +316,7 @@ job "hoover" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections:ro",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
         ]
         mounts = [

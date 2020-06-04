@@ -4,9 +4,8 @@ set -ex
 set -o pipefail
 
 if [ -z "$POSTGRES_HOST" ]; then
-    env
     echo "Missing POSTGRES_HOST - please wait for the DB to spin up before running setup"
-    sleep 7
+    sleep 17
     exit 1
 fi
 
@@ -57,6 +56,8 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
 fi
 
 echo "Configuring..."
+php occ maintenance:mode --on
+
 php occ config:system:set trusted_domains 0 --value '*'
 php occ config:system:set dbhost --value $POSTGRES_HOST
 php occ config:system:set overwrite.cli.url --value $HTTP_PROTO://$NEXTCLOUD_HOST
@@ -83,17 +84,13 @@ php occ app:install calendar || true
 php occ app:install deck     || true
 php occ app:install polls    || true
 
-php occ app:enable  calendar
-php occ app:enable  contacts
-php occ app:disable theming
 php occ app:disable accessibility
 php occ app:disable activity
 php occ app:disable comments
 php occ app:disable federation
-php occ app:enable files_pdfviewer
+php occ app:disable files_sharing
 php occ app:disable files_versions
 php occ app:disable files_videoplayer
-php occ app:disable files_sharing
 php occ app:disable firstrunwizard
 php occ app:disable gallery
 php occ app:disable nextcloud_announcements
@@ -103,35 +100,65 @@ php occ app:disable sharebymail
 php occ app:disable support
 php occ app:disable survey_client
 php occ app:disable systemtags
+php occ app:disable theming
 php occ app:disable updatenotification
+
+php occ app:enable  calendar
+php occ app:enable  contacts
+php occ app:enable files_pdfviewer
 
 php occ config:system:set has_internet_connection --value false --type boolean
 php occ config:system:set appstoreenabled --value false --type boolean
 
 echo "Configuration done"
 
+
+USERNAME=uploads
+if ! ( php occ user:list | grep -q "$USERNAME" ); then
+  set +x
+  export OC_PASS="$UPLOADS_USER_PASSWORD"
+  set -x
+
+  # avoid the error 'Username is invalid because files already exist for this user'
+  # see https://github.com/nextcloud/server/issues/21144
+  rm -vrf "/var/www/html/data/$USERNAME/files"
+  rm -vrf "/var/www/html/data/$USERNAME"
+
+  php occ user:add --password-from-env --display-name="$USERNAME" $USERNAME
+  mkdir -p /var/www/html/data/$USERNAME
+  # error: can't follow symlinks when running files:scan
+  # ln -s /data /var/www/html/data/$USERNAME/files
+
+  echo "$USERNAME user created"
+fi
+
+# mount and chown run by www-data is passwordless in /etc/sudoers, check dockerfile
+mkdir -p /var/www/html/data/$USERNAME/files
+sudo /bin/chown www-data: /data
+sudo /bin/chown www-data: /var/www/html/data/$USERNAME/files
+# permission denied without CAP_SYS_ADMIN and docker run --privileged:
+sudo /bin/mount --rbind /data /var/www/html/data/$USERNAME/files
+
 (
   set +x
   export OC_PASS="$UPLOADS_USER_PASSWORD"
   set -x
-  php occ user:add --password-from-env --display-name="uploads" uploads || true
-  echo "uploads user created"
-
-  set +x
-  export OC_PASS="$UPLOADS_USER_PASSWORD"
-  set -x
-  php occ user:resetpassword --password-from-env uploads
+  php occ user:resetpassword --password-from-env $USERNAME
 
   set +x
   export OC_PASS="$NEXTCLOUD_ADMIN_PASSWORD"
   set -x
   php occ user:resetpassword --password-from-env $NEXTCLOUD_ADMIN_USER
 )
-echo "uploads and admin password set"
+echo "$USERNAME and admin password set"
+
+php occ maintenance:mode --off
 
 # scan the filesystem in case there are files initially (redeploy e.g.)
 php occ files:scan --all
 
+set +x
+echo "waiting for apache to die..."
 while pgrep -x "apache2" > /dev/null ; do
     sleep 10
 done
