@@ -37,7 +37,7 @@ zcat backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump co
 tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'
 #tar tz < backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
 ./liquid backup ./backup2 --no-es --no-pg --no-apps
-./liquid backup ./backup3 --no-blobs --no-apps
+./liquid backup ./backup3 --no-blobs --no-apps --collection testdata --collection testdata2
 ./liquid restore_collection ./backup/collection-testdata testdata2
 
 echo "Remove all collections, gc, restore from backup"
