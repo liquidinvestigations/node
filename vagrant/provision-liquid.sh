@@ -69,6 +69,6 @@ cat vagrant/liquid-apps.ini >> liquid.ini
 
 echo "Disable some more apps, gc"
 echo "default_app_status = off" >> liquid.ini
-./liquid gc
+./liquid deploy
 
 echo "Liquid provisioned successfully." > /dev/null

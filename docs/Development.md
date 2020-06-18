@@ -11,16 +11,10 @@ debug = on
 
 Then redeploy (`./liquid deploy`).
 
-To log into the snoop docker container for testdata:
+To log into the snoop docker container:
 ```shell
-./liquid shell snoop-testdata-api
+./liquid shell snoop:snoop
 ```
-
-To dump the nginx configuration:
-```shell
-nomad alloc fs $(./liquid alloc liquid nginx) nginx/local/core.conf
-```
-
 
 ## Working on components
 
@@ -40,15 +34,7 @@ After that, set this flag in your configuration:
 mount_local_repos = true
 ```
 
-
-## Stopping jobs that should not be running in the current deploy configuration
-
-This command will stop all jobs from collections that are no longer in the
-`liquid.ini` file and jobs from applications that were disabled.
-
-```bash
-./liquid gc
-```
+And re-run `./liquid deploy`.
 
 
 ## Removing dead jobs from nomad
@@ -58,6 +44,7 @@ In order to remove dead jobs from nomad run the following command:
 
 
 ## Enabling/disabling applications
+
 Applications can be enabled/disabled on deploy by setting them `on` or `off`
 in the `apps` section:
 ```ini

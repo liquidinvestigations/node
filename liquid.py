@@ -38,7 +38,6 @@ def main():
         commands.nomad_address,
         commands.deploy,
         commands.resources,
-        commands.gc,
         commands.nomadgc,
         commands.halt,
         commands.getsecret,

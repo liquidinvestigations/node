@@ -21,41 +21,6 @@ In the nomad admin UI all jobs (`hoover`, `hoover-ui`, `liquid`, `collection-tes
 
 In the search UI admin interface, collections, the `testdata` should show up in the collections list. The `COUNT` field should start to grow after a while, when refreshing the page.
 
-## Test `gc`
-
-In `liquid.ini` file remove the lines:
-```
-[collection:testdata]
-process = true
-```
-
-Run the following command:
-```shell
-./liquid gc
-```
-
-The output should look like this:
-```
-2019-04-25 14:13:48 INFO Stopping collection-testdata...
-```
-
-In the `nomad` UI the `collection-testdata` job should be dead.
-
-## Test `purge`
-
-Run the following command:
-```shell
-./liquid purge --force
-```
-
-The output of this command should look like this:
-```
-Purging collection testdata1...
-2019-04-25 14:17:53 INFO Collection testdata1 was removed from hoover search.
-2019-04-25 14:17:53 INFO Collection testdata1 data was purged.
-```
-
-The folder `volumes/collections/testdata` should be removed and the collection should be removed from the search collections (see search admin UI - collections).
 
 ## Test `halt`
 
