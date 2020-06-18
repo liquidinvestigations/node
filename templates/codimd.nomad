@@ -9,6 +9,13 @@ job "codimd" {
     ${ group_disk() }
     task "codimd" {
       ${ task_logs() }
+
+      # for the image uploads directory
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       leader = true
       driver = "docker"
       config {
@@ -20,6 +27,7 @@ job "codimd" {
           liquid_task = "codimd"
         }
         volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/codimd/image-uploads:/codimd/public/uploads",
           ${liquidinvestigations_codimd_server_repo}
         ]
       }
