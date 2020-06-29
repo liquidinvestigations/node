@@ -70,7 +70,7 @@ job "drone" {
       ${ task_logs() }
       driver = "docker"
       config {
-        image = "drone/drone:1.6.4"
+        image = "drone/drone:1.8"
         volumes = [
           "/var/run/docker.sock:/var/run/docker.sock",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/drone:/data",
