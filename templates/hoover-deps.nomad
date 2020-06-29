@@ -313,7 +313,6 @@ job "hoover-deps" {
     }
   }
 
-  {% if config.snoop_workers %}
   group "rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -409,7 +408,6 @@ job "hoover-deps" {
       }
     }
   }
-  {% endif %}
 
   group "snoop-pg" {
     ${ continuous_reschedule() }
@@ -445,33 +443,33 @@ job "hoover-deps" {
         data = <<-EOF
           listen_addresses = '*'
           port = 5432                             # (change requires restart)
-          max_connections = 100                   # (change requires restart)
+          max_connections = 200                   # (change requires restart)
           shared_buffers = ${config.snoop_postgres_memory_limit}MB  # min 128kB
           huge_pages = try                        # on, off, or try
           temp_buffers = 32MB                     # min 800kB
           max_prepared_transactions = 0          # zero disables the feature
-          work_mem = 32MB                         # min 64kB
-          maintenance_work_mem = 64MB             # min 1MB
+          work_mem = 64MB                         # min 64kB
+          maintenance_work_mem = 128MB             # min 1MB
           autovacuum_work_mem = -1                # min 1MB, or -1 to use maintenance_work_mem
-          #max_stack_depth = 3MB                  # min 100kB
-          #shared_memory_type = mmap              # the default is the first option
+          max_stack_depth = 4MB                  # min 100kB
+          shared_memory_type = mmap              # the default is the first option
                                                   # supported by the operating system:
                                                   #   mmap
                                                   #   sysv
                                                   #   windows
                                                   # (change requires restart)
-          dynamic_shared_memory_type = posix      # the default is the first option
+          dynamic_shared_memory_type = mmap      # the default is the first option
                                                   # supported by the operating system:
                                                   #   posix
                                                   #   sysv
                                                   #   windows
                                                   #   mmap
 
-          effective_io_concurrency = 3            # 1-1000; 0 disables prefetching
-          max_worker_processes = 6                # (change requires restart)
+          effective_io_concurrency = 4            # 1-1000; 0 disables prefetching
+          max_worker_processes = 8                # (change requires restart)
           wal_writer_delay = 300ms                # 1-10000 milliseconds
           wal_writer_flush_after = 4MB            # measured in pages, 0 disables
-          #checkpoint_timeout = 5min              # range 30s-1d
+          checkpoint_timeout = 5min              # range 30s-1d
           max_wal_size = 1GB
           min_wal_size = 80MB
           #checkpoint_completion_target = 0.5     # checkpoint target duration, 0.0 - 1.0
