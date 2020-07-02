@@ -106,7 +106,7 @@ class Configuration:
             )
 
         else:
-            self.liquid_http_protocol = 'http'
+            self.liquid_http_protocol = self.ini.get('liquid', 'http_protocol_override', fallback='http')
         self.liquid_core_url = f'{self.liquid_http_protocol}://{self.liquid_domain}'
 
         self.auth_staff_only = self.ini.getboolean('liquid', 'auth_staff_only', fallback=False)
