@@ -227,6 +227,7 @@ job "hoover" {
     }
   }
 
+  {% if config.snoop_workers > 0 %}
   group "snoop-celery-beat" {
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -293,6 +294,7 @@ job "hoover" {
       }
     }
   } // snoop-celery-beat
+  {% endif %}
 
   group "snoop-workers" {
     count = ${config.snoop_workers}
