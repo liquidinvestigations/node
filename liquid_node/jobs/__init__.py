@@ -103,6 +103,7 @@ def render(template, subs):
         variable_end_string="}",
         loader=jinja2.FileSystemLoader(str(config.templates)),
     )
+    env.globals['int'] = int
     return env.from_string(template).render(subs)
 
 

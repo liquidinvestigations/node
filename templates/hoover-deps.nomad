@@ -435,7 +435,7 @@ job "hoover-deps" {
         port_map {
           pg = 5432
         }
-        shm_size = ${config.snoop_postgres_memory_limit * 1024 * 1024}
+        shm_size = ${int(config.snoop_postgres_memory_limit * 0.25) * 1024 * 1024}
       }
 
       template {
@@ -443,13 +443,13 @@ job "hoover-deps" {
         data = <<-EOF
           listen_addresses = '*'
           port = 5432                             # (change requires restart)
-          max_connections = 200                   # (change requires restart)
-          shared_buffers = ${config.snoop_postgres_memory_limit}MB  # min 128kB
+          max_connections = 150                   # (change requires restart)
+          shared_buffers = ${int(config.snoop_postgres_memory_limit * 0.22)}MB  # min 128kB
           huge_pages = try                        # on, off, or try
           temp_buffers = 32MB                     # min 800kB
           max_prepared_transactions = 0          # zero disables the feature
-          work_mem = 64MB                         # min 64kB
-          maintenance_work_mem = 128MB             # min 1MB
+          work_mem = 48MB                         # min 64kB
+          maintenance_work_mem = 64MB             # min 1MB
           autovacuum_work_mem = -1                # min 1MB, or -1 to use maintenance_work_mem
           max_stack_depth = 4MB                  # min 100kB
           shared_memory_type = mmap              # the default is the first option
@@ -458,15 +458,19 @@ job "hoover-deps" {
                                                   #   sysv
                                                   #   windows
                                                   # (change requires restart)
-          dynamic_shared_memory_type = mmap      # the default is the first option
+          dynamic_shared_memory_type = posix      # the default is the first option
                                                   # supported by the operating system:
                                                   #   posix
                                                   #   sysv
                                                   #   windows
                                                   #   mmap
 
-          effective_io_concurrency = 4            # 1-1000; 0 disables prefetching
+          effective_io_concurrency = 3            # 1-1000; 0 disables prefetching
+          maintenance_io_concurrency = 3
           max_worker_processes = 8                # (change requires restart)
+          max_parallel_maintenance_workers = 3   # taken from max_parallel_workers
+          #max_parallel_workers_per_gather = 2    # taken from max_parallel_workers
+
           wal_writer_delay = 300ms                # 1-10000 milliseconds
           wal_writer_flush_after = 4MB            # measured in pages, 0 disables
           checkpoint_timeout = 5min              # range 30s-1d
@@ -474,7 +478,7 @@ job "hoover-deps" {
           min_wal_size = 80MB
           #checkpoint_completion_target = 0.5     # checkpoint target duration, 0.0 - 1.0
           #checkpoint_flush_after = 256kB         # measured in pages, 0 disables
-          #checkpoint_warning = 30s               # 0 disables
+          checkpoint_warning = 10s               # 0 disables
           log_timezone = 'Etc/UTC'
           cluster_name = 'snoop'                  # added to process titles if nonempty
           datestyle = 'iso, mdy'
@@ -485,6 +489,8 @@ job "hoover-deps" {
           lc_numeric = 'en_US.utf8'                       # locale for number formatting
           lc_time = 'en_US.utf8'                          # locale for time formatting
           default_text_search_config = 'pg_catalog.english'
+
+          effective_cache_size = ${int(config.snoop_postgres_memory_limit * 0.6)}MB
           EOF
       }
 
