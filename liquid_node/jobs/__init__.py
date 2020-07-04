@@ -104,6 +104,7 @@ def render(template, subs):
         loader=jinja2.FileSystemLoader(str(config.templates)),
     )
     env.globals['int'] = int
+    env.globals['max'] = max
     return env.from_string(template).render(subs)
 
 

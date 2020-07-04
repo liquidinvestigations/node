@@ -328,11 +328,11 @@ job "hoover-deps" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "rabbitmq:3.8.2-management-alpine"
+        image = "rabbitmq:3.8.5-management-alpine"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq/rabbitmq:/var/lib/rabbitmq",
-          "local/conf:/etc/rabbitmq/rabbitmq.conf",
-          "local/plugins:/etc/rabbitmq/enabled_plugins",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq/3.8.5:/var/lib/rabbitmq",
+          "local/conf:/etc/rabbitmq/rabbitmq.conf:ro",
+          "local/plugins:/etc/rabbitmq/enabled_plugins:ro",
         ]
         port_map {
           amqp = 5672
@@ -435,7 +435,7 @@ job "hoover-deps" {
         port_map {
           pg = 5432
         }
-        shm_size = ${int(config.snoop_postgres_memory_limit * 0.25) * 1024 * 1024}
+        shm_size = ${int(config.snoop_postgres_memory_limit * 0.27) * 1024 * 1024}
       }
 
       template {
@@ -444,7 +444,7 @@ job "hoover-deps" {
           listen_addresses = '*'
           port = 5432                             # (change requires restart)
           max_connections = 150                   # (change requires restart)
-          shared_buffers = ${int(config.snoop_postgres_memory_limit * 0.22)}MB  # min 128kB
+          shared_buffers = ${int(config.snoop_postgres_memory_limit * 0.25)}MB  # min 128kB
           huge_pages = try                        # on, off, or try
           temp_buffers = 32MB                     # min 800kB
           max_prepared_transactions = 0          # zero disables the feature
@@ -473,11 +473,11 @@ job "hoover-deps" {
           wal_writer_delay = 300ms                # 1-10000 milliseconds
           wal_writer_flush_after = 4MB            # measured in pages, 0 disables
           checkpoint_timeout = 5min              # range 30s-1d
-          max_wal_size = 1GB
+          max_wal_size = ${max(120, int(config.snoop_postgres_memory_limit * 0.1))}MB
           min_wal_size = 80MB
           #checkpoint_completion_target = 0.5     # checkpoint target duration, 0.0 - 1.0
           #checkpoint_flush_after = 256kB         # measured in pages, 0 disables
-          checkpoint_warning = 10s               # 0 disables
+          checkpoint_warning = 20s               # 0 disables
           log_timezone = 'Etc/UTC'
           cluster_name = 'snoop'                  # added to process titles if nonempty
           datestyle = 'iso, mdy'
@@ -489,7 +489,7 @@ job "hoover-deps" {
           lc_time = 'en_US.utf8'                          # locale for time formatting
           default_text_search_config = 'pg_catalog.english'
 
-          effective_cache_size = ${int(config.snoop_postgres_memory_limit * 0.6)}MB
+          effective_cache_size = ${int(config.snoop_postgres_memory_limit * 0.5)}MB
           EOF
       }
 
