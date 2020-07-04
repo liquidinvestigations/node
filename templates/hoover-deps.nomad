@@ -423,7 +423,7 @@ job "hoover-deps" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "postgres:12.2"
+        image = "postgres:12"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/pg/data:/var/lib/postgresql/data",
           "local/conf:/etc/postgresql.conf",
@@ -466,7 +466,6 @@ job "hoover-deps" {
                                                   #   mmap
 
           effective_io_concurrency = 3            # 1-1000; 0 disables prefetching
-          maintenance_io_concurrency = 3
           max_worker_processes = 8                # (change requires restart)
           max_parallel_maintenance_workers = 3   # taken from max_parallel_workers
           #max_parallel_workers_per_gather = 2    # taken from max_parallel_workers
