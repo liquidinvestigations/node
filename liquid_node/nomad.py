@@ -2,7 +2,7 @@ import logging
 
 from .configuration import config
 from .jsonapi import JsonApi
-from .util import first
+from .util import first, retry
 
 
 log = logging.getLogger(__name__)
@@ -59,6 +59,7 @@ class Nomad(JsonApi):
     def job_allocations(self, job):
         return self.get(f'job/{job}/allocations')
 
+    @retry()
     def restart(self, job, task):
         def allocs():
             for alloc in self.job_allocations(job):
