@@ -202,6 +202,12 @@ job "hoover-deps" {
         operator = "is_set"
       }
 
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
+
       driver = "docker"
       ${ shutdown_delay() }
       config {
@@ -217,6 +223,7 @@ job "hoover-deps" {
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
+        memory_hard_limit = 1200
       }
       template {
         data = <<EOF

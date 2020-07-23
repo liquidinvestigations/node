@@ -137,7 +137,7 @@ class Configuration:
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
 
         self.hoover_authproxy_memory_limit = self.ini.getint('liquid',
-                                                             'hoover_authproxy_memory_limit', fallback=500)
+                                                             'hoover_authproxy_memory_limit', fallback=400)
         self.hoover_web_memory_limit = self.ini.getint('liquid',
                                                        'hoover_web_memory_limit', fallback=300)
         self.hoover_web_count = self.ini.getint('liquid',
@@ -149,7 +149,7 @@ class Configuration:
         self.snoop_cpu_count_multiplier = self.ini.getfloat('snoop', 'worker_cpu_count_multiplier', fallback=0.85)  # noqa: E501
 
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
-        self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1600)
+        self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
         self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)  # noqa: E501
         self.snoop_worker_memory_limit = 400 + 200 * self.snoop_min_workers_per_node
         self.snoop_worker_hard_memory_limit = 600 + 300 * self.snoop_max_workers_per_node
