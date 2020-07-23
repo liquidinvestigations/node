@@ -19,6 +19,7 @@ job "hoover" {
       }
 
       driver = "docker"
+
       config {
         image = "${config.image('hoover-search')}"
         args = ["sh", "/local/startup.sh"]
@@ -32,7 +33,17 @@ job "hoover" {
         labels {
           liquid_task = "hoover-search"
         }
+        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
       }
+
+      resources {
+        memory = ${config.hoover_web_memory_limit}
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
       template {
         data = <<-EOF
         #!/bin/sh
@@ -87,13 +98,6 @@ job "hoover" {
         EOF
         destination = "local/hoover.env"
         env = true
-      }
-      resources {
-        memory = ${config.hoover_web_memory_limit}
-        network {
-          mbits = 1
-          port "http" {}
-        }
       }
       service {
         name = "hoover-search"
@@ -156,6 +160,7 @@ job "hoover" {
         labels {
           liquid_task = "snoop-worker"
         }
+        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
       }
       env {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
@@ -242,6 +247,7 @@ job "hoover" {
         volumes = [
           ${hoover_snoop2_repo}
         ]
+        memory_hard_limit = 400
       }
       template {
         data = <<-EOF
@@ -330,6 +336,7 @@ job "hoover" {
         labels {
           liquid_task = "snoop-api"
         }
+        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
       }
       env {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"

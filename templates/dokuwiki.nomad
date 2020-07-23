@@ -26,6 +26,7 @@ job "dokuwiki" {
         port_map {
           php = 80
         }
+        memory_hard_limit = 1500
       }
       env {
         LIQUID_CORE_URL = ${config.liquid_core_url|tojson}

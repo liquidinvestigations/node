@@ -29,6 +29,7 @@ job "hypothesis" {
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
+        memory_hard_limit = 1500
       }
       template {
         data = <<-EOF
@@ -83,14 +84,15 @@ job "hypothesis" {
         labels {
           liquid_task = "hypothesis-es"
         }
+        memory_hard_limit = 3500
       }
       env {
         discovery.type = "single-node"
-        ES_JAVA_OPTS = "-Xms500m -Xmx500m"
+        ES_JAVA_OPTS = "-Xms600m -Xmx600m"
         path.repo = "/es_repo"
       }
       resources {
-        memory = 1000
+        memory = 1300
         network {
           mbits = 1
           port "es" {}
@@ -132,6 +134,7 @@ job "hypothesis" {
         labels {
           liquid_task = "hypothesis-rabbitmq"
         }
+        memory_hard_limit = 600
       }
       resources {
         memory = 300
@@ -179,6 +182,7 @@ job "hypothesis" {
         port_map {
           http = 5000
         }
+        memory_hard_limit = ${3 * config.hypothesis_memory_limit}
       }
       template {
         data = <<-EOF
@@ -341,6 +345,7 @@ job "hypothesis" {
         labels {
           liquid_task = "hypothesis-client"
         }
+        memory_hard_limit = 100
       }
       template {
         data = <<-EOF

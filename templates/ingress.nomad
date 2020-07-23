@@ -29,6 +29,7 @@ job "ingress" {
         labels {
           liquid_task = "liquid-ingress"
         }
+        memory_hard_limit = 300
       }
       template {
         data = <<-EOF

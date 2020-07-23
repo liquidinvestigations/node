@@ -271,6 +271,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-tika"
         }
+        memory_hard_limit = ${4 * config.tika_memory_limit}
       }
 
       resources {
@@ -355,6 +356,18 @@ job "hoover-deps" {
         labels {
           liquid_task = "snoop-rabbitmq"
         }
+        memory_hard_limit = ${2 * config.snoop_rabbitmq_memory_limit}
+      }
+
+      resources {
+        memory = ${config.snoop_rabbitmq_memory_limit}
+        cpu = 250
+        network {
+          mbits = 1
+          port "amqp" {}
+          port "http" {}
+          port "prom" {}
+        }
       }
 
       #env { RABBITMQ_CONFIG_FILE = "/local/rabbitmq" }
@@ -378,17 +391,6 @@ job "hoover-deps" {
         data = <<-EOF
           [rabbitmq_prometheus,rabbitmq_management].
           EOF
-      }
-
-      resources {
-        memory = ${config.snoop_rabbitmq_memory_limit}
-        cpu = 150
-        network {
-          mbits = 1
-          port "amqp" {}
-          port "http" {}
-          port "prom" {}
-        }
       }
 
       service {
@@ -455,6 +457,7 @@ job "hoover-deps" {
           pg = 5432
         }
         shm_size = ${int(config.snoop_postgres_memory_limit * 0.27) * 1024 * 1024}
+        memory_hard_limit = ${2 * config.snoop_postgres_memory_limit}
       }
 
       template {

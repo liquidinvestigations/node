@@ -30,6 +30,7 @@ job "rocketchat" {
         port_map {
           mongo = 27017
         }
+        memory_hard_limit = 2000
       }
       resources {
         memory = 500
@@ -69,6 +70,7 @@ job "rocketchat" {
         port_map {
           web = 3000
         }
+        memory_hard_limit = 5000
       }
       template {
         data = <<-EOF
@@ -127,7 +129,7 @@ job "rocketchat" {
         destination = "local/main.js"
       }
       resources {
-        memory = 1500
+        memory = 1200
         cpu = 300
         network {
           mbits = 1

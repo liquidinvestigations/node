@@ -30,6 +30,7 @@ job "codimd" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/codimd/image-uploads:/codimd/public/uploads",
           ${liquidinvestigations_codimd_server_repo}
         ]
+        memory_hard_limit = 2000
       }
       resources {
         cpu = 100
@@ -140,6 +141,7 @@ job "codimd" {
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
+        memory_hard_limit = 1000
       }
       template {
         data = <<-EOF
@@ -154,7 +156,7 @@ job "codimd" {
       }
       resources {
         cpu = 100
-        memory = 170
+        memory = 300
         network {
           mbits = 1
           port "pg" {}
