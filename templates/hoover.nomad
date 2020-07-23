@@ -27,7 +27,7 @@ job "hoover" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build:ro",
         ]
         port_map {
-          http = 80
+          http = 8080
         }
         labels {
           liquid_task = "hoover-search"
@@ -49,7 +49,7 @@ job "hoover" {
         ./manage.py migrate
         ./manage.py healthcheck
         ./manage.py synccollections "$SNOOP_COLLECTIONS"
-        exec waitress-serve --port 80 --threads=20 hoover.site.wsgi:application
+        exec waitress-serve --port 8080 --threads=20 hoover.site.wsgi:application
         EOF
         env = false
         destination = "local/startup.sh"

@@ -145,7 +145,9 @@ class Configuration:
         self.snoop_workers = self.ini.getint('snoop', 'workers', fallback=1)
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1600)
-        self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)
+        self.snoop_postgres_max_connections = self.ini.getint('snoop',
+                                                              'postgres_max_connections',
+                                                              fallback=250)
         self.snoop_worker_memory_limit = self.ini.getint('snoop', 'worker_memory_limit', fallback=800)
         self.snoop_worker_process_count = self.ini.getint('snoop', 'worker_process_count', fallback=4)
 

@@ -51,6 +51,11 @@ job "hoover-deps" {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
 
       driver = "docker"
 
@@ -113,6 +118,7 @@ job "hoover-deps" {
     ${ continuous_reschedule() }
     ${ group_disk() }
     count = ${config.elasticsearch_data_node_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     task "es" {
       ${ task_logs() }
@@ -250,6 +256,7 @@ job "hoover-deps" {
 
     ${ continuous_reschedule() }
     ${ group_disk() }
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     task "tika" {
       ${ task_logs() }
@@ -268,7 +275,7 @@ job "hoover-deps" {
 
       resources {
         memory = ${config.tika_memory_limit}
-        cpu = 200
+        cpu = 500
         network {
           mbits = 1
           port "tika" {}
@@ -323,6 +330,12 @@ job "hoover-deps" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
+      }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
       }
 
       driver = "docker"
@@ -418,6 +431,12 @@ job "hoover-deps" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
+      }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
       }
 
       driver = "docker"
