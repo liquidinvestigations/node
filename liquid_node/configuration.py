@@ -39,6 +39,7 @@ class Configuration:
             hoover.Hoover(),
             hoover.Ui(),
             hoover.Deps(),
+            hoover.Workers(),
             dokuwiki.Dokuwiki(),
             rocketchat.Rocketchat(),
             rocketchat.Migrate(),
@@ -142,14 +143,17 @@ class Configuration:
         self.hoover_web_count = self.ini.getint('liquid',
                                                 'hoover_web_count', fallback=2)
 
-        self.snoop_workers = self.ini.getint('snoop', 'workers', fallback=1)
+        self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
+        self.snoop_min_workers_per_node = self.ini.getint('snoop', 'min_workers_per_node', fallback=2)
+        self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=6)
+        self.snoop_cpu_count_multiplier = self.ini.getfloat('snoop', 'worker_cpu_count_multiplier', fallback=0.85)  # noqa: E501
+
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1600)
-        self.snoop_postgres_max_connections = self.ini.getint('snoop',
-                                                              'postgres_max_connections',
-                                                              fallback=250)
-        self.snoop_worker_memory_limit = self.ini.getint('snoop', 'worker_memory_limit', fallback=800)
-        self.snoop_worker_process_count = self.ini.getint('snoop', 'worker_process_count', fallback=4)
+        self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)  # noqa: E501
+        self.snoop_worker_memory_limit = 400 + 200 * self.snoop_min_workers_per_node
+        self.snoop_worker_hard_memory_limit = 600 + 300 * self.snoop_max_workers_per_node
+        self.snoop_worker_cpu_limit = 1400 * self.snoop_min_workers_per_node
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='11s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='9s')

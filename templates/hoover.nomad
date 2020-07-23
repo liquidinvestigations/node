@@ -122,7 +122,7 @@ job "hoover" {
         }
         check_restart {
           limit = 3
-          grace = "65s"
+          grace = "95s"
         }
       }
     }
@@ -228,7 +228,7 @@ job "hoover" {
     }
   }
 
-  {% if config.snoop_workers > 0 %}
+  {% if config.snoop_workers_enabled %}
   group "snoop-celery-beat" {
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -297,104 +297,6 @@ job "hoover" {
     }
   } // snoop-celery-beat
   {% endif %}
-
-  group "snoop-workers" {
-    count = ${config.snoop_workers}
-    ${ group_disk() }
-
-    task "snoop-workers" {
-      ${ task_logs() }
-
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
-      config {
-        image = "${config.image('hoover-snoop2')}"
-        args = ["sh", "/local/startup.sh"]
-        volumes = [
-          ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
-        ]
-        mounts = [
-          {
-            type = "tmpfs"
-            target = "/tmp"
-            readonly = false
-            tmpfs_options {
-              #size = 3221225472  # 3G
-            }
-          }
-        ]
-        labels {
-          liquid_task = "snoop-workers"
-        }
-      }
-      env {
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
-      }
-      template {
-        data = <<-EOF
-          #!/bin/sh
-          set -ex
-          # exec tail -f /dev/null
-          if  [ -z "$SNOOP_TIKA_URL" ] \
-                  || [ -z "$SNOOP_DB" ] \
-                  || [ -z "$SNOOP_ES_URL" ] \
-                  || [ -z "$SNOOP_AMQP_URL" ]; then
-            echo "incomplete configuration!"
-            sleep 5
-            exit 1
-          fi
-          exec ./manage.py runworkers
-          EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-      env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
-        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-
-        SNOOP_WORKER_COUNT = "${config.snoop_worker_process_count}"
-        SNOOP_TOTAL_WORKER_COUNT = "${config.snoop_worker_process_count * config.snoop_workers}"
-      }
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-      resources {
-        memory = ${config.snoop_worker_memory_limit}
-      }
-    }
-  }
 
   group "snoop-web" {
     count = ${config.hoover_web_count}
