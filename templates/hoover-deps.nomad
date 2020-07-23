@@ -443,7 +443,7 @@ job "hoover-deps" {
         data = <<-EOF
           listen_addresses = '*'
           port = 5432                             # (change requires restart)
-          max_connections = 150                   # (change requires restart)
+          max_connections = ${config.snoop_postgres_max_connections}  # (change requires restart)
           shared_buffers = ${int(config.snoop_postgres_memory_limit * 0.25)}MB  # min 128kB
           huge_pages = try                        # on, off, or try
           temp_buffers = 32MB                     # min 800kB
