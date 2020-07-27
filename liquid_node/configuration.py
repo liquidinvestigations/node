@@ -151,9 +151,9 @@ class Configuration:
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
         self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)  # noqa: E501
-        self.snoop_worker_memory_limit = 400 + 200 * self.snoop_min_workers_per_node
-        self.snoop_worker_hard_memory_limit = 600 + 300 * self.snoop_max_workers_per_node
-        self.snoop_worker_cpu_limit = 1400 * self.snoop_min_workers_per_node
+        self.snoop_worker_memory_limit = 440 * (1 + self.snoop_min_workers_per_node)
+        self.snoop_worker_hard_memory_limit = 4 * self.snoop_worker_memory_limit
+        self.snoop_worker_cpu_limit = 1500 * self.snoop_min_workers_per_node
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='11s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='9s')

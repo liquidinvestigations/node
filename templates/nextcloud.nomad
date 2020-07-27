@@ -111,6 +111,11 @@ job "nextcloud" {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
 
       driver = "docker"
       ${ shutdown_delay() }

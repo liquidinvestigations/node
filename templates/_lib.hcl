@@ -49,6 +49,12 @@ ephemeral_disk {
     task "authproxy-web" {
       ${ task_logs() }
 
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
       driver = "docker"
       config {
         image = "${config.image('liquid-authproxy')}"
