@@ -45,6 +45,7 @@ job "hoover-deps" {
   group "es-master" {
     ${ continuous_reschedule() }
     ${ group_disk() }
+
     task "es" {
       ${ task_logs() }
       constraint {
@@ -60,6 +61,7 @@ job "hoover-deps" {
       driver = "docker"
 
       ${ elasticsearch_docker_config('data') }
+
       ${ shutdown_delay() }
 
       env {
@@ -78,7 +80,9 @@ job "hoover-deps" {
 
         ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
+
       resources {
+        cpu = 600
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -86,6 +90,7 @@ job "hoover-deps" {
           port "transport" {}
         }
       }
+
       service {
         name = "hoover-es-master"
         port = "http"
@@ -99,6 +104,7 @@ job "hoover-deps" {
           timeout = "${check_timeout}"
         }
       }
+
       service {
         name = "hoover-es-master-transport"
         port = "transport"
@@ -133,8 +139,11 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+
       ${ shutdown_delay() }
+
       ${elasticsearch_docker_config('data-${NOMAD_ALLOC_INDEX}') }
+
       env {
         node.master = "false"
         cluster.name = "hoover"
@@ -160,6 +169,7 @@ job "hoover-deps" {
         env = true
       }
       resources {
+        cpu = 500
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -214,7 +224,9 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+
       ${ shutdown_delay() }
+
       config {
         image = "postgres:9.6"
         volumes = [
@@ -352,7 +364,9 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+
       ${ shutdown_delay() }
+
       config {
         image = "rabbitmq:3.8.5-management-alpine"
         volumes = [
@@ -454,7 +468,9 @@ job "hoover-deps" {
       }
 
       driver = "docker"
+
       ${ shutdown_delay() }
+
       config {
         image = "postgres:12"
         volumes = [
@@ -542,7 +558,7 @@ job "hoover-deps" {
       ${ set_pg_password_template('snoop') }
 
       resources {
-        cpu = 200
+        cpu = 600
         memory = ${config.snoop_postgres_memory_limit}
         network {
           mbits = 1
