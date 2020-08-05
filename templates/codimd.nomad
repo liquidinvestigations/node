@@ -9,6 +9,18 @@ job "codimd" {
     ${ group_disk() }
     task "codimd" {
       ${ task_logs() }
+
+      # for the image uploads directory
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
       leader = true
       driver = "docker"
       config {
@@ -20,8 +32,10 @@ job "codimd" {
           liquid_task = "codimd"
         }
         volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/codimd/image-uploads:/codimd/public/uploads",
           ${liquidinvestigations_codimd_server_repo}
         ]
+        memory_hard_limit = 2000
       }
       resources {
         cpu = 100
@@ -116,6 +130,11 @@ job "codimd" {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
 
       driver = "docker"
       ${ shutdown_delay() }
@@ -132,6 +151,7 @@ job "codimd" {
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
+        memory_hard_limit = 1000
       }
       template {
         data = <<-EOF
@@ -146,7 +166,7 @@ job "codimd" {
       }
       resources {
         cpu = 100
-        memory = 170
+        memory = 300
         network {
           mbits = 1
           port "pg" {}

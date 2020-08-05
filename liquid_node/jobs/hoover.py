@@ -13,6 +13,12 @@ class Ui(jobs.Job):
     app = 'hoover'
 
 
+class Workers(jobs.Job):
+    name = 'hoover-workers'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'hoover'
+
+
 class Deps(jobs.Job):
     name = 'hoover-deps'
     template = jobs.TEMPLATES / f'{name}.nomad'

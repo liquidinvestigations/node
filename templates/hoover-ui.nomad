@@ -29,6 +29,7 @@ job "hoover-ui" {
           liquid_task = "hoover-ui"
         }
         args = ["npm", "run", "build"]
+        memory_hard_limit = 3000
       }
 
       env {
@@ -36,7 +37,7 @@ job "hoover-ui" {
       }
 
       resources {
-        memory = 1300
+        memory = 900
       }
     }
   }

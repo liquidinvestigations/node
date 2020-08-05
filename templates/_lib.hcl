@@ -46,8 +46,14 @@ ephemeral_disk {
 
     count = ${count}
 
-    task "web" {
+    task "authproxy-web" {
       ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
 
       driver = "docker"
       config {
@@ -61,6 +67,7 @@ ephemeral_disk {
         port_map {
           authproxy = 5000
         }
+        memory_hard_limit = ${memory * 10}
       }
       template {
         data = <<-EOF
@@ -107,7 +114,7 @@ ephemeral_disk {
         }
         check_restart {
           limit = 3
-          grace = "25s"
+          grace = "55s"
         }
       }
     }

@@ -35,6 +35,7 @@ job "nextcloud" {
         labels {
           liquid_task = "nextcloud"
         }
+        memory_hard_limit = ${3 * config.nextcloud_memory_limit}
       }
       resources {
         cpu = 100
@@ -110,6 +111,11 @@ job "nextcloud" {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
 
       driver = "docker"
       ${ shutdown_delay() }
@@ -124,6 +130,7 @@ job "nextcloud" {
         port_map {
           maria = 3306
         }
+        memory_hard_limit = 750
       }
       template {
         data = <<-EOF

@@ -66,11 +66,14 @@ If more flexibility is needed, open an issue.
 
 The following Nomad Meta values need to be set:
 
-- `liquid_ingress = true` -- set on the one node that will listen on 80 and 443
-- `liquid_volumes = /path/to/volumes` -- the path on the host that will mount
-  volumes
-- `liquid_collections = /path/to/collections` -- the path on the host that
+- `liquid_ingress = true` -- Set on the one node that will listen on 80 and 443
+- `liquid_volumes = /path/to/volumes` -- The path on the host that will mount
+  volumes.
+- `liquid_collections = /path/to/collections` -- The path on the host that
   points to the original collections
+- `liquid_large_databases = true` -- All large databases have max affinity to
+  nodes that have this parameter set. This should be set to `true` only on
+  storage servers, not storage clients.
 
 The job constraints are set up in such a way that one single node will need to
 have both flags set.

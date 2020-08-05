@@ -1,21 +1,30 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk, continuous_reschedule with context -%}
 
 job "hypothesis" {
   datacenters = ["dc1"]
   type = "service"
   priority = 65
 
-  group "db" {
+  group "pg" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
+
     task "pg" {
       ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
 
       driver = "docker"
+
       ${ shutdown_delay() }
+
       config {
         image = "postgres:9.4-alpine"
         volumes = [
@@ -29,7 +38,9 @@ job "hypothesis" {
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
+        memory_hard_limit = 2000
       }
+
       template {
         data = <<-EOF
           POSTGRES_USER = "hypothesis"
@@ -41,6 +52,7 @@ job "hypothesis" {
         destination = "local/postgres.env"
         env = true
       }
+
       resources {
         memory = 350
         network {
@@ -48,6 +60,7 @@ job "hypothesis" {
           port "pg" {}
         }
       }
+
       service {
         name = "hypothesis-pg"
         port = "pg"
@@ -60,16 +73,29 @@ job "hypothesis" {
         }
       }
     }
+  }
+
+  group "es" {
+    ${ group_disk() }
+    ${ continuous_reschedule() }
 
     task "es" {
       ${ task_logs() }
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
 
       driver = "docker"
+
       ${ shutdown_delay() }
+
       config {
         image = "hypothesis/elasticsearch:latest"
         args = ["/bin/sh", "-c", "chown -R 1000:1000 /usr/share/elasticsearch/data && chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
@@ -83,19 +109,23 @@ job "hypothesis" {
         labels {
           liquid_task = "hypothesis-es"
         }
+        memory_hard_limit = 1500
       }
+
       env {
         discovery.type = "single-node"
-        ES_JAVA_OPTS = "-Xms500m -Xmx500m"
+        ES_JAVA_OPTS = "-Xms600m -Xmx600m"
         path.repo = "/es_repo"
       }
+
       resources {
-        memory = 1000
+        memory = 900
         network {
           mbits = 1
           port "es" {}
         }
       }
+
       service {
         name = "hypothesis-es"
         port = "es"
@@ -110,6 +140,11 @@ job "hypothesis" {
         }
       }
     }
+  }
+
+  group "rabbitmq" {
+    ${ group_disk() }
+    ${ continuous_reschedule() }
 
     task "rabbitmq" {
       ${ task_logs() }
@@ -117,9 +152,16 @@ job "hypothesis" {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
 
       driver = "docker"
+
       ${ shutdown_delay() }
+
       config {
         image = "rabbitmq:3.6-management-alpine"
         volumes = [
@@ -132,7 +174,9 @@ job "hypothesis" {
         labels {
           liquid_task = "hypothesis-rabbitmq"
         }
+        memory_hard_limit = 600
       }
+
       resources {
         memory = 300
         cpu = 150
@@ -141,6 +185,7 @@ job "hypothesis" {
           port "amqp" {}
         }
       }
+
       service {
         name = "hypothesis-rabbitmq"
         port = "amqp"
@@ -155,8 +200,10 @@ job "hypothesis" {
     }
   }
 
-  group "h" {
+  group "hypothesis" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
+
     task "hypothesis" {
       ${ task_logs() }
       # Constraint required for hypothesis-usersync
@@ -179,7 +226,9 @@ job "hypothesis" {
         port_map {
           http = 5000
         }
+        memory_hard_limit = ${3 * config.hypothesis_memory_limit}
       }
+
       template {
         data = <<-EOF
           import os
@@ -205,6 +254,7 @@ job "hypothesis" {
           EOF
         destination = "local/get_client_oauth_id.py"
       }
+
       template {
         data = <<-EOF
           #!/bin/sh -ex
@@ -215,6 +265,7 @@ job "hypothesis" {
         destination = "local/entrypoint"
         perms = "755"
       }
+
       template {
         data = <<-EOF
           {{- range service "hypothesis-es" }}
@@ -254,6 +305,7 @@ job "hypothesis" {
         destination = "local/h.env"
         env = true
       }
+
       template {
         data = <<-EOF
           #!/usr/bin/env python3
@@ -287,6 +339,7 @@ job "hypothesis" {
           perms = "755"
           destination = "local/usersync.py"
       }
+
       resources {
         memory = ${config.hypothesis_memory_limit}
         cpu = 200
@@ -295,6 +348,7 @@ job "hypothesis" {
           port "http" {}
         }
       }
+
       service {
         name = "hypothesis"
         port = "http"
@@ -330,8 +384,11 @@ job "hypothesis" {
 
   group "client" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
+
     task "nginx" {
       ${ task_logs() }
+
       driver = "docker"
       config = {
         image = "${config.image('h-client')}"
@@ -341,7 +398,9 @@ job "hypothesis" {
         labels {
           liquid_task = "hypothesis-client"
         }
+        memory_hard_limit = 100
       }
+
       template {
         data = <<-EOF
           LIQUID_DOMAIN = ${liquid_domain|tojson}
@@ -350,6 +409,7 @@ job "hypothesis" {
         destination = "local/bake.env"
         env = true
       }
+
       resources {
         memory = 10
         network {
@@ -357,6 +417,7 @@ job "hypothesis" {
           port "http" {}
         }
       }
+
       service {
         name = "hypothesis-client"
         port = "http"

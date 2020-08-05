@@ -355,18 +355,6 @@ def halt():
     wait_for_stopped_jobs(jobs)
 
 
-def gc():
-    """Stop all jobs that should not be running in the current deploy configuration:
-    - jobs from disabled applications.
-    """
-    stopped_jobs = []
-    for job in config.disabled_jobs:
-        nomad.stop(job.name)
-        stopped_jobs.append(job.name)
-
-    wait_for_stopped_jobs(stopped_jobs)
-
-
 def nomadgc():
     """Remove dead jobs from nomad"""
     nomad.gc()

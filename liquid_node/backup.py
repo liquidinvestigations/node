@@ -18,7 +18,8 @@ def backup(*args):
     parser.add_argument('--no-blobs', action='store_false', dest='blobs')
     parser.add_argument('--no-es', action='store_false', dest='es')
     parser.add_argument('--no-pg', action='store_false', dest='pg')
-    parser.add_argument('--no-collections', action='store_false', dest='collections')
+    parser.add_argument('--no-collections', action='store_false', dest='backup_collections')
+    parser.add_argument('--collection', action='append', dest='collections')
     parser.add_argument('--no-apps', action='store_false', dest='apps')
     parser.add_argument('dest')
     options = parser.parse_args(args)
@@ -44,17 +45,15 @@ def backup(*args):
             backup_pg(backup_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
             backup_es(dest / 'hypothesis', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
 
-    if not options.collections:
+    if not options.backup_collections:
         log.warning('not backing up collection data (--no-collections)')
         return
 
-    for collection in config.snoop_collections:
-        name = collection['name']
-
-        collection_dir = dest / f"collection-{name}"
+    for collection_name in (options.collections or [x['name'] for x in config.snoop_collections]):
+        collection_dir = dest / f"collection-{collection_name}"
         collection_dir.mkdir(parents=True, exist_ok=True)
         backup_collection(dest=collection_dir,
-                          name=name,
+                          name=collection_name,
                           save_blobs=options.blobs,
                           save_es=options.es,
                           save_pg=options.pg)
