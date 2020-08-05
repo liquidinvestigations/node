@@ -18,11 +18,25 @@ job "liquid" {
       }
 
       driver = "docker"
+      user = "testuser"
       config {
         image = "${config.image('liquid-core')}"
-        volumes = [
-          ${liquidinvestigations_core_repo}
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/var",
+        #args = ["/bin/sleep", "1000"]
+        #args = ["/bin/sh", "-c","chown -R test_user:test_user /app/var"]
+        #volumes = [
+        #  ${liquidinvestigations_core_repo}
+        #  "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/var",
+        #]
+        mounts = [
+        {
+          type = "bind"
+          target = "/app/var"
+          source = ${liquidinvestigations_core_repo}"{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var"
+          readonly = false
+          bind_options {
+            propagation = "rshared"
+          }
+        }
         ]
         labels {
           liquid_task = "liquid-core"

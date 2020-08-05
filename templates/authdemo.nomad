@@ -7,6 +7,7 @@ job "authdemo" {
   group "demo" {
     task "app" {
       driver = "docker"
+      user = "testuser"
       config {
         image = "${config.image('liquid-authproxy')}"
         args = ["./testapp.py"]

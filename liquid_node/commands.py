@@ -5,6 +5,7 @@ import os
 import base64
 import json
 import argparse
+import shutil
 
 from liquid_node.jobs import wait_for_stopped_jobs
 from .configuration import config
@@ -283,6 +284,14 @@ def deploy(*args):
         'username': 'rocketchatadmin',
         'pass': random_secret(64),
     })
+
+    # create directories and change permission
+    paths = ["/opt/node/volumes/liquid/core/var", "/opt/node/volumes/snoop/blobs"]
+    for path in paths:
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        os.chown(path, 666, 666)
 
     # Start liquid-core in order to setup the auth
     liquid_checks = start('liquid', dict(jobs)['liquid'])
