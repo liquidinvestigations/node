@@ -347,7 +347,7 @@ job "hoover" {
       }
       template {
         data = <<-EOF
-          #!/bin/bash
+          #!/bin/sh
           set -ex
           if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
             echo "incomplete configuration!"
