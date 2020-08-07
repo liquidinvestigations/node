@@ -23,6 +23,7 @@ job "hoover-workers" {
       }
 
       driver = "docker"
+      user = "testuser"
       config {
         image = "${config.image('hoover-snoop2')}"
         args = ["sh", "/local/startup.sh"]

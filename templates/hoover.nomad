@@ -19,7 +19,7 @@ job "hoover" {
       }
 
       driver = "docker"
-
+      user = "testuser"
       config {
         image = "${config.image('hoover-search')}"
         args = ["sh", "/local/startup.sh"]
@@ -347,7 +347,7 @@ job "hoover" {
       }
       template {
         data = <<-EOF
-          #!/bin/sh
+          #!/bin/bash
           set -ex
           if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
             echo "incomplete configuration!"
@@ -360,7 +360,7 @@ job "hoover" {
           ./manage.py healthcheck
           date
           if [[ "$DEBUG" == "true" ]]; then
-            exec ./manage.py runserver 0.0.0.0:5000
+            exec ./manage.py runserver 0.0.0.0:8080
           else
             exec /runserver
           fi
