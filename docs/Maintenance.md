@@ -28,7 +28,7 @@ The "./liquid backup" command has optional arguments:
 
 To restore a collection:
 ```shell
-./liquid restore_collection /tmp/backup-today/collection-testdata new-collection-name
+./liquid restore-collection /tmp/backup-today/collection-testdata new-collection-name
 ```
 
 
@@ -36,7 +36,7 @@ To restore a collection:
 
 To restore application data:
 ```shell
-./liquid restore_apps /tmp/backup-today
+./liquid restore-apps /tmp/backup-today
 ```
 
 

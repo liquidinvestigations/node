@@ -1,32 +1,42 @@
 import logging
-import argparse
 import subprocess
+import click
 from pathlib import Path
 from time import time, sleep
-
-from liquid_node.configuration import config
-from liquid_node.nomad import nomad
-from liquid_node.jsonapi import JsonApi
+from .commands import halt
+from .commands import deploy
+from .configuration import config
+from .nomad import nomad
+from .jsonapi import JsonApi
 from .util import retry
-from . import commands
 
 log = logging.getLogger(__name__)
 
 
-def backup(*args):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--no-blobs', action='store_false', dest='blobs')
-    parser.add_argument('--no-es', action='store_false', dest='es')
-    parser.add_argument('--no-pg', action='store_false', dest='pg')
-    parser.add_argument('--no-collections', action='store_false', dest='backup_collections')
-    parser.add_argument('--collection', action='append', dest='collections')
-    parser.add_argument('--no-apps', action='store_false', dest='apps')
-    parser.add_argument('dest')
-    options = parser.parse_args(args)
-    dest = Path(options.dest).resolve()
+SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
+SNOOP_ES_ALLOC = "hoover-deps:es"
+HYPOTHESIS_ES_ALLOC = "hypothesis:es"
+SNOOP_API_ALLOC = "hoover:snoop"
+
+
+@click.group()
+def backup_commands():
+    pass
+
+
+@backup_commands.command()
+@click.option('--no-blobs', 'blobs', is_flag=True, default=True)
+@click.option('--no-es', 'es', is_flag=True, default=True)
+@click.option('--no-pg', 'pg', is_flag=True, default=True)
+@click.option('--no-collections', 'backup_collections', is_flag=True, default=True)
+@click.option('--collection', 'collections', multiple=True)
+@click.option('--no-apps', 'apps', is_flag=True, default=True)
+@click.argument('dest', required=True)
+def backup(blobs, es, pg, backup_collections, collections, apps, dest):
+    dest = Path(dest).resolve()
     dest.mkdir(parents=True, exist_ok=True)
 
-    if not options.apps:
+    if not apps:
         log.warning('not backing up app data (--no-apps)')
     else:
         backup_sqlite3(dest / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
@@ -45,26 +55,58 @@ def backup(*args):
             backup_pg(backup_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
             backup_es(dest / 'hypothesis', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
 
-    if not options.backup_collections:
+    if not backup_collections:
         log.warning('not backing up collection data (--no-collections)')
         return
 
-    for collection_name in (options.collections or [x['name'] for x in config.snoop_collections]):
+    for collection_name in (collections or [x['name'] for x in config.snoop_collections]):
         collection_dir = dest / f"collection-{collection_name}"
         collection_dir.mkdir(parents=True, exist_ok=True)
         backup_collection(dest=collection_dir,
                           name=collection_name,
-                          save_blobs=options.blobs,
-                          save_es=options.es,
-                          save_pg=options.pg)
+                          save_blobs=blobs,
+                          save_es=es,
+                          save_pg=pg)
 
 
-def restore_apps(*args):
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('src')
-    options = parser.parse_args(args)
-    src = Path(options.src).resolve()
+@backup_commands.command()
+@click.argument('src')
+@click.argument('name')
+def restore_collection(src, name):
+    log.info("restoring collection data from %s as %s", src, name)
 
+    assert (name not in (c['name'] for c in config.snoop_collections)), \
+        f"collection {name} already defined in liquid.ini, please remove it"
+
+    config._validate_collection_name(name)
+
+    src = Path(src).resolve()
+    restore_collection_pg(src, name)
+    restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
+    restore_collection_blobs(src, name)
+
+    log.info("Collection data restored")
+    log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
+
+
+@backup_commands.command()
+@click.pass_context
+@click.argument('backup_root')
+def restore_all_collections(ctx, backup_root):
+    backup_root = Path(backup_root).resolve()
+    PREFIX = 'collection-'
+    for src in backup_root.iterdir():
+        log.info("Collection is " + str(src))
+        if src.is_dir() and src.name.startswith(PREFIX):
+            name = src.name[len(PREFIX):]
+            ctx.invoke(restore_collection, src=src, name=name)
+
+
+@backup_commands.command()
+@click.pass_context
+@click.argument('src', required=True)
+def restore_apps(ctx, src):
+    src = Path(src).resolve()
     restore_sqlite3(src / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
     nomad.restart('liquid', 'core')
     restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
@@ -87,14 +129,8 @@ def restore_apps(*args):
         nomad.restart('hypothesis', 'es')
 
     log.info("Restore done; deploying")
-    commands.halt()
-    commands.deploy()
-
-
-SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
-SNOOP_ES_ALLOC = "hoover-deps:es"
-HYPOTHESIS_ES_ALLOC = "hypothesis:es"
-SNOOP_API_ALLOC = "hoover:snoop"
+    ctx.invoke(halt)
+    ctx.invoke(deploy)
 
 
 @retry()
@@ -102,7 +138,7 @@ def backup_pg(dest_file, username, dbname, alloc):
     tmp_file = Path(str(dest_file) + '.tmp')
     log.info(f"Dumping postgres from alloc {alloc} user {username} db {dbname} to {tmp_file}")
     cmd = (
-        f"set -exo pipefail; ./liquid dockerexec {alloc} "
+        f"set -exo pipefail; ./liquid dockerexec -- {alloc} "
         f"pg_dump -U {username} {dbname} -Ox "
         f"| gzip -1 > {tmp_file}"
     )
@@ -120,11 +156,12 @@ def backup_sqlite3(dest_file, dbname, alloc):
     tmp_file = Path(str(dest_file) + '.tmp')
     log.info(f"Dumping sqlite3 from alloc {alloc} db {dbname} to {tmp_file}")
     cmd = (
-        f"set -exo pipefail; ./liquid dockerexec {alloc} "
+        f"set -exo pipefail; ./liquid dockerexec -- {alloc} "
         f"sqlite3 -readonly -batch {dbname} .dump "
         f"| gzip -1 > {tmp_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
+    log.info(f'Cmd is {cmd}')
 
     log.info(f"Verify {tmp_file} by printing contents to /dev/null")
     subprocess.check_call(["/bin/bash", "-c", f"zcat {tmp_file} > /dev/null"])
@@ -141,9 +178,9 @@ def restore_sqlite3(src_file, dbname, alloc):
 
     log.info(f"Restore sqlite3 from {src_file} to alloc {alloc} db {dbname}")
     cmds = (
-        f"./liquid dockerexec {alloc} rm -f {dbname}",
+        f"./liquid dockerexec -- {alloc} rm -f {dbname}",
         (
-            f"set -exo pipefail; ./liquid dockerexec {alloc} bash -c "
+            f"set -exo pipefail; ./liquid dockerexec -- {alloc} bash -c "
             f"'set -exo pipefail; zcat | sqlite3 -batch {dbname}' < {src_file}"
         ),
     )
@@ -160,7 +197,7 @@ def restore_pg(src_file, username, dbname, alloc):
 
     log.info(f"Restore postgres from {src_file} to alloc {alloc} user {username} db {dbname}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
+        f"set -eo pipefail; ./liquid dockerexec -- {alloc} bash -c "
         f"'set -exo pipefail;"
         f"dropdb -U {username} --if-exists {dbname};"
         f" createdb -U {username} {dbname};"
@@ -188,7 +225,7 @@ def backup_files(dest_file, path, exclude, alloc):
     # we can ignore this error with `|| [[ $? -eq 1 ]]`.
     exclude_str = ' '.join(' --exclude ' + p for p in exclude)
     cmd = (
-        f"set -exo pipefail; ( ./liquid dockerexec {alloc} "
+        f"set -exo pipefail; ( ./liquid dockerexec -- {alloc} "
         f"tar c {exclude_str} -C {path} . || [[ $? -eq 1 ]] ) "
         f"| gzip -1 > {tmp_file}"
     )
@@ -205,7 +242,7 @@ def backup_files(dest_file, path, exclude, alloc):
 def restore_files(src_file, path, alloc):
     log.info(f"Restoring from {src_file} path {path} to alloc {alloc}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
+        f"set -eo pipefail; ./liquid dockerexec -- {alloc} bash -c "
         f"'set -exo pipefail; rm -rf {path};"
         f" mkdir {path}; tar xz -C {path}' "
         f"< {src_file}"
@@ -278,7 +315,7 @@ def backup_es(dest, name, es_url_suffix, es_alloc_id):
         es.delete(f"/_snapshot/backup-{name}/snapshot")
         es.delete(f"/_snapshot/backup-{name}")
         rm_cmd = (
-            f"./liquid dockerexec {es_alloc_id} "
+            f"./liquid dockerexec -- {es_alloc_id} "
             f"rm -rf /es_repo/backup-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
@@ -313,7 +350,7 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
         if es_alloc_id == SNOOP_ES_ALLOC:
             # reset index and close it
             reset_cmd = (
-                f"./liquid dockerexec {SNOOP_API_ALLOC} "
+                f"./liquid dockerexec -- {SNOOP_API_ALLOC} "
                 f"./manage.py resetcollectionindex {name}"
             )
             subprocess.check_call(reset_cmd, shell=True)
@@ -350,7 +387,7 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
         es.delete(f"/_snapshot/restore-{name}")
 
         rm_cmd = (
-            f"./liquid dockerexec {es_alloc_id} "
+            f"./liquid dockerexec -- {es_alloc_id} "
             f"rm -rf /es_repo/restore-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
@@ -371,29 +408,3 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
         backup_collection_blobs(dest, name)
     else:
         log.info("skipping saving blobs")
-
-
-def restore_collection(src, name):
-    log.info("restoring collection data from %s as %s", src, name)
-
-    assert (name not in (c['name'] for c in config.snoop_collections)), \
-        f"collection {name} already defined in liquid.ini, please remove it"
-
-    config._validate_collection_name(name)
-
-    src = Path(src).resolve()
-    restore_collection_pg(src, name)
-    restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
-    restore_collection_blobs(src, name)
-
-    log.info("Collection data restored")
-    log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
-
-
-def restore_all_collections(backup_root):
-    backup_root = Path(backup_root).resolve()
-    PREFIX = 'collection-'
-    for src in backup_root.iterdir():
-        if src.is_dir() and src.name.startswith(PREFIX):
-            name = src.name[len(PREFIX):]
-            restore_collection(src, name)

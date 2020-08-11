@@ -36,18 +36,18 @@ ls -aRlh ./backup
 zcat backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
 tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'
 #tar tz < backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
-./liquid backup ./backup2 --no-es --no-pg --no-apps
-./liquid backup ./backup3 --no-blobs --no-apps --collection testdata --collection uploads
-./liquid restore_collection ./backup/collection-testdata testdata2
+./liquid backup --no-es --no-pg --no-apps ./backup2
+./liquid backup --no-blobs --no-apps --collection testdata --collection uploads ./backup3
+./liquid restore-collection ./backup/collection-testdata testdata2
 
 echo "Remove all collections, gc, restore from backup"
 cp -f examples/liquid.ini .
 ./liquid nomadgc
 ./liquid deploy --no-secrets
-./liquid restore_all_collections ./backup
+./liquid restore-all-collections ./backup
 
 echo "Restore apps"
-./liquid restore_apps ./backup
+./liquid restore-apps ./backup
 
 echo "Restore apps after wipe"
 docker kill cluster
@@ -59,8 +59,8 @@ echo
 docker start cluster
 docker exec cluster ./cluster.py wait
 ./liquid deploy
-./liquid restore_all_collections ./backup
-./liquid restore_apps ./backup
+./liquid restore-all-collections ./backup
+./liquid restore-apps ./backup
 
 echo "Disable some apps, deploy"
 cp -f examples/liquid.ini .

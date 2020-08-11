@@ -7,3 +7,4 @@ verify_ssl = true
 colorlog = "*"
 flake8 = "*"
 Jinja2 = "*"
+click = "*"
