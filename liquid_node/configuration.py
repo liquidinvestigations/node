@@ -16,10 +16,25 @@ def split_lang_codes(option):
 
 
 class Configuration:
-    ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
-                'hypothesis',)
+    ALL_APPS = ('hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
+                'hypothesis', 'codimd')
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'hoover',)
+
+    APP_TITLE = {
+        'dokuwiki': 'DokuWiki',
+        'rocketchat': "Rocket.Chat",
+        'codimd': "CodiMD",
+    }
+
+    APP_DESCRIPTION = {
+        'hoover': 'is a search app.',
+        'hypothesis': 'is an annotation system.',
+        'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
+        'codimd': 'is a real-time collaboration pad.',
+        'nextcloud': 'has a file share system and a contact list of users.',
+        'rocketchat': 'is the chat app.'
+    }
 
     def __init__(self):
         self.root = Path(__file__).parent.parent.resolve()
@@ -200,6 +215,27 @@ class Configuration:
                 self.enabled_jobs.append(self.load_job(name, self.ini[key]))
 
         self.timestamp = int(time.time())
+
+        self.liquid_apps = []
+        for app in self.ALL_APPS:
+            self.liquid_apps.append({
+                'id': app,
+                'title': self.APP_TITLE.get(app) or app.title(),
+                'url': self.app_url(app),
+                'enabled': self.is_app_enabled(app),
+                'description': self.APP_DESCRIPTION[app],
+                'adminOnly': False,
+            })
+
+        self.liquid_apps.append({
+            'id': "nextcloud-admin",
+            'title': "Nextcloud Admin",
+            'url': self.app_url('nextcloud') + "/index.php/login?autologin=admin",
+            'enabled': self.is_app_enabled('nextcloud'),
+            'description': "will log you in as the Nextcloud admin user. "
+            "You may need to log out of Nextcloud first.",
+            'adminOnly': True,
+        })
 
     def image(self, name):
         """Returns the NAME:TAG for a docker image from versions.ini.
