@@ -334,7 +334,7 @@ job "hoover" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
-          http = 5000
+          http = 8080
         }
         labels {
           liquid_task = "snoop-api"
