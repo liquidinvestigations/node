@@ -23,6 +23,11 @@
       }
 
       env {
+        cluster.routing.allocation.disk.watermark.low = "97%"
+        cluster.routing.allocation.disk.watermark.high = "98%"
+        cluster.routing.allocation.disk.watermark.flood_stage = "99%"
+        cluster.info.update.interval = "10m"
+
         xpack.license.self_generated.type = "basic"
         xpack.monitoring.collection.enabled = "true"
         xpack.monitoring.collection.interval = "30s"
