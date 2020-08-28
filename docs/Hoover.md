@@ -69,3 +69,8 @@ In order to remove a collection, take the following steps:
 Use the collection's `ocr_languages` config value to set any number of
 languages for [tesseract 4.0
 LSTM](https://tesseract-ocr.github.io/tessdoc/Data-Files#data-files-for-version-400-november-29-2016).
+
+
+After changing the `ocr_languages` setting for an already processed collection, please run:
+
+     ./liquid dockerexec hoover-workers:snoop-workers ./manage.py retrytasks COLLECTION -- --func digests.launch
