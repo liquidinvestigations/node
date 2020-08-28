@@ -1,23 +1,25 @@
-from collections import defaultdict
-from time import time, sleep
-import logging
-import os
-import base64
-import json
-import argparse
-
-from liquid_node.jobs import wait_for_stopped_jobs
+from .nomad import nomad
 from .configuration import config
 from .consul import consul
-from .jobs import get_job, hoover
-from .nomad import nomad
+from .jobs import get_job, hoover, wait_for_stopped_jobs
 from .process import run, run_fg
 from .util import first, retry
 from .docker import docker
 from .vault import vault
-
+from time import time, sleep
+from collections import defaultdict
+import click
+import os
+import logging
+import json
+import base64
 
 log = logging.getLogger(__name__)
+
+SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
+SNOOP_ES_ALLOC = "hoover-deps:es"
+HYPOTHESIS_ES_ALLOC = "hypothesis:es"
+SNOOP_API_ALLOC = "hoover:snoop"
 
 CORE_AUTH_APPS = [
     {
@@ -66,6 +68,34 @@ CORE_AUTH_APPS = [
         'callback': f'{config.app_url("hypothesis")}/__auth/callback',
     },
 ]
+
+
+@click.group()
+def liquid_commands():
+    pass
+
+
+@liquid_commands.command()
+def resources():
+    """Get memory and CPU usage for the deployment"""
+
+    def get_all_res():
+        jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
+        for spec in jobs:
+            yield from nomad.get_resources(spec)
+
+    total = defaultdict(int)
+    for name, count, _type, res in get_all_res():
+        for key in ['MemoryMB', 'CPU', 'EphemeralDiskMB']:
+            if key not in res:
+                continue
+            if res[key] is None:
+                raise RuntimeError("Please update Nomad to 0.9.3+")
+            total[f'{_type} {key}'] += res[key] * count
+
+    print('Resource requirement totals: ')
+    for key, value in sorted(total.items()):
+        print(f'  {key}: {value}')
 
 
 def random_secret(bits=256):
@@ -169,31 +199,8 @@ def wait_for_service_health_checks(health_checks):
     raise RuntimeError(msg)
 
 
-def resources():
-    """Get memory and CPU usage for the deployment"""
-
-    def get_all_res():
-        jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
-        for spec in jobs:
-            yield from nomad.get_resources(spec)
-
-    total = defaultdict(int)
-    for name, count, _type, res in get_all_res():
-        for key in ['MemoryMB', 'CPU', 'EphemeralDiskMB']:
-            if key not in res:
-                continue
-            if res[key] is None:
-                raise RuntimeError("Please update Nomad to 0.9.3+")
-            total[f'{_type} {key}'] += res[key] * count
-
-    print('Resource requirement totals: ')
-    for key, value in sorted(total.items()):
-        print(f'  {key}: {value}')
-
-
 def check_system_config():
     """Raises errors if the system is improperly configured.
-
     This checks if elasticsearch will accept our
     vm.max_map_count kernel parameter value.
     """
@@ -204,21 +211,18 @@ def check_system_config():
         'the "vm.max_map_count" kernel parameter is too low, check readme'
 
 
-def deploy(*args):
+@liquid_commands.command()
+@click.option('--no-secrets', 'secrets', is_flag=True, default=True)
+@click.option('--no-checks', 'checks', is_flag=True, default=True)
+# @click.argument('args', nargs= -1)
+def deploy(secrets, checks):
     """Run all the jobs in nomad."""
-
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--no-secrets', action='store_false', dest='secrets')
-    parser.add_argument('--no-checks', action='store_false', dest='checks')
-    options = parser.parse_args(args)
-
     check_system_config()
-
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
     consul.set_kv('liquid_http_protocol', config.liquid_http_protocol)
 
-    if options.secrets:
+    if secrets:
         vault.ensure_engine()
 
     vault_secret_keys = [
@@ -250,7 +254,7 @@ def deploy(*args):
         vault_secret_keys += list(job.vault_secret_keys)
         core_auth_apps += list(job.core_auth_apps)
 
-    if options.secrets:
+    if secrets:
         for path in vault_secret_keys:
             ensure_secret_key(path)
 
@@ -286,10 +290,10 @@ def deploy(*args):
 
     # Start liquid-core in order to setup the auth
     liquid_checks = start('liquid', dict(jobs)['liquid'])
-    if options.checks:
+    if checks:
         wait_for_service_health_checks({'core': liquid_checks['core']})
 
-    if options.secrets:
+    if secrets:
         for app in core_auth_apps:
             log.info('Auth %s -> %s', app['name'], app['callback'])
             cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
@@ -316,11 +320,11 @@ def deploy(*args):
         health_checks.update(job_checks)
 
     # wait until all deps are healthy
-    if options.checks:
+    if checks:
         wait_for_service_health_checks(health_checks)
 
     # run the set password script
-    if options.secrets:
+    if secrets:
         retry()(docker.exec_)('hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
         retry()(docker.exec_)('hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
 
@@ -329,12 +333,13 @@ def deploy(*args):
         health_checks.update(job_checks)
 
     # Wait for everything else
-    if options.checks:
+    if checks:
         wait_for_service_health_checks(health_checks)
 
     log.info("Deploy done!")
 
 
+@liquid_commands.command()
 def halt():
     """Stop all the jobs in nomad."""
 
@@ -346,20 +351,24 @@ def halt():
     wait_for_stopped_jobs(jobs)
 
 
+@liquid_commands.command()
 def nomadgc():
     """Remove dead jobs from nomad"""
     nomad.gc()
 
 
+@liquid_commands.command()
 def nomad_address():
     """Print the nomad address."""
 
     print(nomad.get_address())
 
 
+@liquid_commands.command()
+@click.argument('job')
+@click.argument('group')
 def alloc(job, group):
     """Print the ID of the current allocation of the job and group.
-
     :param job: the job identifier
     :param group: the group identifier
     """
@@ -372,18 +381,24 @@ def alloc(job, group):
     print(first(running, 'running allocations'))
 
 
-def shell(name, *args):
+@liquid_commands.command()
+@click.argument('name')
+@click.argument('args', nargs=-1)
+def shell(name, args):
     """Open a shell in a docker container addressed as JOB:TASK"""
-
     docker.shell(name, *args)
 
 
-def dockerexec(name, *args):
+@liquid_commands.command()
+@click.argument('name')
+@click.argument('args', nargs=-1)
+def dockerexec(name, args):
     """Run `nomad alloc exec` in a container addressed as JOB:TASK"""
-
     run_fg(docker.exec_command(name, *args, tty=False), shell=False)
 
 
+@liquid_commands.command()
+@click.argument('path', required=False)
 def getsecret(path=None):
     """Get a Vault secret"""
 
