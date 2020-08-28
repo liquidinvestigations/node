@@ -3,7 +3,6 @@ repos=(
         liquidinvestigations/hoover-search
         liquidinvestigations/hoover-ui
         liquidinvestigations/core
-        liquidinvestigations/authproxy
         liquidinvestigations/hypothesis-h
         liquidinvestigations/codimd-server
         liquidinvestigations/h-client

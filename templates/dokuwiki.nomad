@@ -30,6 +30,7 @@ job "dokuwiki" {
       }
       env {
         LIQUID_CORE_URL = ${config.liquid_core_url|tojson}
+        LIQUID_CORE_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
         LIQUID_TITLE = ${config.liquid_title|tojson}
         LIQUID_DOMAIN = ${config.liquid_domain|tojson}
         LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol|tojson}
