@@ -91,6 +91,7 @@ job "hoover" {
           HOOVER_HYPOTHESIS_EMBED = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
           HOOVER_AUTHPROXY = "true"
           USE_X_FORWARDED_HOST = "true"
+          LIQUID_CORE_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
           {%- if config.liquid_http_protocol == 'https' %}
             SECURE_PROXY_SSL_HEADER = "HTTP_X_FORWARDED_PROTO"
           {%- endif %}

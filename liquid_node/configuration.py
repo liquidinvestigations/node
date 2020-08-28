@@ -17,7 +17,7 @@ def split_lang_codes(option):
 
 class Configuration:
     ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
-                'hypothesis',)
+                'hypothesis', "codimd")
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'hoover',)
 
