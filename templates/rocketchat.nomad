@@ -164,6 +164,5 @@ job "rocketchat" {
       upstream='rocketchat-app',
       threads=50,
       memory=500,
-      count=3,
     ) }
 }

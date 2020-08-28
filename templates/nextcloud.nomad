@@ -174,7 +174,6 @@ job "nextcloud" {
       upstream='nextcloud-app',
       threads=100,
       memory=850,
-      count=3,
     ) }
 
 }
