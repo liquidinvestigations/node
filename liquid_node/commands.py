@@ -381,17 +381,17 @@ def alloc(job, group):
     print(first(running, 'running allocations'))
 
 
-@liquid_commands.command()
+@liquid_commands.command(context_settings={"ignore_unknown_options": True})
 @click.argument('name')
-@click.argument('args', nargs=-1)
+@click.argument('args', nargs=-1, type=str)
 def shell(name, args):
     """Open a shell in a docker container addressed as JOB:TASK"""
     docker.shell(name, *args)
 
 
-@liquid_commands.command()
+@liquid_commands.command(context_settings={"ignore_unknown_options": True})
 @click.argument('name')
-@click.argument('args', nargs=-1)
+@click.argument('args', nargs=-1, type=str)
 def dockerexec(name, args):
     """Run `nomad alloc exec` in a container addressed as JOB:TASK"""
     run_fg(docker.exec_command(name, *args, tty=False), shell=False)
