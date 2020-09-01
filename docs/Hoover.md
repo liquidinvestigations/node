@@ -61,7 +61,7 @@ The collection names must follow the [elasticsearch index naming guide](https://
 
 In order to remove a collection, take the following steps:
 1. Remove the corresponding collection section from the `liquid.ini` file.
-2. Run `./liquid shell hoover:snoop purge` -- use optional argument `--force` to skip manual confirmation. This command is [not implemented](https://github.com/liquidinvestigations/hoover-snoop2/issues/321).
+2. Run `./liquid shell hoover:snoop ./manage.py purge` -- use optional argument `--force` to skip manual confirmation.
 
 
 ## Tesseract OCR
