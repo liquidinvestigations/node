@@ -31,7 +31,7 @@ job "nextcloud-periodic" {
       driver = "raw_exec"
 
       config {
-        command = "sh"
+        command = "bash"
         args    = ["local/periodic.sh"]
       }
 
@@ -39,7 +39,7 @@ job "nextcloud-periodic" {
         destination = "local/periodic.sh"
         perms = "755"
         data = <<-EOF
-          #!/bin/sh
+          #!/bin/bash
           set -ex
 
           ${exec_command('nextcloud:nextcloud', 'sudo', '-Eu', 'www-data', 'php', 'occ', 'files:scan', '--all')}

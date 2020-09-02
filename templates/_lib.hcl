@@ -244,7 +244,7 @@ ephemeral_disk {
 {%- macro set_pg_password_template(username) %}
   template {
     data = <<-EOF
-    #!/bin/sh
+    #!/bin/bash
     set -e
     sed -i 's/host all all all trust/host all all all md5/' $PGDATA/pg_hba.conf
     psql -U ${username} -c "ALTER USER ${username} password '$POSTGRES_PASSWORD'"

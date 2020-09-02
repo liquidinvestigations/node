@@ -28,7 +28,7 @@ job "nextcloud" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud/nextcloud/themes:/var/www/html/themes",
           "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
         ]
-        args = ["/bin/sh", "-c", "chown -R 33:33 /var/www/html/ && echo chown done && /entrypoint.sh apache2-foreground"]
+        args = ["/bin/bash", "-c", "chown -R 33:33 /var/www/html/ && echo chown done && /entrypoint.sh apache2-foreground"]
         port_map {
           http = 80
         }

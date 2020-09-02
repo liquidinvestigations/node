@@ -20,7 +20,7 @@ job "zipkin" {
 
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch:7.5.1"
-        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
+        args = ["/bin/bash", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/zipkin/es:/usr/share/elasticsearch/data",
         ]
