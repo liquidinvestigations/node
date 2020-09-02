@@ -22,7 +22,7 @@ job "hoover" {
 
       config {
         image = "${config.image('hoover-search')}"
-        args = ["sh", "/local/startup.sh"]
+        args = ["bash", "/local/startup.sh"]
         volumes = [
           ${hoover_search_repo}
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build:ro",
@@ -46,7 +46,7 @@ job "hoover" {
 
       template {
         data = <<-EOF
-        #!/bin/sh
+        #!/bin/bash
         set -ex
         (
         set +x
@@ -150,7 +150,7 @@ job "hoover" {
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
-        args = ["sh", "/local/startup.sh"]
+        args = ["bash", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
         ]
@@ -168,7 +168,7 @@ job "hoover" {
       }
       template {
         data = <<-EOF
-          #!/bin/sh
+          #!/bin/bash
           set -ex
           if  [ -z "$SNOOP_DB" ] \
                   || [ -z "$SNOOP_ES_URL" ] \
@@ -243,7 +243,7 @@ job "hoover" {
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
-        args = ["sh", "/local/startup.sh"]
+        args = ["bash", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
         ]
@@ -251,7 +251,7 @@ job "hoover" {
       }
       template {
         data = <<-EOF
-          #!/bin/sh
+          #!/bin/bash
           set -ex
           if  [ -z "$SNOOP_DB" ] \
                   || [ -z "$SNOOP_ES_URL" ] \
@@ -324,7 +324,7 @@ job "hoover" {
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
-        args = ["sh", "/local/startup.sh"]
+        args = ["bash", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections:ro",
@@ -344,7 +344,7 @@ job "hoover" {
       }
       template {
         data = <<-EOF
-          #!/bin/sh
+          #!/bin/bash
           set -ex
           if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
             echo "incomplete configuration!"

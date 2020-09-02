@@ -46,7 +46,7 @@ job "nextcloud-migrate" {
         destination = "local/migrate.sh"
         perms = "755"
         data = <<-EOF
-          #!/bin/sh
+          #!/bin/bash
           set -ex
 
           ${exec_command('nextcloud:nextcloud', 'sudo', '-Eu', 'www-data', 'bash', '/local/setup.sh')}

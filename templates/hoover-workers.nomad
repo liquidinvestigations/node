@@ -25,7 +25,7 @@ job "hoover-workers" {
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
-        args = ["sh", "/local/startup.sh"]
+        args = ["bash", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
@@ -56,7 +56,7 @@ job "hoover-workers" {
       }
       template {
         data = <<-EOF
-          #!/bin/sh
+          #!/bin/bash
           set -ex
           # exec tail -f /dev/null
           if  [ -z "$SNOOP_TIKA_URL" ] \
