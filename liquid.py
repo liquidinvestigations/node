@@ -1,54 +1,14 @@
 #!/usr/bin/env python3
-
-""" Manage liquid on a nomad cluster. """
-
 import sys
-import logging
-import argparse
-from liquid_node import commands
-from liquid_node import backup
-
 import colorlog
+import logging
+import click
+from liquid_node.commands import liquid_commands
+from liquid_node.backup import backup_commands
 
 log = logging.getLogger(__name__)
 
-
-class SubcommandParser(argparse.ArgumentParser):
-
-    def add_subcommands(self, name, subcommands):
-        subcommands_map = {c.__name__: c for c in subcommands}
-
-        class SubcommandAction(argparse.Action):
-            def __call__(self, parser, namespace, values, option_string=None):
-                setattr(namespace, name, subcommands_map[values])
-
-        self.add_argument(
-            name,
-            choices=[c.__name__ for c in subcommands],
-            action=SubcommandAction,
-        )
-
-
-def main():
-    parser = SubcommandParser(description=__doc__)
-    parser.add_subcommands('cmd', [
-        commands.shell,
-        commands.dockerexec,
-        commands.alloc,
-        commands.nomad_address,
-        commands.deploy,
-        commands.resources,
-        commands.nomadgc,
-        commands.halt,
-        commands.getsecret,
-        backup.backup,
-        backup.restore_collection,
-        backup.restore_all_collections,
-        backup.restore_apps,
-    ])
-    (options, extra_args) = parser.parse_known_args()
-    options.cmd(*extra_args)
-
+cli = click.CommandCollection(sources=[liquid_commands, backup_commands])
 
 if __name__ == '__main__':
     from liquid_node.configuration import config
@@ -64,7 +24,7 @@ if __name__ == '__main__':
     )
 
     try:
-        main()
+        cli()
     except Exception as e:
         log.exception(e)
         sys.exit(66)
