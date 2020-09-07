@@ -18,7 +18,7 @@ job "liquid" {
       }
 
       driver = "docker"
-      user = "testuser"
+      user = 666
       config {
         image = "${config.image('liquid-core')}"
         #args = ["/bin/sleep", "1000"]
