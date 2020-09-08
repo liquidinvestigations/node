@@ -294,8 +294,6 @@ def deploy(secrets, checks):
         if not os.path.exists(path):
             os.makedirs(path)
 
-        # os.chown(path, 666, 666)
-
     # Start liquid-core in order to setup the auth
     liquid_checks = start('liquid', dict(jobs)['liquid'])
     if checks:
