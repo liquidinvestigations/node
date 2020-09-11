@@ -288,11 +288,11 @@ def deploy(secrets, checks):
         'pass': random_secret(64),
     })
 
-    # create directories and change permission
-    paths = ["/opt/node/volumes/liquid/core/var", "/opt/node/volumes/snoop/blobs"]
-    for path in paths:
-        if not os.path.exists(path):
-            os.makedirs(path)
+    # # create directories and change permission
+    # paths = ["/liquid/core/var", "/snoop/blobs"]
+    # for path in paths:
+    #     if not os.path.exists(config.liquid_volumes + path):
+    #         os.makedirs(config.liquid_volumes + path)
 
     # Start liquid-core in order to setup the auth
     liquid_checks = start('liquid', dict(jobs)['liquid'])

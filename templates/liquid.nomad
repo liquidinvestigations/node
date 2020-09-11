@@ -21,23 +21,31 @@ job "liquid" {
       user = 666
       config {
         image = "${config.image('liquid-core')}"
-        #args = ["/bin/sleep", "1000"]
-        #args = ["/bin/sh", "-c","chown -R test_user:test_user /app/var"]
+        # args = ["/bin/sleep", "1000"]
         #volumes = [
         #  ${liquidinvestigations_core_repo}
-        #  "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/var",
+        #  "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/different_var",
         #]
         mounts = [
         {
-          type = "bind"
+          type = "volume"
           target = "/app/var"
-          source = ${liquidinvestigations_core_repo}"{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var"
+          source = "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var"
+          # source = "test_core"
           readonly = false
-          bind_options {
-            propagation = "rshared"
-          }
         }
         ]
+        #mounts = [
+        #{
+        #  type = "bind"
+        #  target = "/app/var"
+        #  source = ${liquidinvestigations_core_repo}"{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var"
+        #  readonly = false
+        #  bind_options {
+        #    propagation = "rshared"
+        #  }
+        #}
+        #]
         labels {
           liquid_task = "liquid-core"
         }
