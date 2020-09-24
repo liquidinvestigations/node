@@ -68,7 +68,8 @@ ephemeral_disk {
           authproxy = 5000
         }
 
-        args = ["/bin/sh", "/local/proxy.sh"]
+        entrypoint = ["/bin/sh"]
+        args = ["/local/proxy.sh"]
 
         memory_hard_limit = ${memory * 10}
       }
@@ -76,7 +77,7 @@ ephemeral_disk {
         data = <<-EOF
         #!/bin/sh
         set -x
-        /bin/oauth2-proxy {{- range service "${upstream}" }} --upstream="http://{{.Address}}:{{.Port}}"
+        exec /bin/oauth2-proxy {{- range service "${upstream}" }} --upstream="http://{{.Address}}:{{.Port}}"
         {{- end }}
         EOF
         env = false
@@ -133,18 +134,18 @@ ephemeral_disk {
           "traefik.enable=true",
           "traefik.frontend.rule=Host:${host}",
         ]
-        // check {
-        //   name = "ping"
-        //   initial_status = "critical"
-        //   type = "http"
-        //   path = "/ping"
-        //   interval = "${check_interval}"
-        //   timeout = "${check_timeout}"
-        // }
-        // check_restart {
-        //   limit = 3
-        //   grace = "55s"
-        // }
+        check {
+          name = "ping"
+          initial_status = "critical"
+          type = "http"
+          path = "/ping"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+        check_restart {
+          limit = 3
+          grace = "55s"
+        }
       }
     }
   }
