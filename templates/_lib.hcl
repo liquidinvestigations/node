@@ -68,19 +68,16 @@ ephemeral_disk {
           authproxy = 5000
         }
 
-        command = "/bin/sh /local/proxy.sh"
+        args = ["/bin/sh", "/local/proxy.sh"]
 
         memory_hard_limit = ${memory * 10}
       }
       template {
         data = <<-EOF
         #!/bin/sh
-        UPSTREAM_COMMAND=""
-        {{- range service "${upstream}" }}
-          UPSTREAM_COMMAND="$UPSTREAM_COMMAND --upstream=\"http://{{.Address}}:{{.Port}}\""
+        set -x
+        /bin/oauth2-proxy {{- range service "${upstream}" }} --upstream="http://{{.Address}}:{{.Port}}"
         {{- end }}
-        echo $UPSTREAM_COMMAND
-        /bin/oauth2-proxy $UPSTREAM_COMMAND
         EOF
         env = false
         perms=755
