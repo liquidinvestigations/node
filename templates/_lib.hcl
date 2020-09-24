@@ -67,22 +67,8 @@ ephemeral_disk {
         port_map {
           authproxy = 5000
         }
-
-        entrypoint = ["/bin/sh"]
-        args = ["/local/proxy.sh"]
-
+        
         memory_hard_limit = ${memory * 10}
-      }
-      template {
-        data = <<-EOF
-        #!/bin/sh
-        set -x
-        exec /bin/oauth2-proxy {{- range service "${upstream}" }} --upstream="http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        EOF
-        env = false
-        perms=755
-        destination = "local/proxy.sh"
       }
       template {
         data = <<-EOF
@@ -99,6 +85,9 @@ ephemeral_disk {
           {{- range service "core" }}
             OAUTH2_PROXY_REDEEM_URL = "http://{{.Address}}:{{.Port}}/o/token/"
             OAUTH2_PROXY_PROFILE_URL = "http://{{.Address}}:{{.Port}}/accounts/profile"
+          {{- end }}
+          {{- range service "${upstream}" }} 
+            OAUTH2_PROXY_UPSTREAMS="http://{{.Address}}:{{.Port}}"
           {{- end }}
           OAUTH2_PROXY_REDIRECT_URL = "${config.liquid_http_protocol}://${name}.${config.liquid_domain}/oauth2/callback"
           OAUTH2_PROXY_COOKIE_HTTPONLY = false

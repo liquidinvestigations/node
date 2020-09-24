@@ -138,7 +138,7 @@ def backup_pg(dest_file, username, dbname, alloc):
     tmp_file = Path(str(dest_file) + '.tmp')
     log.info(f"Dumping postgres from alloc {alloc} user {username} db {dbname} to {tmp_file}")
     cmd = (
-        f"set -exo pipefail; ./liquid dockerexec -- {alloc} "
+        f"set -exo pipefail; ./liquid dockerexec {alloc} "
         f"pg_dump -U {username} {dbname} -Ox "
         f"| gzip -1 > {tmp_file}"
     )
@@ -156,7 +156,7 @@ def backup_sqlite3(dest_file, dbname, alloc):
     tmp_file = Path(str(dest_file) + '.tmp')
     log.info(f"Dumping sqlite3 from alloc {alloc} db {dbname} to {tmp_file}")
     cmd = (
-        f"set -exo pipefail; ./liquid dockerexec -- {alloc} "
+        f"set -exo pipefail; ./liquid dockerexec {alloc} "
         f"sqlite3 -readonly -batch {dbname} .dump "
         f"| gzip -1 > {tmp_file}"
     )
@@ -178,9 +178,9 @@ def restore_sqlite3(src_file, dbname, alloc):
 
     log.info(f"Restore sqlite3 from {src_file} to alloc {alloc} db {dbname}")
     cmds = (
-        f"./liquid dockerexec -- {alloc} rm -f {dbname}",
+        f"./liquid dockerexec {alloc} rm -f {dbname}",
         (
-            f"set -exo pipefail; ./liquid dockerexec -- {alloc} bash -c "
+            f"set -exo pipefail; ./liquid dockerexec {alloc} bash -c "
             f"'set -exo pipefail; zcat | sqlite3 -batch {dbname}' < {src_file}"
         ),
     )
@@ -197,7 +197,7 @@ def restore_pg(src_file, username, dbname, alloc):
 
     log.info(f"Restore postgres from {src_file} to alloc {alloc} user {username} db {dbname}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec -- {alloc} bash -c "
+        f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
         f"'set -exo pipefail;"
         f"dropdb -U {username} --if-exists {dbname};"
         f" createdb -U {username} {dbname};"
@@ -225,7 +225,7 @@ def backup_files(dest_file, path, exclude, alloc):
     # we can ignore this error with `|| [[ $? -eq 1 ]]`.
     exclude_str = ' '.join(' --exclude ' + p for p in exclude)
     cmd = (
-        f"set -exo pipefail; ( ./liquid dockerexec -- {alloc} "
+        f"set -exo pipefail; ( ./liquid dockerexec {alloc} "
         f"tar c {exclude_str} -C {path} . || [[ $? -eq 1 ]] ) "
         f"| gzip -1 > {tmp_file}"
     )
@@ -242,7 +242,7 @@ def backup_files(dest_file, path, exclude, alloc):
 def restore_files(src_file, path, alloc):
     log.info(f"Restoring from {src_file} path {path} to alloc {alloc}")
     cmd = (
-        f"set -eo pipefail; ./liquid dockerexec -- {alloc} bash -c "
+        f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
         f"'set -exo pipefail; rm -rf {path};"
         f" mkdir {path}; tar xz -C {path}' "
         f"< {src_file}"
@@ -315,7 +315,7 @@ def backup_es(dest, name, es_url_suffix, es_alloc_id):
         es.delete(f"/_snapshot/backup-{name}/snapshot")
         es.delete(f"/_snapshot/backup-{name}")
         rm_cmd = (
-            f"./liquid dockerexec -- {es_alloc_id} "
+            f"./liquid dockerexec {es_alloc_id} "
             f"rm -rf /es_repo/backup-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
@@ -350,7 +350,7 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
         if es_alloc_id == SNOOP_ES_ALLOC:
             # reset index and close it
             reset_cmd = (
-                f"./liquid dockerexec -- {SNOOP_API_ALLOC} "
+                f"./liquid dockerexec {SNOOP_API_ALLOC} "
                 f"./manage.py resetcollectionindex {name}"
             )
             subprocess.check_call(reset_cmd, shell=True)
@@ -387,7 +387,7 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
         es.delete(f"/_snapshot/restore-{name}")
 
         rm_cmd = (
-            f"./liquid dockerexec -- {es_alloc_id} "
+            f"./liquid dockerexec {es_alloc_id} "
             f"rm -rf /es_repo/restore-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)

@@ -44,6 +44,7 @@ echo "Remove all collections, gc, restore from backup"
 cp -f examples/liquid.ini .
 ./liquid nomadgc
 ./liquid deploy --no-secrets
+./liquid dockerexec hoover:snoop ./manage.py purge --force
 ./liquid restore-all-collections ./backup
 
 echo "Restore apps"

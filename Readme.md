@@ -84,6 +84,9 @@ For instructions and best practices on running a liquid node, see
 You can enable debugging, modify code for the applications, and more, see
 [docs/Development.md](docs/Development.md).
 
+To develop hoover-ui locally, see
+[docs/HooverUI.md](docs/HooverUI.md)
+
 To avoid running the cluster locally, you can use Vagrant, see
 [docs/Vagrant.md](docs/Vagrant.md).
 
