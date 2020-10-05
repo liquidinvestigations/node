@@ -5,7 +5,8 @@ job "newsleak-deps" {
   type = "service"
   priority = 60
 
-  
+  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} } 
+
   group "newsleak-pg" {
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -26,15 +27,13 @@ job "newsleak-deps" {
 
       driver = "docker"
 
-      ${ shutdown_delay() }
-
       config {
         image = "postgres:9.6"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/newsleak/pg/data:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/newsleak/pg/data:/var/lib/postgresql/data"
         ]
         labels {
-          liquid_task = "search-pg"
+          liquid_task = "newsleak-pg"
         }
         port_map {
           pg = 5432
@@ -52,7 +51,9 @@ job "newsleak-deps" {
         destination = "local/postgres.env"
         env = true
       }
+
       ${ set_pg_password_template('newsreader') }
+      
       resources {
         memory = 350
         network {
@@ -74,28 +75,6 @@ job "newsleak-deps" {
     }
   }
 
-
-  group "newsleak-ner" {
-    ${ continuous_reschedule() }
-    ${ group_disk() }
-
-    task "newsleak-ner" {
-      ${ task_logs() }
-      driver = "docker"
-      config {
-        image = "$uhhlt/newsleak-ner:v1.0"
-        port_map {
-          ner = 5001
-        }
-        labels {
-          liquid_task = "newsleak-ner"
-        }
-      }
-    }
-  }
-
-
-
   group "newsleak-es" {
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -105,9 +84,9 @@ job "newsleak-deps" {
       driver = "docker"
         config {
           image = "elasticsearch:2.4.6"
-          args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
+          #args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data && echo chown done && /docker-entrypoint.sh && echo entrypoint done"]
           volumes = [
-            "{% raw %}${meta.liquid_volumes}{% endraw %}/newsleak/es/data:/usr/share/elasticsearch/data",
+            "{% raw %}${meta.liquid_volumes}{% endraw %}/newsleak/es/data:/usr/share/elasticsearch/data"
           ]
           port_map {
             http = 9200
@@ -122,5 +101,80 @@ job "newsleak-deps" {
             nproc = "8192"
           }
         }
+              service {
+        name = "newsleak-es-http"
+        port = "http"
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/_cluster/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+
+      service {
+        name = "newsleak-es-transport"
+        port = "transport"
+        check {
+          name = "transport"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+
+      resources {
+        cpu = 600
+        memory = ${config.elasticsearch_memory_limit}
+        network {
+          mbits = 1
+          port "http" {}
+          port "transport" {}
+        }
+      }
     }
   }
+
+  group "newsleak-ner" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "newsleak-ner" {
+      ${ task_logs() }
+      driver = "docker"
+      config {
+        image = "uhhlt/newsleak-ner:v1.0"
+        port_map {
+          ner = 5001
+        }
+        labels {
+          liquid_task = "newsleak-ner"
+        }
+      }
+      service {
+        name = "newsleak-ner"
+        port = "ner"
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    
+      resources {
+        cpu = 600
+        memory = 350
+        network {
+          mbits = 1
+          port "ner" {}
+        }
+      }
+    }
+  }
+
+}
