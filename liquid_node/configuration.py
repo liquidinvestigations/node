@@ -68,6 +68,9 @@ class Configuration:
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
+        self.cluster_root_path = str(
+            Path(self.ini.get('cluster', 'cluster_path', fallback='/opt/cluster')).resolve()
+        )
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
 
         self.vault_url = self.ini.get('cluster', 'vault_url', fallback='http://127.0.0.1:8200')

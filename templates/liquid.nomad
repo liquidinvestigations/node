@@ -11,6 +11,7 @@ job "liquid" {
 
     task "core" {
       ${ task_logs() }
+
       # Constraint required for hypothesis-usersync
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -31,6 +32,7 @@ job "liquid" {
           http = 8000
         }
       }
+
       template {
         data = <<-EOF
           DEBUG = {{key "liquid_debug" | toJSON }}
@@ -49,6 +51,7 @@ job "liquid" {
         destination = "local/docker.env"
         env = true
       }
+
       template {
         data = <<-EOF
           #!/usr/bin/env python3
@@ -64,6 +67,7 @@ job "liquid" {
           perms = "755"
           destination = "local/users.py"
       }
+
       resources {
         memory = 200
         network {
@@ -73,6 +77,7 @@ job "liquid" {
           }
         }
       }
+
       service {
         name = "core"
         port = "http"
@@ -92,6 +97,7 @@ job "liquid" {
           }
         }
       }
+
     }
   }
 }

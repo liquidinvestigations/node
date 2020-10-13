@@ -1,3 +1,4 @@
+import os
 from .process import run, run_fg
 
 
@@ -9,26 +10,23 @@ class Docker:
         return out.split()
 
     def exec_command(self, name, *args, tty=False):
-        """Prepare and return the command to run in a docker container.
+        """Prepare and return the command to run in a user shell.
 
         :param name: the value of the liquid_task tag
         :param tty: if true, instruct docker to allocate a pseudo-TTY and keep stdin open
         """
+        from .configuration import config
 
         [job, task] = name.split(':')
 
-        docker_exec_cmd = ['docker', 'exec', '-i']
+        exec_path = os.path.join(config.cluster_root_path, 'nomad-exec')
+        exec_cmd = [exec_path]
 
         if tty:
-            docker_exec_cmd += ['-t']
+            exec_cmd += ['-t']
 
-        docker_exec_cmd += ['cluster', './cluster.py', 'nomad-exec']
-
-        if tty:
-            docker_exec_cmd += ['-t']
-
-        docker_exec_cmd += [name, '--'] + list(args or (['bash'] if tty else []))
-        return docker_exec_cmd
+        exec_cmd += [name, '--'] + list(args or (['bash'] if tty else []))
+        return exec_cmd
 
     def exec_command_str(self, *args, **kwargs):
         return " ".join(self.exec_command(*args, **kwargs))
