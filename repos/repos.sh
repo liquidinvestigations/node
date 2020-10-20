@@ -6,4 +6,5 @@ repos=(
         liquidinvestigations/hypothesis-h
         liquidinvestigations/codimd-server
         liquidinvestigations/h-client
+        liquidinvestigations/liquid-dokuwiki
 )

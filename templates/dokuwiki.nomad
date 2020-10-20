@@ -7,6 +7,7 @@ job "dokuwiki" {
 
   group "dokuwiki" {
     ${ group_disk() }
+
     task "php" {
       ${ task_logs() }
       constraint {
@@ -16,6 +17,7 @@ job "dokuwiki" {
 
       driver = "docker"
       config = {
+        force_pull = true
         image = "${config.image('liquid-dokuwiki')}"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/dokuwiki/data:/bitnami",
@@ -28,6 +30,7 @@ job "dokuwiki" {
         }
         memory_hard_limit = 1500
       }
+
       env {
         LIQUID_CORE_URL = ${config.liquid_core_url|tojson}
         LIQUID_CORE_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
@@ -35,6 +38,7 @@ job "dokuwiki" {
         LIQUID_DOMAIN = ${config.liquid_domain|tojson}
         LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol|tojson}
       }
+
       resources {
         memory = 500
         cpu = 90
@@ -43,6 +47,7 @@ job "dokuwiki" {
           port "php" {}
         }
       }
+
       service {
         name = "dokuwiki-php"
         port = "php"
@@ -50,7 +55,7 @@ job "dokuwiki" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/doku.php"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
