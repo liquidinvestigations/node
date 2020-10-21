@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from .process import run, run_fg
 
 
@@ -19,14 +19,25 @@ class Docker:
 
         [job, task] = name.split(':')
 
-        exec_path = os.path.join(config.cluster_root_path, 'nomad-exec')
-        exec_cmd = [exec_path]
+        if config.cluster_root_path:
+            # run the exec binary in the source dir
+            nomad_exec = str((Path(config.cluster_root_path) / 'nomad-exec').resolve())
+            exec_cmd = [nomad_exec]
+            if tty:
+                exec_cmd += ['-t']
+            exec_cmd += [name, '--'] + list(args or (['bash'] if tty else []))
+            return exec_cmd
 
-        if tty:
-            exec_cmd += ['-t']
-
-        exec_cmd += [name, '--'] + list(args or (['bash'] if tty else []))
-        return exec_cmd
+        else:
+            # the old way: run through the `cluster` docker container
+            docker_exec_cmd = ['docker', 'exec', '-i']
+            if tty:
+                docker_exec_cmd += ['-t']
+            docker_exec_cmd += ['cluster', './cluster.py', 'nomad-exec']
+            if tty:
+                docker_exec_cmd += ['-t']
+            docker_exec_cmd += [name, '--'] + list(args or (['bash'] if tty else []))
+            return docker_exec_cmd
 
     def exec_command_str(self, *args, **kwargs):
         return " ".join(self.exec_command(*args, **kwargs))
