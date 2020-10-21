@@ -1,3 +1,4 @@
+import subprocess
 import configparser
 import time
 from distutils.util import strtobool
@@ -228,7 +229,10 @@ class Configuration:
                 'enabled': self.is_app_enabled(app),
                 'description': self.APP_DESCRIPTION[app],
                 'adminOnly': False,
+                'version': self.version(app),
             })
+        self.liquid_version = subprocess.check_output(['git', 'describe'], shell=False).decode().strip()
+        self.liquid_core_version = self.version('liquid-core')
 
         self.liquid_apps.append({
             'id': "nextcloud-admin",
@@ -238,7 +242,31 @@ class Configuration:
             'description': "will log you in as the Nextcloud admin user. "
             "You may need to log out of Nextcloud first.",
             'adminOnly': True,
+            'version': '',
         })
+
+    def version(self, name):
+        def tag(name):
+            return self.image(name).split(':', 1)[1]
+
+        if name == 'hoover':
+            search = tag('hoover-search')
+            snoop = tag('hoover-snoop2')
+            ui = tag('hoover-ui')
+            return f'search: {search},  snoop: {snoop}, ui: {ui}'
+
+        if name == 'hypothesis':
+            h = tag('hypothesis-h')
+            client = tag('h-client')
+            return f'h: {h},  client: {client}'
+
+        if name in ['dokuwiki', 'nextcloud']:
+            return tag('liquid-' + name)
+
+        if name == 'rocketchat':
+            return '1.1.1'
+
+        return tag(name)
 
     def image(self, name):
         """Returns the NAME:TAG for a docker image from versions.ini.
@@ -250,7 +278,7 @@ class Configuration:
             f'docker tag for {name} not set in versions.ini'
         default_tag = self.versions_ini.get('versions', name)
         image = self.ini.get('versions', name, fallback=default_tag)
-        return f'{image}'
+        return image.strip()
 
     def load_job(self, name, job_config):
         if 'template' in job_config:
