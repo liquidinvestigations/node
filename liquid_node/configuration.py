@@ -1,5 +1,6 @@
-import subprocess
 import configparser
+import os
+import subprocess
 import time
 from distutils.util import strtobool
 from pathlib import Path
@@ -231,7 +232,7 @@ class Configuration:
                 'adminOnly': False,
                 'version': self.version(app),
             })
-        self.liquid_version = subprocess.check_output(['git', 'describe'], shell=False).decode().strip()
+        self.liquid_version = self.get_node_version()
         self.liquid_core_version = self.version('liquid-core')
 
         self.liquid_apps.append({
@@ -244,6 +245,12 @@ class Configuration:
             'adminOnly': True,
             'version': '',
         })
+
+    def get_node_version(self):
+        try:
+            return subprocess.check_output(['git', 'describe'], shell=False).decode().strip()
+        except subprocess.CalledProcessError:
+            return os.getenv('LIQUID_VERSION', 'unknown version')
 
     def version(self, name):
         def tag(name):
