@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import shutdown_delay, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {

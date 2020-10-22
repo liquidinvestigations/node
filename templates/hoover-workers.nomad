@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
 job "hoover-workers" {
   datacenters = ["dc1"]

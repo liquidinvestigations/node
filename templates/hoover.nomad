@@ -137,8 +137,6 @@ job "hoover" {
       'hoover',
       host='hoover.' + liquid_domain,
       upstream='hoover-search',
-      threads=50,
-      memory=config.hoover_authproxy_memory_limit,
     ) }
 
   group "snoop-celery-flower" {

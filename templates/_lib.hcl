@@ -32,7 +32,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream, threads=24, memory=300, hypothesis_user_header = false) %}
+{%- macro authproxy_group(name, host, upstream, hypothesis_user_header = false) %}
   group "authproxy" {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
@@ -67,7 +67,7 @@ ephemeral_disk {
           authproxy = 5000
         }
 
-        memory_hard_limit = ${memory * 10}
+        memory_hard_limit = 1500
       }
       template {
         data = <<-EOF
@@ -107,6 +107,7 @@ ephemeral_disk {
 
           OAUTH2_PROXY_WHITELIST_DOMAINS = ".${config.liquid_domain}"
           OAUTH2_PROXY_SILENCE_PING_LOGGING = true
+          OAUTH2_PROXY_REQUEST_LOGGING = false
 
           {%- if hypothesis_user_header %}
             LIQUID_ENABLE_HYPOTHESIS_HEADERS = true
@@ -123,7 +124,7 @@ ephemeral_disk {
           mbits = 1
           port "authproxy" {}
         }
-        memory = ${memory}
+        memory = 150
         cpu = 150
       }
       service {
