@@ -7,6 +7,11 @@ Scripts and configuration to run a Liquid Node
 
 ## Installation
 
+Clone this repository, `cd` into it, `git checkout` the tag of the latest
+release. The `master` branch is the latest development version, do not use in
+production.
+
+
 ### Dependencies
 
 The Liquid bundle runs inside a Nomad cluster, see [docs/Cluster.md](docs/Cluster.md)
@@ -22,7 +27,7 @@ echo 'vm.max_map_count=262144' | sudo tee -a /etc/sysctl.d/es.conf
 sudo sysctl --system
 ```
 
-Clone this repository, `cd` into it, then install Python dependencies:
+Then, install Python dependencies:
 
 ```shell
 pipenv install

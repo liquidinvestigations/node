@@ -65,7 +65,9 @@ CORE_AUTH_APPS = [
     {
         'name': 'hypothesis',
         'vault_path': 'liquid/hypothesis/auth.oauth2',
-        'callback': f'{config.app_url("hypothesis")}/oauth2/callback',
+        # the old auth proxy is still running for this service. new one:
+        # 'callback': f'{config.app_url("hypothesis")}/oauth2/callback',
+        'callback': f'{config.app_url("hypothesis")}/__auth/callback',
     },
 ]
 
