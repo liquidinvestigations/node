@@ -18,23 +18,23 @@ job "liquid" {
       }
 
       driver = "docker"
-      user = 666
+      # user = 666
       config {
         image = "${config.image('liquid-core')}"
         # args = ["/bin/sleep", "1000"]
-        #volumes = [
-        #  ${liquidinvestigations_core_repo}
-        #  "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/different_var",
-        #]
-        mounts = [
-        {
-          type = "volume"
-          target = "/app/var"
-          source = "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var"
-          # source = "test_core"
-          readonly = false
-        }
+        volumes = [
+          ${liquidinvestigations_core_repo}
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/var",
         ]
+        #mounts = [
+        #{
+        #  type = "volume"
+        #  target = "/app/var"
+        #  source = "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var"
+        #  # source = "test_core"
+        #  readonly = false
+        #}
+        #]
         #mounts = [
         #{
         #  type = "bind"

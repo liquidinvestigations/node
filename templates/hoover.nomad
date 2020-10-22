@@ -19,7 +19,7 @@ job "hoover" {
       }
 
       driver = "docker"
-      user = 666
+      #user = 666
       config {
         image = "${config.image('hoover-search')}"
         args = ["sh", "/local/startup.sh"]
@@ -148,7 +148,7 @@ job "hoover" {
       ${ task_logs() }
 
       driver = "docker"
-      user = 666
+      # user = 666
       config {
         image = "${config.image('hoover-snoop2')}"
         args = ["sh", "/local/startup.sh"]
@@ -242,7 +242,7 @@ job "hoover" {
       ${ task_logs() }
 
       driver = "docker"
-      user = 666
+      # user = 666
       config {
         image = "${config.image('hoover-snoop2')}"
         args = ["sh", "/local/startup.sh"]
@@ -324,7 +324,7 @@ job "hoover" {
       }
 
       driver = "docker"
-      user = 666
+      # user = 666
       config {
         image = "${config.image('hoover-snoop2')}"
         args = ["sh", "/local/startup.sh"]
@@ -335,6 +335,7 @@ job "hoover" {
         ]
         port_map {
           http = 8080
+          # http = 80
         }
         labels {
           liquid_task = "snoop-api"
