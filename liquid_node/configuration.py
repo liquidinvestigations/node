@@ -154,12 +154,10 @@ class Configuration:
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
 
-        self.hoover_authproxy_memory_limit = self.ini.getint('liquid',
-                                                             'hoover_authproxy_memory_limit', fallback=400)
         self.hoover_web_memory_limit = self.ini.getint('liquid',
                                                        'hoover_web_memory_limit', fallback=300)
         self.hoover_web_count = self.ini.getint('liquid',
-                                                'hoover_web_count', fallback=2)
+                                                'hoover_web_count', fallback=1)
 
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
         self.snoop_min_workers_per_node = self.ini.getint('snoop', 'min_workers_per_node', fallback=2)
