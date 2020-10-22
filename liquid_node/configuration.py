@@ -246,7 +246,7 @@ class Configuration:
 
     def get_node_version(self):
         try:
-            return subprocess.check_output(['git', 'describe'], shell=False).decode().strip()
+            return subprocess.check_output(['git', 'describe', '--tags'], shell=False).decode().strip()
         except subprocess.CalledProcessError:
             return os.getenv('LIQUID_VERSION', 'unknown version')
 
