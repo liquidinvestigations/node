@@ -55,7 +55,6 @@ ephemeral_disk {
 
       driver = "docker"
       config {
-        force_pull = true
         image = "${config.image('liquid-authproxy')}"
         volumes = [
           ${liquidinvestigations_authproxy_repo}
