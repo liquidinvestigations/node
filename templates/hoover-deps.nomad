@@ -584,4 +584,86 @@ job "hoover-deps" {
       }
     }
   }
+
+  group "hoover-ui" {
+    ${ group_disk() }
+
+    task "hoover-ui" {
+      leader = true
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        force_pull = true
+        image = "${config.image('hoover-ui')}"
+        volumes = [
+          ${hoover_ui_repo}
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build",
+        ]
+        port_map {
+          http = 8000
+        }
+        labels {
+          liquid_task = "hoover-ui"
+        }
+        args = ["sh", "/local/startup.sh"]
+        memory_hard_limit = 3000
+      }
+
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        cp -v /local/.env.local .
+
+        {% if config.liquid_debug %}
+          exec npm run dev
+        {% else %}
+          exec npm run prod
+        {% endif %}
+        EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      template {
+        data = <<-EOF
+          NEXT_PUBLIC_HOOVER_HYPOTHESIS_URL="${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
+        EOF
+        env = false
+        destination = "local/.env.local"
+      }
+
+      env {
+        TIMESTAMP = "${config.timestamp}"
+      }
+
+      resources {
+        memory = 900
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-ui"
+        port = "http"
+        tags = ["fabio-/hoover-ui"]
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
 }

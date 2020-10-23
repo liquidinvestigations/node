@@ -7,12 +7,6 @@ class Hoover(jobs.Job):
     app = 'hoover'
 
 
-class Ui(jobs.Job):
-    name = 'hoover-ui'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'hoover'
-
-
 class Workers(jobs.Job):
     name = 'hoover-workers'
     template = jobs.TEMPLATES / f'{name}.nomad'

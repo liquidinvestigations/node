@@ -54,7 +54,6 @@ class Configuration:
             liquid.Liquid(),
             liquid.Ingress(),
             hoover.Hoover(),
-            hoover.Ui(),
             hoover.Deps(),
             hoover.Workers(),
             dokuwiki.Dokuwiki(),

@@ -65,11 +65,14 @@ job "hoover" {
         env = false
         destination = "local/startup.sh"
       }
+
       env {
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/snoop"
+        HOOVER_UI_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/hoover-ui"
       }
+
       template {
         data = <<-EOF
           {{- if keyExists "liquid_debug" }}
@@ -100,6 +103,7 @@ job "hoover" {
         destination = "local/hoover.env"
         env = true
       }
+
       service {
         name = "hoover-search"
         port = "http"

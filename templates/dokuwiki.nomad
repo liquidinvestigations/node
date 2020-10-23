@@ -17,7 +17,6 @@ job "dokuwiki" {
 
       driver = "docker"
       config = {
-        force_pull = true
         image = "${config.image('liquid-dokuwiki')}"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/dokuwiki/data:/bitnami",
