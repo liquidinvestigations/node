@@ -603,7 +603,9 @@ job "hoover-deps" {
         force_pull = true
         image = "${config.image('hoover-ui')}"
         volumes = [
-          ${hoover_ui_repo}
+          ${hoover_ui_src_repo}
+          ${hoover_ui_pages_repo}
+          ${hoover_ui_styles_repo}
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build",
         ]
         port_map {
@@ -636,7 +638,7 @@ job "hoover-deps" {
         data = <<-EOF
           NEXT_PUBLIC_HOOVER_HYPOTHESIS_URL="${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
         EOF
-        env = false
+        env = true
         destination = "local/.env.local"
       }
 

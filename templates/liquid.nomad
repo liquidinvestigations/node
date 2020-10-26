@@ -49,6 +49,7 @@ job "liquid" {
           AUTH_AUTO_LOGOUT = "${config.auth_auto_logout}"
           LIQUID_2FA = "${config.liquid_2fa}"
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
+          LIQUID_HYPOTHESIS_EMBED = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
         EOF
         destination = "local/docker.env"
         env = true
