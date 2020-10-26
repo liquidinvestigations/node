@@ -111,18 +111,7 @@ job "hoover" {
           name = "http_ping"
           initial_status = "critical"
           type = "http"
-          path = "/_ping"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-          header {
-            Host = ["hoover.${liquid_domain}"]
-          }
-        }
-        check {
-          name = "http_home"
-          initial_status = "critical"
-          type = "http"
-          path = "/"
+          path = "/api/v0/_ping"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
