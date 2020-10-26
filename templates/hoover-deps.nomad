@@ -655,7 +655,7 @@ job "hoover-deps" {
       service {
         name = "hoover-ui"
         port = "http"
-        tags = ["fabio-/hoover-ui"]
+        tags = ["fabio-/hoover-ui strip=/hoover-ui"]
         check {
           name = "tcp"
           initial_status = "critical"
