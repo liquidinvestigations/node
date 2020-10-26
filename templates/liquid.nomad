@@ -11,6 +11,7 @@ job "liquid" {
 
     task "core" {
       ${ task_logs() }
+
       # Constraint required for hypothesis-usersync
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -53,6 +54,7 @@ job "liquid" {
           http = 8000
         }
       }
+
       template {
         data = <<-EOF
           DEBUG = {{key "liquid_debug" | toJSON }}
@@ -62,20 +64,18 @@ job "liquid" {
           LIQUID_HTTP_PROTOCOL = "${config.liquid_http_protocol}"
           LIQUID_DOMAIN = "{{key "liquid_domain"}}"
           LIQUID_TITLE = "${config.liquid_title}"
+          LIQUID_VERSION = "${config.liquid_version}"
+          LIQUID_CORE_VERSION = "${config.liquid_core_version}"
           SERVICE_ADDRESS = "{{env "NOMAD_IP_http"}}"
           AUTH_STAFF_ONLY = "${config.auth_staff_only}"
           AUTH_AUTO_LOGOUT = "${config.auth_auto_logout}"
           LIQUID_2FA = "${config.liquid_2fa}"
-          HOOVER_APP_URL = "${config.liquid_http_protocol}://hoover.${config.liquid_domain}"
-          DOKUWIKI_APP_URL = "${config.liquid_http_protocol}://dokuwiki.${config.liquid_domain}"
-          ROCKETCHAT_APP_URL = "${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}"
-          NEXTCLOUD_APP_URL = "${config.liquid_http_protocol}://nextcloud.${config.liquid_domain}"
-          CODIMD_APP_URL = "${config.liquid_http_protocol}://codimd.${config.liquid_domain}"
-          HYPOTHESIS_APP_URL = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}"
+          LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
         EOF
         destination = "local/docker.env"
         env = true
       }
+
       template {
         data = <<-EOF
           #!/usr/bin/env python3
@@ -91,6 +91,7 @@ job "liquid" {
           perms = "755"
           destination = "local/users.py"
       }
+
       resources {
         memory = 200
         network {
@@ -100,6 +101,7 @@ job "liquid" {
           }
         }
       }
+
       service {
         name = "core"
         port = "http"
@@ -119,6 +121,7 @@ job "liquid" {
           }
         }
       }
+
     }
   }
 }

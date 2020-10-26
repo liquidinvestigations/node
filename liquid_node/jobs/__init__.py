@@ -80,6 +80,11 @@ def set_volumes_paths(substitutions={}):
             'local': os.path.join(config.liquidinvestigations_repos_path, 'codimd-server'),
             'target': '/app',
         },
+        'dokuwiki': {
+            'org': 'liquidinvestigations',
+            'local': os.path.join(config.liquidinvestigations_repos_path, 'liquid-dokuwiki'),
+            'target': '/liquid',
+        },
     }
 
     for repo, repo_config in repos.items():

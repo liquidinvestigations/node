@@ -1,4 +1,6 @@
 import configparser
+import os
+import subprocess
 import time
 from distutils.util import strtobool
 from pathlib import Path
@@ -16,10 +18,25 @@ def split_lang_codes(option):
 
 
 class Configuration:
-    ALL_APPS = ('liquid', 'hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
-                'hypothesis',)
+    ALL_APPS = ('hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
+                'hypothesis', 'codimd',)
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'hoover',)
+
+    APP_TITLE = {
+        'dokuwiki': 'DokuWiki',
+        'rocketchat': "Rocket.Chat",
+        'codimd': "CodiMD",
+    }
+
+    APP_DESCRIPTION = {
+        'hoover': 'is a search app.',
+        'hypothesis': 'is an annotation system.',
+        'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
+        'codimd': 'is a real-time collaboration pad.',
+        'nextcloud': 'has a file share system and a contact list of users.',
+        'rocketchat': 'is the chat app.'
+    }
 
     def __init__(self):
         self.root = Path(__file__).parent.parent.resolve()
@@ -53,6 +70,7 @@ class Configuration:
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
+        self.cluster_root_path = self.ini.get('cluster', 'cluster_path', fallback=None)
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
 
         self.vault_url = self.ini.get('cluster', 'vault_url', fallback='http://127.0.0.1:8200')
@@ -112,7 +130,7 @@ class Configuration:
 
         self.auth_staff_only = self.ini.getboolean('liquid', 'auth_staff_only', fallback=False)
 
-        self.auth_auto_logout = self.ini.get('liquid', 'auth_auto_logout', fallback='')
+        self.auth_auto_logout = self.ini.get('liquid', 'auth_auto_logout', fallback='2400h')
 
         self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
 
@@ -201,6 +219,60 @@ class Configuration:
 
         self.timestamp = int(time.time())
 
+        self.liquid_apps = []
+        for app in self.ALL_APPS:
+            self.liquid_apps.append({
+                'id': app,
+                'title': self.APP_TITLE.get(app) or app.title(),
+                'url': self.app_url(app),
+                'enabled': self.is_app_enabled(app),
+                'description': self.APP_DESCRIPTION[app],
+                'adminOnly': False,
+                'version': self.version(app),
+            })
+        self.liquid_version = self.get_node_version()
+        self.liquid_core_version = self.version('liquid-core')
+
+        self.liquid_apps.append({
+            'id': "nextcloud-admin",
+            'title': "Nextcloud Admin",
+            'url': self.app_url('nextcloud') + "/index.php/login?autologin=admin",
+            'enabled': self.is_app_enabled('nextcloud'),
+            'description': "will log you in as the Nextcloud admin user. "
+            "You may need to log out of Nextcloud first.",
+            'adminOnly': True,
+            'version': '',
+        })
+
+    def get_node_version(self):
+        try:
+            return subprocess.check_output(['git', 'describe', '--tags'], shell=False).decode().strip()
+        except subprocess.CalledProcessError:
+            return os.getenv('LIQUID_VERSION', 'unknown version')
+
+    def version(self, name):
+        def tag(name):
+            return self.image(name).split(':', 1)[1]
+
+        if name == 'hoover':
+            search = tag('hoover-search')
+            snoop = tag('hoover-snoop2')
+            ui = tag('hoover-ui')
+            return f'search: {search},  snoop: {snoop}, ui: {ui}'
+
+        if name == 'hypothesis':
+            h = tag('hypothesis-h')
+            client = tag('h-client')
+            return f'h: {h},  client: {client}'
+
+        if name in ['dokuwiki', 'nextcloud']:
+            return tag('liquid-' + name)
+
+        if name == 'rocketchat':
+            return '1.1.1'
+
+        return tag(name)
+
     def image(self, name):
         """Returns the NAME:TAG for a docker image from versions.ini.
 
@@ -211,7 +283,7 @@ class Configuration:
             f'docker tag for {name} not set in versions.ini'
         default_tag = self.versions_ini.get('versions', name)
         image = self.ini.get('versions', name, fallback=default_tag)
-        return f'{image}'
+        return image.strip()
 
     def load_job(self, name, job_config):
         if 'template' in job_config:

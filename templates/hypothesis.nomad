@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk, continuous_reschedule with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group_old, task_logs, group_disk, continuous_reschedule with context -%}
 
 job "hypothesis" {
   datacenters = ["dc1"]
@@ -382,7 +382,7 @@ job "hypothesis" {
     }
   }
 
-  ${- authproxy_group(
+  ${- authproxy_group_old(
       'hypothesis',
       host='hypothesis.' + liquid_domain,
       upstream='hypothesis',
