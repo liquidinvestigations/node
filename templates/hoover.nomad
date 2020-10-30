@@ -25,11 +25,11 @@ job "hoover" {
         labels {
           liquid_task = "hoover-nginx"
         }
-        memory_hard_limit = 300
+        memory_hard_limit = 1024
       }
 
       resources {
-        memory = 100
+        memory = 128
         network {
           mbits = 1
           port "http" {}
@@ -52,13 +52,15 @@ job "hoover" {
         data = <<-EOF
 
         daemon off;
+        error_log /dev/stdout info;
         worker_rlimit_nofile 8192;
-        worker_processes 1;
+        worker_processes 4;
         events {
           worker_connections 4096;
         }
 
         http {
+          access_log  off;
           tcp_nopush   on;
           server_names_hash_bucket_size 128;
 
