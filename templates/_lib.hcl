@@ -32,7 +32,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream, hypothesis_user_header = false) %}
+{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false) %}
   group "authproxy" {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
@@ -68,6 +68,7 @@ ephemeral_disk {
 
         memory_hard_limit = 1500
       }
+
       template {
         data = <<-EOF
           {{- with secret "liquid/${name}/auth.oauth2" }}
@@ -81,10 +82,11 @@ ephemeral_disk {
             OAUTH2_PROXY_REDEEM_URL = "http://{{.Address}}:{{.Port}}/o/token/"
             OAUTH2_PROXY_PROFILE_URL = "http://{{.Address}}:{{.Port}}/accounts/profile"
           {{- end }}
-          {{- range service "${upstream}" }} 
+          OAUTH2_PROXY_REDIRECT_URL = "${config.app_url(name)}/oauth2/callback"
+
+          {{- range service "${upstream}" }}
             OAUTH2_PROXY_UPSTREAMS="http://{{.Address}}:{{.Port}}"
           {{- end }}
-          OAUTH2_PROXY_REDIRECT_URL = "${config.app_url(name)}/oauth2/callback"
 
           OAUTH2_PROXY_REVERSE_PROXY = true
           OAUTH2_PROXY_SKIP_PROVIDER_BUTTON = true
