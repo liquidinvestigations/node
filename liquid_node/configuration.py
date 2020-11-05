@@ -210,7 +210,11 @@ class Configuration:
                     'process': self.ini.getboolean(key, 'process', fallback=False),
                     'sync': self.ini.getboolean(key, 'sync', fallback=False),
                     'ocr_languages': split_lang_codes(self.ini.get(key, 'ocr_languages', fallback='')),
-                    'location': self.ini.get(key, 'location', fallback=None),
+                    'location': self.ini.get(
+                        key,
+                        'location',
+                        fallback=str((Path(self.liquid_collections) / name).resolve()),
+                    ),
                 })
 
             elif cls == 'job':
@@ -218,7 +222,6 @@ class Configuration:
         self.snoop_location_overrides = {
             c['name']: c['location']
             for c in self.snoop_collections
-            if c['location'] is not None
         }
 
         self.timestamp = int(time.time())

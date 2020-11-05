@@ -254,8 +254,7 @@ ephemeral_disk {
 
 
 {%- macro snoop_extra_collection_volumes() %}
-  {% for collection,location in config.snoop_collections.items %}
+  {% for collection, location in config.snoop_location_overrides.items() %}
     "${location}:/opt/hoover/collections/${collection}:ro",
   {% endfor %}
 {%- endmacro %}
-

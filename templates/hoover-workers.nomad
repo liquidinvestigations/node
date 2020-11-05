@@ -28,7 +28,6 @@ job "hoover-workers" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections:ro",
           ${snoop_extra_collection_volumes()}
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
         ]
