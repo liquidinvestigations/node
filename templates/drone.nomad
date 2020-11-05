@@ -18,6 +18,7 @@ job "drone" {
         labels {
           liquid_task = "drone-secret"
         }
+        memory_hard_limit = 1024
       }
       env {
         VAULT_ADDR = "${config.vault_url}"
@@ -81,6 +82,7 @@ job "drone" {
         labels {
           liquid_task = "drone"
         }
+        memory_hard_limit = 2048
       }
       env {
         DRONE_LOGS_DEBUG = "true"
@@ -114,7 +116,7 @@ job "drone" {
         env = true
       }
       resources {
-        memory = 250
+        memory = 350
         cpu = 150
         network {
           mbits = 1
