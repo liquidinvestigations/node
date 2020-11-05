@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import snoop_extra_collection_volumes, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
 job "hoover-workers" {
   datacenters = ["dc1"]
@@ -28,7 +28,8 @@ job "hoover-workers" {
         args = ["sh", "/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections:ro",
+          ${snoop_extra_collection_volumes()}
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
         ]
         mounts = [

@@ -251,3 +251,11 @@ ephemeral_disk {
     destination = "local/set_pg_password.sh"
   }
 {%- endmacro %}
+
+
+{%- macro snoop_extra_collection_volumes() %}
+  {% for collection,location in config.snoop_collections.items %}
+    "${location}:/opt/hoover/collections/${collection}:ro",
+  {% endfor %}
+{%- endmacro %}
+
