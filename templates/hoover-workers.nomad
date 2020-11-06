@@ -5,8 +5,6 @@ job "hoover-workers" {
   type = "system"
   priority = 90
 
-
-  {% if config.snoop_workers_enabled %}
   group "snoop-workers" {
     ${ group_disk() }
 
@@ -106,5 +104,4 @@ job "hoover-workers" {
       }
     }
   }
-  {% endif %}
 }

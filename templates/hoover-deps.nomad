@@ -602,7 +602,6 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        force_pull = true
         image = "${config.image('hoover-ui')}"
         volumes = [
           ${hoover_ui_src_repo}
@@ -627,7 +626,7 @@ job "hoover-deps" {
         cp -v /local/.env.local .
 
         {% if config.liquid_debug %}
-          exec npm run dev
+          exec npm run prod # dev
         {% else %}
           exec npm run prod
         {% endif %}
@@ -642,10 +641,6 @@ job "hoover-deps" {
         EOF
         env = true
         destination = "local/.env.local"
-      }
-
-      env {
-        TIMESTAMP = "${config.timestamp}"
       }
 
       resources {

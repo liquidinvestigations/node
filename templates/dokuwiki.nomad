@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import authproxy_group, group_disk, task_logs with context -%}
+{% from '_lib.hcl' import group_disk, task_logs with context -%}
 
 job "dokuwiki" {
   datacenters = ["dc1"]
@@ -64,10 +64,4 @@ job "dokuwiki" {
       }
     }
   }
-
-  ${- authproxy_group(
-      'dokuwiki',
-      host='dokuwiki.' + liquid_domain,
-      upstream='dokuwiki-php',
-    ) }
 }

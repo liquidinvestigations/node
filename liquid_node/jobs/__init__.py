@@ -165,3 +165,4 @@ def wait_for_stopped_jobs(stopped_jobs):
 class Job:
     vault_secret_keys = ()
     core_auth_apps = ()
+    stage = 2

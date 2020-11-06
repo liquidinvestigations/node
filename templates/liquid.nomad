@@ -31,6 +31,8 @@ job "liquid" {
         port_map {
           http = 8000
         }
+
+        memory_hard_limit = 2048
       }
 
       template {

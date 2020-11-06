@@ -1,15 +1,16 @@
 {%- macro continuous_reschedule() %}
     restart {
       attempts = 5
-      delay    = "11s"
-      interval = "3m"
+      delay    = "20s"
+      interval = "2m"
       mode     = "fail"
     }
+
     reschedule {
       attempts       = 0
-      delay          = "11s"
+      delay          = "15s"
       delay_function = "exponential"
-      max_delay      = "19m"
+      max_delay      = "10m"
       unlimited      = true
     }
 {%- endmacro %}
@@ -29,6 +30,7 @@ logs {
 {%- macro group_disk(size=20) %}
 ephemeral_disk {
   size = ${size}
+  sticky = true
 }
 {%- endmacro %}
 
@@ -145,7 +147,7 @@ ephemeral_disk {
         }
         check_restart {
           limit = 3
-          grace = "55s"
+          grace = "25s"
         }
       }
     }
@@ -226,8 +228,8 @@ ephemeral_disk {
           initial_status = "critical"
           type = "http"
           path = "/__auth/logout"
-          interval = "6s"
-          timeout = "3s"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
         }
         check_restart {
           limit = 3

@@ -1,0 +1,26 @@
+#!/bin/bash -ex
+cd /opt/node
+
+echo "Deploy"
+cp ci/conf/2.ini liquid.ini
+./liquid resources
+./liquid deploy
+
+echo "Do a backup"
+./liquid backup ./backup
+ls -aRlh ./backup
+
+echo "Restore apps"
+./liquid restore-apps ./backup
+
+echo "Restore apps after wipe"
+docker kill cluster
+docker kill $(docker ps -q)
+docker ps
+sudo rm -rf /opt/node/volumes/*
+sudo rm -rf /opt/cluster/var/*
+echo
+docker start cluster
+docker exec cluster ./cluster.py wait
+./liquid deploy
+./liquid restore-apps ./backup

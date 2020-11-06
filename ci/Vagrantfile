@@ -10,7 +10,7 @@ if Vagrant.has_plugin?('vagrant-env')
   end
 
   machine_name = ENV['MACHINE_NAME'] || ("liquid-vagrant-" + `hostname`.strip)
-  custom_sh = ENV['PROVISION_SH']
+  custom_sh = ENV['PROVISION']
 
   config.vm.define machine_name
   # disable implicit mount for /vagrant
@@ -18,10 +18,6 @@ if Vagrant.has_plugin?('vagrant-env')
 
   # blank provisioner that can be overridden by providers
   config.vm.provision 'provider', type: 'shell', inline: '/bin/true', privileged: false
-
-  config.vm.provision "shell",
-                      inline: "/opt/node/vagrant/provision-liquid.sh",
-                      privileged: false
 
   if custom_sh
     config.vm.provision :shell, path: custom_sh, privileged: false
@@ -32,25 +28,11 @@ if Vagrant.has_plugin?('vagrant-env')
   config.vm.network :forwarded_port, guest: 8500, guest_ip: "10.66.60.1", host: 18500, host_ip: "127.0.0.1"
   config.vm.network :forwarded_port, guest: 8200, guest_ip: "10.66.60.1", host: 18200, host_ip: "127.0.0.1"
 
-  config.vm.provider :virtualbox do |virtualbox, override|
-    virtualbox.memory = 8 * 1024
-    virtualbox.cpus = Etc.nprocessors
-    override.vm.provision(
-      'provider',
-      preserve_order: true,
-      type: 'shell',
-      path: "provision-cluster-vbox.sh",
-      inline: nil,
-      privileged: true,
-    )
-    override.vm.synced_folder "..", "/opt/node"
-  end
-
   config.vm.provider :vmck do |vmck, override|
     vmck.image_path = 'cluster-master.qcow2.tar.gz'
     vmck.vmck_url = ENV['VMCK_URL']
-    vmck.memory = 28000
-    vmck.cpus = 3
+    vmck.memory = Integer(ENV['VMCK_MEMORY'] || '5000') + 500
+    vmck.cpus = Integer(ENV['VMCK_CPUS'] || '2')
     vmck.name = ENV['VMCK_NAME']
 
     override.vm.box = "base"

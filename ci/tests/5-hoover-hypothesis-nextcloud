@@ -1,0 +1,18 @@
+#!/bin/bash -ex
+cd /opt/node
+
+if ! [ -d collections/testdata ]; then
+  git clone https://github.com/liquidinvestigations/testdata collections/testdata
+fi
+
+echo "Deploy"
+cp ci/conf/5.ini liquid.ini
+./liquid resources
+./liquid deploy
+
+echo "Do a backup"
+./liquid backup ./backup
+ls -aRlh ./backup
+
+echo "Restore apps"
+./liquid restore-apps ./backup

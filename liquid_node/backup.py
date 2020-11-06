@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
-HYPOTHESIS_ES_ALLOC = "hypothesis:es"
+HYPOTHESIS_ES_ALLOC = "hypothesis-deps:es"
 SNOOP_API_ALLOC = "hoover:snoop"
 
 
@@ -40,11 +40,13 @@ def backup(blobs, es, pg, backup_collections, collections, apps, dest):
         log.warning('not backing up app data (--no-apps)')
     else:
         backup_sqlite3(dest / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
-        backup_pg(dest / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
-        backup_pg(dest / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
+
+        if config.is_app_enabled('hoover'):
+            backup_pg(dest / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
+            backup_pg(dest / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
 
         if config.is_app_enabled('codimd'):
-            backup_pg(dest / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd:postgres')
+            backup_pg(dest / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd-deps:postgres')
 
         if config.is_app_enabled('dokuwiki'):
             backup_files(dest / 'dokuwiki.tgz', '/bitnami/dokuwiki', [], 'dokuwiki:php')
@@ -52,10 +54,10 @@ def backup(blobs, es, pg, backup_collections, collections, apps, dest):
         if config.is_app_enabled('hypothesis'):
             backup_dir = dest / "hypothesis"
             backup_dir.mkdir(parents=True, exist_ok=True)
-            backup_pg(backup_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
+            backup_pg(backup_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis-deps:pg')
             backup_es(dest / 'hypothesis', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
 
-    if not backup_collections:
+    if not backup_collections or not config.is_app_enabled('hoover'):
         log.warning('not backing up collection data (--no-collections)')
         return
 
@@ -69,11 +71,31 @@ def backup(blobs, es, pg, backup_collections, collections, apps, dest):
                           save_pg=pg)
 
 
+def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
+    assert config.is_app_enabled('hoover')
+
+    if save_pg:
+        backup_collection_pg(dest, name)
+    else:
+        log.info("skipping saving pg")
+
+    if save_es:
+        backup_es(dest, name, "/_es", SNOOP_ES_ALLOC)
+    else:
+        log.info("skipping saving es")
+
+    if save_blobs:
+        backup_collection_blobs(dest, name)
+    else:
+        log.info("skipping saving blobs")
+
+
 @backup_commands.command()
 @click.argument('src')
 @click.argument('name')
 def restore_collection(src, name):
     log.info("restoring collection data from %s as %s", src, name)
+    assert config.is_app_enabled('hoover')
 
     assert (name not in (c['name'] for c in config.snoop_collections)), \
         f"collection {name} already defined in liquid.ini, please remove it"
@@ -93,6 +115,8 @@ def restore_collection(src, name):
 @click.pass_context
 @click.argument('backup_root')
 def restore_all_collections(ctx, backup_root):
+    assert config.is_app_enabled('hoover')
+
     backup_root = Path(backup_root).resolve()
     PREFIX = 'collection-'
     for src in backup_root.iterdir():
@@ -109,24 +133,27 @@ def restore_apps(ctx, src):
     src = Path(src).resolve()
     restore_sqlite3(src / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
     nomad.restart('liquid', 'core')
-    restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
-    nomad.restart('hoover', 'search')
-    restore_pg(src / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
-    nomad.restart('hoover', 'snoop')
+
+    if config.is_app_enabled('hoover'):
+        restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
+        nomad.restart('hoover', 'search')
+        restore_pg(src / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
+        nomad.restart('hoover', 'snoop')
 
     if config.is_app_enabled('codimd'):
-        restore_pg(src / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd:postgres')
+        restore_pg(src / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd-deps:postgres')
         nomad.restart('codimd', 'codimd')
+        nomad.restart('codimd-deps', 'postgres')
 
     if config.is_app_enabled('dokuwiki'):
         restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
         nomad.restart('dokuwiki', 'php')
 
     if config.is_app_enabled('hypothesis'):
-        restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis:pg')
+        restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis-deps:pg')
         restore_es(src / 'hypothesis/', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
-        nomad.restart('hypothesis', 'pg')
-        nomad.restart('hypothesis', 'es')
+        nomad.restart('hypothesis-deps', 'pg')
+        nomad.restart('hypothesis-deps', 'es')
 
     log.info("Restore done; deploying")
     ctx.invoke(halt)
@@ -391,20 +418,3 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
             f"rm -rf /es_repo/restore-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
-
-
-def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
-    if save_pg:
-        backup_collection_pg(dest, name)
-    else:
-        log.info("skipping saving pg")
-
-    if save_es:
-        backup_es(dest, name, "/_es", SNOOP_ES_ALLOC)
-    else:
-        log.info("skipping saving es")
-
-    if save_blobs:
-        backup_collection_blobs(dest, name)
-    else:
-        log.info("skipping saving blobs")

@@ -1,7 +1,7 @@
 from .nomad import nomad
 from .configuration import config
 from .consul import consul
-from .jobs import get_job, hoover, wait_for_stopped_jobs
+from .jobs import get_job, wait_for_stopped_jobs
 from .process import run, run_fg
 from .util import first, retry
 from .docker import docker
@@ -13,13 +13,33 @@ import os
 import logging
 import json
 import base64
+import multiprocessing
 
 log = logging.getLogger(__name__)
 
-SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
-SNOOP_ES_ALLOC = "hoover-deps:es"
-HYPOTHESIS_ES_ALLOC = "hypothesis:es"
-SNOOP_API_ALLOC = "hoover:snoop"
+VAULT_SECRET_KEYS = [
+    'liquid/liquid/core.django',
+    'liquid/hoover/auth.django',
+    'liquid/hoover/search.django',
+    'liquid/hoover/search.postgres',
+    'liquid/hoover/snoop.django',
+    'liquid/hoover/snoop.postgres',
+    'liquid/authdemo/auth.django',
+    'liquid/nextcloud/nextcloud.admin',
+    'liquid/nextcloud/nextcloud.uploads',
+    'liquid/nextcloud/nextcloud.maria',
+    'liquid/dokuwiki/auth.django',
+    'liquid/nextcloud/auth.django',
+    'liquid/rocketchat/auth.django',
+    'liquid/hypothesis/auth.django',
+    'liquid/hypothesis/hypothesis.secret_key',
+    'liquid/hypothesis/hypothesis.postgres',
+    'liquid/codimd/auth.django',
+    'liquid/codimd/codimd.session',
+    'liquid/codimd/codimd.postgres',
+    'liquid/ci/vmck.django',
+    'liquid/ci/drone.rpc.secret',
+]
 
 CORE_AUTH_APPS = [
     {
@@ -106,7 +126,7 @@ def random_secret(bits=256):
 
 
 def ensure_secret(path, get_value):
-    if not vault.read(path):
+    if not vault.read(path) or set(vault.read(path).keys()) != set(get_value()):
         log.info(f"Generating value for {path}")
         vault.set(path, get_value())
 
@@ -117,6 +137,9 @@ def ensure_secret_key(path):
 
 def wait_for_service_health_checks(health_checks):
     """Waits health checks to become green for green_count times in a row. """
+
+    if not health_checks:
+        return
 
     def pick_worst(a, b):
         if not a and not b:
@@ -145,7 +168,7 @@ def wait_for_service_health_checks(health_checks):
     last_check_timestamps = {}
     passing_count = defaultdict(int)
 
-    def log_checks(checks, as_error=False):
+    def log_checks(checks, as_error=False, print_passing=True):
         max_service_len = max(len(s) for s in health_checks.keys())
         max_name_len = max(max(len(name) for name in health_checks[key]) for key in health_checks)
         now = time()
@@ -159,6 +182,8 @@ def wait_for_service_health_checks(health_checks):
             if status == 'passing':
                 if as_error:
                     continue
+                if not print_passing:
+                    continue
                 passing_count[service, check] += 1
                 if passing_count[service, check] > 1:
                     line += f' #{passing_count[service, check]}'
@@ -169,12 +194,12 @@ def wait_for_service_health_checks(health_checks):
                 log.warning(line)
 
     services = sorted(health_checks.keys())
-    log.info(f"Waiting for health checks on {services}")
+    log.info(f"Waiting for health checks on {len(services)} services")
 
     greens = 0
     timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
     last_checks = set(get_checks())
-    log_checks(last_checks)
+    log_checks(last_checks, print_passing=False)
     while time() < timeout:
         sleep(config.wait_interval)
 
@@ -188,7 +213,7 @@ def wait_for_service_health_checks(health_checks):
             greens += 1
 
         if greens >= config.wait_green_count:
-            log.info(f"Checks green {services} after {time() - t0:.02f}s")
+            log.info(f"Checks green for {len(services)} services after {time() - t0:.02f}s")
             return
 
         # No chance to get enough greens
@@ -214,7 +239,7 @@ def check_system_config():
 
 
 def start_job(job, hcl):
-    log.info('Starting %s...', job)
+    log.debug('Starting %s...', job)
     spec = nomad.parse(hcl)
     nomad.run(spec)
     job_checks = {}
@@ -226,19 +251,23 @@ def start_job(job, hcl):
     return job_checks
 
 
-def populate_secrets(vault_secret_keys, core_auth_apps, liquid_job):
+def create_oauth2_app(app):
+    log.info('Auth %s -> %s', app['name'], app['callback'])
+    cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
+    output = retry()(docker.exec_)('liquid:core', *cmd)
+    tokens = json.loads(output)
+    vault.set(app['vault_path'], tokens)
+    return app['name']
+
+
+def populate_secrets_pre(vault_secret_keys):
     """Sets a secrets for every path given and start liquid-core.
 
     The function sets a secret for every path given (the secrets stored in vault_secret_keys are 256 bits
-    whereas the secrets for cookies are 64 bits long). Then, it starts the liquid-core and creates OAuth2
-    entries for every app. If self-hosted continuous integration is enabled, then the client id and secret
-    areadded to vault.
+    whereas the secrets for cookies are 64 bits long).
 
     Args:
         vault_secrets_keys: A list of paths for which a secret is needed.
-        core_auth_apps: A list of dictionary which contains app's name, vault_path and callback to create
-                        Oauth2 entries.
-        liquid_job: The template for the "core job", which is the first to start after secrets are set.
 
     Returns:
         None
@@ -257,6 +286,9 @@ def populate_secrets(vault_secret_keys, core_auth_apps, liquid_job):
             'username': config.ci_docker_username,
             'password': config.ci_docker_password,
         })
+        ensure_secret('liquid/ci/drone.secret.2', lambda: {
+            'secret_key': random_secret(128),
+        })
 
     ensure_secret('liquid/rocketchat/adminuser', lambda: {
         'username': 'rocketchatadmin',
@@ -268,17 +300,25 @@ def populate_secrets(vault_secret_keys, core_auth_apps, liquid_job):
             'cookie': random_secret(64),
         })
 
-    # Start liquid-core in order to setup the auth
-    liquid_checks = start_job('liquid', liquid_job)
-    wait_for_service_health_checks({'core': liquid_checks['core']})
 
-    # Create the OAuth2 callbacks for apps
-    for app in core_auth_apps:
-        log.info('Auth %s -> %s', app['name'], app['callback'])
-        cmd = ['./manage.py', 'createoauth2app', app['name'], app['callback']]
-        output = retry()(docker.exec_)('liquid:core', *cmd)
-        tokens = json.loads(output)
-        vault.set(app['vault_path'], tokens)
+def populate_secrets_post(core_auth_apps):
+    """Sets up oauth2 app logins.
+
+    Creates OAuth2 entries for every app. If self-hosted continuous integration
+    is enabled, then the client id and secret are added to vault.
+
+    Args:
+        core_auth_apps: A list of dictionary which contains app's name, vault_path and callback to create
+                        Oauth2 entries.
+    Returns:
+        None
+    """
+    # Create the OAuth2 callbacks for apps. This is really slow, so do them all
+    # in parallel...
+    with multiprocessing.Pool(3) as p:
+        for app_name in p.imap_unordered(create_oauth2_app, core_auth_apps):
+            log.debug('auth done: ' + app_name)
+    log.info('secrets done.')
 
 
 @liquid_commands.command()
@@ -295,74 +335,52 @@ def deploy(secrets, checks):
     if secrets:
         vault.ensure_engine()
 
-    vault_secret_keys = [
-        'liquid/liquid/core.django',
-        'liquid/hoover/auth.django',
-        'liquid/hoover/search.django',
-        'liquid/hoover/search.postgres',
-        'liquid/hoover/snoop.django',
-        'liquid/hoover/snoop.postgres',
-        'liquid/authdemo/auth.django',
-        'liquid/nextcloud/nextcloud.admin',
-        'liquid/nextcloud/nextcloud.uploads',
-        'liquid/nextcloud/nextcloud.maria',
-        'liquid/dokuwiki/auth.django',
-        'liquid/nextcloud/auth.django',
-        'liquid/rocketchat/auth.django',
-        'liquid/hypothesis/auth.django',
-        'liquid/hypothesis/hypothesis.secret_key',
-        'liquid/hypothesis/hypothesis.postgres',
-        'liquid/codimd/auth.django',
-        'liquid/codimd/codimd.session',
-        'liquid/codimd/codimd.postgres',
-        'liquid/ci/vmck.django',
-        'liquid/ci/drone.secret',
-    ]
+    vault_secret_keys = list(VAULT_SECRET_KEYS)
     core_auth_apps = list(CORE_AUTH_APPS)
 
     for job in config.enabled_jobs:
         vault_secret_keys += list(job.vault_secret_keys)
         core_auth_apps += list(job.core_auth_apps)
 
-    jobs = [(job.name, get_job(job.template)) for job in config.enabled_jobs]
+    jobs = [(job.name, (job.stage, get_job(job.template))) for job in config.enabled_jobs]
 
     if secrets:
-        populate_secrets(vault_secret_keys, core_auth_apps, dict(jobs)['liquid'])
+        populate_secrets_pre(vault_secret_keys)
 
     # check if there are jobs to stop
     nomad_jobs = set(job['ID'] for job in nomad.jobs())
     jobs_to_stop = nomad_jobs.intersection(set(job.name for job in config.disabled_jobs))
-    log.info(f'jobs to stop: {jobs_to_stop}')
+    if jobs_to_stop:
+        log.info(f'Stopping jobs: {jobs_to_stop}')
     if jobs_to_stop:
         for job in jobs_to_stop:
             nomad.stop(job)
         wait_for_stopped_jobs(jobs_to_stop)
 
-    # only start deps jobs + hoover
-    hov_deps = hoover.Deps()
-    deps_jobs = [(hov_deps.name, get_job(hov_deps.template))]
-
+    # Deploy everything in stages
     health_checks = {}
-    for job, hcl in deps_jobs:
-        job_checks = start_job(job, hcl)
-        health_checks.update(job_checks)
+    for stage in range(5):
+        stage_jobs = [(n, t[1]) for n, t in jobs if t[0] == stage]
+        log.info(f'Deploy stage #{stage}, starting jobs: {[j[0] for j in stage_jobs]}')
 
-    # wait until all deps are healthy
-    if checks:
-        wait_for_service_health_checks(health_checks)
+        for name, template in stage_jobs:
+            job_checks = start_job(name, template)
+            health_checks.update(job_checks)
 
-    # run the set password script
-    if secrets:
-        retry()(docker.exec_)('hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
-        retry()(docker.exec_)('hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
+        # wait until all deps are healthy
+        if stage_jobs and checks:
+            wait_for_service_health_checks(health_checks)
 
-    for job, hcl in jobs:
-        job_checks = start_job(job, hcl)
-        health_checks.update(job_checks)
+        if stage == 0:
+            if secrets:
+                populate_secrets_post(core_auth_apps)
 
-    # Wait for everything else
-    if checks:
-        wait_for_service_health_checks(health_checks)
+        if stage == 1:
+            # run the set password script
+            if secrets:
+                if config.is_app_enabled('hoover'):
+                    retry()(docker.exec_)('hoover-deps:search-pg', 'sh', '/local/set_pg_password.sh')
+                    retry()(docker.exec_)('hoover-deps:snoop-pg', 'sh', '/local/set_pg_password.sh')
 
     log.info("Deploy done!")
 

@@ -1,4 +1,5 @@
 import logging
+import urllib.error
 
 from .configuration import config
 from .jsonapi import JsonApi
@@ -14,10 +15,18 @@ class Nomad(JsonApi):
         super().__init__(endpoint + '/v1/')
 
     def parse(self, hcl):
-        return self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
+        try:
+            return self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
+        except urllib.error.HTTPError as e:
+            log.error(e.read().decode('utf-8'))
+            raise e
 
     def run(self, spec):
-        self.post('jobs', {'job': spec})
+        try:
+            self.post('jobs', {'job': spec})
+        except urllib.error.HTTPError as e:
+            log.error(e.read().decode('utf-8'))
+            raise e
 
         job_id = spec['ID']
         if spec.get('Periodic'):

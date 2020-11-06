@@ -21,7 +21,7 @@ class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
                 'hypothesis', 'codimd',)
     # The core apps can't be turned off.
-    CORE_APPS = ('liquid', 'hoover',)
+    CORE_APPS = ('liquid', 'ingress',)
 
     APP_TITLE = {
         'dokuwiki': 'DokuWiki',
@@ -38,6 +38,34 @@ class Configuration:
         'rocketchat': 'is the chat app.'
     }
 
+    ALL_JOBS = [
+        liquid.Liquid(),
+        liquid.Ingress(),
+        hoover.Hoover(),
+        hoover.Deps(),
+        hoover.Workers(),
+        hoover.Proxy(),
+        hoover.Nginx(),
+        dokuwiki.Dokuwiki(),
+        dokuwiki.Proxy(),
+        rocketchat.Rocketchat(),
+        rocketchat.Deps(),
+        rocketchat.Migrate(),
+        rocketchat.Proxy(),
+        nextcloud.Nextcloud(),
+        nextcloud.Deps(),
+        nextcloud.Migrate(),
+        nextcloud.Periodic(),
+        nextcloud.Proxy(),
+        hypothesis.Hypothesis(),
+        hypothesis.Deps(),
+        hypothesis.UserSync(),
+        hypothesis.Proxy(),
+        codimd.Codimd(),
+        codimd.Deps(),
+        codimd.Proxy(),
+    ]
+
     def __init__(self):
         self.root = Path(__file__).parent.parent.resolve()
         self.templates = self.root / 'templates'
@@ -47,27 +75,6 @@ class Configuration:
 
         self.ini = configparser.ConfigParser()
         self.ini.read(self.root / 'liquid.ini')
-
-        self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
-
-        self.all_jobs = [
-            liquid.Liquid(),
-            liquid.Ingress(),
-            hoover.Hoover(),
-            hoover.Deps(),
-            hoover.Workers(),
-            dokuwiki.Dokuwiki(),
-            rocketchat.Rocketchat(),
-            rocketchat.Migrate(),
-            nextcloud.Nextcloud(),
-            nextcloud.Migrate(),
-            nextcloud.Periodic(),
-            hypothesis.Hypothesis(),
-            hypothesis.UserSync(),
-            codimd.Codimd(),
-        ]
-        self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
-        self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
         self.cluster_root_path = self.ini.get('cluster', 'cluster_path', fallback=None)
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
@@ -177,9 +184,14 @@ class Configuration:
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
         self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=8)
 
+        self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
+        self.all_jobs = list(self.ALL_JOBS)
+        self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
+        self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
+
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
-            self.ci_runner_capacity = self.ini.getint('ci', 'runner_capacity', fallback=2)
+            self.ci_runner_capacity = self.ini.getint('ci', 'runner_capacity', fallback=4)
             self.ci_docker_username = self.ini.get('ci', 'docker_username')
             self.ci_docker_password = self.ini.get('ci', 'docker_password')
             self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
@@ -189,14 +201,18 @@ class Configuration:
             self.ci_docker_registry_port = self.ini.get('ci', 'docker_registry_port', fallback=None)
             if self.ci_docker_registry_address and self.ci_docker_registry_port:
                 self.ci_docker_registry_env = (
-                    f',REGISTRY_ADDRESS:{self.ci_docker_registry_address}'
-                    f',REGISTRY_PORT:{self.ci_docker_registry_port}'
+                    f'REGISTRY_ADDRESS={self.ci_docker_registry_address}\n'
+                    f'REGISTRY_PORT={self.ci_docker_registry_port}\n'
                 )
             else:
                 self.ci_docker_registry_env = ''
             self.enabled_jobs.append(ci.Drone())
+            self.enabled_jobs.append(ci.DroneWorkers())
+            self.enabled_jobs.append(ci.Deps())
 
         self.snoop_collections = []
+
+        # load collections and extra jobs
         for key in self.ini:
             if ':' not in key:
                 continue
@@ -300,6 +316,8 @@ class Configuration:
         return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
 
     def is_app_enabled(self, app_name):
+        if app_name == 'hoover-workers':
+            return self.snoop_workers_enabled and self.is_app_enabled('hoover')
         return app_name in Configuration.CORE_APPS or \
             self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
 
