@@ -73,6 +73,7 @@ job "rocketchat" {
         memory_hard_limit = 5000
       }
       template {
+        # WARNING: no empty lines, comments or anything else in this line. parsing and overwriting is done in script below...
         data = <<-EOF
           {{- range service "rocketchat-mongo" }}
             MONGO_URL=mongodb://{{.Address}}:{{.Port}}/meteor
@@ -111,7 +112,6 @@ job "rocketchat" {
           OVERWRITE_SETTING_Accounts_RegistrationForm=Disabled
           OVERWRITE_SETTING_Layout_Sidenav_Footer=<a href="/home"><img src="assets/logo"/></a><a href="${config.liquid_core_url}"><h1 style="font-size:77%;float:right;clear:both; color:#aaa">&#8594; ${config.liquid_title}</h1></a>
           OVERWRITE_SETTING_UI_Allow_room_names_with_special_chars=true
-
           OVERWRITE_SETTING_FEDERATION_Enabled=false
         EOF
         destination = "local/liquid.env"
