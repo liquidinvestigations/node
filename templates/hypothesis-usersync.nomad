@@ -33,7 +33,7 @@ job "hypothesis-usersync" {
           set -ex
 
           liquid_core_users="$(${exec_command('liquid:core', '/local/users.py')})"
-          hypothesis_users="$(${exec_command('hypothesis:pg', 'psql', '-U', 'hypothesis', 'hypothesis', '-c', "'COPY (SELECT username FROM public.user) TO stdout WITH CSV;'")})"
+          hypothesis_users="$(${exec_command('hypothesis-deps:pg', 'psql', '-U', 'hypothesis', 'hypothesis', '-c', "'COPY (SELECT username FROM public.user) TO stdout WITH CSV;'")})"
           ${exec_command('hypothesis:hypothesis', '/local/usersync.py', '"$liquid_core_users"', '"$hypothesis_users"')}
         EOF
       }

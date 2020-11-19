@@ -5,14 +5,14 @@ class Nextcloud(jobs.Job):
     name = 'nextcloud'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud'
-    stage = 3
+    stage = 2
 
 
 class Migrate(jobs.Job):
     name = 'nextcloud-migrate'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud'
-    stage = 2
+    stage = 3
 
 
 class Periodic(jobs.Job):
