@@ -132,7 +132,6 @@ job "hoover" {
     }
   }
 
-
   {% if config.snoop_workers_enabled %}
   group "snoop-celery-beat" {
     ${ continuous_reschedule() }
@@ -171,6 +170,7 @@ job "hoover" {
       }
 
       env {
+        SNOOP_URL_PREFIX = "snoop/"
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
         SYNC_FILES = "${sync}"
       }
