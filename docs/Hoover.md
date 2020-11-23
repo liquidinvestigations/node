@@ -33,7 +33,7 @@ Then let the `deploy` command pick up the new collection:
 ## Adding collections
 
 All collections are loaded from the `liquid_collections` directory configured in `liquid.ini`.
-The directories directly under `liquid_collections` can also be symlinks.
+The directories directly under `liquid_collections` can NOT be symlinks, since the docker container must access the data even if it's symlinked outside of the mounted directory. Instead of symlinks, use bind mounts or nfs mounts.
 
 To add new collections simply append to the `liquid.ini` file:
 
@@ -51,7 +51,7 @@ process = True
 ---
 
 The two parameters control:
-- `workers`: the Snoop worker count for this collection
+- `process`: on/off switch for processing this collection, defaults to False.
 - `sync`: wether the workers should track the collection data and re-process changed/new documents
 
 The collection names must follow the [elasticsearch index naming guide](https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-create-index.html#indices-create-index), namely **lowercase alphanumeric**, **dashes** and **numbers** only.
@@ -74,3 +74,17 @@ LSTM](https://tesseract-ocr.github.io/tessdoc/Data-Files#data-files-for-version-
 After changing the `ocr_languages` setting for an already processed collection, please run:
 
      ./liquid dockerexec hoover-workers:snoop-workers ./manage.py retrytasks COLLECTION -- --func digests.launch
+
+## Re-processing and adding new data
+
+You can trigger a manual re-walk of all directories (to find new and changed data) with:
+
+```
+./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --func filesystem.walk
+```
+
+You can trigger a manual retry for failed tasks with:
+
+```
+./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error --status broken
+```
