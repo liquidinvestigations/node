@@ -106,6 +106,7 @@ job "hoover" {
       service {
         name = "hoover-search"
         port = "http"
+        tags = ["fabio-/hoover-search strip=/hoover-search"]
         check {
           name = "http_ping"
           initial_status = "critical"

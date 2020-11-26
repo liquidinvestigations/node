@@ -67,20 +67,8 @@ job "hoover-nginx" {
           sendfile_max_chunk 4m;
           aio threads;
 
-          upstream api {
-            {{ range service "hoover-search" }}
-              server "{{.Address}}:{{.Port}}";
-            {{ end }}
-          }
-
-          upstream ui {
-            {% if config.hoover_ui_override_server %}
-              server "${config.hoover_ui_override_server}";
-            {% else %}
-              {{ range service "hoover-ui" }}
-                server "{{.Address}}:{{.Port}}";
-              {{ end }}
-            {% endif %}
+          upstream fabio {
+            server {{env "attr.unique.network.ip-address"}}:9990;
           }
 
           server {
@@ -110,12 +98,13 @@ job "hoover-nginx" {
               return 200 "healthy\n";
             }
 
-            location  ~ ^/(api|admin|accounts|static)/ {
-              proxy_pass http://api;
+            location  ~ ^/(api|admin|accounts|static) {
+              rewrite ^/(api|admin|accounts|static)(.*) /hoover-search/$1$2 break;
+              proxy_pass http://fabio;
             }
 
             location  / {
-              proxy_pass http://ui;
+              proxy_pass http://fabio/hoover-ui;
             }
           }
         }
