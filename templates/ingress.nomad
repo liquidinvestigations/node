@@ -118,6 +118,7 @@ job "ingress" {
       service {
         name = "traefik-http"
         port = "http"
+
         {%- if not https_enabled %}
         check {
           name = "http"
@@ -130,6 +131,14 @@ job "ingress" {
             Host = ["${liquid_domain}"]
           }
         }
+        {% else %}
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
         {%- endif %}
       }
 
@@ -137,6 +146,7 @@ job "ingress" {
       service {
         name = "traefik-https"
         port = "https"
+
         check {
           name = "https"
           initial_status = "critical"
@@ -156,6 +166,7 @@ job "ingress" {
       service {
         name = "traefik-admin"
         port = "admin"
+
         check {
           name = "http"
           initial_status = "critical"

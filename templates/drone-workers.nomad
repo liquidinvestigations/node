@@ -1,19 +1,11 @@
 {% from '_lib.hcl' import continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
-job "drone-workers" {
-  datacenters = ["dc1"]
-  type = "system"
-  priority = 98
-
-  group "drone-workers" {
-    ${ group_disk() }
-
-    task "drone-workers" {
+{% macro worker_task_def() %}
       ${ task_logs() }
 
       driver = "docker"
       config {
-        image = "drone/drone-runner-docker:1"
+        image = "drone/drone-runner-docker:1.6"
         memory_hard_limit = 2000
 
         volumes = [
@@ -37,9 +29,7 @@ job "drone-workers" {
         DRONE_RUNNER_ENV_FILE = "/local/drone-worker-2.env"
         DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}"
         DRONE_RPC_PROTO = "http"
-        DRONE_RUNNER_CAPACITY = 4
-        DRONE_RUNNER_MAX_PROCS = 6
-        DRONE_MEMORY_LIMIT = 4294967296
+        DRONE_MEMORY_LIMIT = 12624855040
         DRONE_DEBUG=true
       }
 
@@ -56,7 +46,10 @@ ${config.ci_docker_registry_env}
       template {
         data = <<-EOF
 
-        DRONE_RPC_HOST = "{{ env "attr.unique.network.ip-address" }}:9990/drone-server"
+        {{- range service "drone" }}
+          DRONE_RPC_HOST = "{{.Address}}:{{.Port}}"
+        {{- end }}
+
         {{- with secret "liquid/ci/drone.rpc.secret" }}
           DRONE_RPC_SECRET = "{{.Data.secret_key }}"
         {{- end }}
@@ -82,6 +75,53 @@ ${config.ci_docker_registry_env}
       service {
         name = "drone-worker"
         port = "http"
+
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+
+{% endmacro %}
+
+job "drone-workers" {
+  datacenters = ["dc1"]
+  type = "system"
+  priority = 98
+
+  group "drone-workers" {
+    ${ group_disk() }
+
+    task "drone-workers" {
+
+      ${ worker_task_def() }
+
+      env {
+        DRONE_RUNNER_CAPACITY = 4
+        DRONE_RUNNER_MAX_PROCS = 6
+      }
+    }
+  }
+
+  group "drone-workers-with-volumes" {
+    ${ group_disk() }
+
+    task "drone-workers-with-volumes" {
+
+      ${ worker_task_def() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      env {
+        DRONE_RUNNER_LABELS = "liquid_volumes:{% raw %}${meta.liquid_volumes}{% endraw %}"
+        DRONE_RUNNER_CAPACITY = 1
+        DRONE_RUNNER_MAX_PROCS = 1
       }
     }
   }
