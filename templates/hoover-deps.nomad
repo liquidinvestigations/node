@@ -427,12 +427,28 @@ job "hoover-deps" {
       service {
         name = "hoover-rabbitmq"
         port = "amqp"
+
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
 
       service {
         name = "hoover-rabbitmq-prom"
         port = "prom"
         tags = ["fabio-/_rabbit_prom"]
+
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
 
       service {
