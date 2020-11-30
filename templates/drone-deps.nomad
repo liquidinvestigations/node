@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule, shutdown_delay -%}
 
 job "drone-deps" {
   datacenters = ["dc1"]
@@ -7,9 +7,11 @@ job "drone-deps" {
 
   group "drone-secret" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
 
     task "drone-secret" {
       ${ task_logs() }
+
       driver = "docker"
       config {
         image = "drone/vault:1.2"
@@ -65,7 +67,11 @@ job "drone-deps" {
   }
 
   group "imghost" {
+    ${ group_disk() }
+    ${ continuous_reschedule() }
+
     task "nginx" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -149,5 +155,74 @@ job "drone-deps" {
     }
   }
 
+  group "vmck-pg" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
 
+    task "vmck-pg" {
+      ${ task_logs() }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      config {
+        image = "postgres:12"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/vmck/pg/data:/var/lib/vmck/data",
+        ]
+        labels {
+          liquid_task = "vmck-pg"
+        }
+        port_map {
+          pg = 5432
+        }
+        shm_size = 128
+        memory_hard_limit = 512
+      }
+
+      template {
+        data = <<EOF
+          POSTGRES_USER = "vmck"
+          POSTGRES_DATABASE = "vmck"
+          {{- with secret "liquid/ci/vmck.postgres" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/postgres.env"
+        env = true
+      }
+
+      resources {
+        cpu = 100
+        memory = 256
+        network {
+          mbits = 1
+          port "pg" {}
+        }
+      }
+
+      service {
+        name = "vmck-pg"
+        port = "pg"
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
 }

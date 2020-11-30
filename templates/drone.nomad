@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule -%}
 
 job "drone" {
   datacenters = ["dc1"]
@@ -7,6 +7,8 @@ job "drone" {
 
   group "drone" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
+
     task "drone" {
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -102,7 +104,11 @@ job "drone" {
 
 
   group "vmck" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
     task "vmck" {
+      ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator  = "is_set"
@@ -110,7 +116,7 @@ job "drone" {
 
       driver = "docker"
       config {
-        image = "vmck/vmck:0.5.1"
+        image = "liquidinvestigations/vmck:0.5.1-retry-liquid"
         hostname = "{% raw %}${attr.unique.hostname}{% endraw %}"
         dns_servers = ["{% raw %}${attr.unique.network.ip-address}{% endraw %}"]
         volumes = [
@@ -141,6 +147,18 @@ job "drone" {
           # nomad reserves 20000-32000
           VM_PORT_RANGE_START = 32010
           VM_PORT_RANGE_STOP = 40000
+
+          {{- range service "vmck-pg" }}
+            POSTGRES_ADDRESS = "{{.Address}}"
+            POSTGRES_PORT = "{{.Port}}"
+          {{- end }}
+
+          POSTGRES_DB = "vmck"
+          POSTGRES_USER = "vmck"
+          {{- with secret "liquid/ci/vmck.postgres" }}
+            POSTGRES_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
           EOF
           destination = "local/vmck.env"
           env = true

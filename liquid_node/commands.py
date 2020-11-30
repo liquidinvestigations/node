@@ -38,6 +38,7 @@ VAULT_SECRET_KEYS = [
     'liquid/codimd/codimd.session',
     'liquid/codimd/codimd.postgres',
     'liquid/ci/vmck.django',
+    'liquid/ci/vmck.postgres',
     'liquid/ci/drone.rpc.secret',
 ]
 

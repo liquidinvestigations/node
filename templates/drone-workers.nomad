@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import set_pg_password_template, task_logs, group_disk with context -%}
 
 {% macro worker_task_def() %}
       ${ task_logs() }
