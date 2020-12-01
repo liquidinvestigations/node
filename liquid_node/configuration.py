@@ -161,7 +161,7 @@ class Configuration:
                             'nextcloud_memory_limit',
                             fallback=512)
 
-        self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='30,60')
+        self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='100,13')
 
         self.hoover_web_memory_limit = self.ini.getint('liquid',
                                                        'hoover_web_memory_limit', fallback=300)
