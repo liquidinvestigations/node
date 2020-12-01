@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import set_pg_password_template, task_logs, group_disk with context -%}
 
 job "hoover-workers" {
   datacenters = ["dc1"]
@@ -101,6 +101,17 @@ job "hoover-workers" {
         EOF
         destination = "local/snoop.env"
         env = true
+      }
+
+      service {
+        check {
+          name = "check-workers-script"
+          type = "script"
+          command = "/bin/bash"
+          args = ["-exc", "cd /opt/hoover/snoop; ./manage.py checkworkers"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }

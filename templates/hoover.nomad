@@ -11,6 +11,7 @@ job "hoover" {
   group "web" {
     count = ${config.hoover_web_count}
     ${ group_disk() }
+    ${ continuous_reschedule() }
 
     task "search" {
       ${ task_logs() }

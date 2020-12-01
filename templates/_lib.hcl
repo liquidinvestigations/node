@@ -39,12 +39,7 @@ ephemeral_disk {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
-    restart {
-      interval = "2m"
-      attempts = 4
-      delay = "20s"
-      mode = "delay"
-    }
+    ${ continuous_reschedule() }
 
     task "authproxy-web" {
       ${ task_logs() }
@@ -93,7 +88,9 @@ ephemeral_disk {
           OAUTH2_PROXY_REVERSE_PROXY = true
           OAUTH2_PROXY_SKIP_PROVIDER_BUTTON = true
           OAUTH2_PROXY_SET_XAUTHREQUEST = true
-          #OAUTH2_PROXY_OIDC_GROUPS_CLAIM = "roles"
+          #OAUTH2_PROXY_SCOPE = "openid email profile read_user"
+          OAUTH2_PROXY_SCOPE = "write read"
+          OAUTH2_PROXY_OIDC_GROUPS_CLAIM = "roles"
           OAUTH2_PROXY_PASS_USER_HEADERS = true
           OAUTH2_PROXY_PASS_ACCESS_TOKEN = true
           # OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER  = true
@@ -147,7 +144,7 @@ ephemeral_disk {
         }
         check_restart {
           limit = 3
-          grace = "25s"
+          grace = "35s"
         }
       }
     }
@@ -159,12 +156,7 @@ ephemeral_disk {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
-    restart {
-      interval = "2m"
-      attempts = 4
-      delay = "20s"
-      mode = "delay"
-    }
+    ${ continuous_reschedule() }
 
     count = ${count}
 
@@ -233,7 +225,7 @@ ephemeral_disk {
         }
         check_restart {
           limit = 3
-          grace = "55s"
+          grace = "35s"
         }
       }
     }

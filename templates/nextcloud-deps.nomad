@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, group_disk, task_logs with context -%}
+{% from '_lib.hcl' import shutdown_delay, group_disk, task_logs, continuous_reschedule with context -%}
 
 job "nextcloud-deps" {
   datacenters = ["dc1"]
@@ -7,6 +7,7 @@ job "nextcloud-deps" {
 
   group "maria" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
     task "maria" {
       ${ task_logs() }
 

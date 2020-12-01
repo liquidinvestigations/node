@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk, continuous_reschedule with context -%}
 
 job "codimd-deps" {
   datacenters = ["dc1"]
@@ -7,6 +7,8 @@ job "codimd-deps" {
 
   group "db" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
+
     task "postgres" {
       ${ task_logs() }
       leader = true

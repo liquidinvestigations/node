@@ -605,6 +605,7 @@ job "hoover-deps" {
   {% if not config.hoover_ui_override_server %}
   group "hoover-ui" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
 
     task "hoover-ui" {
       leader = true

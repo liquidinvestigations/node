@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import group_disk, task_logs with context -%}
+{% from '_lib.hcl' import group_disk, task_logs, continuous_reschedule with context -%}
 
 job "dokuwiki" {
   datacenters = ["dc1"]
@@ -7,6 +7,7 @@ job "dokuwiki" {
 
   group "dokuwiki" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
 
     task "php" {
       ${ task_logs() }
