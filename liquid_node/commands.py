@@ -1,7 +1,7 @@
 from .nomad import nomad
 from .configuration import config
 from .consul import consul
-from .jobs import get_job, wait_for_stopped_jobs
+from .jobs import get_job
 from .process import run, run_fg
 from .util import first, retry
 from .docker import docker
@@ -351,12 +351,7 @@ def deploy(secrets, checks):
     # check if there are jobs to stop
     nomad_jobs = set(job['ID'] for job in nomad.jobs())
     jobs_to_stop = nomad_jobs.intersection(set(job.name for job in config.disabled_jobs))
-    if jobs_to_stop:
-        log.info(f'Stopping jobs: {jobs_to_stop}')
-    if jobs_to_stop:
-        for job in jobs_to_stop:
-            nomad.stop(job)
-        wait_for_stopped_jobs(jobs_to_stop)
+    nomad.stop_and_wait(jobs_to_stop)
 
     # Deploy everything in stages
     health_checks = {}
@@ -391,11 +386,7 @@ def halt():
     """Stop all the jobs in nomad."""
 
     jobs = [j.name for j in config.all_jobs]
-    for job in jobs:
-        log.info('Stopping %s...', job)
-        nomad.stop(job)
-
-    wait_for_stopped_jobs(jobs)
+    nomad.stop_and_wait(jobs)
 
 
 @liquid_commands.command()

@@ -91,9 +91,10 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
 
 
 @backup_commands.command()
+@click.pass_context
 @click.argument('src')
 @click.argument('name')
-def restore_collection(src, name):
+def restore_collection(ctx, src, name):
     log.info("restoring collection data from %s as %s", src, name)
     assert config.is_app_enabled('hoover')
 
@@ -103,11 +104,17 @@ def restore_collection(src, name):
     config._validate_collection_name(name)
 
     src = Path(src).resolve()
-    restore_collection_pg(src, name)
+    assert src.is_dir(), 'source is not a directory'
+    # es and blobs restores require web containers to be on
     restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
     restore_collection_blobs(src, name)
 
-    log.info("Collection data restored")
+    # pg requires all clients to be off
+    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy'])
+    restore_collection_pg(src, name)
+    ctx.invoke(deploy, secrets=False)
+
+    log.info("Collection restored: " + name)
     log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
 
 
@@ -117,13 +124,28 @@ def restore_collection(src, name):
 def restore_all_collections(ctx, backup_root):
     assert config.is_app_enabled('hoover')
 
+    all_collections = []
     backup_root = Path(backup_root).resolve()
     PREFIX = 'collection-'
     for src in backup_root.iterdir():
-        log.info("Collection is " + str(src))
         if src.is_dir() and src.name.startswith(PREFIX):
             name = src.name[len(PREFIX):]
-            ctx.invoke(restore_collection, src=src, name=name)
+            config._validate_collection_name(name)
+            all_collections.append((name, Path(src).resolve()))
+
+    # es and blobs restores require web containers to be on
+    for name, src in all_collections:
+        restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
+        restore_collection_blobs(src, name)
+
+    # pg requires all clients to be off
+    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy'])
+    for name, src in all_collections:
+        restore_collection_pg(src, name)
+
+    ctx.invoke(deploy, secrets=False)
+    log.info("Collections restored: " + ", ".join(a[0] for a in all_collections))
+    log.info("Please add all collections to `./liquid.ini` and re-run `./liquid deploy`")
 
 
 @backup_commands.command()
@@ -132,32 +154,30 @@ def restore_all_collections(ctx, backup_root):
 def restore_apps(ctx, src):
     src = Path(src).resolve()
     restore_sqlite3(src / 'liquid-core.sqlite3.sql.gz', '/app/var/db.sqlite3', 'liquid:core')
-    nomad.restart('liquid', 'core')
+    nomad.stop_and_wait(['liquid'])
 
     if config.is_app_enabled('hoover'):
+        nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy'])
         restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
-        nomad.restart('hoover', 'search')
         restore_pg(src / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
-        nomad.restart('hoover', 'snoop')
 
     if config.is_app_enabled('codimd'):
+        nomad.stop_and_wait(['codimd', 'codimd-proxy'])
         restore_pg(src / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd-deps:postgres')
-        nomad.restart('codimd', 'codimd')
-        nomad.restart('codimd-deps', 'postgres')
 
     if config.is_app_enabled('dokuwiki'):
         restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
-        nomad.restart('dokuwiki', 'php')
+        nomad.stop_and_wait(['dokuwiki', 'dokuwiki-proxy'])
 
     if config.is_app_enabled('hypothesis'):
-        restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis-deps:pg')
         restore_es(src / 'hypothesis/', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
-        nomad.restart('hypothesis-deps', 'pg')
-        nomad.restart('hypothesis-deps', 'es')
+        nomad.stop_and_wait(['hypothesis', 'hypothesis-proxy'])
+        restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis-deps:pg')
 
-    log.info("Restore done; deploying")
+    log.info("Restore done; deploying everything")
     ctx.invoke(halt)
     ctx.invoke(deploy)
+    log.info("App data restored.")
 
 
 @retry()

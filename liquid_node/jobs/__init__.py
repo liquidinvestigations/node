@@ -1,7 +1,6 @@
 import logging
 import os
 from pathlib import Path
-from time import time, sleep
 from ..docker import docker
 
 import jinja2
@@ -136,30 +135,6 @@ def get_job(hcl_path, substitutions={}):
 
     output = render(template, set_volumes_paths(substitutions))
     return output
-
-
-def wait_for_stopped_jobs(stopped_jobs):
-    from liquid_node.configuration import config
-    from liquid_node.nomad import nomad
-
-    if not stopped_jobs:
-        return
-
-    stopped_jobs = list(stopped_jobs)
-    log.info('Waiting for the following jobs to die: ' + ', '.join(stopped_jobs))
-    timeout = time() + config.wait_max
-
-    while stopped_jobs and time() < timeout:
-        sleep(config.wait_interval)
-
-        nomad_jobs = {job['ID']: job for job in nomad.jobs() if job['ID'] in stopped_jobs}
-        for job_name in stopped_jobs:
-            if job_name not in nomad_jobs or nomad_jobs[job_name]['Status'] == 'dead':
-                stopped_jobs.remove(job_name)
-                log.info(f'Job {job_name} is dead')
-
-    if stopped_jobs:
-        raise RuntimeError(f'The following jobs are still running: {stopped_jobs}')
 
 
 class Job:

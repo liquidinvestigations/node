@@ -1,3 +1,4 @@
+from time import time, sleep
 import logging
 import urllib.error
 
@@ -91,6 +92,32 @@ class Nomad(JsonApi):
 
     def stop(self, job):
         return self.delete(f'job/{job}')
+
+    def stop_and_wait(self, jobs):
+        from liquid_node.configuration import config
+
+        if not jobs:
+            return
+
+        log.debug('Stopping jobs: ' + ', '.join(jobs))
+        for job in jobs:
+            self.stop(job)
+
+        jobs = list(jobs)
+        log.debug('Waiting for the following jobs to die: ' + ', '.join(jobs))
+        timeout = time() + config.wait_max
+
+        while jobs and time() < timeout:
+            sleep(config.wait_interval / 5)
+
+            nomad_jobs = {job['ID']: job for job in self.jobs() if job['ID'] in jobs}
+            for job_name in jobs:
+                if job_name not in nomad_jobs or nomad_jobs[job_name]['Status'] == 'dead':
+                    jobs.remove(job_name)
+                    log.info(f'Job "{job_name}" is dead.')
+
+        if jobs:
+            raise RuntimeError(f'The following jobs are still running: {jobs}')
 
     def gc(self):
         return self.put('system/gc', None)
