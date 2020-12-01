@@ -107,6 +107,7 @@ job "hoover" {
         name = "hoover-search"
         port = "http"
         tags = ["fabio-/hoover-search strip=/hoover-search"]
+
         check {
           name = "http_ping"
           initial_status = "critical"
@@ -118,6 +119,7 @@ job "hoover" {
             Host = ["hoover.${liquid_domain}"]
           }
         }
+
         check_restart {
           limit = 3
           grace = "95s"
@@ -126,102 +128,12 @@ job "hoover" {
     }
   }
 
-  group "snoop-celery-flower" {
-    ${ continuous_reschedule() }
-    ${ group_disk() }
-    task "snoop-celery-flower" {
-      ${ task_logs() }
-
-      driver = "docker"
-      config {
-        image = "${config.image('hoover-snoop2')}"
-        args = ["bash", "/local/startup.sh"]
-        volumes = [
-          ${hoover_snoop2_repo}
-        ]
-        port_map {
-          flower = 5555
-        }
-        labels {
-          liquid_task = "snoop-worker"
-        }
-        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
-      }
-      env {
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
-      }
-      template {
-        data = <<-EOF
-          #!/bin/bash
-          set -ex
-          if  [ -z "$SNOOP_DB" ] \
-                  || [ -z "$SNOOP_ES_URL" ] \
-                  || [ -z "$SNOOP_AMQP_URL" ]; then
-            echo "incomplete configuration!"
-            sleep 5
-            exit 1
-          fi
-          exec flower -A snoop.data -l INFO
-          EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-      env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
-        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-      }
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-      resources {
-        memory = ${config.hoover_web_memory_limit}
-        network {
-          mbits = 1
-          port "flower" {}
-        }
-      }
-      service {
-        name = "hoover-snoop-flower"
-        port = "flower"
-        tags = ["fabio-/flower strip=/flower"]
-        check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
 
   {% if config.snoop_workers_enabled %}
   group "snoop-celery-beat" {
     ${ continuous_reschedule() }
     ${ group_disk() }
+
     task "snoop-celery-beat" {
       ${ task_logs() }
 
@@ -234,6 +146,7 @@ job "hoover" {
         ]
         memory_hard_limit = 400
       }
+
       template {
         data = <<-EOF
           #!/bin/bash
@@ -250,16 +163,19 @@ job "hoover" {
         env = false
         destination = "local/startup.sh"
       }
+
       env {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
         SYNC_FILES = "${sync}"
       }
+
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
+
       template {
         data = <<-EOF
         {{- if keyExists "liquid_debug" }}
@@ -282,6 +198,7 @@ job "hoover" {
         destination = "local/snoop.env"
         env = true
       }
+
       resources {
         memory = 100
       }
@@ -307,6 +224,7 @@ job "hoover" {
       }
 
       driver = "docker"
+
       config {
         image = "${config.image('hoover-snoop2')}"
         args = ["bash", "/local/startup.sh"]
@@ -323,6 +241,7 @@ job "hoover" {
         }
         memory_hard_limit = ${3 * config.hoover_web_memory_limit}
       }
+
       env {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
         SNOOP_URL_PREFIX = "snoop/"
@@ -350,12 +269,14 @@ job "hoover" {
         env = false
         destination = "local/startup.sh"
       }
+
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
+
       template {
         data = <<-EOF
         {{- if keyExists "liquid_debug" }}
@@ -382,6 +303,7 @@ job "hoover" {
         destination = "local/snoop.env"
         env = true
       }
+
       resources {
         memory = ${config.hoover_web_memory_limit}
         cpu = 200
@@ -390,6 +312,7 @@ job "hoover" {
           port "http" {}
         }
       }
+
       service {
         name = "hoover-snoop"
         port = "http"
