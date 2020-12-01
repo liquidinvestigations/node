@@ -1,23 +1,27 @@
 kind: pipeline
-name: test
-
-concurrency:
-  limit: 2
+name: static-tests
 
 steps:
 - name: flake8
   image: alpine/flake8:3.7.9
   commands:
   - flake8
-
 - name: leaks
   image: zricethezav/gitleaks:v6.2.0
   depends_on:
   - flake8
 
+
+---
+kind: pipeline
+name: hoover
+depends_on:
+- static-tests
+concurrency:
+  limit: 2
+
+steps:
 - name: 1-hoover
-  depends_on:
-  - flake8
   image: vmck/vagrant-vmck:0.4.2
   commands:
   - export PROVISION=./tests/1-hoover
@@ -25,36 +29,64 @@ steps:
   - export VMCK_CPUS=3
   - ./ci/run-vagrant-test.sh
 
+---
+kind: pipeline
+name: hypotesis
+depends_on:
+- static-tests
+concurrency:
+  limit: 2
+
+steps:
 - name: 2-hypothesis
-  depends_on:
-  - flake8
   image: vmck/vagrant-vmck:0.4.2
   commands:
   - export VMCK_MEMORY=5000
   - export PROVISION=./tests/2-hypothesis
   - ./ci/run-vagrant-test.sh
 
+---
+kind: pipeline
+name: codimd-doku
+depends_on:
+- static-tests
+concurrency:
+  limit: 2
+
+steps:
 - name: 3-codimd+dokuwiki
-  depends_on:
-  - flake8
   image: vmck/vagrant-vmck:0.4.2
   commands:
   - export VMCK_MEMORY=3500
   - export PROVISION=./tests/3-codimd-dokuwiki
   - ./ci/run-vagrant-test.sh
 
+---
+kind: pipeline
+name: nextcloud-rocket-extras
+depends_on:
+- static-tests
+concurrency:
+  limit: 2
+
+steps:
 - name: 4-nextcloud+rocketchat
-  depends_on:
-  - flake8
   image: vmck/vagrant-vmck:0.4.2
   commands:
-  - export VMCK_MEMORY=5500
+  - export VMCK_MEMORY=7500
   - export PROVISION=./tests/4-nextcloud-rocketchat
   - ./ci/run-vagrant-test.sh
 
+---
+kind: pipeline
+name: hoover-nextcloud-hyp
+depends_on:
+- static-tests
+concurrency:
+  limit: 2
+
+steps:
 - name: 5-hoover+hypothesis+nextcloud
-  depends_on:
-  - flake8
   image: vmck/vagrant-vmck:0.4.2
   commands:
   - export VMCK_MEMORY=18500

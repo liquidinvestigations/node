@@ -1,4 +1,6 @@
 from time import sleep
+import base64
+import os
 import logging
 from importlib import import_module
 
@@ -46,14 +48,21 @@ def retry(count=4, wait_sec=5, exp=2):
                 try:
                     return f(*args, **kwargs)
                 except Exception as e:
-                    log.exception(e)
                     if i == count - 1:
+                        log.exception(e)
                         raise
 
-                    log.warning("#%s/%s retrying in %s sec", i + 1, count, current_wait)
-                    current_wait = int(current_wait * exp)
+                    log.warning("%s(): #%s/%s retrying in %s sec",
+                                f.__qualname__,
+                                i + 1, count, current_wait)
                     sleep(current_wait)
+                    current_wait = int(current_wait * exp)
                     continue
         return wrapper
 
     return _retry
+
+
+def random_secret(bits=256):
+    """ Generate a crypto-quality 256-bit random string. """
+    return str(base64.b16encode(os.urandom(int(bits / 8))), 'latin1').lower()

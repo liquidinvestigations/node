@@ -8,7 +8,9 @@ job "authdemo" {
     task "app" {
       driver = "docker"
       config {
-        image = "${config.image('liquid-authproxy')}"
+        # runs this very simple script:
+        # https://github.com/liquidinvestigations/authproxy/blob/v0.3.2/testapp.py#L10
+        image = "liquidinvestigations/authproxy:0.3.2"
         args = ["./testapp.py"]
         labels {
           liquid_task = "authdemo-app"

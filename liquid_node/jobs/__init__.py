@@ -139,5 +139,7 @@ def get_job(hcl_path, substitutions={}):
 
 class Job:
     vault_secret_keys = ()
-    core_auth_apps = ()
+    core_oauth_apps = ()
     stage = 2
+    generate_oauth2_proxy_cookie = False
+    extra_secret_fn = None

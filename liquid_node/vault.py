@@ -4,6 +4,7 @@ from time import time, sleep
 
 from .configuration import config
 from .jsonapi import JsonApi
+from .util import random_secret
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +51,14 @@ class Vault(JsonApi):
 
     def set(self, path, payload):
         return self.put(path, payload)
+
+    def ensure_secret(self, path, get_value):
+        if not self.read(path) or set(self.read(path).keys()) != set(get_value()):
+            log.info(f"Generating value for {path}")
+            self.set(path, get_value())
+
+    def ensure_secret_key(self, path):
+        self.ensure_secret(path, lambda: {'secret_key': random_secret()})
 
 
 vault = Vault(config.vault_url, config.vault_token)

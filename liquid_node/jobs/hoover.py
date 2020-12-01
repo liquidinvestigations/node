@@ -6,6 +6,20 @@ class Hoover(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hoover'
     stage = 2
+    core_oauth_apps = [
+        {
+            'name': 'hoover',
+            'vault_path': 'liquid/hoover/auth.oauth2',
+            'callback': '/oauth2/callback',
+        },
+    ]
+    vault_secret_keys = [
+        'liquid/hoover/search.django',
+        'liquid/hoover/search.postgres',
+        'liquid/hoover/snoop.django',
+        'liquid/hoover/snoop.postgres',
+    ]
+    generate_oauth2_proxy_cookie = True
 
 
 class Workers(jobs.Job):

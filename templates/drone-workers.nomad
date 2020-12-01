@@ -100,7 +100,7 @@ job "drone-workers" {
 
       env {
         DRONE_RUNNER_CAPACITY = 4
-        DRONE_RUNNER_MAX_PROCS = 6
+        DRONE_RUNNER_MAX_PROCS = 5
         DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-default"
       }
     }

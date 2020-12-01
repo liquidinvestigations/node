@@ -6,6 +6,21 @@ class Hypothesis(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hypothesis'
     stage = 2
+    core_oauth_apps = [
+        {
+            'name': 'hypothesis',
+            'vault_path': 'liquid/hypothesis/auth.oauth2',
+            # the old auth proxy is still running for this service. new one:
+            # 'callback': '/oauth2/callback',
+            'callback': '/__auth/callback',
+        },
+    ]
+    vault_secret_keys = [
+        'liquid/hypothesis/auth.django',
+        'liquid/hypothesis/hypothesis.secret_key',
+        'liquid/hypothesis/hypothesis.postgres',
+    ]
+    generate_oauth2_proxy_cookie = True
 
 
 class Deps(jobs.Job):

@@ -2,7 +2,6 @@
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
-set -x
 export VAGRANT_DOTFILE_PATH=$(mktemp -d --tmpdir VAGRANT_DOTFILE_XXXXXXXX)
 export VAGRANT_DEFAULT_PROVIDER=vmck
 export VAGRANT_CHECKPOINT_DISABLE=true
@@ -11,8 +10,9 @@ export VAGRANT_BOX_UPDATE_CHECK_DISABLE=true
 FILENAME=$(basename -- "$PROVISION")
 echo $VMCK_URL
 export VMCK_NAME="$DRONE_REPO_NAME:$DRONE_BRANCH#$DRONE_BUILD_NUMBER-$FILENAME"
+export MACHINE_NAME="$(echo $FILENAME | head -c4)$(hostname | head -c2)"
 
-TIMEOUT_MIN=30
+TIMEOUT_MIN=49
 RETRIES=3
 set +x
 
@@ -55,7 +55,7 @@ print_section "Run Script"
 set +e
 set -x
 vagrant provision
-ret=$?
+ret1=$?
 set +x
 
 print_section "Stats"
@@ -66,7 +66,8 @@ for cmd in "uname -a" "w" "free -h" "df -h"; do
   $cmd 2>&1
 done
 EOF
+ret2=$?
 
 print_section "Destroying Vagrant"
 vagrant destroy -f || echo "vagrant destroy failed, but we don't care"
-exit $ret
+exit $(( $ret1 || $ret2 ))

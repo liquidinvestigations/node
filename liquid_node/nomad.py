@@ -108,13 +108,17 @@ class Nomad(JsonApi):
         timeout = time() + config.wait_max
 
         while jobs and time() < timeout:
-            sleep(config.wait_interval / 5)
+            sleep(config.wait_interval / 3)
+            just_removed = []
 
             nomad_jobs = {job['ID']: job for job in self.jobs() if job['ID'] in jobs}
             for job_name in jobs:
                 if job_name not in nomad_jobs or nomad_jobs[job_name]['Status'] == 'dead':
                     jobs.remove(job_name)
-                    log.info(f'Job "{job_name}" is dead.')
+                    just_removed.append(job_name)
+
+            if just_removed:
+                log.info('Jobs stopped: ' + ", ".join(just_removed))
 
         if jobs:
             raise RuntimeError(f'The following jobs are still running: {jobs}')

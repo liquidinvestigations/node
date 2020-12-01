@@ -6,6 +6,9 @@ class Liquid(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'liquid'
     stage = 0
+    vault_secret_keys = [
+        'liquid/liquid/core.django',
+    ]
 
 
 class Ingress(jobs.Job):
