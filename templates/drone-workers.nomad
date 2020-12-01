@@ -27,7 +27,6 @@
 
       env {
         DRONE_RUNNER_ENV_FILE = "/local/drone-worker-2.env"
-        DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}"
         DRONE_RPC_PROTO = "http"
         DRONE_MEMORY_LIMIT = 12624855040
         DRONE_DEBUG=true
@@ -102,6 +101,7 @@ job "drone-workers" {
       env {
         DRONE_RUNNER_CAPACITY = 4
         DRONE_RUNNER_MAX_PROCS = 6
+        DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-default"
       }
     }
   }
@@ -122,6 +122,7 @@ job "drone-workers" {
         DRONE_RUNNER_LABELS = "liquid_volumes:{% raw %}${meta.liquid_volumes}{% endraw %}"
         DRONE_RUNNER_CAPACITY = 1
         DRONE_RUNNER_MAX_PROCS = 1
+        DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-with-volumes"
       }
     }
   }
