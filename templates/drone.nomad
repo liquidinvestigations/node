@@ -125,7 +125,7 @@ job "drone" {
         port_map {
           http = 8000
         }
-        memory_hard_limit = 1024
+        memory_hard_limit = 2048
       }
 
       env {
@@ -183,6 +183,10 @@ job "drone" {
           path = "/v0/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
+        }
+        check_restart {
+          limit = 10
+          grace = "3600s"
         }
       }
     }

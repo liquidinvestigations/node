@@ -62,6 +62,10 @@ job "drone-deps" {
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
+        check_restart {
+          limit = 3
+          grace = "90s"
+        }
       }
     }
   }
@@ -151,6 +155,10 @@ job "drone-deps" {
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
+        check_restart {
+          limit = 3
+          grace = "90s"
+        }
       }
     }
   }
@@ -179,7 +187,7 @@ job "drone-deps" {
       config {
         image = "postgres:12"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/vmck/pg/data:/var/lib/vmck/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/vmck/pg/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "vmck-pg"
