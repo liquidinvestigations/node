@@ -17,7 +17,7 @@
 
 {%- macro shutdown_delay() %}
       shutdown_delay = "0s"
-      kill_timeout = "29s"
+      kill_timeout = "120s"
 {%- endmacro %}
 
 {%- macro task_logs() %}
