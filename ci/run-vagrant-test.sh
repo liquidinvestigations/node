@@ -49,6 +49,7 @@ function retry_vagrant_up() {
   exit 1
 }
 
+
 retry_vagrant_up
 
 print_section "Run Script"
@@ -59,7 +60,7 @@ ret1=$?
 set +x
 
 print_section "Stats"
-vagrant ssh <<'EOF'
+vagrant ssh <<-EOF
 for cmd in "uname -a" "w" "free -h" "df -h"; do
   echo
   echo "$cmd"
@@ -69,5 +70,5 @@ EOF
 ret2=$?
 
 print_section "Destroying Vagrant"
-vagrant destroy -f || echo "vagrant destroy failed, but we don't care"
+vagrant destroy -f || echo "vagrant destroy failed"
 exit $(( $ret1 || $ret2 ))
