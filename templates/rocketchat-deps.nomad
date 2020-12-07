@@ -19,7 +19,7 @@ job "rocketchat-deps" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "mongo:3.2"
+        image = "${config.image('rocketchat-mongo')}"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/rocketchat/mongo/data:/data/db",
         ]

@@ -13,6 +13,7 @@ class AuthDemo(jobs.Job):
         self.core_oauth_apps = [
             {
                 'name': 'authdemo',
+                'subdomain': 'authdemo',
                 'vault_path': 'liquid/authdemo/auth.oauth2',
                 'callback': '/oauth2/callback',
             },

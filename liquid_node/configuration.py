@@ -282,9 +282,6 @@ class Configuration:
         if name in ['dokuwiki', 'nextcloud']:
             return tag('liquid-' + name)
 
-        if name == 'rocketchat':
-            return '1.1.1'
-
         return tag(name)
 
     def image(self, name):

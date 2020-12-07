@@ -15,7 +15,7 @@ job "rocketchat" {
       ${ task_logs() }
       driver = "docker"
       config {
-        image = "rocket.chat:1.1.1"
+        image = "${config.image('rocketchat')}"
         args = ["node", "/local/main.js"]
         labels {
           liquid_task = "rocketchat-app"
@@ -55,7 +55,8 @@ job "rocketchat" {
           {{- end }}
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-login_style=redirect
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_sent_via=header
-          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-button_label_text=Click here to get in!
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-button_label_text=LIQUID LOGIN - CLICK HERE TO GET IN
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-button_label_color=green
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_roles=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_users=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-username_field=id

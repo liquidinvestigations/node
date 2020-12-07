@@ -163,7 +163,8 @@ def start_job(job, hcl):
 
 def create_oauth2_app(app):
     log.info('Auth %s -> %s', app['name'], app['callback'])
-    cb = config.app_url(app['name']) + app['callback']
+    subdomain = app.get('subdomain', app.get('name'))
+    cb = config.app_url(subdomain) + app['callback']
     cmd = ['./manage.py', 'createoauth2app', app['name'], cb]
     output = retry()(docker.exec_)('liquid:core', *cmd)
     tokens = json.loads(output)

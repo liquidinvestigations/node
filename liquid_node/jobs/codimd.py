@@ -9,11 +9,13 @@ class Codimd(jobs.Job):
     core_oauth_apps = [
         {
             'name': 'codimd-app',
+            'subdomain': 'codimd',
             'vault_path': 'liquid/codimd/app.auth.oauth2',
             'callback': '/auth/oauth2/callback',
         },
         {
             'name': 'codimd-authproxy',
+            'subdomain': 'codimd',
             'vault_path': 'liquid/codimd/auth.oauth2',
             'callback': '/oauth2/callback',
         },

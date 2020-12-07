@@ -9,11 +9,13 @@ class Rocketchat(jobs.Job):
     core_oauth_apps = [
         {
             'name': 'rocketchat-authproxy',
+            'subdomain': 'rocketchat',
             'vault_path': 'liquid/rocketchat/auth.oauth2',
             'callback': '/oauth2/callback',
         },
         {
             'name': 'rocketchat-app',
+            'subdomain': 'rocketchat',
             'vault_path': 'liquid/rocketchat/app.oauth2',
             'callback': '/_oauth/liquid',
         },

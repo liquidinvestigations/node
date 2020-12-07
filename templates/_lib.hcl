@@ -34,7 +34,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false) %}
+{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false, skip_button=True) %}
   group "authproxy" {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
@@ -86,7 +86,11 @@ ephemeral_disk {
           {{- end }}
 
           OAUTH2_PROXY_REVERSE_PROXY = true
-          OAUTH2_PROXY_SKIP_PROVIDER_BUTTON = true
+          OAUTH2_PROXY_SKIP_AUTH_REGEX = "/favicon\\.ico"
+          OAUTH2_PROXY_SKIP_AUTH_STRIP_HEADERS = true
+          {% if skip_button %}
+            OAUTH2_PROXY_SKIP_PROVIDER_BUTTON = true
+          {% endif %}
           OAUTH2_PROXY_SET_XAUTHREQUEST = true
           #OAUTH2_PROXY_SCOPE = "openid email profile read_user"
           OAUTH2_PROXY_SCOPE = "write read"
@@ -99,8 +103,11 @@ ephemeral_disk {
           OAUTH2_PROXY_COOKIE_SAMESITE = "lax"
           OAUTH2_PROXY_COOKIE_SECURE = {% if config.https_enabled %}true{% else %}false{% endif %}
           OAUTH2_PROXY_COOKIE_EXPIRE = "${config.auth_auto_logout}"
-          OAUTH2_PROXY_COOKIE_HTTPONLY = "false"
+          OAUTH2_PROXY_COOKIE_REFRESH = "1m"
+
+          OAUTH2_PROXY_COOKIE_HTTPONLY = "true"
           OAUTH2_PROXY_COOKIE_SESSION_COOKIE_MINIMAL = "true"
+
           {{- with secret "liquid/${name}/cookie" }}
             OAUTH2_PROXY_COOKIE_SECRET = {{.Data.cookie | toJSON }}
           {{- end }}
