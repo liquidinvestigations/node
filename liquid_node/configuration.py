@@ -167,6 +167,7 @@ class Configuration:
                                                        'hoover_web_memory_limit', fallback=300)
         self.hoover_web_count = self.ini.getint('liquid',
                                                 'hoover_web_count', fallback=1)
+        self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)
 
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)

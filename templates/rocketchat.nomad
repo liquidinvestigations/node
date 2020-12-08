@@ -40,9 +40,7 @@ job "rocketchat" {
           ADMIN_EMAIL=admin@example.com
           Organization_Name=${config.liquid_title}
           Site_Name=${config.liquid_title}
-          OVERWRITE_SETTING_Show_Setup_Wizard=completed
-          OVERWRITE_SETTING_registerServer=false
-          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid=true
+
           {{- range service "core" }}
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_path=http://{{.Address}}:{{.Port}}/o/token/
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-identity_path=http://{{.Address}}:{{.Port}}/accounts/profile
@@ -53,19 +51,25 @@ job "rocketchat" {
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-id={{.Data.client_id | toJSON }}
             OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-secret={{.Data.client_secret | toJSON }}
           {{- end }}
-          OVERWRITE_SETTING_Accounts_AllowEmailNotifications=false
-          OVERWRITE_SETTING_Accounts_AllowPasswordChange=false
-          OVERWRITE_SETTING_Accounts_AllowPasswordChangeForOAuthUsers=false
-          OVERWRITE_SETTING_Accounts_ForgetUserSessionOnWindowClose=false
-          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-button_label_text=LIQUID LOGIN - CLICK HERE TO GET IN
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-button_label_color=yellow
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-button_label_text=LIQUID LOGIN - CLICK HERE TO GET IN
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-login_style=redirect
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-map_channels=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_roles=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-merge_users=true
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-name_field=name
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-roles_claim=roles
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-groups_claim=roles
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_sent_via=header
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-username_field=id
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid=true
+
+          OVERWRITE_SETTING_Show_Setup_Wizard=completed
+          OVERWRITE_SETTING_registerServer=false
+          OVERWRITE_SETTING_Accounts_AllowEmailNotifications=false
+          OVERWRITE_SETTING_Accounts_AllowPasswordChange=false
+          OVERWRITE_SETTING_Accounts_AllowPasswordChangeForOAuthUsers=false
+          OVERWRITE_SETTING_Accounts_ForgetUserSessionOnWindowClose=false
           OVERWRITE_SETTING_Accounts_PasswordReset=false
           OVERWRITE_SETTING_Accounts_RegistrationForm=Disabled
           OVERWRITE_SETTING_Allow_Marketing_Emails=false
@@ -74,7 +78,7 @@ job "rocketchat" {
           OVERWRITE_SETTING_FEDERATION_Enabled=false
           OVERWRITE_SETTING_FileUpload_Enabled=false
           OVERWRITE_SETTING_IRC_Enabled=false
-          OVERWRITE_SETTING_Layout_Sidenav_Footer=<a href="/home"><img src="assets/logo"/></a><a href="${config.liquid_core_url}"><h1 style="font-size:77%;float:right;clear:both; color:#aaa">&#8594; ${config.liquid_title}</h1></a>
+          OVERWRITE_SETTING_Layout_Sidenav_Footer=<a href="/home"><img src="assets/favicon.svg"/></a><a href="${config.liquid_core_url}"><h1 style="font-size:77%;float:right;clear:both; color:#aaa">&#8594; ${config.liquid_title}</h1></a>
           OVERWRITE_SETTING_Message_VideoRecorderEnabled=false
           OVERWRITE_SETTING_Push_enable=false
           OVERWRITE_SETTING_Push_enable_gateway=false
@@ -88,9 +92,24 @@ job "rocketchat" {
           OVERWRITE_SETTING_Document_Domain=${config.liquid_domain}
           OVERWRITE_SETTING_Push_production=false
           OVERWRITE_SETTING_Accounts_LoginExpiration=100
-          OVERWRITE_SETTING_Accounts_ShowFormLogin=true
+          {% if config.rocketchat_show_login_form %}
+            OVERWRITE_SETTING_Accounts_ShowFormLogin=true
+          {% else %}
+            OVERWRITE_SETTING_Accounts_ShowFormLogin=false
+          {% endif %}
+          OVERWRITE_SETTING_Accounts_AllowEmailChange=false
+          OVERWRITE_SETTING_Accounts_AllowUsernameChange=false
+          OVERWRITE_SETTING_Accounts_Send_Email_When_Activating=false
+          OVERWRITE_SETTING_Accounts_Send_Email_When_Deactivating=false
+          OVERWRITE_SETTING_Accounts_RequirePasswordConfirmation=false
+          OVERWRITE_SETTING_Accounts_Verify_Email_For_External_Accounts=false
+          OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_Enabled=false
+          OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_By_Email_Enabled=false
+          OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_By_Email_Auto_Opt_In=false
+          OVERWRITE_SETTING_Accounts_TwoFactorAuthentication_Enforce_Password_Fallback=false
+          OVERWRITE_SETTING_Accounts_Default_User_Preferences_notificationsSoundVolume=66
 
-          SETTINGS_BLOCKED=Show_Setup_Wizard,registerServer,Accounts_OAuth_Custom-Liquid,Accounts_OAuth_Custom-Liquid-token_path,Accounts_OAuth_Custom-Liquid-identity_path,Accounts_OAuth_Custom-Liquid-authorize_path,Accounts_OAuth_Custom-Liquid-scope,Accounts_OAuth_Custom-Liquid-id,Accounts_OAuth_Custom-Liquid-secret,Accounts_AllowEmailNotifications,Accounts_AllowPasswordChange,Accounts_AllowPasswordChangeForOAuthUsers,Accounts_ForgetUserSessionOnWindowClose,Accounts_OAuth_Custom-Liquid-button_label_text,Accounts_OAuth_Custom-Liquid-button_label_color,Accounts_OAuth_Custom-Liquid-login_style,Accounts_OAuth_Custom-Liquid-merge_roles,Accounts_OAuth_Custom-Liquid-merge_users,Accounts_OAuth_Custom-Liquid-name_field,Accounts_OAuth_Custom-Liquid-roles_claim,Accounts_OAuth_Custom-Liquid-token_sent_via,Accounts_OAuth_Custom-Liquid-username_field,Accounts_PasswordReset,Accounts_RegistrationForm,Allow_Marketing_Emails,Allow_Save_Media_to_Gallery,Cloud_Service_Agree_PrivacyTerms,FEDERATION_Enabled,FileUpload_Enabled,IRC_Enabled,Layout_Sidenav_Footer,Message_VideoRecorderEnabled,Push_enable,Push_enable_gateway,Push_gateway,Push_request_content_from_server,Push_show_message,Push_show_username_room,Register_Server,UI_Allow_room_names_with_special_chars,UserData_EnableDownload,Document_Domain,Push_production,Accounts_LoginExpiration
+          SETTINGS_BLOCKED=Show_Setup_Wizard,registerServer,Accounts_PasswordReset,Accounts_RegistrationForm,Allow_Marketing_Emails,Allow_Save_Media_to_Gallery,Cloud_Service_Agree_PrivacyTerms,FEDERATION_Enabled,FileUpload_Enabled,IRC_Enabled,Layout_Sidenav_Footer,Message_VideoRecorderEnabled,Push_enable,Push_enable_gateway,Push_gateway,Push_request_content_from_server,Push_show_message,Push_show_username_room,Register_Server,UI_Allow_room_names_with_special_chars,UserData_EnableDownload,Document_Domain,Push_production,Accounts_LoginExpiration,Accounts_AllowUsernameChange,Accounts_Send_Email_When_Activating,Accounts_Send_Email_When_Deactivating,Accounts_RequirePasswordConfirmation,Accounts_Verify_Email_For_External_Accounts,Accounts_TwoFactorAuthentication_Enabled,Accounts_TwoFactorAuthentication_By_Email_Enabled,Accounts_TwoFactorAuthentication_By_Email_Auto_Opt_In,Accounts_TwoFactorAuthentication_Enforce_Password_Fallback,Accounts_Default_User_Preferences_notificationsSoundVolume
 
         EOF
         # E2E -> Error generating key:  TypeError: crypto.subtle is undefined
