@@ -52,7 +52,7 @@ when its server crashes under load. The data is not lost, but you will need to
 run `reindexdb` commands on the database servers:
 
 - search:  `./liquid dockerexec hoover-deps:search-pg reindexdb -a -U search`
-- snoop: `./liquid dockerexec hoover-deps:snoop-pg reindexdb -a -U snoop
+- snoop: `./liquid dockerexec hoover-deps:snoop-pg reindexdb -a -U snoop`
 - codimd:  `./liquid dockerexec codimd-deps:postgres reindexdb -a -U codimd`
 - hypothesis:  `./liquid dockerexec hypothesis-deps:pg reindexdb -a -U hypothesis`
 
