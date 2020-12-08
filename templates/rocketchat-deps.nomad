@@ -21,7 +21,7 @@ job "rocketchat-deps" {
       config {
         image = "${config.image('rocketchat-mongo')}"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/rocketchat/mongo/data:/data/db",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/rocketchat/mongo-4.4/data:/data/db",
         ]
         args = ["mongod", "--replSet", "rs01"]
         labels {
