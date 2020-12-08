@@ -42,3 +42,8 @@ that needs to be performed by an administrator through Rocket.Chat's web admin.
 
    ![6-register-username](pics/6-register-username.png)
    ![7-success](pics/7-success.png)
+
+7. After you verify that the login button works correctly, please edit
+   `liquid.ini` and set the following setting: `[liquid]
+   rocketchat_show_login_form = false`. This will only keep the login button,
+   hiding the user/password form.
