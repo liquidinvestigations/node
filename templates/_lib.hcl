@@ -103,7 +103,9 @@ ephemeral_disk {
           OAUTH2_PROXY_COOKIE_SAMESITE = "lax"
           OAUTH2_PROXY_COOKIE_SECURE = {% if config.https_enabled %}true{% else %}false{% endif %}
           OAUTH2_PROXY_COOKIE_EXPIRE = "${config.auth_auto_logout}"
-          OAUTH2_PROXY_COOKIE_REFRESH = "1m"
+          # must be less than the other one
+          # also, our provider doesn't support it
+          #OAUTH2_PROXY_COOKIE_REFRESH = "${config.auth_auto_logout}"
 
           OAUTH2_PROXY_COOKIE_HTTPONLY = "true"
           OAUTH2_PROXY_COOKIE_SESSION_COOKIE_MINIMAL = "true"

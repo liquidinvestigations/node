@@ -21,7 +21,6 @@ job "liquid" {
       driver = "docker"
       config {
         image = "${config.image('liquid-core')}"
-        force_pull = true
         volumes = [
           ${liquidinvestigations_core_repo}
           "{% raw %}${meta.liquid_volumes}{% endraw %}/liquid/core/var:/app/var",

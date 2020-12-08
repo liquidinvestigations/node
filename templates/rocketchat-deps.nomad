@@ -23,7 +23,7 @@ job "rocketchat-deps" {
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/rocketchat/mongo/data:/data/db",
         ]
-        args = ["mongod", "--smallfiles", "--replSet", "rs01"]
+        args = ["mongod", "--replSet", "rs01"]
         labels {
           liquid_task = "rocketchat-mongo"
         }
