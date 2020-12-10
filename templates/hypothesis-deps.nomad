@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group_old, task_logs, group_disk, continuous_reschedule with context -%}
+{% from '_lib.hcl' import set_pg_password_template, shutdown_delay, authproxy_group_old, task_logs, group_disk, continuous_reschedule with context -%}
 
 job "hypothesis-deps" {
   datacenters = ["dc1"]
@@ -52,6 +52,8 @@ job "hypothesis-deps" {
         destination = "local/postgres.env"
         env = true
       }
+
+      ${ set_pg_password_template('hypothesis') }
 
       resources {
         memory = 350

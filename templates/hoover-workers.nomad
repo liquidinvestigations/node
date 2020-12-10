@@ -9,6 +9,7 @@ job "hoover-workers" {
     ${ group_disk() }
 
     task "snoop-workers" {
+      user = "root:root"
       ${ task_logs() }
 
       constraint {
@@ -23,7 +24,8 @@ job "hoover-workers" {
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
-        args = ["bash", "/local/startup.sh"]
+        args = ["/local/startup.sh"]
+        entrypoint = ["/bin/bash", "-ex"]
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
@@ -103,16 +105,16 @@ job "hoover-workers" {
         env = true
       }
 
-      service {
-        check {
-          name = "check-workers-script"
-          type = "script"
-          command = "/bin/bash"
-          args = ["-exc", "cd /opt/hoover/snoop; ./manage.py checkworkers"]
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
+      #service {
+      #  check {
+      #    name = "check-workers-script"
+      #    type = "script"
+      #    command = "/bin/bash"
+      #    args = ["-exc", "cd /opt/hoover/snoop; ./manage.py checkworkers"]
+      #    interval = "${check_interval}"
+      #    timeout = "${check_timeout}"
+      #  }
+      #}
     }
   }
 }

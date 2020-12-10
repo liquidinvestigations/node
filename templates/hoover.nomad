@@ -138,12 +138,14 @@ job "hoover" {
     ${ group_disk() }
 
     task "snoop-celery-beat" {
+      user = "root:root"
       ${ task_logs() }
 
       driver = "docker"
       config {
+        entrypoint = ["/bin/bash", "-ex"]
         image = "${config.image('hoover-snoop2')}"
-        args = ["bash", "/local/startup.sh"]
+        args = ["/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
         ]
@@ -215,6 +217,7 @@ job "hoover" {
     ${ group_disk() }
 
     task "snoop" {
+      user = "root:root"
       ${ task_logs() }
 
       constraint {
@@ -229,8 +232,9 @@ job "hoover" {
       driver = "docker"
 
       config {
+        entrypoint = ["/bin/bash", "-ex"]
         image = "${config.image('hoover-snoop2')}"
-        args = ["bash", "/local/startup.sh"]
+        args = ["/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections:ro",
