@@ -41,6 +41,7 @@ steps:
 - name: 2-hypothesis
   image: vmck/vagrant-vmck:0.4.2
   commands:
+  - sleep 120
   - export VMCK_MEMORY=5000
   - export PROVISION=./tests/2-hypothesis
   - ./ci/start-tests.sh
@@ -57,6 +58,7 @@ steps:
 - name: 3-codimd+dokuwiki
   image: vmck/vagrant-vmck:0.4.2
   commands:
+  - sleep 240
   - export VMCK_MEMORY=3500
   - export PROVISION=./tests/3-codimd-dokuwiki
   - ./ci/start-tests.sh
@@ -73,6 +75,7 @@ steps:
 - name: 4-nextcloud+rocketchat
   image: vmck/vagrant-vmck:0.4.2
   commands:
+  - sleep 180
   - export VMCK_MEMORY=7500
   - export PROVISION=./tests/4-nextcloud-rocketchat
   - ./ci/start-tests.sh
@@ -89,6 +92,7 @@ steps:
 - name: 5-hoover+hypothesis+nextcloud
   image: vmck/vagrant-vmck:0.4.2
   commands:
+  - sleep 60
   - export VMCK_MEMORY=16500
   - export VMCK_CPUS=3
   - export PROVISION=./tests/5-hoover-hypothesis-nextcloud
