@@ -241,7 +241,7 @@ job "hoover" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
         ]
         port_map {
-          http = 80
+          http = 8080
         }
         labels {
           liquid_task = "snoop-api"
@@ -268,7 +268,7 @@ job "hoover" {
           ./manage.py healthcheck
           date
           if [[ "$DEBUG" == "true" ]]; then
-            exec ./manage.py runserver 0.0.0.0:80
+            exec ./manage.py runserver 0.0.0.0:8080
           else
             exec /runserver
           fi
