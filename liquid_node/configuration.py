@@ -149,8 +149,8 @@ class Configuration:
                                                           fallback=1536)
         self.elasticsearch_data_node_count = self.ini.getint('liquid', 'elasticsearch_data_node_count', fallback=0)  # noqa: E501
 
-        self.tika_count = self.ini.get('liquid', 'tika_count', fallback=1)
-        self.tika_memory_limit = self.ini.get('liquid', 'tika_memory_limit', fallback=800)
+        self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
+        self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=800)
 
         self.hypothesis_memory_limit = \
             self.ini.getint('liquid',
@@ -182,11 +182,11 @@ class Configuration:
         self.snoop_worker_hard_memory_limit = 5000 * (2 + self.snoop_max_workers_per_node)
         self.snoop_worker_cpu_limit = 1500 * self.snoop_min_workers_per_node
 
-        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='11s')
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='14s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='9s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
-        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=1)
-        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=8)
+        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=3)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=5)
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
