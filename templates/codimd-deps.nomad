@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, task_logs, group_disk, continuous_reschedule with context -%}
+{% from '_lib.hcl' import set_pg_password_template, shutdown_delay, authproxy_group, task_logs, group_disk, continuous_reschedule with context -%}
 
 job "codimd-deps" {
   datacenters = ["dc1"]
@@ -12,10 +12,12 @@ job "codimd-deps" {
     task "postgres" {
       ${ task_logs() }
       leader = true
+
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
+
       affinity {
         attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
         value     = "true"
@@ -24,6 +26,7 @@ job "codimd-deps" {
 
       driver = "docker"
       ${ shutdown_delay() }
+
       config {
         image = "postgres:11.5"
         volumes = [
@@ -39,6 +42,7 @@ job "codimd-deps" {
         shm_size = 134217728
         memory_hard_limit = 1000
       }
+
       template {
         data = <<-EOF
         POSTGRES_DB = "codimd"
@@ -50,6 +54,9 @@ job "codimd-deps" {
         destination = "local/pg.env"
         env = true
       }
+
+      ${ set_pg_password_template('codimd') }
+
       resources {
         cpu = 100
         memory = 300
@@ -58,6 +65,7 @@ job "codimd-deps" {
           port "pg" {}
         }
       }
+
       service {
         name = "codimd-pg"
         port = "pg"
