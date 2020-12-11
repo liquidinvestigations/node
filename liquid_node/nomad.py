@@ -23,6 +23,14 @@ class Nomad(JsonApi):
             raise e
 
     def run(self, spec):
+        if spec.get('Type') != 'batch':
+            if not spec.get('Update'):
+                spec['Update'] = {}
+            spec['Update']['MaxParallel'] = 0
+            for group in spec.get('TaskGroups', []):
+                if not group.get('Update'):
+                    group['Update'] = {}
+                group['Update']['MaxParallel'] = 0
         try:
             self.post('jobs', {'job': spec})
         except urllib.error.HTTPError as e:
