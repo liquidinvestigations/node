@@ -61,7 +61,12 @@ job "hoover" {
         ./manage.py migrate
         ./manage.py healthcheck
         ./manage.py synccollections "$SNOOP_COLLECTIONS"
-        exec waitress-serve --port 8080 --threads=20 hoover.site.wsgi:application
+
+        if [[ "$DEBUG" == "true" ]]; then
+          exec ./manage.py runserver 0.0.0.0:8080
+        else
+          exec waitress-serve --port 8080 --threads=20 hoover.site.wsgi:application
+        fi
         EOF
         env = false
         destination = "local/startup.sh"
@@ -89,7 +94,8 @@ job "hoover" {
             @{{.Address}}:{{.Port}}/search"
           {{- end }}
 
-          HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
+          #HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
+          HOOVER_HOSTNAME = "*"
           HOOVER_TITLE = "Hoover"
           HOOVER_LIQUID_TITLE = "${config.liquid_title}"
           HOOVER_LIQUID_URL = "${config.liquid_core_url}"

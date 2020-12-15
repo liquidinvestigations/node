@@ -178,7 +178,7 @@ job "hoover-nginx" {
         cp -v /local/.env.local .
 
         {% if config.liquid_debug %}
-          exec npm run prod # dev
+          exec npm run prod #dev
         {% else %}
           exec npm run prod
         {% endif %}
