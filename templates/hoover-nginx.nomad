@@ -152,6 +152,9 @@ job "hoover-nginx" {
       driver = "docker"
       config {
         image = "${config.image('hoover-ui')}"
+        {% if config.hoover_ui_force_pull %}
+          force_pull = true
+        {% endif %}
         volumes = [
           ${hoover_ui_src_repo}
           ${hoover_ui_pages_repo}
@@ -211,6 +214,10 @@ job "hoover-nginx" {
           type = "tcp"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
+        }
+        check_restart {
+          limit = 7
+          grace = "295s"
         }
       }
     }
