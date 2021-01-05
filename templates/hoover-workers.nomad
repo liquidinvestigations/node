@@ -46,14 +46,12 @@ job "hoover-workers" {
         }
         memory_hard_limit = ${config.snoop_worker_hard_memory_limit}
       }
+
       resources {
         memory = ${config.snoop_worker_memory_limit}
         cpu = ${config.snoop_worker_cpu_limit}
       }
-      env {
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
-      }
+
       template {
         data = <<-EOF
           #!/bin/bash
@@ -72,6 +70,7 @@ job "hoover-workers" {
         env = false
         destination = "local/startup.sh"
       }
+
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
@@ -81,6 +80,9 @@ job "hoover-workers" {
         SNOOP_MIN_WORKERS = "${config.snoop_min_workers_per_node}"
         SNOOP_MAX_WORKERS = "${config.snoop_max_workers_per_node}"
         SNOOP_CPU_MULTIPLIER = "${config.snoop_cpu_count_multiplier}"
+
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
+        SYNC_FILES = "${sync}"
       }
       template {
         data = <<-EOF

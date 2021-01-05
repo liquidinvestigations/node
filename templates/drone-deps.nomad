@@ -106,39 +106,43 @@ job "drone-deps" {
 
       template {
         data = <<-EOF
-          user  nginx;
-          worker_processes auto;
 
-          error_log  /var/log/nginx/error.log warn;
-          pid        /var/run/nginx.pid;
+        user  nginx;
+        worker_processes auto;
 
-          events {
-            worker_connections 1024;
-          }
+        error_log  /var/log/nginx/error.log warn;
+        pid        /var/run/nginx.pid;
 
-          http {
-            include       /etc/nginx/mime.types;
-            default_type  application/octet-stream;
+        events {
+          worker_connections 1024;
+        }
 
-            sendfile on;
-            sendfile_max_chunk 4m;
-            aio threads;
-            keepalive_timeout 65;
-            server {
-              listen 80;
-              server_name  _;
-              error_log /dev/stderr info;
-              location / {
-                root   /usr/share/nginx/html;
-                autoindex on;
-                proxy_max_temp_file_size 0;
-                proxy_buffering off;
-              }
-              location = /healthcheck {
-                stub_status;
-              }
+        http {
+          include       /etc/nginx/mime.types;
+          default_type  application/octet-stream;
+
+          sendfile on;
+          sendfile_max_chunk 4m;
+          aio threads;
+          limit_rate 44m;
+
+          keepalive_timeout 65;
+
+          server {
+            listen 80;
+            server_name  _;
+            error_log /dev/stderr info;
+            location / {
+              root   /usr/share/nginx/html;
+              autoindex on;
+              proxy_max_temp_file_size 0;
+              proxy_buffering off;
+            }
+            location = /healthcheck {
+              stub_status;
             }
           }
+        }
         EOF
         destination = "local/nginx.conf"
       }

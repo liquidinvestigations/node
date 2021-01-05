@@ -66,6 +66,7 @@ job "hoover-nginx" {
           sendfile on;
           sendfile_max_chunk 4m;
           aio threads;
+          limit_rate 66m;
 
           upstream fabio {
             server {{env "attr.unique.network.ip-address"}}:9990;
