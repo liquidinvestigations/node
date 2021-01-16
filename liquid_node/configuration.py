@@ -193,6 +193,8 @@ class Configuration:
         self.snoop_worker_memory_limit = 500 * (2 + self.snoop_min_workers_per_node)
         self.snoop_worker_hard_memory_limit = 5000 * (2 + self.snoop_max_workers_per_node)
         self.snoop_worker_cpu_limit = 1500 * self.snoop_min_workers_per_node
+        self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
+        self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="6s")
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
@@ -244,6 +246,15 @@ class Configuration:
                     'process': self.ini.getboolean(key, 'process', fallback=False),
                     'sync': self.ini.getboolean(key, 'sync', fallback=False),
                     'ocr_languages': split_lang_codes(self.ini.get(key, 'ocr_languages', fallback='')),
+                    'max_result_window': self.ini.getint(
+                        key,
+                        'max_result_window',
+                        fallback=self.snoop_max_result_window
+                    ),
+                    'max_result_window': self.ini.getint(
+                        key,
+                        'refresh_interval',
+                        fallback=self.snoop_refresh_interval),
                 })
 
             elif cls == 'job':
