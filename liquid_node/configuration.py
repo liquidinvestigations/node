@@ -6,6 +6,7 @@ from distutils.util import strtobool
 from pathlib import Path
 
 from .util import import_string
+from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
     nextcloud, hypothesis, codimd, ci
 
@@ -73,11 +74,18 @@ class Configuration:
         self.root = Path(__file__).parent.parent.resolve()
         self.templates = self.root / 'templates'
 
-        self.versions_ini = configparser.ConfigParser()
-        self.versions_ini.read(self.root / 'versions.ini')
-
         self.ini = configparser.ConfigParser()
         self.ini.read(self.root / 'liquid.ini')
+
+        self.versions_ini = configparser.ConfigParser()
+        if (self.root / 'versions.ini').is_file():
+            self.versions_ini.read(self.root / 'versions.ini')
+
+        self.version_track = self.ini.get('liquid', 'version_track', fallback='production')
+        self.track_ini = configparser.ConfigParser()
+        assert (self.root / (self.version_track + '-versions.ini')).is_file(), \
+            'invalid version_track'
+        self.track_ini.read(self.root / (self.version_track + '-versions.ini'))
 
         self.cluster_root_path = self.ini.get('cluster', 'cluster_path', fallback=None)
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
@@ -170,7 +178,9 @@ class Configuration:
         self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
 
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
-        self.hoover_es_max_concurrent_shard_requests = self.ini.getint('liquid', 'hoover_es_max_concurrent_shard_requests', fallback='')
+        self.hoover_es_max_concurrent_shard_requests = self.ini.getint(
+            'liquid', 'hoover_es_max_concurrent_shard_requests', fallback=''
+        )
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
         self.snoop_min_workers_per_node = self.ini.getint('snoop', 'min_workers_per_node', fallback=2)
         self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=4)
@@ -211,6 +221,11 @@ class Configuration:
         self.all_jobs = list(self.ALL_JOBS)
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
+
+        self.image_keys = set(self.track_ini['versions']) | \
+            (set(self.versions_ini['versions']) if 'versions' in self.versions_ini.sections() else set()) | \
+            (set(self.ini['versions']) if 'versions' in self.ini.sections() else set())
+        self.images = set(self._image(c) for c in self.image_keys)
 
         self.snoop_collections = []
 
@@ -268,7 +283,7 @@ class Configuration:
 
     def version(self, name):
         def tag(name):
-            return self.image(name).split(':', 1)[1]
+            return self._image(name).split(':', 1)[1]
 
         if name == 'hoover':
             search = tag('hoover-search')
@@ -286,17 +301,22 @@ class Configuration:
 
         return tag(name)
 
-    def image(self, name):
+    def _image(self, name):
         """Returns the NAME:TAG for a docker image from versions.ini.
 
         Can be overrided in liquid.ini, same section name.
         """
 
-        assert self.versions_ini.get('versions', name, fallback=None), \
-            f'docker tag for {name} not set in versions.ini'
-        default_tag = self.versions_ini.get('versions', name)
-        image = self.ini.get('versions', name, fallback=default_tag)
-        return image.strip()
+        for x in [self.ini, self.versions_ini, self.track_ini]:
+            val = x.get('versions', name, fallback=None)
+            if val:
+                return val.strip()
+        else:
+            raise RuntimeError('image does not exist: ' + name)
+
+    def image(self, name):
+        """Returns the NAME@SHA1 for a docker image from the docker system."""
+        return docker.image_digest(self._image(name))
 
     def load_job(self, name, job_config):
         if 'template' in job_config:

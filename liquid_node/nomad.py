@@ -71,6 +71,14 @@ class Nomad(JsonApi):
                 name = f'{group_name}-{task["Name"]}'
                 yield name, count, spec['Type'], task['Resources']
 
+    def get_images(self, spec):
+        """Generates docker image names from spec."""
+
+        for group in spec['TaskGroups'] or []:
+            for task in group['Tasks'] or []:
+                if task['Driver'] == 'docker':
+                    yield task['Config']['image']
+
     def jobs(self):
         return self.get('jobs')
 
