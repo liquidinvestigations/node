@@ -270,9 +270,10 @@ job "hoover-deps" {
         name = "search-pg"
         port = "pg"
         check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
+          name = "pg_isready"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "pg_isready"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -406,7 +407,7 @@ job "hoover-deps" {
       template {
         destination = "local/conf"
         data = <<-EOF
-          collect_statistics_interval = 16000
+          collect_statistics_interval = 60000
           management.path_prefix = /_rabbit
           management.cors.allow_origins.1 = *
           management.enable_queue_totals = true
@@ -420,35 +421,14 @@ job "hoover-deps" {
       template {
         destination = "local/plugins"
         data = <<-EOF
-          [rabbitmq_prometheus,rabbitmq_management].
+          [rabbitmq_management].
           EOF
+        #[rabbitmq_prometheus,rabbitmq_management].
       }
 
       service {
         name = "hoover-rabbitmq"
         port = "amqp"
-
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-
-      service {
-        name = "hoover-rabbitmq-prom"
-        port = "prom"
-        tags = ["fabio-/_rabbit_prom"]
-
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
       }
 
       service {
@@ -456,16 +436,12 @@ job "hoover-deps" {
         port = "http"
         tags = ["fabio-/_rabbit"]
         check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/_rabbit/api/healthchecks/node"
+          name = "check-script"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "time rabbitmq-diagnostics check_running"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
-          header {
-            # guest:guest
-            Authorization = ["Basic Z3Vlc3Q6Z3Vlc3Q="]
-          }
         }
       }
     }
@@ -591,9 +567,10 @@ job "hoover-deps" {
         name = "snoop-pg"
         port = "pg"
         check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
+          name = "pg_isready"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "pg_isready"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }

@@ -67,9 +67,10 @@ job "hypothesis-deps" {
         name = "hypothesis-pg"
         port = "pg"
         check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
+          name = "pg_isready"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "pg_isready"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -200,7 +201,6 @@ job "hypothesis-deps" {
         port = "amqp"
         check {
           name = "tcp"
-          initial_status = "critical"
           type = "tcp"
           interval = "${check_interval}"
           timeout = "${check_timeout}"

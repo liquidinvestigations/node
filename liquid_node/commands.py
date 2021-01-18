@@ -269,7 +269,7 @@ def _update_images():
         for name, new in p.imap_unordered(_update_image, override_images):
             comment(name, new)
 
-    images = set(all_images())
+    images = set(all_images()) | set(config.images) | override_images
     with multiprocessing.Pool(6) as p:
         for name, new in p.imap_unordered(_update_image, images):
             comment(name, new)

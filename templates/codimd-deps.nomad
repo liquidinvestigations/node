@@ -70,9 +70,10 @@ job "codimd-deps" {
         name = "codimd-pg"
         port = "pg"
         check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
+          name = "pg_isready"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "pg_isready"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
