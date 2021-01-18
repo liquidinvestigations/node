@@ -53,7 +53,7 @@ class Vault(JsonApi):
         return self.put(path, payload)
 
     def ensure_secret(self, path, get_value):
-        if not self.read(path) or set(self.read(path).keys()) != set(get_value()):
+        if not self.read(path):
             log.info(f"Generating value for {path}")
             self.set(path, get_value())
 

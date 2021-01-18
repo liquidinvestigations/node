@@ -249,7 +249,7 @@ ephemeral_disk {
     set -e
     sed -i 's/host all all all trust/host all all all md5/' $PGDATA/pg_hba.conf
     psql -U ${username} -c "ALTER USER ${username} password '$POSTGRES_PASSWORD'"
-    echo "password set for postgresql host=$(hostname) user=${username}" >&2
+    echo "password set for postgresql host=$(hostname) user=${username}"
     EOF
     destination = "local/set_pg_password.sh"
   }

@@ -45,6 +45,17 @@ def resources():
         print(f'  {key}: {value}')
 
 
+def all_images():
+    """Get all docker images to pull for enabled docker jobs."""
+
+    total = set()
+    jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
+    for spec in jobs:
+        for image in nomad.get_images(spec):
+            total |= set([image])
+    return total
+
+
 def wait_for_service_health_checks(health_checks):
     """Waits health checks to become green for green_count times in a row. """
 
@@ -162,13 +173,16 @@ def start_job(job, hcl):
 
 
 def create_oauth2_app(app):
-    log.info('Auth %s -> %s', app['name'], app['callback'])
-    subdomain = app.get('subdomain', app.get('name'))
-    cb = config.app_url(subdomain) + app['callback']
-    cmd = ['./manage.py', 'createoauth2app', app['name'], cb]
-    output = retry()(docker.exec_)('liquid:core', *cmd)
-    tokens = json.loads(output)
-    vault.set(app['vault_path'], tokens)
+    def get_tokens():
+        log.info('Auth %s -> %s', app['name'], app['callback'])
+        subdomain = app.get('subdomain', app.get('name'))
+        cb = config.app_url(subdomain) + app['callback']
+        cmd = ['./manage.py', 'createoauth2app', app['name'], cb]
+        output = retry()(docker.exec_)('liquid:core', *cmd)
+        tokens = json.loads(output)
+        return tokens
+
+    vault.ensure_secret(app['vault_path'], get_tokens)
     return app['name']
 
 
@@ -220,16 +234,66 @@ def populate_secrets_post(core_auth_apps):
     log.info('secrets done.')
 
 
+def _update_image(name):
+    """Runs `docker pull` and checks if the image digest changed.
+
+    The arguments are passed through this function into the results for
+    collecting after using multiprocessing.
+
+    Returns: (name, changed)."""
+
+    old = docker.image_digest(name)
+    new = docker.pull(name)
+    return name, old != new
+
+
+def _update_images():
+    """Update all docker images in this list, running a few in parallel."""
+
+    any_new = False
+
+    def comment(name, new):
+        nonlocal any_new
+        if new:
+            log.info(f"Downloaded new Docker image for {name}  - {docker.image_size(name)}")
+        else:
+            log.debug(f"Docker image is up to date for {name}  - {docker.image_size(name)}")
+            pass
+        any_new |= new
+
+    t0 = time()
+    log.info("Downloading docker images...")
+
+    override_images = set(config._image(i) for i in config.image_keys)
+    with multiprocessing.Pool(6) as p:
+        for name, new in p.imap_unordered(_update_image, override_images):
+            comment(name, new)
+
+    images = set(all_images())
+    with multiprocessing.Pool(6) as p:
+        for name, new in p.imap_unordered(_update_image, images):
+            comment(name, new)
+
+    log.info(f"All {len(images)} images are up to date, took {time()-t0:.02f}s")
+    return any_new
+
+
 @liquid_commands.command()
 @click.option('--no-secrets', 'secrets', is_flag=True, default=True)
 @click.option('--no-checks', 'checks', is_flag=True, default=True)
-# @click.argument('args', nargs= -1)
-def deploy(secrets, checks):
+@click.option('--new-images-only', 'new_images_only', is_flag=True, default=False)
+def deploy(secrets, checks, new_images_only):
     """Run all the jobs in nomad."""
+
     check_system_config()
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
     consul.set_kv('liquid_http_protocol', config.liquid_http_protocol)
+
+    if not _update_images():
+        if new_images_only:
+            log.warning('No new images and --new-images-only was set; skipping deploy')
+            return
 
     if secrets:
         vault.ensure_engine()
@@ -247,10 +311,10 @@ def deploy(secrets, checks):
         if job.extra_secret_fn:
             extra_secret_fns.append(job.extra_secret_fn)
 
-    jobs = [(job.name, (job.stage, get_job(job.template))) for job in config.enabled_jobs]
-
     if secrets:
         populate_secrets_pre(vault_secret_keys, core_auth_cookies, extra_secret_fns)
+
+    jobs = [(job.name, (job.stage, get_job(job.template))) for job in config.enabled_jobs]
 
     # check if there are jobs to stop
     nomad_jobs = set(job['ID'] for job in nomad.jobs())

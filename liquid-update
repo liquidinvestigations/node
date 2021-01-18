@@ -1,0 +1,80 @@
+#!/bin/bash
+set -e
+
+# cd to file
+cd "$(dirname ${BASH_SOURCE[0]})"
+
+install_crontab=''
+version=''
+while [[ $# -gt 0 ]]; do
+  arg=$1
+  shift
+  case "$arg" in
+    "--install-crontab") install_crontab=1 ;;
+    "--version") image=$1; shift ;;
+    *) echo "Unknown option $arg" >&2; exit 1
+  esac
+done
+
+function fail {
+  echo $1 >&2
+  exit 1
+}
+
+function retry {
+  local n=1
+  local max=2
+  local delay=7
+  echo "+ $@"
+  while true; do
+    "$@" && break || {
+      if [[ $n -lt $max ]]; then
+        ((n++))
+        ((delay++))
+        echo "Warning: Command failed. Attempt $n/$max:" >&2
+        sleep $delay;
+      else
+        fail "Error: The command has failed after $n attempts."
+      fi
+    }
+  done
+}
+
+function install_crontab() {
+  SCRIPT="bash $PWD/liquid-update"
+  echo "installing crontab for '$SCRIPT'\n"
+  crontab -l | (grep -v "$SCRIPT"; echo "*/3 * * * * $SCRIPT") | crontab -
+}
+
+function update {
+  date
+  if [[ ! -z "$install_crontab" ]]; then
+    install_crontab
+  fi
+  OLD_GIT=$(git describe --tags)
+  echo "old node git version: $OLD_GIT\n"
+
+  git fetch -ap
+  if [[ ! -z "$version" ]]; then
+    git checkout "$version"
+  fi
+  git pull --ff-only
+
+  NEW_GIT=$(git describe --tags)
+  echo "new node git version: $NEW_GIT\n"
+
+  if [[ "$OLD_GIT" != "$NEW_GIT" ]]; then
+    echo "Git version changed!\n"
+    pipenv install --ignore-pipfile
+    echo "Running './liquid deploy'\n"
+    ./liquid deploy
+  else
+    echo "Running './liquid deploy --new-images-only'\n"
+    ./liquid deploy --new-images-only
+  fi
+}
+
+(
+  flock -n 9 || fail "Error: an update is already underway"
+  retry update
+) 9>./.liquid.update.lock
