@@ -173,16 +173,13 @@ def start_job(job, hcl):
 
 
 def create_oauth2_app(app):
-    def get_tokens():
-        log.info('Auth %s -> %s', app['name'], app['callback'])
-        subdomain = app.get('subdomain', app.get('name'))
-        cb = config.app_url(subdomain) + app['callback']
-        cmd = ['./manage.py', 'createoauth2app', app['name'], cb]
-        output = retry()(docker.exec_)('liquid:core', *cmd)
-        tokens = json.loads(output)
-        return tokens
-
-    vault.ensure_secret(app['vault_path'], get_tokens)
+    log.info('Auth %s -> %s', app['name'], app['callback'])
+    subdomain = app.get('subdomain', app.get('name'))
+    cb = config.app_url(subdomain) + app['callback']
+    cmd = ['./manage.py', 'createoauth2app', app['name'], cb]
+    output = retry()(docker.exec_)('liquid:core', *cmd)
+    tokens = json.loads(output)
+    vault.set(app['vault_path'], tokens)
     return app['name']
 
 
