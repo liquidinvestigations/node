@@ -193,11 +193,11 @@ class Configuration:
         self.snoop_worker_hard_memory_limit = 5000 * (2 + self.snoop_max_workers_per_node)
         self.snoop_worker_cpu_limit = 1500 * self.snoop_min_workers_per_node
 
-        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='14s')
-        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='9s')
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
-        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=3)
-        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=5)
+        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=4)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=6)
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
