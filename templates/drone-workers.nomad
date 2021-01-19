@@ -37,9 +37,9 @@
 VMCK_IP={{ env "attr.unique.network.ip-address" }}
 VMCK_PORT=9990
 VMCK_URL=http://{{ env "attr.unique.network.ip-address" }}:9990
-${config.ci_docker_registry_env}
         EOF
         destination = "local/drone-worker-2.env"
+        # ${config.ci_docker_registry_env}
       }
 
       template {
@@ -96,11 +96,18 @@ job "drone-workers" {
 
     task "drone-workers" {
 
+      # TODO: fix stability when drone is running on more than 1 host
+      # till then: we only run workers on the machine with the volumes
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       ${ worker_task_def() }
 
       env {
-        DRONE_RUNNER_CAPACITY = 3
-        DRONE_RUNNER_MAX_PROCS = 4
+        DRONE_RUNNER_CAPACITY = 2
+        DRONE_RUNNER_MAX_PROCS = 2
         DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-default"
       }
     }

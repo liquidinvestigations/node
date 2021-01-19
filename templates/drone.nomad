@@ -118,7 +118,7 @@ job "drone" {
       config {
         image = "liquidinvestigations/vmck:0.5.1-retry-liquid"
         hostname = "{% raw %}${attr.unique.hostname}{% endraw %}"
-        dns_servers = ["{% raw %}${attr.unique.network.ip-address}{% endraw %}"]
+        # dns_servers = ["{% raw %}${attr.unique.network.ip-address}{% endraw %}"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/vmck:/opt/vmck/data",
         ]
@@ -186,7 +186,7 @@ job "drone" {
         }
         check_restart {
           limit = 10
-          grace = "3600s"
+          grace = "72h"
         }
       }
     }

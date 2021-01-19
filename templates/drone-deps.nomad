@@ -12,6 +12,11 @@ job "drone-deps" {
     task "drone-secret" {
       ${ task_logs() }
 
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "drone/vault:1.2"
