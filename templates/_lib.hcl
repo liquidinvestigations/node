@@ -152,8 +152,8 @@ ephemeral_disk {
           timeout = "${check_timeout}"
         }
         check_restart {
-          limit = 3
-          grace = "35s"
+          limit = 5
+          grace = "435s"
         }
       }
     }
@@ -233,8 +233,8 @@ ephemeral_disk {
           timeout = "${check_timeout}"
         }
         check_restart {
-          limit = 3
-          grace = "35s"
+          limit = 5
+          grace = "435s"
         }
       }
     }

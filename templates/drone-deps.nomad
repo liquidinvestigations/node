@@ -63,8 +63,8 @@ job "drone-deps" {
           timeout = "${check_timeout}"
         }
         check_restart {
-          limit = 3
-          grace = "90s"
+          limit = 5
+          grace = "290s"
         }
       }
     }
@@ -156,8 +156,8 @@ job "drone-deps" {
           timeout = "${check_timeout}"
         }
         check_restart {
-          limit = 3
-          grace = "90s"
+          limit = 5
+          grace = "290s"
         }
       }
     }

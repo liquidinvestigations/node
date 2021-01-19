@@ -127,8 +127,8 @@ job "hoover-nginx" {
           }
         }
         check_restart {
-          limit = 3
-          grace = "95s"
+          limit = 5
+          grace = "495s"
         }
       }
     }

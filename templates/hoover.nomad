@@ -125,8 +125,8 @@ job "hoover" {
         }
 
         check_restart {
-          limit = 3
-          grace = "395s"
+          limit = 5
+          grace = "500s"
         }
       }
     }

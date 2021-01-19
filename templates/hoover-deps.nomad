@@ -345,7 +345,7 @@ job "hoover-deps" {
         }
         check_restart {
           limit = 5
-          grace = "180s"
+          grace = "480s"
         }
       }
     }
