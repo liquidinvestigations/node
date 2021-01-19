@@ -39,7 +39,6 @@ VMCK_PORT=9990
 VMCK_URL=http://{{ env "attr.unique.network.ip-address" }}:9990
         EOF
         destination = "local/drone-worker-2.env"
-        # ${config.ci_docker_registry_env}
       }
 
       template {
