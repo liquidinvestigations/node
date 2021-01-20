@@ -251,7 +251,7 @@ class Configuration:
                         'max_result_window',
                         fallback=self.snoop_max_result_window
                     ),
-                    'max_result_window': self.ini.getint(
+                    'refresh_interval': self.ini.getint(
                         key,
                         'refresh_interval',
                         fallback=self.snoop_refresh_interval),

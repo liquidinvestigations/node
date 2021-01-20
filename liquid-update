@@ -66,12 +66,9 @@ function update {
   if [[ "$OLD_GIT" != "$NEW_GIT" ]]; then
     echo "Git version changed!\n"
     pipenv install --ignore-pipfile
-    echo "Running './liquid deploy'\n"
-    ./liquid deploy
-  else
-    echo "Running './liquid deploy --new-images-only'\n"
-    ./liquid deploy --new-images-only
   fi
+  echo "Running './liquid deploy'\n"
+  ./liquid deploy
 }
 
 (
