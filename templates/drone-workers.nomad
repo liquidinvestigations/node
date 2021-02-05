@@ -34,15 +34,6 @@
 
       template {
         data = <<-EOF
-VMCK_IP={{ env "attr.unique.network.ip-address" }}
-VMCK_PORT=9990
-VMCK_URL=http://{{ env "attr.unique.network.ip-address" }}:9990
-        EOF
-        destination = "local/drone-worker-2.env"
-      }
-
-      template {
-        data = <<-EOF
 
         {{- range service "drone" }}
           DRONE_RPC_HOST = "{{.Address}}:{{.Port}}"

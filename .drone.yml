@@ -5,55 +5,69 @@ steps:
 - name: flake8
   image: alpine/flake8:3.7.9
   commands:
-  - flake8
+  - ls setup.cfg
+  - flake8 --help
+
 - name: leaks
   image: zricethezav/gitleaks:v6.2.0
-  depends_on:
-  - flake8
 
 
-    #---
-    #kind: pipeline
-    #name: vms
-    #depends_on:
-    #- static-tests
-    #concurrency:
-    #  limit: 1
-    #
-    #steps:
-    #- name: 1-hoover
-    #  image: vmck/vagrant-vmck:0.4.2
-    #  commands:
-    #  - export PROVISION=./tests/1-hoover
-    #  - export VMCK_MEMORY=11500
-    #  - export VMCK_CPUS=3
-    #  - ./ci/start-tests.sh
-    #
-    #- name: 2-hypothesis
-    #  image: vmck/vagrant-vmck:0.4.2
-    #  commands:
-    #  - export VMCK_MEMORY=5000
-    #  - export PROVISION=./tests/2-hypothesis
-    #  - ./ci/start-tests.sh
-    #
-    #- name: 3-codimd+dokuwiki
-    #  image: vmck/vagrant-vmck:0.4.2
-    #  commands:
-    #  - export VMCK_MEMORY=3500
-    #  - export PROVISION=./tests/3-codimd-dokuwiki
-    #  - ./ci/start-tests.sh
-    #
-    #- name: 4-nextcloud+rocketchat
-    #  image: vmck/vagrant-vmck:0.4.2
-    #  commands:
-    #  - export VMCK_MEMORY=7500
-    #  - export PROVISION=./tests/4-nextcloud-rocketchat
-    #  - ./ci/start-tests.sh
-    #
-    #- name: 5-hoover+hypothesis+nextcloud
-    #  image: vmck/vagrant-vmck:0.4.2
-    #  commands:
-    #  - export VMCK_MEMORY=16500
-    #  - export VMCK_CPUS=3
-    #  - export PROVISION=./tests/5-hoover-hypothesis-nextcloud
-    #  - ./ci/start-tests.sh
+- name: copy code to target
+  image: appleboy/drone-scp:latest
+  settings:
+    host:
+      from_secret: target_hostname
+    username:
+      from_secret: target_username
+    password:
+      from_secret: target_password
+    port:
+      from_secret: target_port
+    source: .
+    target: /test/code
+    rm: true
+
+
+- name: run tests on target
+  image: appleboy/drone-ssh:latest
+  settings:
+    host:
+      from_secret: target_hostname
+    username:
+      from_secret: target_username
+    password:
+      from_secret: target_password
+    port:
+      from_secret: target_port
+    command_timeout: 60m
+    script:
+      - cd /test/code
+      - ls
+
+---
+kind: secret
+name: target_username
+get:
+  path: liquid/ci/drone.target
+  name: username
+
+---
+kind: secret
+name: target_password
+get:
+  path: liquid/ci/drone.target
+  name: password
+
+---
+kind: secret
+name: target_hostname
+get:
+  path: liquid/ci/drone.target
+  name: hostname
+
+---
+kind: secret
+name: target_port
+get:
+  path: liquid/ci/drone.target
+  name: port

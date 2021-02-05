@@ -7,8 +7,6 @@ class Drone(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     stage = 2
     vault_secret_keys = [
-        'liquid/ci/vmck.django',
-        'liquid/ci/vmck.postgres',
         'liquid/ci/drone.rpc.secret',
     ]
 
@@ -22,6 +20,14 @@ class Drone(jobs.Job):
             'username': config.ci_docker_username,
             'password': config.ci_docker_password,
         })
+
+        vault.set('liquid/ci/drone.target', {
+            'hostname': config.ci_target_hostname,
+            'username': config.ci_target_username,
+            'password': config.ci_target_password,
+            'port': config.ci_target_port,
+        })
+
         vault.ensure_secret('liquid/ci/drone.secret.2', lambda: {
             'secret_key': random_secret(128),
         })
