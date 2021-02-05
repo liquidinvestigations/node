@@ -55,7 +55,7 @@ job "codimd" {
         CMD_PORT = "3000"
         CMD_DOMAIN = "codimd.${liquid_domain}"
         CMD_URL_ADDPORT = "{% if config.https_enabled %}${ liquid_https_port }{% else %}${ liquid_http_port }{% endif %}"
-        CMD_PROTOCOL_USESSL = "{% if config.https_enabled %}true{% else %}false{% endif %}"
+        CMD_PROTOCOL_USESSL = "{% if config.https_enabled or config.liquid_http_protocol == 'https' %}true{% else %}false{% endif %}"
         CMD_ALLOW_ORIGIN = "codimd.${liquid_domain}"
         CMD_USECDN = "false"
         CMD_EMAIL = "false"
