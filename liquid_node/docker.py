@@ -17,7 +17,10 @@ class Docker:
             out = run(cmd, shell=True, stderr=subprocess.DEVNULL, echo=False)
         except subprocess.CalledProcessError:
             return None
-        return json.loads(out)[0]
+        d = json.loads(out)
+        if not d:
+            return None
+        return d[0]
 
     @retry()
     def pull(self, name):
