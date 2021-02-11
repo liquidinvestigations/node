@@ -211,10 +211,10 @@ class Configuration:
             self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
 
-            self.ci_target_hostname = self.ini.getint('ci', 'target_hostname')
-            self.ci_target_username = self.ini.getint('ci', 'target_username')
-            self.ci_target_password = self.ini.getint('ci', 'target_password')
-            self.ci_target_port = self.ini.getint('ci', 'target_port')
+            self.ci_target_hostname = self.ini.get('ci', 'target_hostname')
+            self.ci_target_username = self.ini.get('ci', 'target_username')
+            self.ci_target_password = self.ini.get('ci', 'target_password')
+            self.ci_target_port = self.ini.get('ci', 'target_port')
 
         self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
         self.all_jobs = list(self.ALL_JOBS)
