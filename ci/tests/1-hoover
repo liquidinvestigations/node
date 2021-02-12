@@ -1,9 +1,8 @@
 #!/bin/bash -ex
-cd /opt/node
 
-if ! [ -d collections/testdata ]; then
-  git clone https://github.com/liquidinvestigations/testdata collections/testdata
-fi
+#cd /opt/node
+cd "$(dirname ${BASH_SOURCE[0]})/../.."
+BACKUP="$(dirname $PWD)/backups"
 
 echo "Add some collections, check resources and deploy"
 cp ci/conf/1-with-collections.ini liquid.ini
@@ -16,35 +15,35 @@ echo "Process some, Do a backup"
 sleep 60
 cp ci/conf/1-with-collections-stopped.ini liquid.ini
 ./liquid deploy
-./liquid backup ./backup
-ls -aRlh ./backup
+./liquid backup $BACKUP/backup
+ls -aRlh $BACKUP/backup
 
-zcat backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
-tar tz < backup/collection-testdata/es.tgz | grep -q 'index.latest'
-#tar tz < backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
-./liquid backup --no-es --no-pg --no-apps ./backup2
-./liquid backup --no-blobs --no-apps --collection testdata --collection uploads ./backup3
-./liquid restore-collection ./backup/collection-testdata testdata2
+zcat $BACKUP/backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
+tar tz < $BACKUP/backup/collection-testdata/es.tgz | grep -q 'index.latest'
+#tar tz < $BACKUP/backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
+./liquid backup --no-es --no-pg --no-apps $BACKUP/backup2
+./liquid backup --no-blobs --no-apps --collection testdata --collection uploads $BACKUP/backup3
+./liquid restore-collection $BACKUP/backup/collection-testdata testdata2
 
 echo "Remove all collections, gc, restore from backup"
 cp ci/conf/1-no-collections.ini liquid.ini
 ./liquid nomadgc
 ./liquid deploy --no-secrets
 ./liquid dockerexec hoover:snoop ./manage.py purge --force
-./liquid restore-all-collections ./backup
+./liquid restore-all-collections $BACKUP/backup
 
 echo "Restore apps"
-./liquid restore-apps ./backup
+./liquid restore-apps $BACKUP/backup
 
 echo "Restore apps after wipe"
 docker kill cluster
 docker kill $(docker ps -q)
 docker ps
-sudo rm -rf /opt/node/volumes/*
+sudo rm -rf volumes/*
 sudo rm -rf /opt/cluster/var/*
 echo
 docker start cluster
 docker exec cluster ./cluster.py wait
 ./liquid deploy
-./liquid restore-all-collections ./backup
-./liquid restore-apps ./backup
+./liquid restore-all-collections $BACKUP/backup
+./liquid restore-apps $BACKUP/backup

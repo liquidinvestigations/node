@@ -210,15 +210,11 @@ class Configuration:
             self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
             self.ci_github_client_secret = self.ini.get('ci', 'github_client_secret')
             self.ci_github_user_filter = self.ini.get('ci', 'github_user_filter')
-            self.ci_docker_registry_address = self.ini.get('ci', 'docker_registry_address', fallback=None)
-            self.ci_docker_registry_port = self.ini.get('ci', 'docker_registry_port', fallback=None)
-            if self.ci_docker_registry_address and self.ci_docker_registry_port:
-                self.ci_docker_registry_env = (
-                    f'REGISTRY_ADDRESS={self.ci_docker_registry_address}\n'
-                    f'REGISTRY_PORT={self.ci_docker_registry_port}\n'
-                )
-            else:
-                self.ci_docker_registry_env = ''
+
+            self.ci_target_hostname = self.ini.get('ci', 'target_hostname')
+            self.ci_target_username = self.ini.get('ci', 'target_username')
+            self.ci_target_password = self.ini.get('ci', 'target_password')
+            self.ci_target_port = self.ini.get('ci', 'target_port')
 
         self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
         self.all_jobs = list(self.ALL_JOBS)
