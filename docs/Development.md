@@ -26,12 +26,16 @@ cd repos
 ./clone.sh https  # or ./clone.sh ssh, based on preference
 ```
 
-After that, set this flag in your configuration:
+After that, set these flags in your configuration:
 
 ```ini
 [liquid]
 ...
 mount_local_repos = true
+
+...
+
+version_track = testing
 ```
 
 And re-run `./liquid deploy`.
