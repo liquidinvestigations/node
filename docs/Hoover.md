@@ -88,7 +88,7 @@ The `SOURCE_NAME` will be the identifier for your external OCR source.
 
 The OCR outputs:
 - can be placed at any depth inside the `collections/COLLECTION/ocr/SOURCE_NAME` directory, 
-- **must** have as filename the document MD5 with either `.pdf` or `.pdf.txt` extensions
+- **must** have its filename start with the document MD5 and end with either `.pdf` or `.txt` extensions
 
 After writing the OCR outputs into a new OCR_SOURCE, run the following commands:
 
