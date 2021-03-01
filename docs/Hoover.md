@@ -64,7 +64,10 @@ In order to remove a collection, take the following steps:
 2. Run `./liquid shell hoover:snoop ./manage.py purge` -- use optional argument `--force` to skip manual confirmation.
 
 
-## Tesseract OCR
+## OCR
+
+
+### Integrated Tesseract OCR
 
 Use the collection's `ocr_languages` config value to set any number of
 languages for [tesseract 4.0
@@ -74,6 +77,49 @@ LSTM](https://tesseract-ocr.github.io/tessdoc/Data-Files#data-files-for-version-
 After changing the `ocr_languages` setting for an already processed collection, please run:
 
      ./liquid dockerexec hoover-workers:snoop-workers ./manage.py retrytasks COLLECTION -- --func digests.launch
+
+### External OCR
+
+Some datasets might come with OCR already processed. Hoover can import both TXT and PDF outputs from external OCR.
+Multiple batches or versions of OCR data may exist, so each OCR source is identified by a name, written in this section as `SOURCE_NAME`.
+
+Place your OCR outputs under the directory `collections/COLLECTION/ocr/SOURCE_NAME` (as opposed to `collections/COLLECTION/data` where the original data is).
+The `SOURCE_NAME` will be the identifier for your external OCR source.
+
+The OCR outputs:
+- can be placed at any depth inside the `collections/COLLECTION/ocr/SOURCE_NAME` directory, 
+- **must** have as filename the document MD5 with either `.pdf` or `.pdf.txt` extensions
+
+After writing the OCR outputs into a new OCR_SOURCE, run the following commands:
+
+```
+./liquid dockerexec hoover:snoop ./manage.py createocrsource COLLECTION SOURCE
+./liquid dockerexec hoover:snoop ./manage.py retrytasks COLLECTION --func ocr.walk_source
+```
+
+After adding files to an existing OCR source, you can re-walk the source directory by running the line:
+
+```
+./liquid dockerexec hoover:snoop ./manage.py retrytasks COLLECTION --func ocr.walk_source
+```
+
+This command will automatically re-process the collection documents to include the new external OCR data.
+
+
+#### An example with testdata
+
+You can test out this feature on the testdata collection. Take a look at the [file structure here](https://github.com/liquidinvestigations/hoover-testdata/tree/master/ocr/). After cloning and configuring testdata as instructed in `liquid.ini`, run these commands:
+
+```
+./liquid dockerexec hoover:snoop ./manage.py createocrsource testdata one
+./liquid dockerexec hoover:snoop ./manage.py createocrsource testdata two
+./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --func ocr.walk_source
+```
+
+And verify that they exist under the results for document with MD5 = `fd41b8f1fe19c151517b3cda2a615fa8` by searching the `testdata` collection with the query `md5:fd41b8f1fe19c151517b3cda2a615fa8`. You should see OCR versions for `one`, `two` as well as any Tesseract languages configured for the collection:
+
+![ocr-external](https://user-images.githubusercontent.com/7493327/109505525-5b024500-7aa5-11eb-9c9b-4ce255cffea6.png)
+
 
 ## Re-processing and adding new data
 
@@ -88,3 +134,4 @@ You can trigger a manual retry for failed tasks with:
 ```
 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error --status broken
 ```
+
