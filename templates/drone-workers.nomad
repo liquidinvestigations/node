@@ -35,20 +35,14 @@
       template {
         data = <<-EOF
 
-        {{- range service "drone" }}
-          DRONE_RPC_HOST = "{{.Address}}:{{.Port}}"
-        {{- end }}
+        DRONE_RPC_HOST = "{{ env "attr.unique.network.ip-address" }}:10002"
 
         {{- with secret "liquid/ci/drone.rpc.secret" }}
           DRONE_RPC_SECRET = "{{.Data.secret_key }}"
         {{- end }}
 
-        #DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:9997"
-        #DRONE_SECRET_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:9997"
-        {{- range service "drone-secret" }}
-          DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{.Address}}:{{.Port}}"
-          DRONE_SECRET_ENDPOINT = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
+        DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:10003"
+        DRONE_SECRET_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:10003"
         {{- with secret "liquid/ci/drone.secret.2" }}
           DRONE_SECRET_PLUGIN_SECRET = {{.Data.secret_key | toJSON }}
           DRONE_SECRET_SECRET = {{.Data.secret_key | toJSON }}
@@ -99,27 +93,6 @@ job "drone-workers" {
         DRONE_RUNNER_CAPACITY = 2
         DRONE_RUNNER_MAX_PROCS = 2
         DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-default"
-      }
-    }
-  }
-
-  group "drone-workers-with-volumes" {
-    ${ group_disk() }
-
-    task "drone-workers-with-volumes" {
-
-      ${ worker_task_def() }
-
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      env {
-        DRONE_RUNNER_LABELS = "connect_target_ssh:true"
-        DRONE_RUNNER_CAPACITY = 1
-        DRONE_RUNNER_MAX_PROCS = 1
-        DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-with-volumes"
       }
     }
   }

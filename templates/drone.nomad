@@ -28,7 +28,7 @@ job "drone" {
         labels {
           liquid_task = "drone"
         }
-        memory_hard_limit = 2048
+        memory_hard_limit = 2000
       }
 
       env {
@@ -55,12 +55,8 @@ job "drone" {
           DRONE_USER_FILTER = {{.Data.user_filter | toJSON }}
         {{- end }}
 
-        #DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:9997"
-        #DRONE_SECRET_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:9997"
-        {{- range service "drone-secret" }}
-          DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{.Address}}:{{.Port}}"
-          DRONE_SECRET_ENDPOINT = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
+        DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:10003"
+        DRONE_SECRET_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:10003"
         {{- with secret "liquid/ci/drone.secret.2" }}
           DRONE_SECRET_PLUGIN_SECRET = {{.Data.secret_key | toJSON }}
           DRONE_SECRET_SECRET = {{.Data.secret_key | toJSON }}
@@ -74,11 +70,11 @@ job "drone" {
       }
 
       resources {
-        memory = 350
+        memory = 450
         cpu = 150
         network {
           mbits = 1
-          port "http" {}
+          port "http" { static = 10002 }
         }
       }
 

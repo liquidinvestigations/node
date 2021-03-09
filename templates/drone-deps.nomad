@@ -52,7 +52,7 @@ job "drone-deps" {
         cpu = 150
         network {
           mbits = 1
-          port "http" { }
+          port "http" { static = 10003 }
         }
       }
 
