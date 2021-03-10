@@ -122,7 +122,7 @@ job "hoover" {
           name = "http_ping"
           initial_status = "critical"
           type = "http"
-          path = "/api/v0/_ping"
+          path = "/api/v1/_ping"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
