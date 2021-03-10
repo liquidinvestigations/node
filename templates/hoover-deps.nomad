@@ -233,9 +233,9 @@ job "hoover-deps" {
       ${ shutdown_delay() }
 
       config {
-        image = "postgres:9.6"
+        image = "postgres:13"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/pg/data:/var/lib/postgresql/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/search-pg-13/data:/var/lib/postgresql/data",
         ]
         labels {
           liquid_task = "search-pg"
