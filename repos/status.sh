@@ -6,9 +6,12 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 for repo in "${repos[@]}"; do (
   echo
-    echo "[[ $repo ]]"
+  echo
+  echo "[[ $repo ]]"
+  echo "   ---------------------------------"
   if [ -d $repo ]; then
     cd $repo
+    git fetch -a
     git status
   else
     echo "missing"
