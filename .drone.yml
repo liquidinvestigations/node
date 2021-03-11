@@ -19,9 +19,6 @@ name: integration-tests
 depends_on:
 - static-tests
 
-node:
-  connect_target_ssh: true
-
 steps:
 - name: copy code to target
   image: appleboy/drone-scp:latest
