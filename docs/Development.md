@@ -13,7 +13,7 @@ Then redeploy (`./liquid deploy`).
 
 To log into the snoop docker container:
 ```shell
-./liquid shell snoop:snoop
+./liquid shell hoover:snoop
 ```
 
 ## Working on components
