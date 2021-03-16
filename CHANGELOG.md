@@ -1,6 +1,19 @@
 # Liquid Investigations Change Log
 
-## unreleased
+## version 0.14.1 (2021-03-16)
+
+This is a bug fixing release targeting small Hoover UI issues.
+
+### Bug Fixes
+
+- Added missing redirect rules for annotations made on Hoover documents before November 2020.
+- Fixed a bug where Document pages would stay blank or loading in case of document fetching error. The pages will now display a proper error message.
+
+### Improvements
+
+- Added buckets for filtering search results by content type.
+
+
 
 ## version 0.14.0 (2021-03-12)
 
