@@ -31,6 +31,24 @@ To restore a collection:
 ./liquid restore-collection /tmp/backup-today/collection-testdata new-collection-name
 ```
 
+### Create periodic backups
+
+The [./bin/periodic-backup.sh](../bin/periodic-backup.sh) script has one positional `--dir` and optional arguments:
+```
+Usage: ./bin/periodic-backup.sh --dir exportdir [--rm] [--days N]
+  --dir      backup directory, a date based subfolder will be added, e.g. exportdir/YYYYMMDD-HHmm
+  --rm       remove old backups, default disabled
+  --days N   remove backups older than N days, default 60 days
+```
+
+Using `crontab -e` you can create periodic daily and weekly backups like this:
+```shell
+# Create a Liquid backup every day at 6am and keep old ones 7 days
+0 6 * * * /opt/node/bin/periodic-backup.sh --dir /storage/backup/daily --rm --days 7
+
+# Create a Liquid backup every week at 4am and remove old ones
+0 4 * * 1 /opt/node/bin/periodic-backup.sh --dir /storage/backup/weekly --rm
+```
 
 ### Restoring application data
 
