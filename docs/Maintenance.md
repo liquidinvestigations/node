@@ -33,7 +33,7 @@ To restore a collection:
 
 ### Create periodic backups
 
-The [./bin/periodic-backup.sh](../bin/periodic-backup.sh) script has one positional `--dir` and optional arguments:
+The [`./bin/periodic-backup.sh`](../bin/periodic-backup.sh) script has one positional `--dir` and optional arguments:
 ```
 Usage: ./bin/periodic-backup.sh --dir exportdir [--rm] [--days N]
   --dir      backup directory, a date based subfolder will be added, e.g. exportdir/YYYYMMDD-HHmm
@@ -46,8 +46,8 @@ Using `crontab -e` you can create periodic daily and weekly backups like this:
 # Create a Liquid backup every day at 6am and keep old ones 7 days
 0 6 * * * /opt/node/bin/periodic-backup.sh --dir /storage/backup/daily --rm --days 7
 
-# Create a Liquid backup every week at 4am and remove old ones
-0 4 * * 1 /opt/node/bin/periodic-backup.sh --dir /storage/backup/weekly --rm
+# Create a Liquid backup every week at 4am and remove old ones and keep the last log
+0 4 * * 1 /opt/node/bin/periodic-backup.sh --dir /storage/backup/weekly --rm > /storage/backup/weekly/backup.log 2>&1
 ```
 
 ### Restoring application data

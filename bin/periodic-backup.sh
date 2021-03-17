@@ -26,7 +26,7 @@ if [ -z $exportdir ]; then
   exit 1
 fi
 
-export PATH=$(whereis pipenv):$PATH
+export PATH=/usr/local/bin:/home/$(whoami)/.local/bin:$PATH
 mkdir -p $exportdir/$backupdir
 ./liquid backup --no-collections $exportdir/$backupdir
 
