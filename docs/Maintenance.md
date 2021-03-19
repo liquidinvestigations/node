@@ -33,18 +33,19 @@ To restore a collection:
 
 ### Create periodic backups
 
-The [`./bin/periodic-backup.sh`](../bin/periodic-backup.sh) script has one positional `--dir` and optional arguments:
+The [`./bin/periodic-backup.sh`](../bin/periodic-backup.sh) script has one required argument (`--dir`) and some optional arguments:
 ```
 Usage: ./bin/periodic-backup.sh --dir exportdir [--rm] [--days N]
   --dir      backup directory, a date based subfolder will be added, e.g. exportdir/YYYYMMDD-HHmm
+  --uploads  create a uploads collection backup, default disabled
   --rm       remove old backups, default disabled
   --days N   remove backups older than N days, default 60 days
 ```
 
 Using `crontab -e` you can create periodic daily and weekly backups like this:
 ```shell
-# Create a Liquid backup every day at 6am and keep old ones 7 days
-0 6 * * * /opt/node/bin/periodic-backup.sh --dir /storage/backup/daily --rm --days 7
+# Create a Liquid backup every day at 6am and keep old ones 7 days including uploads
+0 6 * * * /opt/node/bin/periodic-backup.sh --dir /storage/backup/daily --rm --uploads --days 7
 
 # Create a Liquid backup every week at 4am and remove old ones and keep the last log
 0 4 * * 1 /opt/node/bin/periodic-backup.sh --dir /storage/backup/weekly --rm > /storage/backup/weekly/backup.log 2>&1
@@ -62,6 +63,21 @@ Data will only be restored if archives that exist at that location. This means
 you can choose to only restore a certain application by placing its archives in
 an empty directory and running this command on it.
 
+### A possible backup strategy
+
+Assuming most collections don't change after processing them for the first time,
+you can create a full backup once for each collection. Except the so called
+`uploads` collection having `sync = True` in [`liquid.ini`](../liquid.ini): 
+
+```ini
+# Collection corresponding to nextcloud uploads
+[collection:uploads]
+process = True
+sync = True
+```
+
+Uploads and app data will change often and therefore needs to be backed up on a regular base.
+You can use our provided periodic backup script to create snapshots of app data as shown earlier.
 
 ## Corrupted postgres database index
 
