@@ -47,7 +47,7 @@ Using `crontab -e` you can create periodic daily and weekly backups like this:
 # Create a Liquid backup every day at 6am and keep old ones 7 days including uploads
 0 6 * * * /opt/node/bin/periodic-backup.sh --dir /storage/backup/daily --rm --uploads --days 7
 
-# Create a Liquid backup every week at 4am and remove old ones and keep the last log
+# Create a Liquid backup every week at 4am. remove old ones and keep the last log
 0 4 * * 1 /opt/node/bin/periodic-backup.sh --dir /storage/backup/weekly --rm > /storage/backup/weekly/backup.log 2>&1
 ```
 
