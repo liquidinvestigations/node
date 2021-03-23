@@ -67,16 +67,10 @@ an empty directory and running this command on it.
 
 Assuming most collections don't change after processing them for the first time,
 you can create a full backup once for each collection. Except the so called
-`uploads` collection having `sync = True` in [`liquid.ini`](../liquid.ini): 
+`uploads` collection or any other collection having `sync = True` in 
+[`liquid.ini`](https://github.com/liquidinvestigations/node/blob/40963726bf79d3318496572e41f93543c93132f3/examples/liquid.ini#L252-L256).
 
-```ini
-# Collection corresponding to nextcloud uploads
-[collection:uploads]
-process = True
-sync = True
-```
-
-Uploads and app data will change often and therefore needs to be backed up on a regular base.
+Uploads and app data will change frequently and therefore need to be backed up regularly.
 You can use our provided periodic backup script to create snapshots of app data as shown earlier.
 
 ## Corrupted postgres database index
