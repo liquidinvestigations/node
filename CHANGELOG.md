@@ -1,18 +1,35 @@
 # Liquid Investigations Change Log
 
+## version 0.14.2 (2021-03-30)
+
+This release brings Hoover UI improvements and some
+[new Hoover developer documentation](https://hoover-snoop2.readthedocs.io/en/latest/).
+
+### Improvements
+
+- Tags Autocomplete: When creating Tags, Hoover now displays the most commonly
+  used Tags in the collection. New tags are added by clicking on them. Tags can
+  be filtered by typing their partial name.
+- Added new aggregation for Content Type (Mime Type).
+
+### Bug Fixes
+
+- Fixed bug where TIF images wouldn't render: added browser renderer for `.TIF`/`.TIFF` images.
+
+
 ## version 0.14.1 (2021-03-16)
 
 This is a bug fixing release targeting small Hoover UI issues.
 
-### Bug Fixes
-
-- Added missing redirect rules for annotations made on Hoover documents before November 2020.
-- Fixed a bug where Document pages would stay blank or loading in case of document fetching error. The pages will now display a proper error message.
 
 ### Improvements
 
 - Added buckets for filtering search results by content type.
 
+### Bug Fixes
+
+- Added missing redirect rules for annotations made on Hoover documents before November 2020.
+- Fixed a bug where Document pages would stay blank or loading in case of document fetching error. The pages will now display a proper error message.
 
 
 ## version 0.14.0 (2021-03-12)
