@@ -41,6 +41,9 @@ version_track = testing
 And re-run `./liquid deploy`.
 
 
+Whenever any of those repos' `master` branches are changed upstream, you must run `./clone https` again to update the ones you are not working on. The command will run `git pull --ff-only`, so it won't affect repositories where there is work in progress.
+
+
 ## Removing dead jobs from nomad
 
 In order to remove dead jobs from nomad run the following command:
