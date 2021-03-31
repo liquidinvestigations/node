@@ -353,6 +353,36 @@ job "hoover-deps" {
     }
   }
 
+  group "nlp-service" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "nlp" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('nlp-service')}"
+        port_map {
+          nlp = 5000
+        }
+        labels {
+          liquid_task = "hoover-nlp"
+        }
+        memory_hard_limit = ${4 * config.nlp_memory_limit}
+      }
+
+      resources {
+        memory = ${config.nlp_memory_limit}
+        cpu = 1500
+        network {
+          mbits = 1
+          port "nlp" {}
+        }
+      }
+    }
+  }
+
   group "rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }
