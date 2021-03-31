@@ -160,6 +160,8 @@ class Configuration:
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=800)
 
+        self.nlp_memory_limit = self.ini.getint('liquid', 'nlp_memory_limit', fallback=800)
+
         self.hypothesis_memory_limit = \
             self.ini.getint('liquid',
                             'hypothesis_memory_limit',

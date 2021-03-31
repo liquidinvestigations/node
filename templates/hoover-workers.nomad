@@ -61,6 +61,7 @@ job "hoover-workers" {
           # exec tail -f /dev/null
           if  [ -z "$SNOOP_TIKA_URL" ] \
                   || [ -z "$SNOOP_DB" ] \
+                  || [ -z "$SNOOP_NLP_URL" ] \
                   || [ -z "$SNOOP_ES_URL" ] \
                   || [ -z "$SNOOP_AMQP_URL" ]; then
             echo "incomplete configuration!"
@@ -79,6 +80,7 @@ job "hoover-workers" {
         {% if config.snoop_thumbnail_generator_enabled %}
           SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
         {% endif %}
+        SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         {% if config.snoop_pdf_preview_enabled %}

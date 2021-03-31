@@ -524,7 +524,64 @@ job "hoover-deps" {
   }
   {% endif %}
 
-  group "search-rabbitmq" {
+   group "nlp-service" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "nlp" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('nlp-service')}"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nlp-service/data:/data",
+        ]
+        port_map {
+          nlp = 5000
+        }
+        labels {
+          liquid_task = "hoover-nlp"
+        }
+        memory_hard_limit = ${4 * config.nlp_memory_limit}
+      }
+      env {
+        NLP_SERVICE_PRESET = "${config.nlp_preset}"
+        NLP_SERVICE_FALLBACK_LANGUAGE = "${config.nlp_fallback_language}"
+        NLP_SPACY_TEXT_LIMIT = "${config.nlp_spacy_text_limit}"
+        GUNICORN_WORKERS = ${config.nlp_gunicorn_workers}
+        GUNICORN_THREADS = ${config.nlp_gunicorn_threads}
+      }
+      resources {
+        memory = ${config.nlp_memory_limit}
+        cpu = 1500
+        network {
+          mbits = 1
+          port "nlp" {}
+        }
+      }
+      service {
+        name = "hoover-nlp-service"
+        tags = ["fabio-/_nlp strip=/_nlp"]
+        port = "nlp"
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/config"
+          interval = "${check_interval}"
+          timeout = "600s"
+        }
+      }
+    }
+  }
+
+  group "rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
