@@ -28,6 +28,8 @@
         cluster.routing.allocation.disk.watermark.flood_stage = "99%"
         cluster.info.update.interval = "10m"
 
+        http.max_content_length = "1900mb"
+
         xpack.license.self_generated.type = "basic"
         xpack.monitoring.collection.enabled = "true"
         xpack.monitoring.collection.interval = "30s"
