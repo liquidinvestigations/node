@@ -351,6 +351,57 @@ job "hoover-deps" {
     }
   }
 
+  group "thumbnail-service" {
+
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "thumbnail" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('thumbnail-service')}"
+        port_map {
+          thumbnail = 5001
+        }
+        labels {
+          liquid_task = "hoover-thumbnail"
+        }
+        memory_hard_limit = ${4 * config.thumbnail_memory_limit}
+      }
+
+      resources {
+        memory = ${config.thumbnail_memory_limit}
+        cpu = 500
+        network {
+          mbits = 1
+          port "thumbnail" {}
+        }
+      }
+
+      service {
+        name = "hoover-thumbnail"
+        port = "thumbnail"
+        tags = ["fabio-/_thumbnail strip=/_thumbnail"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/version"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+        check_restart {
+          limit = 5
+          grace = "480s"
+        }
+      }
+    }
+  }
+
+  
+
   group "rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }
