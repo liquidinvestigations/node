@@ -358,25 +358,36 @@ job "hoover-deps" {
 
     task "thumbnail" {
       ${ task_logs() }
+      user = "root"
 
       driver = "docker"
       config {
         image = "${config.image('thumbnail-service')}"
         port_map {
-          thumbnail = 5001
+          thumbnail = 8000
         }
         labels {
           liquid_task = "hoover-thumbnail"
         }
         memory_hard_limit = ${4 * config.thumbnail_memory_limit}
+        mounts = [ 
+          {
+            type = "tmpfs"
+            target = "/tmp"
+            readonly = false
+            tmpfs_options {
+              # set size here if you want
+            }
+          }
+        ]
       }
 
       resources {
         memory = ${config.thumbnail_memory_limit}
         cpu = 500
         network {
-          mbits = 1
           port "thumbnail" {}
+          mbits = 1
         }
       }
 
@@ -388,7 +399,7 @@ job "hoover-deps" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/version"
+          path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
