@@ -276,10 +276,11 @@ def _update_images():
 
 
 @liquid_commands.command()
+@click.option('--no-update-images', 'update_images', is_flag=True, default=True)
 @click.option('--no-secrets', 'secrets', is_flag=True, default=True)
 @click.option('--no-checks', 'checks', is_flag=True, default=True)
 @click.option('--new-images-only', 'new_images_only', is_flag=True, default=False)
-def deploy(secrets, checks, new_images_only):
+def deploy(update_images, secrets, checks, new_images_only):
     """Run all the jobs in nomad."""
 
     check_system_config()
@@ -287,10 +288,11 @@ def deploy(secrets, checks, new_images_only):
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
     consul.set_kv('liquid_http_protocol', config.liquid_http_protocol)
 
-    if not _update_images():
-        if new_images_only:
-            log.warning('No new images and --new-images-only was set; skipping deploy')
-            return
+    if update_images:
+        if not _update_images():
+            if new_images_only:
+                log.warning('No new images and --new-images-only was set; skipping deploy')
+                return
 
     if secrets:
         vault.ensure_engine()

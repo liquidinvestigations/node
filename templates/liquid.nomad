@@ -34,6 +34,8 @@ job "liquid" {
 
         memory_hard_limit = 2048
       }
+      # used to auto-restart containers when running deploy, after you make a new commit
+      env { __GIT_TAGS = "${liquidinvestigations_core_git}" }
 
       template {
         data = <<-EOF

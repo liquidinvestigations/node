@@ -1,0 +1,56 @@
+#!/bin/bash -e
+
+# Script to auto-redeploy any changed code in any container.
+# Please run a full `./liquid deploy` on any change involving docker images or secrets.
+
+# To install inotify-tools:
+# apt-get install inotify-tools
+
+# Origin for inotifywait + git-check-ignore snippet:
+# https://github.com/cirosantilli/cirosantilli.github.io/blob/adf4c57cdcc4bde958e55939a27f0457730ccd23/run
+# Origin for debouncer snippet:
+# https://cozy.computer/generic-debounce-in-bash
+
+
+long_deploy() {
+  ./liquid deploy
+}
+
+short_deploy() {
+  ./liquid deploy --no-update-images --no-secrets --no-checks || true
+}
+
+main() {
+  debounce_pid=''
+  inotifywait --event close_write --monitor --recursive . |
+    while read -r directory events filename; do
+      if ! echo "$directory" | grep -Eq '\/\.git\/' &&
+         ! git -C "${directory}" check-ignore --non-matching --verbose "${directory}/${filename}" >/dev/null 2>&1
+      then
+        echo "$(date) -- CHANGED ${directory}${filename} ${events} "
+
+        if test -n "${debounce_pid}" && ps -p "${debounce_pid}" > /dev/null; then
+          echo "Killing previous run..."
+          kill -9 "${debounce_pid}"
+        fi
+        (
+          sleep 2
+          short_deploy
+        ) &
+        debounce_pid="${!}"
+      else
+        # don't print changes to .git, those happen all the time
+        if ! echo "$directory" | grep -Eq '\/\.git\/'
+        then
+          echo "$(date) -- IGNORED ${directory}${filename} ${events} "
+        fi
+      fi
+    done
+}
+
+# cd to file
+cd "$(dirname ${BASH_SOURCE[0]})"
+
+#long_deploy
+
+main

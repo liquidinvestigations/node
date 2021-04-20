@@ -36,6 +36,8 @@ job "hoover" {
         }
         memory_hard_limit = ${3 * config.hoover_web_memory_limit}
       }
+      # This container uses "runserver" so we don't need to auto-reload
+      # env { __GIT_TAGS = "${hoover_search_git}" }
 
       resources {
         memory = ${config.hoover_web_memory_limit}
@@ -157,6 +159,8 @@ job "hoover" {
         ]
         memory_hard_limit = 400
       }
+      # used to auto-restart containers when running deploy, after you make a new commit
+      env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       template {
         data = <<-EOF
@@ -169,7 +173,7 @@ job "hoover" {
             sleep 5
             exit 1
           fi
-          exec celery -A snoop.data beat -l INFO --pidfile=
+          exec celery -A snoop.data beat -l INFO --pidfile= -s /tmp/celery-beat-db
           EOF
         env = false
         destination = "local/startup.sh"
@@ -259,6 +263,8 @@ job "hoover" {
         }
         memory_hard_limit = 3333
       }
+      # used to auto-restart containers when running deploy, after you make a new commit
+      env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       resources {
         memory = 333
@@ -360,6 +366,8 @@ job "hoover" {
         }
         memory_hard_limit = ${3 * config.hoover_web_memory_limit}
       }
+      # This container uses "runserver" so we don't need to auto-reload
+      # env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       env {
         SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"

@@ -38,10 +38,33 @@ mount_local_repos = true
 version_track = testing
 ```
 
-And re-run `./liquid deploy`.
+And run:
+```
+./liquid deploy
+./autoreload
+```
+
+The `autoreload` script will re-run `./liquid deploy --no-update-images
+--no-secrets --no-checks` every time there is a relevant code change in the
+current directory. The `autoreload` command covers all the repositories from
+`repos` as well as the current repository. The `.gitignore` files in every repo
+are respected when refreshing; events on ignored files are printed too for
+debugging. Finally, the `autoreload` command will debounce running `deploy` by
+killing its own child process when a new one is supposed to be created.
+
+The `autoreload` command will not work for the following changes:
+- change in containers (because of `--no-update-images`)
+- change in secrets (because of `--no-secrets`)
+
+The `autoreload` command does not output failures or errors (because of
+`--no-checks`). Use the Nomad UI for viewing logs.
 
 
-Whenever any of those repos' `master` branches are changed upstream, you must run `./clone https` again to update the ones you are not working on. The command will run `git pull --ff-only`, so it won't affect repositories where there is work in progress.
+Whenever any of those repos' `master` branches are changed upstream, you must
+run `./clone https` again to update the ones you are not working on. The
+command will run `git pull --ff-only`, so it won't affect repositories where
+there is work in progress. You want to do this every time a minor release is made.
+
 
 
 ## Removing dead jobs from nomad

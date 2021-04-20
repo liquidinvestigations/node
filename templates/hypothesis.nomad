@@ -33,6 +33,8 @@ job "hypothesis" {
         }
         memory_hard_limit = ${3 * config.hypothesis_memory_limit}
       }
+      # used to auto-restart containers when running deploy, after you make a new commit
+      env { __GIT_TAGS = "${hypothesis_h_h_git}" }
 
       template {
         data = <<-EOF
