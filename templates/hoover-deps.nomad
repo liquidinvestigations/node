@@ -360,9 +360,17 @@ job "hoover-deps" {
     task "nlp" {
       ${ task_logs() }
 
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         image = "${config.image('nlp-service')}"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nlp-service/data:/data",
+        ]
         port_map {
           nlp = 5000
         }
@@ -371,13 +379,28 @@ job "hoover-deps" {
         }
         memory_hard_limit = ${4 * config.nlp_memory_limit}
       }
-
+      env {
+        NLP_SERVICE_PRESET = "full_sm"
+      }
       resources {
         memory = ${config.nlp_memory_limit}
         cpu = 1500
         network {
           mbits = 1
           port "nlp" {}
+        }
+      }
+      service {
+        name = "hoover-nlp-service"
+        tags = ["fabio-/_nlp strip=/_nlp"]
+        port = "nlp"
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/config"
+          interval = "${check_interval}"
+          timeout = "600s"
         }
       }
     }
