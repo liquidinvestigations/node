@@ -46,6 +46,8 @@ job "hoover-workers" {
         }
         memory_hard_limit = ${config.snoop_worker_hard_memory_limit}
       }
+      # used to auto-restart containers when running deploy, after you make a new commit
+      env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       resources {
         memory = ${config.snoop_worker_memory_limit}

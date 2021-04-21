@@ -171,6 +171,8 @@ job "hoover-nginx" {
         args = ["sh", "/local/startup.sh"]
         memory_hard_limit = 3000
       }
+      # used to auto-restart containers when running deploy, after you make a new commit
+      env { __GIT_TAGS = "${hoover_ui_src_git}" }
 
       template {
         data = <<-EOF

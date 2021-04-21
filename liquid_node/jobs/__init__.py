@@ -1,3 +1,4 @@
+import subprocess
 import logging
 import os
 from pathlib import Path
@@ -97,12 +98,23 @@ def set_volumes_paths(substitutions={}):
     }
 
     for repo, repo_config in repos.items():
-        key = f"{repo_config['org']}_{repo}_repo"
+        key_repo = f"{repo_config['org']}_{repo}_repo"
+        key_git = f"{repo_config['org']}_{repo}_git"
 
-        substitutions[key] = ''
+        substitutions[key_repo] = ''
+        substitutions[key_git] = ''
         if config.mount_local_repos:
             if Path(repo_config['local']).is_dir():
-                substitutions[key] = f"\"{repo_config['local']}:{repo_config['target']}\",\n"
+                substitutions[key_repo] = f"\"{repo_config['local']}:{repo_config['target']}\",\n"
+                tag = subprocess.check_output(
+                    f"git -C {repo_config['local']} describe  --tags --dirty --broken",
+                    shell=True,
+                ).decode('utf-8').strip()
+                md5sum = subprocess.check_output(
+                    f"git -C {repo_config['local']} diff HEAD | md5sum",
+                    shell=True,
+                ).decode('utf-8').strip()
+                substitutions[key_git] = tag + md5sum
             else:
                 log.warn(f'Invalid repo path "{repo_config["local"]}"')
 
