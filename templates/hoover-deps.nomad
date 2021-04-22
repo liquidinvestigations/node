@@ -393,6 +393,10 @@ job "hoover-deps" {
         }
       }
 
+      env {
+        WEB_CONCURRENCY = 4
+      }
+
       service {
         name = "hoover-thumbnail"
         port = "thumbnail"
@@ -404,10 +408,6 @@ job "hoover-deps" {
           path = "/"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
-        }
-        check_restart {
-          limit = 5
-          grace = "480s"
         }
       }
     }
