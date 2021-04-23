@@ -1,6 +1,34 @@
 # Liquid Investigations Change Log
 
-## version 0.14.2 (2021-03-30)
+## unreleased
+
+This release brings Hoover UI and backend improvements.
+
+### Improvements
+
+- Improved [User Guides](https://github.com/liquidinvestigations/docs/wiki/User-Guide)
+  including a new, more complete [Hoover User Guide](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hoover).
+  as well as updated User Guide pages for all other apps:
+  [Rocket.Chat](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Rocket.Chat),
+  [DokuWiki](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-DokuWiki),
+  [CodiMD](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-CodiMD),
+  [Nextcloud](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Nextcloud),
+  and
+  [Hypothesis](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hypothesis).
+- Divided the filters into categories and re-worked bucket list display UI.
+- Added aggregations for document size and text word count.
+
+
+### Bug Fixes
+
+- Fixed UI bug where download links inside document children lists would be wrong.
+- Fixed performance problem when unpacking very large `.tar` archives.
+- Fixed bug where the `trash` tag couldn't be ignored when searching.
+- Fixed bug where modified search query would be lost when changing Sort or Filters.
+- Fixed bug where some documents would be opened in a new tab instead of downloaded.
+
+
+## Version 0.14.2 (2021-03-30)
 
 This release brings Hoover UI improvements and some
 [new Hoover developer documentation](https://hoover-snoop2.readthedocs.io/en/latest/).
@@ -17,7 +45,7 @@ This release brings Hoover UI improvements and some
 - Fixed bug where TIF images wouldn't render: added browser renderer for `.TIF`/`.TIFF` images.
 
 
-## version 0.14.1 (2021-03-16)
+## Version 0.14.1 (2021-03-16)
 
 This is a bug fixing release targeting small Hoover UI issues.
 
@@ -32,7 +60,7 @@ This is a bug fixing release targeting small Hoover UI issues.
 - Fixed a bug where Document pages would stay blank or loading in case of document fetching error. The pages will now display a proper error message.
 
 
-## version 0.14.0 (2021-03-12)
+## Version 0.14.0 (2021-03-12)
 
 ### New Features
 
@@ -85,6 +113,6 @@ We have upgraded Hoover's database to the latest version, and that means a dump/
 
 
 
-## versions 0.13 and older
+## Versions 0.13 and older
 
 Read the output of `git show v0.X.X` or the tag descriptions at https://github.com/liquidinvestigations/node/releases.
