@@ -355,6 +355,8 @@ job "hoover-deps" {
 
   group "thumbnail-service" {
 
+    count = ${config.thumbnail_count}
+
     ${ continuous_reschedule() }
     ${ group_disk() }
 
