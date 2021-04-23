@@ -1,21 +1,23 @@
 # Liquid Investigations Change Log
 
-## unreleased
+## Version 0.14.3 (2021-04-23)
 
-This release brings Hoover UI and backend improvements.
+This release brings Hoover UI and backend improvements, as well as re-written
+[User Guides](https://github.com/liquidinvestigations/docs/wiki/User-Guide).
+These User Guide pages include a new, more complete
+[Hoover User Guide](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hoover).
+as well as updated User Guide pages for all other apps:
+[Rocket.Chat](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Rocket.Chat),
+[DokuWiki](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-DokuWiki),
+[CodiMD](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-CodiMD),
+[Nextcloud](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Nextcloud),
+and
+[Hypothesis](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hypothesis).
 
 ### Improvements
 
-- Improved [User Guides](https://github.com/liquidinvestigations/docs/wiki/User-Guide)
-  including a new, more complete [Hoover User Guide](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hoover).
-  as well as updated User Guide pages for all other apps:
-  [Rocket.Chat](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Rocket.Chat),
-  [DokuWiki](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-DokuWiki),
-  [CodiMD](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-CodiMD),
-  [Nextcloud](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Nextcloud),
-  and
-  [Hypothesis](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hypothesis).
-- Divided the filters into categories and re-worked bucket list display UI.
+- Added more structure to the aggregations by grouping them into categories. Only
+  one list is shown at a time; the others only show aggregated hit counts.
 - Added aggregations for document size and text word count.
 
 
