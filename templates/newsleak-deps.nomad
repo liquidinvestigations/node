@@ -1,11 +1,11 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%} 
+{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
 job "newsleak-deps" {
   datacenters = ["dc1"]
   type = "service"
   priority = 60
 
-  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} } 
+  spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
   group "newsleak-pg" {
     ${ continuous_reschedule() }
@@ -40,12 +40,12 @@ job "newsleak-deps" {
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
-        memory_hard_limit = 1200
+        memory_hard_limit = 1500
       }
       template {
         data = <<EOF
-          POSTGRES_PASSWORD=newsreader 
-          POSTGRES_USER=newsreader 
+          POSTGRES_PASSWORD=newsreader
+          POSTGRES_USER=newsreader
           POSTGRES_DB=newsleak
         EOF
         destination = "local/postgres.env"
@@ -53,7 +53,6 @@ job "newsleak-deps" {
       }
 
       ${ set_pg_password_template('newsreader') }
-      
       resources {
         memory = 350
         network {
@@ -165,10 +164,9 @@ job "newsleak-deps" {
           timeout = "${check_timeout}"
         }
       }
-    
+
       resources {
-        cpu = 600
-        memory = 350
+        memory = 2000
         network {
           mbits = 1
           port "ner" {}
