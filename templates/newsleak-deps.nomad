@@ -53,6 +53,10 @@ job "newsleak-deps" {
       }
 
       ${ set_pg_password_template('newsreader') }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
       resources {
         memory = 350
         network {
@@ -127,7 +131,11 @@ job "newsleak-deps" {
 
       resources {
         cpu = 600
+<<<<<<< Updated upstream
         memory = ${config.elasticsearch_memory_limit}
+=======
+        memory = 2500
+>>>>>>> Stashed changes
         network {
           mbits = 1
           port "http" {}
