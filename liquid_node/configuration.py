@@ -8,7 +8,7 @@ from pathlib import Path
 from .util import import_string
 from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, hypothesis, codimd, ci
+    nextcloud, hypothesis, codimd, ci, newsleak
 
 
 def split_lang_codes(option):
@@ -20,7 +20,7 @@ def split_lang_codes(option):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
-                'hypothesis', 'codimd',)
+                'hypothesis', 'codimd', 'newsleak')
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -36,7 +36,8 @@ class Configuration:
         'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
         'codimd': 'is a real-time collaboration pad.',
         'nextcloud': 'has a file share system and a contact list of users.',
-        'rocketchat': 'is the chat app.'
+        'rocketchat': 'is the chat app.',
+        'newsleak' : 'University of Hamburg entity extraction and visualization tool'
     }
 
     ALL_JOBS = [
@@ -68,6 +69,9 @@ class Configuration:
         ci.Drone(),
         ci.Deps(),
         ci.DroneWorkers(),
+        newsleak.Newsleak(),
+        newsleak.Deps(),
+        newsleak.Proxy()
     ]
 
     def __init__(self):
@@ -306,7 +310,7 @@ class Configuration:
             client = tag('h-client')
             return f'h: {h},  client: {client}'
 
-        if name in ['dokuwiki', 'nextcloud']:
+        if name in ['dokuwiki', 'nextcloud', 'newsleak']:
             return tag('liquid-' + name)
 
         return tag(name)
