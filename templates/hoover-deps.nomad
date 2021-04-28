@@ -364,7 +364,7 @@ job "hoover-deps" {
       config {
         image = "${config.image('pdf-preview')}"
         port_map {
-          pdf-preview = 3000
+          pdf_preview = 3000
         }
         labels {
           liquid_task = "hoover-pdf-preview"
@@ -377,7 +377,7 @@ job "hoover-deps" {
         cpu = 500
         network {
           mbits = 1
-          port "pdf-preview" {}
+          port "pdf_preview" {}
         }
       }
 
@@ -387,13 +387,13 @@ job "hoover-deps" {
 
       service {
         name = "hoover-pdf-preview"
-        port = "pdf-preview"
+        port = "pdf_preview"
         tags = ["fabio-/_pdf-preview strip=/_pdf-preview"]
         check {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/version"
+          path = "/ping"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
