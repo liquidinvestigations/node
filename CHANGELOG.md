@@ -1,5 +1,16 @@
 # Liquid Investigations Change Log
 
+## Version 0.14.4 (2021-04-28)
+
+This is a Hoover UI hotfix release.
+
+### Bug fixes
+
+- Bring back search times closer previous known times by removing the implicit
+  `NOT Public Tag: trash` filter from Search (added in `v0.14.0`). This tag will
+  behave like any other public tag (same as before `v0.14.0`).
+
+
 ## Version 0.14.3 (2021-04-23)
 
 This release brings Hoover UI and backend improvements, as well as re-written
