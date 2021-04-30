@@ -160,7 +160,6 @@ class Configuration:
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=800)
 
-        self.nlp_memory_limit = self.ini.getint('liquid', 'nlp_memory_limit', fallback=800)
 
         self.hypothesis_memory_limit = \
             self.ini.getint('liquid',
@@ -236,6 +235,7 @@ class Configuration:
         self.nlp_fallback_language = self.ini.get('nlp_service', 'fallback_language', fallback="en")
         self.nlp_preset = self.ini.get('nlp_service', 'preset', fallback="full_lg")
         self.nlp_spacy_text_limit = self.ini.get('nlp_service', 'spacy_text_limit', fallback=100000)
+        self.nlp_memory_limit = self.ini.getint('liquid', 'nlp_memory_limit', fallback=1200)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
