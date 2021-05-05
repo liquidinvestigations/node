@@ -1,5 +1,17 @@
 # Liquid Investigations Change Log
 
+## Version 0.14.5 (2021-05-05)
+
+This is a Hoover UI hotfix release that brings more stability when searching in
+a large number of collections. This is done by splitting aggregation search
+requests into smaller ones, and by retrying timed out and failed requests.
+
+
+### Improvements
+
+- Added configuration option called `hoover_ui_agg_split` for splitting aggregations into consecutive requests.
+- Added configuration option called `hoover_ui_search_retry` for maximum number of retries allowed for failed search requests. See the [example config file](https://github.com/liquidinvestigations/node/blob/v0.14.5/examples/liquid.ini) for more details.
+
 ## Version 0.14.4 (2021-04-28)
 
 This is a Hoover UI hotfix release.
