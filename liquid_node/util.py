@@ -19,16 +19,15 @@ def stderr_muted():
     """
     stderr = sys.stderr
     stderr_fd = stderr.fileno()
-    with os.fdopen(os.dup(stderr_fd), 'wb') as copied:
-        stderr.flush()  # flush library buffers that dup2 knows nothing about
+    with os.fdopen(os.dup(stderr_fd), 'wb') as stderr_orig:
+        stderr.flush()
         with open(os.devnull, 'wb') as to_file:
-            os.dup2(to_file.fileno(), stderr_fd)  # $ exec > to
+            os.dup2(to_file.fileno(), stderr_fd)
         try:
-            yield stderr  # allow code to be run with the redirected stderr
+            yield stderr
         finally:
-            # restore stderr to its previous value
             stderr.flush()
-            os.dup2(copied.fileno(), stderr_fd)  # $ exec >&copied
+            os.dup2(stderr_orig.fileno(), stderr_fd)
 
 
 def first(items, name_plural='items'):
