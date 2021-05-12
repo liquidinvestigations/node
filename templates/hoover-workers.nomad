@@ -61,6 +61,7 @@ job "hoover-workers" {
           # exec tail -f /dev/null
           if  [ -z "$SNOOP_TIKA_URL" ] \
                   || [ -z "$SNOOP_DB" ] \
+                  || [ -z "$SNOOP_PDF_PREVIEW_URL" ] \
                   || [ -z "$SNOOP_ES_URL" ] \
                   || [ -z "$SNOOP_AMQP_URL" ]; then
             echo "incomplete configuration!"
@@ -78,6 +79,7 @@ job "hoover-workers" {
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+        SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
 
         SNOOP_MIN_WORKERS = "${config.snoop_min_workers_per_node}"
         SNOOP_MAX_WORKERS = "${config.snoop_max_workers_per_node}"

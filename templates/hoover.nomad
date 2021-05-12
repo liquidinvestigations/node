@@ -189,6 +189,7 @@ job "hoover" {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
 
@@ -279,6 +280,7 @@ job "hoover" {
           if  [ -z "$SNOOP_TIKA_URL" ] \
                   || [ -z "$SNOOP_DB" ] \
                   || [ -z "$SNOOP_ES_URL" ] \
+                  || [ -z "$SNOOP_PDF_PREVIEW_URL" ] \
                   || [ -z "$SNOOP_AMQP_URL" ]; then
             echo "incomplete configuration!"
             sleep 5
@@ -294,6 +296,7 @@ job "hoover" {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
 
         SNOOP_MIN_WORKERS = "3"
@@ -401,6 +404,7 @@ job "hoover" {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
 

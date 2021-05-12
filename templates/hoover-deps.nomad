@@ -353,6 +353,56 @@ job "hoover-deps" {
     }
   }
 
+  group "pdf-preview" {
+    count = ${config.pdf_preview_count}
+
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "pdf-preview" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('pdf-preview')}"
+        port_map {
+          pdf_preview = 3000
+        }
+        labels {
+          liquid_task = "hoover-pdf-preview"
+        }
+        memory_hard_limit = ${4 * config.pdf_preview_memory_limit}
+      }
+
+      resources {
+        memory = ${config.pdf_preview_memory_limit}
+        cpu = 500
+        network {
+          mbits = 1
+          port "pdf_preview" {}
+        }
+      }
+
+      env {
+        # might need envs here
+      }
+
+      service {
+        name = "hoover-pdf-preview"
+        port = "pdf_preview"
+        tags = ["fabio-/_pdf-preview strip=/_pdf-preview"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/ping"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
   group "rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }
