@@ -160,9 +160,6 @@ class Configuration:
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=800)
 
-        self.pdf_preview_count = self.ini.getint('liquid', 'pdf_preview_count', fallback=1)
-        self.pdf_preview_memory_limit = self.ini.getint('liquid', 'pdf_preview_memory_limit', fallback=900)
-
         self.hypothesis_memory_limit = \
             self.ini.getint('liquid',
                             'hypothesis_memory_limit',
@@ -201,6 +198,11 @@ class Configuration:
         self.snoop_worker_cpu_limit = 1500 * self.snoop_min_workers_per_node
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
         self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="6s")
+
+        self.snoop_pdf_preview_enabled = self.ini.getboolean('snoop', 'pdf_preview_enabled', fallback=False)
+        self.snoop_pdf_preview_count = self.ini.getint('snoop', 'pdf_preview_count', fallback=1)
+        self.snoop_pdf_preview_memory_limit = self.ini.getint('snoop', 'pdf_preview_memory_limit',
+                                                              fallback=900)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')

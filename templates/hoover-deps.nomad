@@ -89,7 +89,7 @@ job "hoover-deps" {
       }
 
       resources {
-        cpu = 600
+        cpu = 400
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -176,7 +176,7 @@ job "hoover-deps" {
         env = true
       }
       resources {
-        cpu = 500
+        cpu = 400
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -308,7 +308,7 @@ job "hoover-deps" {
 
       resources {
         memory = ${config.tika_memory_limit}
-        cpu = 500
+        cpu = 400
         network {
           mbits = 1
           port "tika" {}
@@ -353,8 +353,9 @@ job "hoover-deps" {
     }
   }
 
+  {% if config.snoop_pdf_preview_enabled %}
   group "pdf-preview" {
-    count = ${config.pdf_preview_count}
+    count = ${config.snoop_pdf_preview_count}
 
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -371,12 +372,12 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-pdf-preview"
         }
-        memory_hard_limit = ${4 * config.pdf_preview_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit}
       }
 
       resources {
-        memory = ${config.pdf_preview_memory_limit}
-        cpu = 500
+        memory = ${config.snoop_pdf_preview_memory_limit}
+        cpu = 100
         network {
           mbits = 1
           port "pdf_preview" {}
@@ -402,6 +403,7 @@ job "hoover-deps" {
       }
     }
   }
+  {% endif %}
 
   group "rabbitmq" {
     ${ continuous_reschedule() }
@@ -607,7 +609,7 @@ job "hoover-deps" {
       ${ set_pg_password_template('snoop') }
 
       resources {
-        cpu = 600
+        cpu = 400
         memory = ${config.snoop_postgres_memory_limit}
         network {
           mbits = 1
