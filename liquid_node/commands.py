@@ -439,7 +439,11 @@ def remove_last_es_data_node():
     log.info('Initial doc counts per node: ' + str({v['name']: v['indices']['docs']['count'] for v in es.get('/_nodes/stats/indices')['nodes'].values()}))  # noqa: E501
     log.info('Adding transient exclude rule for ' + es_node_name)
     req_data = {"transient": {"cluster.routing.allocation.exclude._name": es_node_name,
-                              "cluster.routing.allocation.enable": "all"}}
+                              "cluster.routing.allocation.enable": "all",
+                              "indices.recovery.max_bytes_per_sec": "80mb",
+                              "indices.recovery.concurrent_streams": 3,
+                              "cluster.routing.allocation.node_concurrent_recoveries": 3,
+                              "cluster.routing.allocation.cluster_concurrent_rebalance": 3}}
     resp = es.put('/_cluster/settings', data=req_data)
     assert resp['acknowledged'], 'bad response from es'
     for i in range(RETRY_COUNT):
