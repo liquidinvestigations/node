@@ -1,5 +1,23 @@
 # Liquid Investigations Change Log
 
+## Version 0.14.6 (2021-05-21)
+
+This version is a Hoover hotfix release that adjusts various parameters for
+shorter search times. This should help lower search times and have more
+expansive searches fit the timeout.
+
+
+### Improvements
+
+- Increased Hoover search timeout from 50s to 100s.
+- Reduced Hoover search result bucket count from 100 to 44. More results can be
+  still pulled when clicking on the "More" button.
+- Reduced number of matched highlights per result from 3 to 2.
+- Added management command `./liquid remove-last-es-data-node` to migrate data
+  off the last Elasticsearch data server. This command automates some
+  manual steps required for this operation.
+
+
 ## Version 0.14.5 (2021-05-05)
 
 This is a Hoover UI hotfix release that brings more stability when searching in

@@ -2,8 +2,8 @@
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.3"
-        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
+        image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.15"
+        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && exec /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/${data_dir_name}:/usr/share/elasticsearch/data",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/repo:/es_repo",
@@ -38,7 +38,11 @@
         xpack.monitoring.collection.index.stats.timeout = "30s"
         xpack.monitoring.collection.index.recovery.timeout = "30s"
         xpack.monitoring.history.duration = "32d"
+
         path.repo = "/es_repo"
+
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UseG1GC -XX:MaxGCPauseMillis=300 -XX:G1HeapRegionSize=16m -verbose:gc"
+        LIQUID_HOOVER_ES_DATA_NODE_COUNT = "${config.elasticsearch_data_node_count}"
       }
 {%- endmacro %}
 
@@ -84,8 +88,6 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
 
       resources {
@@ -103,10 +105,10 @@ job "hoover-deps" {
         port = "http"
         tags = ["fabio-/_es strip=/_es"]
         check {
-          name = "http"
+          name = "http-cluster-status"
           initial_status = "critical"
           type = "http"
-          path = "/_cluster/health"
+          path = "/_cluster/health?timeout=${check_timeout}&wait_for_nodes=ge(${config.elasticsearch_data_node_count})"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -165,8 +167,6 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
       template {
         data = <<-EOF
