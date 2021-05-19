@@ -190,6 +190,9 @@ job "hoover" {
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        {% if config.snoop_pdf_preview_enabled %}
+          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
+        {% endif %}
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
 
@@ -297,6 +300,9 @@ job "hoover" {
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        {% if config.snoop_pdf_preview_enabled %}
+          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
+        {% endif %}
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
 
         SNOOP_MIN_WORKERS = "3"
@@ -405,6 +411,9 @@ job "hoover" {
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        {% if config.snoop_pdf_preview_enabled %}
+          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
+        {% endif %}
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
       }
 

@@ -1,6 +1,77 @@
 # Liquid Investigations Change Log
 
-## version 0.14.2 (2021-03-30)
+## Version 0.14.6 (2021-05-21)
+
+This version is a Hoover hotfix release that adjusts various parameters for
+shorter search times. This should help lower search times and have more
+expansive searches fit the timeout.
+
+
+### Improvements
+
+- Increased Hoover search timeout from 50s to 100s.
+- Reduced Hoover search result bucket count from 100 to 44. More results can be
+  still pulled when clicking on the "More" button.
+- Reduced number of matched highlights per result from 3 to 2.
+- Added management command `./liquid remove-last-es-data-node` to migrate data
+  off the last Elasticsearch data server. This command automates some
+  manual steps required for this operation.
+
+
+## Version 0.14.5 (2021-05-05)
+
+This is a Hoover UI hotfix release that brings more stability when searching in
+a large number of collections. This is done by splitting aggregation search
+requests into smaller ones, and by retrying timed out and failed requests.
+
+
+### Improvements
+
+- Added configuration option called `hoover_ui_agg_split` for splitting aggregations into consecutive requests.
+- Added configuration option called `hoover_ui_search_retry` for maximum number of retries allowed for failed search requests. See the [example config file](https://github.com/liquidinvestigations/node/blob/v0.14.5/examples/liquid.ini) for more details.
+
+## Version 0.14.4 (2021-04-28)
+
+This is a Hoover UI hotfix release.
+
+### Bug fixes
+
+- Bring back search times closer previous known times by removing the implicit
+  `NOT Public Tag: trash` filter from Search (added in `v0.14.0`). This tag will
+  behave like any other public tag (same as before `v0.14.0`).
+
+
+## Version 0.14.3 (2021-04-23)
+
+This release brings Hoover UI and backend improvements, as well as re-written
+[User Guides](https://github.com/liquidinvestigations/docs/wiki/User-Guide).
+These User Guide pages include a new, more complete
+[Hoover User Guide](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hoover).
+as well as updated User Guide pages for all other apps:
+[Rocket.Chat](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Rocket.Chat),
+[DokuWiki](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-DokuWiki),
+[CodiMD](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-CodiMD),
+[Nextcloud](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Nextcloud),
+and
+[Hypothesis](https://github.com/liquidinvestigations/docs/wiki/User-Guide%3A-Hypothesis).
+
+### Improvements
+
+- Added more structure to the aggregations by grouping them into categories. Only
+  one list is shown at a time; the others only show aggregated hit counts.
+- Added aggregations for document size and text word count.
+
+
+### Bug Fixes
+
+- Fixed UI bug where download links inside document children lists would be wrong.
+- Fixed performance problem when unpacking very large `.tar` archives.
+- Fixed bug where the `trash` tag couldn't be ignored when searching.
+- Fixed bug where modified search query would be lost when changing Sort or Filters.
+- Fixed bug where some documents would be opened in a new tab instead of downloaded.
+
+
+## Version 0.14.2 (2021-03-30)
 
 This release brings Hoover UI improvements and some
 [new Hoover developer documentation](https://hoover-snoop2.readthedocs.io/en/latest/).
@@ -17,7 +88,7 @@ This release brings Hoover UI improvements and some
 - Fixed bug where TIF images wouldn't render: added browser renderer for `.TIF`/`.TIFF` images.
 
 
-## version 0.14.1 (2021-03-16)
+## Version 0.14.1 (2021-03-16)
 
 This is a bug fixing release targeting small Hoover UI issues.
 
@@ -32,7 +103,7 @@ This is a bug fixing release targeting small Hoover UI issues.
 - Fixed a bug where Document pages would stay blank or loading in case of document fetching error. The pages will now display a proper error message.
 
 
-## version 0.14.0 (2021-03-12)
+## Version 0.14.0 (2021-03-12)
 
 ### New Features
 
@@ -85,6 +156,6 @@ We have upgraded Hoover's database to the latest version, and that means a dump/
 
 
 
-## versions 0.13 and older
+## Versions 0.13 and older
 
 Read the output of `git show v0.X.X` or the tag descriptions at https://github.com/liquidinvestigations/node/releases.

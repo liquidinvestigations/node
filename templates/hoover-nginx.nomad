@@ -199,6 +199,11 @@ job "hoover-nginx" {
         destination = "local/.env.local"
       }
 
+      env {
+        AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
+        MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
+      }
+
       resources {
         memory = 900
         network {

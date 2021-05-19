@@ -2,8 +2,8 @@
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.3"
-        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && /usr/local/bin/docker-entrypoint.sh"]
+        image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.15"
+        args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && exec /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/${data_dir_name}:/usr/share/elasticsearch/data",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/repo:/es_repo",
@@ -38,7 +38,11 @@
         xpack.monitoring.collection.index.stats.timeout = "30s"
         xpack.monitoring.collection.index.recovery.timeout = "30s"
         xpack.monitoring.history.duration = "32d"
+
         path.repo = "/es_repo"
+
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UseG1GC -XX:MaxGCPauseMillis=300 -XX:G1HeapRegionSize=16m -verbose:gc"
+        LIQUID_HOOVER_ES_DATA_NODE_COUNT = "${config.elasticsearch_data_node_count}"
       }
 {%- endmacro %}
 
@@ -84,12 +88,10 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
 
       resources {
-        cpu = 600
+        cpu = 400
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -103,10 +105,10 @@ job "hoover-deps" {
         port = "http"
         tags = ["fabio-/_es strip=/_es"]
         check {
-          name = "http"
+          name = "http-cluster-status"
           initial_status = "critical"
           type = "http"
-          path = "/_cluster/health"
+          path = "/_cluster/health?timeout=${check_timeout}&wait_for_nodes=ge(${config.elasticsearch_data_node_count})"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -165,8 +167,6 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UnlockDiagnosticVMOptions"
       }
       template {
         data = <<-EOF
@@ -176,7 +176,7 @@ job "hoover-deps" {
         env = true
       }
       resources {
-        cpu = 500
+        cpu = 400
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -308,7 +308,7 @@ job "hoover-deps" {
 
       resources {
         memory = ${config.tika_memory_limit}
-        cpu = 500
+        cpu = 400
         network {
           mbits = 1
           port "tika" {}
@@ -352,6 +352,58 @@ job "hoover-deps" {
       }
     }
   }
+
+  {% if config.snoop_pdf_preview_enabled %}
+  group "pdf-preview" {
+    count = ${config.snoop_pdf_preview_count}
+
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "pdf-preview" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('pdf-preview')}"
+        port_map {
+          pdf_preview = 3000
+        }
+        labels {
+          liquid_task = "hoover-pdf-preview"
+        }
+        memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit}
+      }
+
+      resources {
+        memory = ${config.snoop_pdf_preview_memory_limit}
+        cpu = 100
+        network {
+          mbits = 1
+          port "pdf_preview" {}
+        }
+      }
+
+      env {
+        # might need envs here
+      }
+
+      service {
+        name = "hoover-pdf-preview"
+        port = "pdf_preview"
+        tags = ["fabio-/_pdf-preview strip=/_pdf-preview"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/ping"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+  {% endif %}
 
   group "thumbnail-service" {
     count = ${config.thumbnail_count}
@@ -413,8 +465,6 @@ job "hoover-deps" {
       }
     }
   }
-
-  
 
   group "rabbitmq" {
     ${ continuous_reschedule() }
@@ -620,7 +670,7 @@ job "hoover-deps" {
       ${ set_pg_password_template('snoop') }
 
       resources {
-        cpu = 600
+        cpu = 400
         memory = ${config.snoop_postgres_memory_limit}
         network {
           mbits = 1

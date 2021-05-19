@@ -14,6 +14,8 @@ import logging
 import json
 import multiprocessing
 
+from .jsonapi import JsonApi
+
 log = logging.getLogger(__name__)
 
 
@@ -418,3 +420,56 @@ def getsecret(path=None):
         for section in vault.list():
             for key in vault.list(section):
                 print(f'{section}{key}')
+
+
+@liquid_commands.command()
+def remove_last_es_data_node():
+    """Send request to deactivate last Elasticsearch data node."""
+
+    RETRY_COUNT = 120
+    assert config.elasticsearch_data_node_count >= 1
+
+    es_node_name = 'data-' + str(config.elasticsearch_data_node_count - 1)
+    data_dir = config.liquid_volumes + "/hoover/es/" + es_node_name
+
+    es = JsonApi(f'http://{nomad.get_address()}:9990/_es')
+    es_health_url = '/_cluster/health?wait_for_status=yellow&timeout=60s&wait_for_no_relocating_shards=true&wait_for_no_initializing_shards=true&wait_for_active_shards=all'  # noqa: E501
+    assert not es.get(es_health_url)['timed_out'], 'es not in a healthy state yet'
+
+    log.info('Initial doc counts per node: ' + str({v['name']: v['indices']['docs']['count'] for v in es.get('/_nodes/stats/indices')['nodes'].values()}))  # noqa: E501
+    log.info('Adding transient exclude rule for ' + es_node_name)
+    req_data = {"transient": {"cluster.routing.allocation.exclude._name": es_node_name,
+                              "cluster.routing.allocation.enable": "all"}}
+    resp = es.put('/_cluster/settings', data=req_data)
+    assert resp['acknowledged'], 'bad response from es'
+    for i in range(RETRY_COUNT):
+        try:
+            resp = es.get(es_health_url)
+            if resp['timed_out']:
+                log.info(f'timed out minute {i+1}/{RETRY_COUNT}')
+                sleep(10)
+                continue
+            resp = es.get('/_nodes/stats/indices')
+            doc_count, doc_size = 0, 0
+            for node in resp['nodes'].values():
+                if node['name'] != es_node_name:
+                    continue
+                else:
+                    doc_count = node['indices']['docs']['count']
+                    doc_size = node['indices']['store']['size_in_bytes']
+                    doc_size_mb = str(int(doc_size / 2 ** 20)) + " MB"
+            if doc_count > 0 or doc_size > 0:
+                log.info(f'node still has {doc_count} documents, in total {doc_size_mb}, retry {i+1}/{RETRY_COUNT}')  # noqa: E501
+                sleep(60)
+                continue
+            else:
+                log.info("Node has no documents remaining!")
+                break
+        except Exception as e:
+            log.exception(e)
+            sleep(60)
+    log.info('Final doc counts per node: ' + str({v['name']: v['indices']['docs']['count'] for v in es.get('/_nodes/stats/indices')['nodes'].values()}))  # noqa: E501
+    log.warning("!!! 3 manual steps remaining !!!")
+    log.warning(f"- Decrement `elasticsearch_data_node_count` in `liquid.ini` (set = {config.elasticsearch_data_node_count - 1})")  # noqa: E501
+    log.warning("- Run: `./liquid deploy`")
+    log.warning("- Delete the directory: " + data_dir)

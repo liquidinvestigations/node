@@ -185,6 +185,9 @@ class Configuration:
             'liquid', 'hoover_es_max_concurrent_shard_requests', fallback=''
         )
         self.hoover_ui_force_pull = self.ini.getboolean('liquid', 'hoover_ui_force_pull', fallback=False)
+        self.hoover_ui_agg_split = self.ini.getint('liquid', 'hoover_ui_agg_split', fallback=1)
+        self.hoover_ui_search_retry = self.ini.getint('liquid', 'hoover_ui_search_retry', fallback=1)
+
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
         self.snoop_min_workers_per_node = self.ini.getint('snoop', 'min_workers_per_node', fallback=2)
         self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=4)
@@ -198,6 +201,11 @@ class Configuration:
         self.snoop_worker_cpu_limit = 1500 * self.snoop_min_workers_per_node
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
         self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="6s")
+
+        self.snoop_pdf_preview_enabled = self.ini.getboolean('snoop', 'pdf_preview_enabled', fallback=False)
+        self.snoop_pdf_preview_count = self.ini.getint('snoop', 'pdf_preview_count', fallback=1)
+        self.snoop_pdf_preview_memory_limit = self.ini.getint('snoop', 'pdf_preview_memory_limit',
+                                                              fallback=900)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')

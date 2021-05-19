@@ -1,10 +1,33 @@
 from time import sleep
 import base64
 import os
+import sys
 import logging
 from importlib import import_module
+from contextlib import contextmanager
+
 
 log = logging.getLogger(__name__)
+
+
+@contextmanager
+def stderr_muted():
+    """
+    A contextmanager that enables muting stderr including subprocesses.
+
+    It sets the stderr at file descriptor level to make sure subprocesses are also affected.
+    """
+    stderr = sys.stderr
+    stderr_fd = stderr.fileno()
+    with os.fdopen(os.dup(stderr_fd), 'wb') as stderr_orig:
+        stderr.flush()
+        with open(os.devnull, 'wb') as to_file:
+            os.dup2(to_file.fileno(), stderr_fd)
+        try:
+            yield stderr
+        finally:
+            stderr.flush()
+            os.dup2(stderr_orig.fileno(), stderr_fd)
 
 
 def first(items, name_plural='items'):
@@ -46,7 +69,11 @@ def retry(count=4, wait_sec=5, exp=2):
             current_wait = wait_sec
             for i in range(count):
                 try:
-                    return f(*args, **kwargs)
+                    if i == count - 1:
+                        return f(*args, **kwargs)
+                    else:
+                        with stderr_muted():
+                            return f(*args, **kwargs)
                 except Exception as e:
                     if i == count - 1:
                         log.exception(e)

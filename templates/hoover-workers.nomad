@@ -80,6 +80,9 @@ job "hoover-workers" {
         SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail/"
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+        {% if config.snoop_pdf_preview_enabled %}
+          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
+        {% endif %}
 
         SNOOP_MIN_WORKERS = "${config.snoop_min_workers_per_node}"
         SNOOP_MAX_WORKERS = "${config.snoop_max_workers_per_node}"
