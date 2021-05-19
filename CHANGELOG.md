@@ -9,6 +9,7 @@ expansive searches fit the timeout.
 
 ### Improvements
 
+- Added buttons to collapse categories and filter panes.
 - Increased Hoover search timeout from 50s to 100s.
 - Reduced Hoover search result bucket count from 100 to 44. More results can be
   still pulled when clicking on the "More" button.
