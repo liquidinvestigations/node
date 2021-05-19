@@ -1,5 +1,15 @@
 # Liquid Investigations Change Log
 
+## Version 0.14.7 (2021-05-21)
+
+This is a Hoover hotfix release that removes a problem with search queries that take more than 60s.
+
+### Bug fixes
+
+- Fixed an issue where requests (or other search queries) would return an error
+  if the time exceeded 60s.
+
+
 ## Version 0.14.6 (2021-05-21)
 
 This version is a Hoover hotfix release that adjusts various parameters for
