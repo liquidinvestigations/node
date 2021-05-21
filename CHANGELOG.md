@@ -1,5 +1,16 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+### Improvements
+
+- Hoover UI: aggregation N/A bucket counts are now loaded when element becomes
+  visible, instead of being loaded at search time. This should help reduce the
+  search aggregation response times.
+- Hoover UI: Added a configurable delay before retrying a failed request,
+  default is 3s.
+
+
 ## Version 0.14.7 (2021-05-21)
 
 This is a Hoover hotfix release that removes a problem with search queries that take more than 60s.
