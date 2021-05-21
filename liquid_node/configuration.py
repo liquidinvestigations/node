@@ -203,9 +203,13 @@ class Configuration:
         self.snoop_pdf_preview_count = self.ini.getint('snoop', 'pdf_preview_count', fallback=1)
         self.snoop_pdf_preview_memory_limit = self.ini.getint('snoop', 'pdf_preview_memory_limit',
                                                               fallback=900)
-        self.snoop_thumbnails_enabled = self.ini.getboolean('snoop', 'thumbnails_enabled', fallback=False)
-        self.thumbnail_count = self.ini.getint('snoop', 'thumbnail_count', fallback=1)
-        self.thumbnail_memory_limit = self.ini.getint('snoop', 'thumbnail_memory_limit', fallback=900)
+        self.snoop_thumbnail_generator_enabled = self.ini.getboolean('snoop', 'thumbnail_generator_enabled',
+                                                                     fallback=False)
+        self.snoop_thumbnail_generator_count = self.ini.getint('snoop', 'thumbnail_generator_count',
+                                                               fallback=1)
+        self.snoop_thumbnail_generator_memory_limit = self.ini.getint('snoop',
+                                                                      'thumbnail_generator_memory_limit',
+                                                                      fallback=900)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
