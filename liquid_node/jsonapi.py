@@ -50,8 +50,8 @@ class JsonApi:
             else:
                 raise HTTPError(url, res.status, res.msg, res.headers, res)
 
-    def get(self, url):
-        return self.request('GET', url)
+    def get(self, url, data=None):
+        return self.request('GET', url, data)
 
     def post(self, url, data=None):
         return self.request('POST', url, data)

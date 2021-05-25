@@ -9,3 +9,4 @@ __pycache__
 !/local_jobs/.gitkeep
 /.liquid.update.lock
 /versions.ini
+/plot-search-time.png
