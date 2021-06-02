@@ -2,10 +2,8 @@
 
 ## 0.14.8
 
-This version enables using multiple TOTP devices for one user, and makes it
-possible for a User to change their password and TOTP devices without admin
-intervention. It also brings some Hoover UI improvements, and a script to
-benchmark Hoover search times in a reproducible way.
+This version brings some Hoover UI improvements, and a script to
+benchmark Hoover search times.
 
 
 ### New Features
@@ -15,10 +13,6 @@ benchmark Hoover search times in a reproducible way.
 
 ### Improvements
 
-- Home Page: Added the option of using multiple TOTP devices for the same user.
-  Users can now change their TOTP devices and password without admin
-  intervention, provided they still have access to the old device and password.
-  They can list their devices and delete them from the Web UI.
 - Hoover UI: aggregation N/A bucket counts are now loaded when element becomes
   visible, instead of being loaded at search time. This should help reduce the
   search aggregation response times.
