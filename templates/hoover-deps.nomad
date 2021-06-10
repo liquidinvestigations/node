@@ -500,8 +500,8 @@ job "hoover-deps" {
       }
 
       env {
-        OBJECT_DETECTION_ENABLED = "${config.image_classification_object_detection_enabled}"
-        OBJECT_DETECTION_MODEL = "${config.image_classification_object_detection_model}"
+        OBJECT_DETECTION_ENABLED = "${config.snoop_image_classification_object_detection_enabled}"
+        OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
       }
 
       service {
