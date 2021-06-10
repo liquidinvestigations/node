@@ -500,14 +500,14 @@ job "hoover-deps" {
       }
 
       env {
-        OBJECT_DETECTION_ENABLED = "${config.image_classification_object_detection_enabled}
-        OBJECT_DETECTION_MODEL = "${config.image_classification_object_detection_model}
+        OBJECT_DETECTION_ENABLED = "${config.image_classification_object_detection_enabled}"
+        OBJECT_DETECTION_MODEL = "${config.image_classification_object_detection_model}"
       }
 
       service {
-        name = "hoover-image_classification"
+        name = "hoover-image-classification"
         port = "image_classification"
-        tags = ["fabio-/_pdf-preview strip=/_image-classification"]
+        tags = ["fabio-/_image-classification strip=/_image-classification"]
         check {
           name = "http"
           initial_status = "critical"
