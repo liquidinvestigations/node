@@ -219,9 +219,9 @@ class Configuration:
                                                                        'image_classification_memory_limit',
                                                                        fallback=900)
         self.snoop_image_classification_object_detection_enabled = \
-            self.ini.getint('snoop', 'image_classification_object_detection_enabled', fallback=False)
+            self.ini.getboolean('snoop', 'image_classification_object_detection_enabled', fallback=False)
         self.snoop_image_classification_object_detection_model = \
-            self.ini.getint('snoop', 'image_classification_object_detection_model', fallback='yolo')
+            self.ini.get('snoop', 'image_classification_object_detection_model', fallback='yolo')
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
