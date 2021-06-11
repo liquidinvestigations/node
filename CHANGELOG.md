@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## 0.14.8
+## Version 0.14.8 (2021-06-02)
 
 This version brings some Hoover UI improvements, and a script to
 benchmark Hoover search times.
