@@ -502,8 +502,7 @@ job "hoover-deps" {
       env {
         OBJECT_DETECTION_ENABLED = "${config.snoop_image_classification_object_detection_enabled}"
         OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
-        GUNICORN_WORKERS = ${config.snoop_image_classification_gunicorn_workers}
-        GUNICORN_THREADS = ${config.snoop_image_classification_gunicorn_workers}
+        WAITRESS_THREADS = ${config.snoop_image_classification_waitress_threads}
       }
 
       service {

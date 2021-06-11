@@ -222,10 +222,8 @@ class Configuration:
             self.ini.getboolean('snoop', 'image_classification_object_detection_enabled', fallback=False)
         self.snoop_image_classification_object_detection_model = \
             self.ini.get('snoop', 'image_classification_object_detection_model', fallback='yolo')
-        self.snoop_image_classification_gunicorn_workers = \
-            self.ini.getint('snoop', 'image_classification_gunicorn_workers', fallback=2)
-        self.snoop_image_classification_gunicorn_threads = \
-            self.ini.getint('snoop', 'image_classification_gunicorn_threads', fallback=30)
+        self.snoop_image_classification_waitress_threads = \
+            self.ini.getint('snoop', 'image_classification_waitress_threads', fallback=30)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
