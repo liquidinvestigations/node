@@ -407,7 +407,7 @@ job "hoover-deps" {
 
   {% if config.snoop_thumbnail_generator_enabled %}
   group "thumbnail-generator" {
-    count = ${config.thumbnail_count}
+    count = ${config.snoop_thumbnail_count}
 
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -425,7 +425,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-thumbnail-generator"
         }
-        memory_hard_limit = ${4 * config.thumbnail_generator_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
         mounts = [ 
           {
             type = "tmpfs"
@@ -439,7 +439,7 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.thumbnail_generator_memory_limit}
+        memory = ${config.snoop_thumbnail_generator_memory_limit}
         cpu = 500
         network {
           port "thumbnail" {}
@@ -454,7 +454,7 @@ job "hoover-deps" {
       service {
         name = "hoover-thumbnail-generator"
         port = "thumbnail"
-        tags = ["fabio-/_thumbnail strip=/_thumbnail_generator"]
+        tags = ["fabio-/_thumbnail-generator strip=/_thumbnail-generator"]
         check {
           name = "http"
           initial_status = "critical"
