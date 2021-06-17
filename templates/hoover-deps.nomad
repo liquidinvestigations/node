@@ -407,7 +407,7 @@ job "hoover-deps" {
 
   {% if config.snoop_thumbnail_generator_enabled %}
   group "thumbnail-generator" {
-    count = ${config.snoop_thumbnail_count}
+    count = ${config.snoop_thumbnail_generator_count}
 
     ${ continuous_reschedule() }
     ${ group_disk() }
