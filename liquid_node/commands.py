@@ -1,11 +1,3 @@
-from .nomad import nomad
-from .configuration import config
-from .consul import consul
-from .jobs import get_job
-from .process import run, run_fg
-from .util import first, retry, random_secret
-from .docker import docker
-from .vault import vault
 from time import time, sleep
 from collections import defaultdict
 import click
@@ -14,6 +6,14 @@ import logging
 import json
 import multiprocessing
 
+from .nomad import nomad
+from .configuration import config
+from .consul import consul
+from .jobs import get_job
+from .process import run, run_fg
+from .util import first, retry, random_secret
+from .docker import docker
+from .vault import vault
 from .jsonapi import JsonApi
 
 log = logging.getLogger(__name__)
@@ -439,7 +439,11 @@ def remove_last_es_data_node():
     log.info('Initial doc counts per node: ' + str({v['name']: v['indices']['docs']['count'] for v in es.get('/_nodes/stats/indices')['nodes'].values()}))  # noqa: E501
     log.info('Adding transient exclude rule for ' + es_node_name)
     req_data = {"transient": {"cluster.routing.allocation.exclude._name": es_node_name,
-                              "cluster.routing.allocation.enable": "all"}}
+                              "cluster.routing.allocation.enable": "all",
+                              "indices.recovery.max_bytes_per_sec": "80mb",
+                              "indices.recovery.concurrent_streams": 3,
+                              "cluster.routing.allocation.node_concurrent_recoveries": 3,
+                              "cluster.routing.allocation.cluster_concurrent_rebalance": 3}}
     resp = es.put('/_cluster/settings', data=req_data)
     assert resp['acknowledged'], 'bad response from es'
     for i in range(RETRY_COUNT):
@@ -468,8 +472,19 @@ def remove_last_es_data_node():
         except Exception as e:
             log.exception(e)
             sleep(60)
-    log.info('Final doc counts per node: ' + str({v['name']: v['indices']['docs']['count'] for v in es.get('/_nodes/stats/indices')['nodes'].values()}))  # noqa: E501
+    log.info('Final doc counts per node: '
+             + str({v['name']: v['indices']['docs']['count']
+                    for v in es.get('/_nodes/stats/indices')['nodes'].values()}))
     log.warning("!!! 3 manual steps remaining !!!")
     log.warning(f"- Decrement `elasticsearch_data_node_count` in `liquid.ini` (set = {config.elasticsearch_data_node_count - 1})")  # noqa: E501
     log.warning("- Run: `./liquid deploy`")
     log.warning("- Delete the directory: " + data_dir)
+
+
+@liquid_commands.command()
+@click.option('--search-count', 'search_count', type=int, default=80)
+@click.option('--max-concurrent', 'max_concurrent', type=int, default=27)
+@click.option('--path', 'path', type=click.Path(exists=False), default='./plot-search-time.png')
+def plot_search(search_count, max_concurrent, path):
+    from .hoover_search_benchmark import plot
+    plot(search_count, max_concurrent, path)

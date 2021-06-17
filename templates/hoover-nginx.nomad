@@ -84,6 +84,13 @@ job "hoover-nginx" {
 
             proxy_http_version  1.1;
             proxy_cache_bypass  $http_upgrade;
+            proxy_connect_timeout 159s;
+            proxy_send_timeout   150;
+            proxy_read_timeout   150;
+            proxy_buffer_size    64k;
+            proxy_buffers     16 32k;
+            proxy_busy_buffers_size 64k;
+            proxy_temp_file_write_size 64k;
 
             proxy_set_header Upgrade           $http_upgrade;
             proxy_set_header Connection        "upgrade";

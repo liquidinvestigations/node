@@ -1,5 +1,48 @@
 # Liquid Investigations Change Log
 
+## Version 0.14.8 (2021-06-02)
+
+This version brings some Hoover UI improvements, and a script to
+benchmark Hoover search times.
+
+
+### New Features
+
+- Hoover: Added command to benchmark Hoover search durations for a range of concurrent
+  users and output a scatter plot with search time vs. searched collection size.
+
+### Improvements
+
+- Hoover UI: aggregation N/A bucket counts are now loaded when element becomes
+  visible, instead of being loaded at search time. This should help reduce the
+  search aggregation response times.
+- Hoover UI: Added a configurable delay before retrying a failed request,
+  default is 3s.
+
+### Bug Fixes
+
+- Hoover UI: Fixed bug where the "Email To" field would collapse multiple email
+  addresses into a single string, obstructing the use of the "Open a new
+  search for this term" button on that field.
+
+
+### Upgrade Notes
+
+In the `node` repository, run `pipenv install` to install the new plotting libraries.
+
+Then, you can simply run `./liquid deploy`.
+
+
+## Version 0.14.7 (2021-05-21)
+
+This is a Hoover hotfix release that removes a problem with search queries that take more than 60s.
+
+### Bug fixes
+
+- Fixed an issue where requests (or other search queries) would return an error
+  if the time exceeded 60s.
+
+
 ## Version 0.14.6 (2021-05-21)
 
 This version is a Hoover hotfix release that adjusts various parameters for
@@ -9,6 +52,7 @@ expansive searches fit the timeout.
 
 ### Improvements
 
+- Added buttons to collapse categories and filter panes.
 - Increased Hoover search timeout from 50s to 100s.
 - Reduced Hoover search result bucket count from 100 to 44. More results can be
   still pulled when clicking on the "More" button.
