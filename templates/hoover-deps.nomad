@@ -502,6 +502,8 @@ job "hoover-deps" {
       env {
         OBJECT_DETECTION_ENABLED = "${config.snoop_image_classification_object_detection_enabled}"
         OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
+        IMAGE_CLASSIFICATION_ENABLED = "${config.snoop_image_classification_classify_images_enabled}"
+        IMAGE_CLASSIFICATION_MODEL = "${config.snoop_image_classification_classify_images_model}"
         WAITRESS_THREADS = ${config.snoop_image_classification_waitress_threads}
       }
 
