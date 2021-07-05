@@ -2,7 +2,7 @@
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.15"
+        image = "docker.elastic.co/elasticsearch/elasticsearch:7.13.2"
         args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && exec /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/${data_dir_name}:/usr/share/elasticsearch/data",
@@ -38,6 +38,7 @@
         xpack.monitoring.collection.index.stats.timeout = "30s"
         xpack.monitoring.collection.index.recovery.timeout = "30s"
         xpack.monitoring.history.duration = "32d"
+        discovery.type = "single-node"
 
         path.repo = "/es_repo"
 
@@ -170,7 +171,7 @@ job "hoover-deps" {
       }
       template {
         data = <<-EOF
-          discovery.zen.ping.unicast.hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
+          discovery.seed_hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
           EOF
         destination = "local/es-master.env"
         env = true
