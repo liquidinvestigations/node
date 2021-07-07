@@ -56,7 +56,7 @@ job "hoover-deps" {
 
   group "es-master" {
     ${ continuous_reschedule() }
-    ${ group_disk() }
+    ${ group_disk(200) }
 
     task "es" {
       ${ task_logs() }
@@ -127,7 +127,7 @@ job "hoover-deps" {
         }
       }
     }
-  }
+}
 
   {% if config.elasticsearch_data_node_count %}
   group "es-data" {
