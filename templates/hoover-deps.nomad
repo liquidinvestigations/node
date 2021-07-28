@@ -405,6 +405,69 @@ job "hoover-deps" {
   }
   {% endif %}
 
+  {% if config.snoop_thumbnail_generator_enabled %}
+  group "thumbnail-generator" {
+    count = ${config.snoop_thumbnail_generator_count}
+
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "thumbnail-generator" {
+      ${ task_logs() }
+      user = "root"
+
+      driver = "docker"
+      config {
+        image = "${config.image('thumbnail-generator')}"
+        port_map {
+          thumbnail = 8000
+        }
+        labels {
+          liquid_task = "hoover-thumbnail-generator"
+        }
+        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
+        mounts = [ 
+          {
+            type = "tmpfs"
+            target = "/tmp"
+            readonly = false
+            tmpfs_options {
+              # set size here if you want
+            }
+          }
+        ]
+      }
+
+      resources {
+        memory = ${config.snoop_thumbnail_generator_memory_limit}
+        cpu = 500
+        network {
+          port "thumbnail" {}
+          mbits = 1
+        }
+      }
+
+      env {
+        WEB_CONCURRENCY = 4
+      }
+
+      service {
+        name = "hoover-thumbnail-generator"
+        port = "thumbnail"
+        tags = ["fabio-/_thumbnail-generator strip=/_thumbnail-generator"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+  {% endif %}
+
   group "rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }

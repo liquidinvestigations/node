@@ -76,6 +76,9 @@ job "hoover-workers" {
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
+        {% if config.snoop_thumbnail_generator_enabled %}
+          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
+        {% endif %}
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         {% if config.snoop_pdf_preview_enabled %}
