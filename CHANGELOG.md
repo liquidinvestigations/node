@@ -1,5 +1,26 @@
 # Liquid Investigations Change Log
 
+## UNRELEASED
+
+This version brings Hoover UI improvements, as well as a new TOTP device change
+form, and updated password change forms.
+
+### New Features
+
+- Hoover Insights View: page with aggregate data (file/data counts, common terms) for
+  each collection, as well as advanced information on the processing status and ETA breakdown.
+
+
+### Improvements
+
+- Home Page: Users can now change their TOTP device without admin
+  intervention. Users can also add multiple TOTP devices to the same account,
+  and also remove old devices from their device list.
+- Hoover: Added more icons (especially for tags) and updated some existing ones.
+- Hoover: Changed File Browser (Finder) implementation into a custom one, to allow for
+  future improvements.
+
+
 ## Version 0.14.8 (2021-06-02)
 
 This version brings some Hoover UI improvements, and a script to
