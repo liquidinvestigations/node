@@ -231,7 +231,7 @@ class Configuration:
             self.ini.get('snoop', 'image_classification_classify_images_model', fallback='mobilenet')
 
         self.snoop_image_classification_enabled = (self.snoop_image_classification_object_detection_enabeld or
-                                                  self.snoop_image_classification_classify_images_enabled)
+                                                   self.snoop_image_classification_classify_images_enabled)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
