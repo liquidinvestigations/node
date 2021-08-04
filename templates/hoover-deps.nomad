@@ -468,7 +468,7 @@ job "hoover-deps" {
     }
     {% endif %}
 
-  {% if config.snoop_image_classification_enabled %}
+  {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
   group "image-classification" {
     count = ${config.snoop_image_classification_count}
 
