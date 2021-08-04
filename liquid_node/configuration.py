@@ -212,8 +212,6 @@ class Configuration:
                                                                       'thumbnail_generator_memory_limit',
                                                                       fallback=900)
 
-        self.snoop_image_classification_enabled = self.ini.getboolean('snoop', 'image_classification_enabled',
-                                                                      fallback=False)
         self.snoop_image_classification_count = self.ini.getint('snoop', 'image_classification_count',
                                                                 fallback=1)
         self.snoop_image_classification_memory_limit = self.ini.getint('snoop',
@@ -231,6 +229,9 @@ class Configuration:
             self.ini.getboolean('snoop', 'image_classification_classify_images_enabled', fallback=False)
         self.snoop_image_classification_classify_images_model = \
             self.ini.get('snoop', 'image_classification_classify_images_model', fallback='mobilenet')
+
+        self.snoop_image_classification_enabled = (self.snoop_image_classification_object_detection_enabeld or
+                                                  self.snoop_image_classification_classify_images_enabled)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
