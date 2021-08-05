@@ -84,13 +84,11 @@ job "hoover-workers" {
         {% if config.snoop_pdf_preview_enabled %}
           SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
         {% endif %}
-        {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
-          {% if config.snoop_image_classification_classify_images_enabled %}
-             SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
-          {% endif %}
-          {% if config.snoop_image_classification_object_detection_enabled %}
-             SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
-          {% endif %}
+        {% if config.snoop_image_classification_classify_images_enabled %}
+          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
+        {% endif %}
+        {% if config.snoop_image_classification_object_detection_enabled %}
+          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
         {% endif %}
 
         SNOOP_MIN_WORKERS = "${config.snoop_min_workers_per_node}"
