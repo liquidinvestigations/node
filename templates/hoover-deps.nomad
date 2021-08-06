@@ -38,7 +38,7 @@
         xpack.monitoring.collection.index.stats.timeout = "30s"
         xpack.monitoring.collection.index.recovery.timeout = "30s"
         xpack.monitoring.history.duration = "32d"
-        discovery.type = "single-node"
+        discovery.seed_hosts = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
 
         path.repo = "/es_repo"
 
@@ -56,7 +56,7 @@ job "hoover-deps" {
 
   group "es-master" {
     ${ continuous_reschedule() }
-    ${ group_disk(200) }
+    ${ group_disk() }
 
     task "es" {
       ${ task_logs() }
