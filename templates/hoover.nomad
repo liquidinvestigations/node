@@ -1,4 +1,31 @@
 {% from '_lib.hcl' import authproxy_group, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
+{%- macro snoop_dependency_envs() %}
+      env {
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
+        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        {% if config.snoop_thumbnail_generator_enabled %}
+          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
+        {% endif %}
+        {% if config.snoop_pdf_preview_enabled %}
+          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
+        {% endif %}
+        {% if config.snoop_image_classification_object_detection_enabled %}
+          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
+        {% endif %}
+        {% if config.snoop_image_classification_classify_images_enabled %}
+          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
+        {% endif %}
+        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+
+        SNOOP_MIN_WORKERS = "3"
+        SNOOP_MAX_WORKERS = "3"
+        SNOOP_CPU_MULTIPLIER = "0.1"
+
+        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
+        SYNC_FILES = "${sync}"
+      }
+{%- endmacro %}
 
 job "hoover" {
   datacenters = ["dc1"]
@@ -185,24 +212,7 @@ job "hoover" {
         SYNC_FILES = "${sync}"
       }
 
-      env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        {% if config.snoop_thumbnail_generator_enabled %}
-          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
-        {% endif %}
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
-        {% if config.snoop_pdf_preview_enabled %}
-          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
-        {% endif %}
-        {% if config.snoop_image_classification_object_detection_enabled %}
-          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
-        {% endif %}
-        {% if config.snoop_image_classification_classify_images_enabled %}
-          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
-        {% endif %}
-        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-      }
+      ${ snoop_dependency_envs() }
 
       template {
         data = <<-EOF
@@ -302,31 +312,7 @@ job "hoover" {
         destination = "local/startup.sh"
       }
 
-      env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        {% if config.snoop_thumbnail_generator_enabled %}
-          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
-        {% endif %}
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
-        {% if config.snoop_pdf_preview_enabled %}
-          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
-        {% endif %}
-        {% if config.snoop_image_classification_object_detection_enabled %}
-          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
-        {% endif %}
-        {% if config.snoop_image_classification_classify_images_enabled %}
-          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
-        {% endif %}
-        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-
-        SNOOP_MIN_WORKERS = "3"
-        SNOOP_MAX_WORKERS = "3"
-        SNOOP_CPU_MULTIPLIER = "0.1"
-
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
-      }
+      ${ snoop_dependency_envs() }
 
       template {
         data = <<-EOF
@@ -421,24 +407,7 @@ job "hoover" {
         destination = "local/startup.sh"
       }
 
-      env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        {% if config.snoop_thumbnail_generator_enabled %}
-          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
-        {% endif %}
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
-        {% if config.snoop_pdf_preview_enabled %}
-          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
-        {% endif %}
-        {% if config.snoop_image_classification_object_detection_enabled %}
-          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
-        {% endif %}
-        {% if config.snoop_image_classification_classify_images_enabled %}
-          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
-        {% endif %}
-        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-      }
+      ${ snoop_dependency_envs() }
 
       template {
         data = <<-EOF

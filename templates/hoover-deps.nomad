@@ -492,7 +492,7 @@ job "hoover-deps" {
 
       resources {
         memory = ${config.snoop_image_classification_memory_limit}
-        cpu = 2000
+        cpu = 100
         network {
           mbits = 1
           port "image_classification" {}
