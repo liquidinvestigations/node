@@ -38,7 +38,6 @@
         xpack.monitoring.collection.index.stats.timeout = "30s"
         xpack.monitoring.collection.index.recovery.timeout = "30s"
         xpack.monitoring.history.duration = "32d"
-        discovery.seed_hosts = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
 
         path.repo = "/es_repo"
 
@@ -89,6 +88,7 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+        discovery.seed_hosts = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
       }
 
       resources {
