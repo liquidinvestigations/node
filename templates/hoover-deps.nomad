@@ -88,7 +88,7 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-        discovery.seed_hosts = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+        cluster.initial_master_nodes = "master"
       }
 
       resources {
