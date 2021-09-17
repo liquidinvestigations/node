@@ -406,60 +406,116 @@ job "hoover-deps" {
   {% endif %}
 
   {% if config.snoop_thumbnail_generator_enabled %}
-  group "thumbnail-generator" {
-    count = ${config.snoop_thumbnail_generator_count}
+    group "thumbnail-generator" {
+      count = ${config.snoop_thumbnail_generator_count}
+  
+      ${ continuous_reschedule() }
+      ${ group_disk() }
+  
+      task "thumbnail-generator" {
+        ${ task_logs() }
+        user = "root"
+  
+        driver = "docker"
+        config {
+          image = "${config.image('thumbnail-generator')}"
+          port_map {
+            thumbnail = 8000
+          }
+          labels {
+            liquid_task = "hoover-thumbnail-generator"
+          }
+          memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
+          mounts = [ 
+            {
+              type = "tmpfs"
+              target = "/tmp"
+              readonly = false
+              tmpfs_options {
+                # set size here if you want
+              }
+            }
+          ]
+        }
+  
+        resources {
+          memory = ${config.snoop_thumbnail_generator_memory_limit}
+          cpu = 500
+          network {
+            port "thumbnail" {}
+            mbits = 1
+          }
+        }
+  
+        env {
+          WEB_CONCURRENCY = 4
+        }
+  
+        service {
+          name = "hoover-thumbnail-generator"
+          port = "thumbnail"
+          tags = ["fabio-/_thumbnail-generator strip=/_thumbnail-generator"]
+          check {
+            name = "http"
+            initial_status = "critical"
+            type = "http"
+            path = "/"
+            interval = "${check_interval}"
+            timeout = "${check_timeout}"
+          }
+        }
+      }
+    }
+    {% endif %}
+
+  {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
+  group "image-classification" {
+    count = ${config.snoop_image_classification_count}
 
     ${ continuous_reschedule() }
     ${ group_disk() }
 
-    task "thumbnail-generator" {
+    task "image-classification" {
       ${ task_logs() }
-      user = "root"
 
       driver = "docker"
       config {
-        image = "${config.image('thumbnail-generator')}"
+        image = "${config.image('image-classification')}"
         port_map {
-          thumbnail = 8000
+          image_classification = 5001
         }
         labels {
-          liquid_task = "hoover-thumbnail-generator"
+          liquid_task = "hoover-image-classification"
         }
-        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
-        mounts = [ 
-          {
-            type = "tmpfs"
-            target = "/tmp"
-            readonly = false
-            tmpfs_options {
-              # set size here if you want
-            }
-          }
-        ]
+        memory_hard_limit = ${4 * config.snoop_image_classification_memory_limit}
       }
 
       resources {
-        memory = ${config.snoop_thumbnail_generator_memory_limit}
-        cpu = 500
+        memory = ${config.snoop_image_classification_memory_limit}
+        cpu = 100
         network {
-          port "thumbnail" {}
           mbits = 1
+          port "image_classification" {}
         }
       }
 
       env {
-        WEB_CONCURRENCY = 4
+        OBJECT_DETECTION_ENABLED = "${config.snoop_image_classification_object_detection_enabled}"
+        OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
+        IMAGE_CLASSIFICATION_ENABLED = "${config.snoop_image_classification_classify_images_enabled}"
+        IMAGE_CLASSIFICATION_MODEL = "${config.snoop_image_classification_classify_images_model}"
+        WAITRESS_THREADS = ${config.snoop_image_classification_waitress_threads}
       }
 
       service {
-        name = "hoover-thumbnail-generator"
-        port = "thumbnail"
-        tags = ["fabio-/_thumbnail-generator strip=/_thumbnail-generator"]
+        name = "hoover-image-classification"
+        port = "image_classification"
+        tags = ["fabio-/_image-classification strip=/_image-classification"]
         check {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
