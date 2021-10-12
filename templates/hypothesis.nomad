@@ -147,6 +147,35 @@ job "hypothesis" {
           destination = "local/usersync.py"
       }
 
+      template {
+        data = <<-EOF
+          #!/usr/bin/env python3
+          import sys, subprocess, secrets
+          class SafeString(str):
+              def __repr__(self):
+                  return "***"
+          def run(args):
+              print("+", args, flush=True)
+              subprocess.run(args)
+          username = sys.argv[1]
+          password = SafeString(secrets.token_urlsafe(32))  # 256 bits
+          authority = ${liquid_domain|tojson}
+          h_users_txt = sys.argv[2]
+          h_users = set(h_users_txt.split())
+          print(h_users)
+          if username not in h_users:
+             run([
+                 "bin/hypothesis", "user", "add",
+                     "--username", username,
+                     "--authority", authority,
+                     "--email", f"{username}@${liquid_domain}",
+                     "--password", password,
+                 ])
+          EOF
+          perms = "755"
+          destination = "local/createuser.py"
+      }
+
       resources {
         memory = ${config.hypothesis_memory_limit}
         cpu = 200

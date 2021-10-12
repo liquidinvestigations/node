@@ -21,6 +21,10 @@ def set_volumes_paths(substitutions={}):
 
     from ..configuration import config
 
+    def get_str(str):
+        return str
+
+    substitutions['getstr'] = get_str
     substitutions['config'] = config
     substitutions['liquid_domain'] = config.liquid_domain
     substitutions['liquid_volumes'] = config.liquid_volumes
