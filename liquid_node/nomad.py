@@ -45,7 +45,6 @@ class Nomad(JsonApi):
                   {'JobID': job_id,
                    "EvalOptions": {"ForceReschedule": True}})
 
-
     def get_health_checks(self, spec):
         """Generates (service, check_name_list) tuples for the supplied job"""
 
