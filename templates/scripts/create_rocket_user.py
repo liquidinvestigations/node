@@ -1,3 +1,4 @@
+# flake8: noqa
 import requests
 import sys
 # get rockatchat address and password
