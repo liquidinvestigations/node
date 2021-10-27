@@ -29,7 +29,7 @@ job "hoover" {
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
 
-  group "web" {
+  group "search" {
     count = ${config.hoover_web_count}
     ${ group_disk() }
     ${ continuous_reschedule() }
@@ -131,6 +131,9 @@ job "hoover" {
           {%- endif %}
           HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
+          {{- range service "hoover-rabbitmq" }}
+            SEARCH_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
+          {{- end }}
         EOF
         destination = "local/hoover.env"
         env = true
