@@ -463,6 +463,10 @@ job "hoover-deps" {
             interval = "${check_interval}"
             timeout = "${check_timeout}"
           }
+          check_restart {
+            limit = 5
+            grace = "60s"
+          }
         }
       }
     }
