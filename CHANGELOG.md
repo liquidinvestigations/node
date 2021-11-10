@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## UNRELEASED
+## Version 0.15.0 (2021-11-10)
 
 
 ### New Features
@@ -12,7 +12,7 @@
 
 - Hoover UI: improved PDF viewer with new toolbar: added viewer for table of
   contents, in-document bookmarks, page thumbnails, and file attachments.
-- Hoover UI: Help texts have been moved under "Help" icons to save screen
+- Hoover UI: Help texts have been moved under "?" icons to save screen
   space.
 
 
