@@ -157,6 +157,15 @@ class Configuration:
                                                           fallback=1536)
         self.elasticsearch_data_node_count = self.ini.getint('liquid', 'elasticsearch_data_node_count', fallback=0)  # noqa: E501
 
+        self.elasticsearch_data_1_host = self.ini.get('liquid', 'elasticsearch_data_1_host')
+        self.elasticsearch_data_2_host = self.ini.get('liquid', 'elasticsearch_data_2_host')
+        self.elasticsearch_data_3_host = self.ini.get('liquid', 'elasticsearch_data_3_host')
+        self.elasticsearch_data_4_host = self.ini.get('liquid', 'elasticsearch_data_4_host')
+        self.elasticsearch_data_1_volume = self.ini.get('liquid', 'elasticsearch_data_1_volume')
+        self.elasticsearch_data_2_volume = self.ini.get('liquid', 'elasticsearch_data_2_volume')
+        self.elasticsearch_data_3_volume = self.ini.get('liquid', 'elasticsearch_data_3_volume')
+        self.elasticsearch_data_4_volume = self.ini.get('liquid', 'elasticsearch_data_4_volume')
+
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=800)
 

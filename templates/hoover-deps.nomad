@@ -1,13 +1,27 @@
 {% from '_lib.hcl' import shutdown_delay, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
 
-{%- macro elasticsearch_docker_config(data_dir_name) %}
+
+{%- macro elasticsearch_data_node_constraints(node_name, data_host) %}
+      constraint {
+        attribute = "${node_name}"
+        value = "${data_host}"
+      }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
+
+{%- endmacro %}
+
+{%- macro elasticsearch_docker_config(data_dir) %}
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.15"
         args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && exec /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/${data_dir_name}:/usr/share/elasticsearch/data",
+          "${data_dir}:/usr/share/elasticsearch/data",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/repo:/es_repo",
-        ]
+          ]
         port_map {
           http = 9200
           transport = 9300
@@ -20,7 +34,7 @@
           nofile = "65536"
           nproc = "8192"
         }
-      }
+       }
 
       env {
         cluster.routing.allocation.disk.watermark.low = "97%"
@@ -43,6 +57,64 @@
 
         ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UseG1GC -XX:MaxGCPauseMillis=300 -XX:G1HeapRegionSize=16m -verbose:gc"
         LIQUID_HOOVER_ES_DATA_NODE_COUNT = "${config.elasticsearch_data_node_count}"
+      }
+{%- endmacro %}
+
+{%- macro elasticsearch_data_node_settings(node_name) %}
+      env {
+        node.master = "false"
+        cluster.name = "hoover"
+        node.name = "${node_name}"
+
+        http.port = "9200"
+        http.publish_port = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
+        http.bind_host = "0.0.0.0"
+        http.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+
+        transport.port = "9300"
+        transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
+        transport.bind_host = "0.0.0.0"
+        transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+      }
+      template {
+        data = <<-EOF
+          discovery.zen.ping.unicast.hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
+          EOF
+        destination = "local/es-master.env"
+        env = true
+      }
+      resources {
+        cpu = 400
+        memory = ${config.elasticsearch_memory_limit}
+        network {
+          mbits = 1
+          port "http" {}
+          port "transport" {}
+        }
+      }
+      service {
+        name = "hoover-es-data"
+        port = "http"
+        tags = ["fabio-/_es strip=/_es"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/_cluster/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+      service {
+        name = "hoover-es-data-transport"
+        port = "transport"
+        check {
+          name = "transport"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
 {%- endmacro %}
 
@@ -71,7 +143,7 @@ job "hoover-deps" {
 
       driver = "docker"
 
-      ${ elasticsearch_docker_config('data') }
+      ${ elasticsearch_docker_config('{% raw %}meta.liquid_volumes{% endraw %}/hoover/es/data') }
 
       ${ shutdown_delay() }
 
@@ -128,86 +200,112 @@ job "hoover-deps" {
     }
   }
 
-  {% if config.elasticsearch_data_node_count %}
-  group "es-data" {
+  {% if config.elasticsearch_data_1_host %}
+  group "es-data-1" {
     ${ continuous_reschedule() }
     ${ group_disk() }
-    count = ${config.elasticsearch_data_node_count}
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     task "es" {
       ${ task_logs() }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-      affinity {
-        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
-        value     = "true"
-        weight    = 100
-      }
+
+      ${ elasticsearch_data_node_constraints('${node.unique.name}', config.elasticsearch_data_1_host) }
 
       driver = "docker"
 
       ${ shutdown_delay() }
 
-      ${elasticsearch_docker_config('data-${NOMAD_ALLOC_INDEX}') }
+      ${ elasticsearch_docker_config(config.elasticsearch_data_1_volume) }
 
-      env {
-        node.master = "false"
-        cluster.name = "hoover"
-        node.name = "data-{% raw %}${NOMAD_ALLOC_INDEX}{% endraw %}"
+      ${ elasticsearch_data_node_settings('es-data-1') }
+    }
+  }
+  {% endif %}
 
-        http.port = "9200"
-        http.publish_port = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
-        http.bind_host = "0.0.0.0"
-        http.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+  {% if config.elasticsearch_data_2_host %}
+  group "es-data-2" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
-        transport.port = "9300"
-        transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
-        transport.bind_host = "0.0.0.0"
-        transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
-      }
-      template {
-        data = <<-EOF
-          discovery.zen.ping.unicast.hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
-          EOF
-        destination = "local/es-master.env"
-        env = true
-      }
-      resources {
-        cpu = 400
-        memory = ${config.elasticsearch_memory_limit}
-        network {
-          mbits = 1
-          port "http" {}
-          port "transport" {}
-        }
-      }
-      service {
-        name = "hoover-es-data"
-        port = "http"
-        tags = ["fabio-/_es strip=/_es"]
-        check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/_cluster/health"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-      service {
-        name = "hoover-es-data-transport"
-        port = "transport"
-        check {
-          name = "transport"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
+    task "es" {
+      ${ task_logs() }
+
+      ${ elasticsearch_data_node_constraints('${node.unique.name}', config.elasticsearch_data_2_host) }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      ${ elasticsearch_docker_config(config.elasticsearch_data_2_volume) }
+
+      ${ elasticsearch_data_node_settings('es-data-2') }
+    }
+  }
+  {% endif %}
+
+  {% if config.elasticsearch_data_3_host %}
+  group "es-data-3" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    task "es" {
+      ${ task_logs() }
+
+      ${ elasticsearch_data_node_constraints('${node.unique.name}', config.elasticsearch_data_3_host) }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      ${ elasticsearch_docker_config(config.elasticsearch_data_3_volume) }
+
+      ${ elasticsearch_data_node_settings('es-data-3') }
+    }
+  }
+  {% endif %}
+
+  {% if config.elasticsearch_data_4_host %}
+  group "es-data-4" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    task "es" {
+      ${ task_logs() }
+
+      ${ elasticsearch_data_node_constraints('${node.unique.name}', config.elasticsearch_data_4_host) }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      ${ elasticsearch_docker_config(config.elasticsearch_data_4_volume) }
+
+      ${ elasticsearch_data_node_settings('es-data-4') }
+    }
+  }
+  {% endif %}
+
+  {% if config.elasticsearch_data_5_host %}
+  group "es-data-5" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    task "es" {
+      ${ task_logs() }
+
+      ${ elasticsearch_data_node_constraints('${node.unique.name}', config.elasticsearch_data_5_host) }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      ${ elasticsearch_docker_config(config.elasticsearch_data_5_volume) }
+
+      ${ elasticsearch_data_node_settings('es-data-5') }
     }
   }
   {% endif %}
