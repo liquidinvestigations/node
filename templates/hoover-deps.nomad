@@ -14,13 +14,13 @@
 
 {%- endmacro %}
 
-{%- macro elasticsearch_docker_config(data_dir) %}
+{%- macro elasticsearch_docker_config(data_dir, repo_dir) %}
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.15"
         args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && exec /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "${data_dir}:/usr/share/elasticsearch/data",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/repo:/es_repo",
+          "${repo_dir}:/es_repo",
           ]
         port_map {
           http = 9200
@@ -143,7 +143,7 @@ job "hoover-deps" {
 
       driver = "docker"
 
-      ${ elasticsearch_docker_config('{% raw %}meta.liquid_volumes{% endraw %}/hoover/es/data') }
+      ${ elasticsearch_docker_config('${meta.liquid_volumes}/hoover/es/data', '${meta.liquid_volumes}/hoover/es/repo') }
 
       ${ shutdown_delay() }
 
@@ -215,7 +215,7 @@ job "hoover-deps" {
 
       ${ shutdown_delay() }
 
-      ${ elasticsearch_docker_config(config.elasticsearch_data_1_volume) }
+      ${ elasticsearch_docker_config(config.elasticsearch_data_1_volume, config.elasticsearch_data_1_repo) }
 
       ${ elasticsearch_data_node_settings('es-data-1') }
     }
@@ -237,7 +237,7 @@ job "hoover-deps" {
 
       ${ shutdown_delay() }
 
-      ${ elasticsearch_docker_config(config.elasticsearch_data_2_volume) }
+      ${ elasticsearch_docker_config(config.elasticsearch_data_2_volume, config.elasticsearch_data_2_repo) }
 
       ${ elasticsearch_data_node_settings('es-data-2') }
     }
@@ -259,7 +259,7 @@ job "hoover-deps" {
 
       ${ shutdown_delay() }
 
-      ${ elasticsearch_docker_config(config.elasticsearch_data_3_volume) }
+      ${ elasticsearch_docker_config(config.elasticsearch_data_3_volume, config.elasticsearch_data_3_repo) }
 
       ${ elasticsearch_data_node_settings('es-data-3') }
     }
@@ -281,7 +281,7 @@ job "hoover-deps" {
 
       ${ shutdown_delay() }
 
-      ${ elasticsearch_docker_config(config.elasticsearch_data_4_volume) }
+      ${ elasticsearch_docker_config(config.elasticsearch_data_4_volume, config.elasticsearch_data_4_repo) }
 
       ${ elasticsearch_data_node_settings('es-data-4') }
     }
@@ -297,7 +297,7 @@ job "hoover-deps" {
     task "es" {
       ${ task_logs() }
 
-      ${ elasticsearch_data_node_constraints('${node.unique.name}', config.elasticsearch_data_5_host) }
+      ${ elasticsearch_docker_config(config.elasticsearch_data_5_volume, config.elasticsearch_data_5_repo) }
 
       driver = "docker"
 

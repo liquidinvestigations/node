@@ -165,6 +165,8 @@ class Configuration:
                                                       fallback=None)
         self.elasticsearch_data_4_host = self.ini.get('liquid', 'elasticsearch_data_4_host',
                                                       fallback=None)
+        self.elasticsearch_data_5_host = self.ini.get('liquid', 'elasticsearch_data_5_host',
+                                                      fallback=None)
         self.elasticsearch_data_1_volume = self.ini.get('liquid', 'elasticsearch_data_1_volume',
                                                         fallback=None)
         self.elasticsearch_data_2_volume = self.ini.get('liquid', 'elasticsearch_data_2_volume',
@@ -172,6 +174,18 @@ class Configuration:
         self.elasticsearch_data_3_volume = self.ini.get('liquid', 'elasticsearch_data_3_volume',
                                                         fallback=None)
         self.elasticsearch_data_4_volume = self.ini.get('liquid', 'elasticsearch_data_4_volume',
+                                                        fallback=None)
+        self.elasticsearch_data_5_volume = self.ini.get('liquid', 'elasticsearch_data_5_volume',
+                                                        fallback=None)
+        self.elasticsearch_data_1_repo = self.ini.get('liquid', 'elasticsearch_data_1_repo',
+                                                        fallback=None)
+        self.elasticsearch_data_2_repo = self.ini.get('liquid', 'elasticsearch_data_2_repo',
+                                                        fallback=None)
+        self.elasticsearch_data_3_repo = self.ini.get('liquid', 'elasticsearch_data_3_repo',
+                                                        fallback=None)
+        self.elasticsearch_data_4_repo = self.ini.get('liquid', 'elasticsearch_data_4_repo',
+                                                        fallback=None)
+        self.elasticsearch_data_5_repo = self.ini.get('liquid', 'elasticsearch_data_5_repo',
                                                         fallback=None)
 
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
