@@ -157,15 +157,15 @@ class Configuration:
                                                           fallback=1536)
         self.elasticsearch_data_node_count = self.ini.getint('liquid', 'elasticsearch_data_node_count', fallback=0)  # noqa: E501
 
-        self.elasticsearch_data_1_host = self.ini.get('liquid', 'elasticsearch_data_1_host', 
-                                                        fallback=None)
+        self.elasticsearch_data_1_host = self.ini.get('liquid', 'elasticsearch_data_1_host',
+                                                      fallback=None)
         self.elasticsearch_data_2_host = self.ini.get('liquid', 'elasticsearch_data_2_host',
-                                                        fallback=None)
+                                                      fallback=None)
         self.elasticsearch_data_3_host = self.ini.get('liquid', 'elasticsearch_data_3_host',
-                                                        fallback=None)
+                                                      fallback=None)
         self.elasticsearch_data_4_host = self.ini.get('liquid', 'elasticsearch_data_4_host',
-                                                        fallback=None)
-        self.elasticsearch_data_1_volume = self.ini.get('liquid', 'elasticsearch_data_1_volume', 
+                                                      fallback=None)
+        self.elasticsearch_data_1_volume = self.ini.get('liquid', 'elasticsearch_data_1_volume',
                                                         fallback=None)
         self.elasticsearch_data_2_volume = self.ini.get('liquid', 'elasticsearch_data_2_volume',
                                                         fallback=None)
