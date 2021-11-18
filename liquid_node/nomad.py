@@ -38,8 +38,8 @@ class Nomad(JsonApi):
             raise e
 
         job_id = spec['ID']
-        if spec.get('Periodic'):
-            # HTTP 500 - "can't evaluate periodic job"
+        if spec.get('Periodic') or spec.get('ParameterizedJob'):
+            # HTTP 500 - "can't evaluate periodic/parameterized job"
             return
         self.post(f'job/{job_id}/evaluate',
                   {'JobID': job_id,

@@ -42,6 +42,7 @@ class Configuration:
     ALL_JOBS = [
         liquid.Liquid(),
         liquid.Ingress(),
+        liquid.CreateUser(),
         hoover.Hoover(),
         hoover.Deps(),
         hoover.Workers(),

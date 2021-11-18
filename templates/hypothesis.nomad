@@ -147,6 +147,14 @@ job "hypothesis" {
           destination = "local/usersync.py"
       }
 
+      template {
+        data = <<-EOF
+{% include 'scripts/create_hypothesis_user.py' %}
+          EOF
+          perms = "755"
+          destination = "local/createuser.py"
+      }
+
       resources {
         memory = ${config.hypothesis_memory_limit}
         cpu = 200

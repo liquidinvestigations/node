@@ -16,3 +16,10 @@ class Ingress(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'liquid'
     stage = 1
+
+
+class CreateUser(jobs.Job):
+    name = 'liquid-createuser'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'liquid'
+    stage = 3

@@ -1,6 +1,27 @@
 # Liquid Investigations Change Log
 
-## UNRELEASED
+## Version 0.15.0 (2021-11-10)
+
+
+### New Features
+
+- Hoover UI: added component to filter bucket values in aggregation results.
+
+
+### Improvements
+
+- Hoover UI: improved PDF viewer with new toolbar: added viewer for table of
+  contents, in-document bookmarks, page thumbnails, and file attachments.
+- Hoover UI: Help texts have been moved under "?" icons to save screen
+  space.
+
+
+### Bug Fixes
+
+- Fixed a broken Hoover link pointing to the Hoover documentation page.
+
+
+## Version 0.14.9 (2021-08-04)
 
 This version brings Hoover UI improvements, as well as a new TOTP device change
 form, and updated password change forms.

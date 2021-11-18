@@ -47,3 +47,16 @@ that needs to be performed by an administrator through Rocket.Chat's web admin.
    `liquid.ini` and set the following setting: `[liquid]
    rocketchat_show_login_form = false`. This will only keep the login button,
    hiding the user/password form.
+
+
+
+### Fixing a Broken Authentication Page
+
+After changing the domain name or the internal cluster IP address, the Login Page will break. To fix it, one must manually go through the above process again, deleting the old entry and creating another one:
+- re-enable the user/password login form (step 7. above) and deploy
+- login as `rocketchatadmin` with the secret extracted from the commandline (step 1. above)
+- delete the old Oauth2 entry for Liquid
+- re-create it as before (step 4. above)
+
+
+The login should work as expected again.
