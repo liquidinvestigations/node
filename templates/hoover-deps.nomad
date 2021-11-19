@@ -93,7 +93,7 @@
         }
       }
       service {
-        name = "hoover-es-data"
+        name = "hoover-${node-name}"
         port = "http"
         tags = ["fabio-/_es strip=/_es"]
         check {
