@@ -54,6 +54,7 @@ job "liquid" {
           LIQUID_2FA = "${config.liquid_2fa}"
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
           LIQUID_HYPOTHESIS_EMBED = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
+          NOMAD_URL = "${config.nomad_url}"
         EOF
         destination = "local/docker.env"
         env = true
