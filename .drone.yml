@@ -21,7 +21,7 @@ depends_on:
 
 steps:
 - name: copy code to target
-  image: appleboy/drone-scp:latest
+  image: appleboy/drone-scp:1.6.2
   settings:
     host:
       from_secret: target_hostname
@@ -37,7 +37,7 @@ steps:
 
 
 - name: run tests on target
-  image: appleboy/drone-ssh:latest
+  image: appleboy/drone-ssh:1.6.2
   settings:
     host:
       from_secret: target_hostname
