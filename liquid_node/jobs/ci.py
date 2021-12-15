@@ -21,6 +21,11 @@ class Drone(jobs.Job):
             'password': config.ci_docker_password,
         })
 
+        vault.set('liquid/ci/gh-cr.docker', {
+            'username': config.ci_gh_cr_username,
+            'password': config.ci_gh_cr_password,
+        })
+
         vault.set('liquid/ci/drone.target', {
             'hostname': config.ci_target_hostname,
             'username': config.ci_target_username,

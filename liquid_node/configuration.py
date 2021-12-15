@@ -239,6 +239,8 @@ class Configuration:
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
             self.ci_runner_capacity = self.ini.getint('ci', 'runner_capacity', fallback=4)
+            self.ci_gh_cr_username = self.ini.get('ci', 'gh_cr_username')
+            self.ci_gh_cr_password = self.ini.get('ci', 'gh_cr_password')
             self.ci_docker_username = self.ini.get('ci', 'docker_username')
             self.ci_docker_password = self.ini.get('ci', 'docker_password')
             self.ci_github_client_id = self.ini.get('ci', 'github_client_id')
