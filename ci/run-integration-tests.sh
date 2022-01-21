@@ -5,6 +5,8 @@ CLUSTER=/opt/cluster
 
 function docker_killall {
   docker kill $(docker ps -q) >/dev/null 2>/dev/null || true
+  docker rm -f $(docker ps -qa) >/dev/null 2>/dev/null || true
+  docker system prune --volumes
 }
 
 function devnull {
@@ -13,13 +15,15 @@ function devnull {
 
 
 function wipe {
-  devnull "pipenv --rm || true" &
+  devnull "pipenv --rm || true"
   devnull "docker kill cluster || true"
   docker_killall
-  devnull "sudo rm -rf $CLUSTER/var/* || true" &
-  devnull "sudo rm -rf /opt/node/volumes ../backups || true" &
+  sudo rm -rf $CLUSTER/var/* || true
+  sudo rm -rf /opt/node/volumes/* || true
+  sudo rm -rf /app-test/backups || true
+  sudo rm -rf /app-test/backup || true
 
-  wait
+  echo "WIPE DONE"
 }
 
 
@@ -47,11 +51,11 @@ function install {
     devnull "./bin/docker.sh --rm"
   )
 
+  echo "INSTALL DONE"
   wait
 }
 
-
-# leave cadavers on testing server
+# leave old containers on testing server, otherwise uncomment:
 # trap wipe EXIT
 
 wipe

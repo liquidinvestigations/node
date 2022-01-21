@@ -44,6 +44,13 @@ sudo rm -rf /opt/cluster/var/*
 echo
 docker start cluster
 docker exec cluster ./cluster.py wait
+cp ci/conf/1-with-collections.ini liquid.ini
 ./liquid deploy
 ./liquid restore-all-collections $BACKUP/backup
 ./liquid restore-apps $BACKUP/backup
+
+echo "Starting to process all testdata documents..."
+date
+until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata; do sleep 15; done
+date
+echo "All documents processed."
