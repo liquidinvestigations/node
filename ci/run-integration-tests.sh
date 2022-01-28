@@ -57,20 +57,26 @@ function install {
   wait
 }
 
+case "$ARGUMENT" in
+  1)
+    wipe
+    install
 
-if [[ "$ARGUMENT" == "1" ]]; then
-  wipe
-  install
 
+    echo '-------------------------------'
+    ./ci/tests/1-hoover
+    ;;
 
-  echo '-------------------------------'
-  ./ci/tests/1-hoover
-fi
+  2)
+    ./ci/tests/2-backup-restore
+    ;;
 
-if [[ "$ARGUMENT" == "2" ]]; then
-  ./ci/tests/2-backup-restore
-fi
+  3)
+    ./ci/tests/3-wait
+    ;;
 
-if [[ "$ARGUMENT" == "3" ]]; then
-  ./ci/tests/3-wait
-fi
+  *)
+    echo "bad arg"
+    exit 1
+    ;;
+esac

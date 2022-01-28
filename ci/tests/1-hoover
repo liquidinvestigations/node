@@ -17,7 +17,7 @@ echo "$TEST_ADMIN_PASSWORD" | wc -c
 ./ci/ui/create_users.sh
 
 echo "Waiting for processing to finish..."
-until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>&1 >/dev/null; do sleep 60; done
+until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>/dev/null 1>/dev/null; do sleep 60; done
 echo "Documents processed."
 
 echo "Run UI test suite..."
