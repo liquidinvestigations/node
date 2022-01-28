@@ -53,14 +53,16 @@ echo "Process testdata documents"
 cp ci/conf/1-with-collections.ini liquid.ini
 ./liquid deploy
 
-echo "Creating user..."
+echo "Creating users..."
 echo "$TEST_ADMIN_PASSWORD" | wc -c
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@liquid.example.org', '$TEST_ADMIN_PASSWORD')" | ./liquid dockerexec liquid:core ./manage.py shell
+./ci/ui/create_users.sh
 
-echo "User created."
-
-until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata; do sleep 60; done
-
+echo "Waiting for processing to finish..."
+until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>&1 >/dev/null; do sleep 60; done
 echo "Documents processed."
+
+echo "Run UI test suite..."
+(cd ./ci/ui/ && ./run_ui_tests.sh) || true
+
 
 sleep 300
