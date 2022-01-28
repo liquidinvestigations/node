@@ -16,6 +16,9 @@ steps:
 kind: pipeline
 name: integration-tests
 
+concurrency:
+  limit: 1
+
 depends_on:
 - static-tests
 
