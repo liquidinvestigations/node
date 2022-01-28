@@ -56,7 +56,10 @@ steps:
     envs: [test_admin_password]
     command_timeout: 60m
     script:
+      - set -x
+      - set -e
       - cd /app-test/code
+      - echo $TEST_ADMIN_PASSWORD | wc -l
       - export TEST_ADMIN_PASSWORD=${TEST_ADMIN_PASSWORD}
       - ./ci/run-integration-tests.sh
 
