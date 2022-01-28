@@ -241,8 +241,16 @@ def _update_image(name):
 
     Returns: (name, changed)."""
 
+    if not name:
+        return None, None
+
     old = docker.image_digest(name)
-    new = docker.pull(name)
+    for _ in range(3):
+        new = docker.pull(name)
+        if new:
+            break
+        time.sleep(5)
+
     return name, old != new
 
 
@@ -255,9 +263,12 @@ def _update_images():
         nonlocal any_new
         if new:
             log.info(f"Downloaded new Docker image for {name}  - {docker.image_size(name)}")
-        else:
+        elif name:
             log.debug(f"Docker image is up to date for {name}  - {docker.image_size(name)}")
-            pass
+        else:
+            log.debug("found null")
+            return
+
         any_new |= new
 
     t0 = time()

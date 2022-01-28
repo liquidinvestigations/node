@@ -4,9 +4,6 @@
 cd "$(dirname ${BASH_SOURCE[0]})/../.."
 BACKUP="$(dirname $PWD)/backups"
 
-./liquid deploy
-./liquid dockerexec hoover:snoop ./manage.py rundispatcher || true
-
 echo "Make a Backup"
 cp ci/conf/1-with-collections-stopped.ini liquid.ini
 ./liquid deploy
@@ -44,3 +41,10 @@ docker exec cluster ./cluster.py wait
 ./liquid deploy
 ./liquid restore-all-collections $BACKUP/backup
 ./liquid restore-apps $BACKUP/backup
+
+
+echo "Running UI integration suite a second time"
+
+cp ci/conf/1-with-collections-stopped.ini liquid.ini
+./liquid deploy
+(cd ./ci/ui/ && ./run_ui_tests.sh) || (echo "Sleeping for 10min because integration UI tests failed!" && sleep 600)

@@ -7,18 +7,18 @@ echo "Add some collections, check resources and deploy"
 cp ci/conf/1-with-collections.ini liquid.ini
 
 ./liquid resources
-
-echo "Process testdata documents"
-cp ci/conf/1-with-collections.ini liquid.ini
-./liquid deploy
+./liquid deploy || ./liquid deploy
 
 echo "Creating users..."
 echo "$TEST_ADMIN_PASSWORD" | wc -c
 ./ci/ui/create_users.sh
 
 echo "Waiting for processing to finish..."
-until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>/dev/null 1>/dev/null; do sleep 60; done
+until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>/dev/null 1>/dev/null; do
+  curl http://10.66.60.1:9990/snoop/collections/testdata/json 2>/dev/null | jq .stats.progress_str
+  sleep 60
+done
 echo "Documents processed."
 
 echo "Run UI test suite..."
-(cd ./ci/ui/ && ./run_ui_tests.sh) || true
+(cd ./ci/ui/ && ./run_ui_tests.sh) || (echo "Sleeping for 1h because integration UI tests failed!" && sleep 3600)
