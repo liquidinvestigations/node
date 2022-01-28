@@ -40,7 +40,10 @@ steps:
 
 
 - name: run tests on target
-  image: appleboy/drone-ssh:1.6.2
+  image: appleboy/drone-ssh:1.6.3
+  environment:
+    TEST_ADMIN_PASSWORD:
+      from_secret: test_admin_password
   settings:
     host:
       from_secret: target_hostname
@@ -50,12 +53,11 @@ steps:
       from_secret: target_password
     port:
       from_secret: target_port
-    envs:
-      - test_admin_password
+    envs: [test_admin_password]
     command_timeout: 60m
     script:
       - cd /app-test/code
-      - export TEST_ADMIN_PASSWORD=$TEST_ADMIN_PASSWORD
+      - export TEST_ADMIN_PASSWORD=${TEST_ADMIN_PASSWORD}
       - ./ci/run-integration-tests.sh
 
 ---
