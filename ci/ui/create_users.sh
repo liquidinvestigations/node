@@ -1,5 +1,5 @@
 #!/bin/sh -ex
-cat > /tmp/create-users.py <<"EOF"
+cat > /tmp/create-users.py <<EOF
 from django.contrib.auth import get_user_model
 User = get_user_model()
 admin = User.objects.create_user('admin', 'admin@example.com', '$TEST_ADMIN_PASSWORD')

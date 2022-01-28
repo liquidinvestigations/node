@@ -1,6 +1,8 @@
 #!/bin/bash -ex
 
 cd "$(dirname ${BASH_SOURCE[0]})/.."
+ARGUMENT=$1
+
 CLUSTER=/opt/cluster
 
 function docker_killall {
@@ -55,12 +57,20 @@ function install {
   wait
 }
 
-# leave old containers on testing server, otherwise uncomment:
-# trap wipe EXIT
 
-wipe
-install
+if [[ "$ARGUMENT" == "1" ]]; then
+  wipe
+  install
 
 
-echo '-------------------------------'
-./ci/tests/1-hoover
+  echo '-------------------------------'
+  ./ci/tests/1-hoover
+fi
+
+if [[ "$ARGUMENT" == "2" ]]; then
+  ./ci/tests/2-backup-restore
+fi
+
+if [[ "$ARGUMENT" == "3" ]]; then
+  ./ci/tests/3-wait
+fi
