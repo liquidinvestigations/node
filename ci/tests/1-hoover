@@ -9,13 +9,7 @@ cp ci/conf/1-with-collections.ini liquid.ini
 
 ./liquid resources
 ./liquid deploy
-
-echo "Process testdata"
-date
-until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata; do sleep 30; done
-sleep 10
-echo "Everything processed."
-date
+sleep 100
 
 echo "Make a Backup"
 cp ci/conf/1-with-collections-stopped.ini liquid.ini
@@ -52,8 +46,12 @@ docker exec cluster ./cluster.py wait
 ./liquid deploy
 ./liquid restore-all-collections $BACKUP/backup
 ./liquid restore-apps $BACKUP/backup
+
+echo "Process testdata documents"
 cp ci/conf/1-with-collections.ini liquid.ini
 ./liquid deploy
-until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata; do sleep 30; done
 
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@liquid.example.org', '$TEST_ADMIN_PASSWORD')" | ./liquid shell liquid:core ./manage.py
+echo "$TEST_ADMIN_PASSWORD" | wc -c
+echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@liquid.example.org', '$TEST_ADMIN_PASSWORD')" | ./liquid dockerexec liquid:core ./manage.py
+
+until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata; do sleep 60; done
