@@ -59,8 +59,8 @@ steps:
       - set -x
       - set -e
       - cd /app-test/code
-      - echo $TEST_ADMIN_PASSWORD | wc -l
-      - export TEST_ADMIN_PASSWORD=${TEST_ADMIN_PASSWORD}
+      - export TEST_ADMIN_PASSWORD=$${TEST_ADMIN_PASSWORD}
+      - echo $TEST_ADMIN_PASSWORD | wc -c
       - ./ci/run-integration-tests.sh
 
 ---

@@ -9,7 +9,7 @@ cp ci/conf/1-with-collections.ini liquid.ini
 
 ./liquid resources
 ./liquid deploy
-sleep 100
+./liquid dockerexec hoover:snoop ./manage.py rundispatcher || true
 
 echo "Make a Backup"
 cp ci/conf/1-with-collections-stopped.ini liquid.ini
@@ -51,9 +51,12 @@ echo "Process testdata documents"
 cp ci/conf/1-with-collections.ini liquid.ini
 ./liquid deploy
 
+echo "Creating user..."
 echo "$TEST_ADMIN_PASSWORD" | wc -c
 echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@liquid.example.org', '$TEST_ADMIN_PASSWORD')" | ./liquid dockerexec liquid:core ./manage.py shell
 
-echo "USER CREATION: DONE!"
+echo "User created."
 
 until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata; do sleep 60; done
+
+echo "Documents processed."
