@@ -110,7 +110,7 @@ def restore_collection(ctx, src, name):
     restore_collection_blobs(src, name)
 
     # pg requires all clients to be off
-    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy'])
+    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
     restore_collection_pg(src, name)
     ctx.invoke(deploy, secrets=False)
 
@@ -139,7 +139,7 @@ def restore_all_collections(ctx, backup_root):
         restore_collection_blobs(src, name)
 
     # pg requires all clients to be off
-    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy'])
+    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
     for name, src in all_collections:
         restore_collection_pg(src, name)
 
@@ -157,7 +157,7 @@ def restore_apps(ctx, src):
     nomad.stop_and_wait(['liquid'])
 
     if config.is_app_enabled('hoover'):
-        nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy'])
+        nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
         restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
         restore_pg(src / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
 
@@ -246,7 +246,7 @@ def restore_pg(src_file, username, dbname, alloc):
     cmd = (
         f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
         f"'set -exo pipefail;"
-        f"dropdb -f -U {username} --if-exists {dbname};"
+        f"dropdb -U {username} --if-exists {dbname};"
         f" createdb -U {username} {dbname};"
         f" zcat | psql -U {username} {dbname}' > /dev/null "
         f"< {src_file}"

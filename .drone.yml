@@ -47,9 +47,12 @@ steps:
       from_secret: target_password
     port:
       from_secret: target_port
+    envs:
+      - test_admin_password
     command_timeout: 60m
     script:
       - cd /app-test/code
+      - export TEST_ADMIN_PASSWORD=$TEST_ADMIN_PASSWORD
       - ./ci/run-integration-tests.sh
 
 ---
@@ -79,3 +82,10 @@ name: target_port
 get:
   path: liquid/ci/drone.target
   name: port
+
+---
+kind: secret
+name: test_admin_password
+get:
+  path: liquid/ci/drone.target
+  name: test_admin_password

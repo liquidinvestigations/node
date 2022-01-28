@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 mongo --host $MONGO_ADDRESS --port $MONGO_PORT <<EOF
 var config = {
@@ -7,7 +7,7 @@ var config = {
     "members": [
         {
             "_id": 0,
-            "host": "$MONGO_ADDRESS:$MONGO_PORT",
+            "host": "localhost:27017",
             "priority": 3
         }
     ]

@@ -20,7 +20,7 @@ job "rocketchat-migrate" {
         image = "${config.image('rocketchat-mongo')}"
         args = ["bash", "/local/init-replica-set.sh"]
         labels {
-          liquid_task = "rocketchat-caboose"
+          liquid_task = "rocketchat-mongo-init-replica-set"
         }
       }
       template {

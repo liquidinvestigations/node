@@ -249,6 +249,7 @@ class Configuration:
             self.ci_target_username = self.ini.get('ci', 'target_username')
             self.ci_target_password = self.ini.get('ci', 'target_password')
             self.ci_target_port = self.ini.get('ci', 'target_port')
+            self.ci_target_test_admin_password = self.ini.get('ci', 'target_test_admin_password')
 
         self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
         self.all_jobs = list(self.ALL_JOBS)

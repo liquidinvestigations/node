@@ -26,6 +26,7 @@ class Drone(jobs.Job):
             'username': config.ci_target_username,
             'password': config.ci_target_password,
             'port': config.ci_target_port,
+            'test_admin_password': config.ci_target_test_admin_password,
         })
 
         vault.ensure_secret('liquid/ci/drone.secret.2', lambda: {
