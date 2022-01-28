@@ -54,7 +54,7 @@ steps:
     port:
       from_secret: target_port
     envs: [test_admin_password]
-    command_timeout: 60m
+    command_timeout: 120m
     script:
       - set -x
       - set -e
