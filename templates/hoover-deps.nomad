@@ -384,10 +384,6 @@ job "hoover-deps" {
         }
       }
 
-      env {
-        # might need envs here
-      }
-
       service {
         name = "hoover-pdf-preview"
         port = "pdf_preview"
@@ -754,4 +750,110 @@ job "hoover-deps" {
       }
     }
   }
+
+  {% if config.hoover_maps_enable %}
+  group "maps-tileserver" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "maps-tileserver" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "maptiler/tileserver-gl:v3.1.1"
+        args = [
+          "--mbtiles",
+          "2020-10-planet-14.mbtiles",
+        ]
+        port_map {
+          http = 8080
+        }
+        labels {
+          liquid_task = "hoover-maps-tileserver"
+        }
+        memory_hard_limit = 900
+
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/osmdata:/data",
+        ]
+      }
+
+      resources {
+        memory = 200
+        cpu = 100
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-maps-tileserver"
+        port = "http"
+        tags = ["fabio-/_maps_tileserver strip=/_maps_tileserver"]
+
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "maps-osmnames-sphinxsearch" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "maps-tileserver" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "klokantech/osmnames-sphinxsearch:2.0.6"
+        port_map {
+          http = 80
+        }
+        labels {
+          liquid_task = "maps-osmnames-sphinxsearch"
+        }
+        memory_hard_limit = 900
+
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/osmdata:/data",
+        ]
+      }
+
+      resources {
+        memory = 200
+        cpu = 100
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-maps-tileserver"
+        port = "http"
+        tags = ["fabio-/_maps_osmnames_sphinxsearch strip=/_maps_osmnames_sphinxsearch"]
+
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  {% endif %}
+
 }
