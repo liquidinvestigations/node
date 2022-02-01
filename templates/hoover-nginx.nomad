@@ -106,15 +106,16 @@ job "hoover-nginx" {
               return 200 "healthy\n";
             }
 
+            {% if config.hoover_maps_enabled %}
             location  ~ ^/api/map {
               rewrite ^/api/map(.*) /_maps_tileserver/$1 break;
               proxy_pass http://fabio;
             }
-
             location  ~ ^/api/geo {
               rewrite ^/api/geo(.*) /_maps_osmnames_sphinxsearch/$1 break;
               proxy_pass http://fabio;
             }
+            {% endif %}
 
             location  ~ ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc) {
               rewrite ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc)(.*) /hoover-search/$1$2 break;
@@ -220,6 +221,12 @@ job "hoover-nginx" {
         AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
         MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
       }
+
+      {% if config.hoover_maps_enabled %}
+      env {
+        HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
+      }
+      {% endif %}
 
       resources {
         memory = 900

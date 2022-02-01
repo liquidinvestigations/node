@@ -751,7 +751,7 @@ job "hoover-deps" {
     }
   }
 
-  {% if config.hoover_maps_enable %}
+  {% if config.hoover_maps_enabled %}
   group "maps-tileserver" {
     ${ continuous_reschedule() }
     ${ group_disk() }
