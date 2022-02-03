@@ -525,6 +525,8 @@ job "hoover-deps" {
   {% endif %}
 
    group "nlp-service" {
+    count = 2
+
     ${ continuous_reschedule() }
     ${ group_disk() }
 

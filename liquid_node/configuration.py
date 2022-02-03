@@ -235,8 +235,8 @@ class Configuration:
         self.nlp_preset = self.ini.get('nlp_service', 'preset', fallback="full_lg")
         self.nlp_spacy_text_limit = self.ini.get('nlp_service', 'spacy_text_limit', fallback=100000)
         self.nlp_memory_limit = self.ini.getint('nlp_service', 'nlp_memory_limit', fallback=1200)
-        self.nlp_gunicorn_workers = self.ini.getint('nlp_service', 'gunicorn_workers', fallback=1200)
-        self.nlp_gunicorn_threads = self.ini.getint('nlp_service', 'gunicorn_threads', fallback=1200)
+        self.nlp_gunicorn_workers = self.ini.getint('nlp_service', 'gunicorn_workers', fallback=2)
+        self.nlp_gunicorn_threads = self.ini.getint('nlp_service', 'gunicorn_threads', fallback=30)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
