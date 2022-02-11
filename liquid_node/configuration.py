@@ -240,7 +240,7 @@ class Configuration:
         self.snoop_nlp_gunicorn_threads = self.ini.getint('snoop', 'nlp_gunicorn_threads', fallback=30)
         self.snoop_nlp_count = self.ini.getint('snoop', 'count', fallback=2)
         self.snoop_nlp_entity_extraction_enabled =  \
-            self.ini.getboolean('snoop','nlp_entity_extraction_enabled', fallback=False)
+            self.ini.getboolean('snoop', 'nlp_entity_extraction_enabled', fallback=False)
         self.snoop_nlp_language_detection_enabled = \
             self.ini.getboolean('snoop', 'nlp_language_detection_enabled', fallback=False)
 
