@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, authproxy_group, continuous_reschedule, group_disk, task_logs with context -%}
+{% from '_lib.hcl' import shutdown_delay, continuous_reschedule, group_disk, task_logs with context -%}
 
 job "rocketchat" {
   datacenters = ["dc1"]
@@ -38,8 +38,26 @@ job "rocketchat" {
             ADMIN_PASS={{.Data.pass | toJSON }}
           {{- end }}
           ADMIN_EMAIL=admin@example.com
-          Organization_Name=${config.liquid_title}
+
+          Organization_Name=Liquid Investigations
+          Organization_Type=Nonprofit
+          Size=1-10 people
+          Industry=Other
+          Country=Worldwide
+          Website=https://example.org
+          Server_Type=Private Team
           Site_Name=${config.liquid_title}
+          Site_Url=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
+
+          OVERWRITE_SETTING_Organization_Name=Liquid Investigations
+          OVERWRITE_SETTING_Organization_Type=Nonprofit
+          OVERWRITE_SETTING_Size=1-10 people
+          OVERWRITE_SETTING_Industry=Other
+          OVERWRITE_SETTING_Country=Worldwide
+          OVERWRITE_SETTING_Website=https://example.org
+          OVERWRITE_SETTING_Server_Type=Private Team
+          OVERWRITE_SETTING_Site_Name=${config.liquid_title}
+          OVERWRITE_SETTING_Site_Url=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
 
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid=true
           {{- range service "core" }}
@@ -74,23 +92,29 @@ job "rocketchat" {
           OVERWRITE_SETTING_Accounts_RegistrationForm=Disabled
           OVERWRITE_SETTING_Allow_Marketing_Emails=false
           OVERWRITE_SETTING_Allow_Save_Media_to_Gallery=false
-          OVERWRITE_SETTING_Cloud_Service_Agree_PrivacyTerms=false
           OVERWRITE_SETTING_FEDERATION_Enabled=false
           OVERWRITE_SETTING_FileUpload_Enabled=false
           OVERWRITE_SETTING_IRC_Enabled=false
           OVERWRITE_SETTING_Layout_Sidenav_Footer=<a href="/home"><img src="assets/favicon.svg"/></a><a href="${config.liquid_core_url}"><h1 style="font-size:77%;float:right;clear:both; color:#aaa">&#8594; ${config.liquid_title}</h1></a>
           OVERWRITE_SETTING_Message_VideoRecorderEnabled=false
-          OVERWRITE_SETTING_Push_enable=false
-          OVERWRITE_SETTING_Push_enable_gateway=false
-          OVERWRITE_SETTING_Push_gateway=${config.liquid_core_url}
-          OVERWRITE_SETTING_Push_request_content_from_server=false
-          OVERWRITE_SETTING_Push_show_message=false
-          OVERWRITE_SETTING_Push_show_username_room=false
-          OVERWRITE_SETTING_Register_Server=false
+          {% if config.rocketchat_enable_push %}
+            OVERWRITE_SETTING_Push_enable=true
+            OVERWRITE_SETTING_Push_enable_gateway=true
+            OVERWRITE_SETTING_Push_gateway=https://gateway.rocket.chat
+            OVERWRITE_SETTING_Push_production=true
+            OVERWRITE_SETTING_Register_Server=true
+            OVERWRITE_SETTING_Cloud_Service_Agree_PrivacyTerms=true
+          {% else %}
+            OVERWRITE_SETTING_Push_enable=false
+            OVERWRITE_SETTING_Push_enable_gateway=false
+            OVERWRITE_SETTING_Push_gateway=${config.liquid_core_url}
+            OVERWRITE_SETTING_Push_production=false
+            OVERWRITE_SETTING_Register_Server=false
+            OVERWRITE_SETTING_Cloud_Service_Agree_PrivacyTerms=false
+          {% endif %}
           OVERWRITE_SETTING_UI_Allow_room_names_with_special_chars=true
           OVERWRITE_SETTING_UserData_EnableDownload=false
           OVERWRITE_SETTING_Document_Domain=${config.liquid_domain}
-          OVERWRITE_SETTING_Push_production=false
           OVERWRITE_SETTING_Accounts_LoginExpiration=100
           {% if config.rocketchat_show_login_form %}
             OVERWRITE_SETTING_Accounts_ShowFormLogin=true
@@ -114,7 +138,7 @@ job "rocketchat" {
           OVERWRITE_SETTING_DeepLink_Url=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
           OVERWRITE_SETTING_CDN_PREFIX_ALL=false
 
-          SETTINGS_BLOCKED=Show_Setup_Wizard,registerServer,Accounts_PasswordReset,Accounts_RegistrationForm,Allow_Marketing_Emails,Allow_Save_Media_to_Gallery,Cloud_Service_Agree_PrivacyTerms,FEDERATION_Enabled,FileUpload_Enabled,IRC_Enabled,Layout_Sidenav_Footer,Message_VideoRecorderEnabled,Push_enable,Push_enable_gateway,Push_gateway,Push_request_content_from_server,Push_show_message,Push_show_username_room,Register_Server,UI_Allow_room_names_with_special_chars,UserData_EnableDownload,Document_Domain,Push_production,Accounts_LoginExpiration,Accounts_AllowUsernameChange,Accounts_Send_Email_When_Activating,Accounts_Send_Email_When_Deactivating,Accounts_RequirePasswordConfirmation,Accounts_Verify_Email_For_External_Accounts,Accounts_TwoFactorAuthentication_Enabled,Accounts_TwoFactorAuthentication_By_Email_Enabled,Accounts_TwoFactorAuthentication_By_Email_Auto_Opt_In,Accounts_TwoFactorAuthentication_Enforce_Password_Fallback,Accounts_Default_User_Preferences_notificationsSoundVolume,E2E_Enable,DeepLink_Url
+          SETTINGS_BLOCKED=Show_Setup_Wizard,registerServer,Accounts_PasswordReset,Accounts_RegistrationForm,Allow_Marketing_Emails,Allow_Save_Media_to_Gallery,Cloud_Service_Agree_PrivacyTerms,FEDERATION_Enabled,FileUpload_Enabled,IRC_Enabled,Layout_Sidenav_Footer,Message_VideoRecorderEnabled,Push_enable,Push_enable_gateway,Push_gateway,Register_Server,UI_Allow_room_names_with_special_chars,UserData_EnableDownload,Document_Domain,Push_production,Accounts_LoginExpiration,Accounts_AllowUsernameChange,Accounts_Send_Email_When_Activating,Accounts_Send_Email_When_Deactivating,Accounts_RequirePasswordConfirmation,Accounts_Verify_Email_For_External_Accounts,Accounts_TwoFactorAuthentication_Enabled,Accounts_TwoFactorAuthentication_By_Email_Enabled,Accounts_TwoFactorAuthentication_By_Email_Auto_Opt_In,Accounts_TwoFactorAuthentication_Enforce_Password_Fallback,Accounts_Default_User_Preferences_notificationsSoundVolume,E2E_Enable,DeepLink_Url
 
         EOF
         # OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-groups_claim=roles
@@ -148,6 +172,10 @@ job "rocketchat" {
       service {
         name = "rocketchat-app"
         port = "web"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:${'rocketchat.' + liquid_domain}",
+        ]
         check {
           name = "http"
           initial_status = "critical"

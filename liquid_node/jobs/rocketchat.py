@@ -8,12 +8,6 @@ class Rocketchat(jobs.Job):
     stage = 3
     core_oauth_apps = [
         {
-            'name': 'rocketchat-authproxy',
-            'subdomain': 'rocketchat',
-            'vault_path': 'liquid/rocketchat/auth.oauth2',
-            'callback': '/oauth2/callback',
-        },
-        {
             'name': 'rocketchat-app',
             'subdomain': 'rocketchat',
             'vault_path': 'liquid/rocketchat/app.oauth2',
@@ -43,10 +37,3 @@ class Migrate(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'rocketchat'
     stage = 2
-
-
-class Proxy(jobs.Job):
-    name = 'rocketchat-proxy'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'rocketchat'
-    stage = 4
