@@ -524,8 +524,9 @@ job "hoover-deps" {
   }
   {% endif %}
 
+  {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
    group "nlp-service" {
-    count = 2
+    count = ${config.snoop_nlp_count}
 
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -553,11 +554,13 @@ job "hoover-deps" {
         memory_hard_limit = ${4 * config.nlp_memory_limit}
       }
       env {
-        NLP_SERVICE_PRESET = "${config.nlp_preset}"
-        NLP_SERVICE_FALLBACK_LANGUAGE = "${config.nlp_fallback_language}"
-        NLP_SPACY_TEXT_LIMIT = "${config.nlp_spacy_text_limit}"
-        GUNICORN_WORKERS = ${config.nlp_gunicorn_workers}
-        GUNICORN_THREADS = ${config.nlp_gunicorn_threads}
+        NLP_SERVICE_PRESET = "${config.snoop_nlp_preset}"
+        NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
+        NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
+        GUNICORN_WORKERS = ${config.snoop_nlp_gunicorn_workers}
+        GUNICORN_THREADS = ${config.snoop_nlp_gunicorn_threads}
+        EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
+        DETECT_LANGUAGE = "${config.snoop_nlp_language_detection_enabled}"
       }
       resources {
         memory = ${config.nlp_memory_limit}

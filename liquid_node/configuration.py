@@ -231,12 +231,16 @@ class Configuration:
             self.ini.getboolean('snoop', 'image_classification_classify_images_enabled', fallback=False)
         self.snoop_image_classification_classify_images_model = \
             self.ini.get('snoop', 'image_classification_classify_images_model', fallback='mobilenet')
-        self.nlp_fallback_language = self.ini.get('nlp_service', 'fallback_language', fallback="en")
-        self.nlp_preset = self.ini.get('nlp_service', 'preset', fallback="full_lg")
-        self.nlp_spacy_text_limit = self.ini.get('nlp_service', 'spacy_text_limit', fallback=100000)
-        self.nlp_memory_limit = self.ini.getint('nlp_service', 'nlp_memory_limit', fallback=1200)
-        self.nlp_gunicorn_workers = self.ini.getint('nlp_service', 'gunicorn_workers', fallback=2)
-        self.nlp_gunicorn_threads = self.ini.getint('nlp_service', 'gunicorn_threads', fallback=30)
+
+        self.snoop_nlp_fallback_language = self.ini.get('snoop', 'nlp_fallback_language', fallback="en")
+        self.snoop_nlp_preset = self.ini.get('snoop', 'nlp_preset', fallback="full_lg")
+        self.snoop_nlp_spacy_text_limit = self.ini.get('snoop', 'nlp_spacy_text_limit', fallback=100000)
+        self.snoop_nlp_memory_limit = self.ini.getint('snoop', 'nlp_memory_limit', fallback=1200)
+        self.snoop_nlp_gunicorn_workers = self.ini.getint('snoop', 'nlp_gunicorn_workers', fallback=2)
+        self.snoop_nlp_gunicorn_threads = self.ini.getint('snoop', 'nlp_gunicorn_threads', fallback=30)
+        self.snoop_nlp_count = self.ini.getint('snoop', 'count', fallback=2)
+        self.snoop_nlp_entity_extraction_enabled = self.ini.getboolean('snoop', 'nlp_entity_extraction_enabled', fallback=False)
+        self.snoop_nlp_language_detection_enabled = self.ini.getboolean('snoop', 'nlp_language_detection_enabled', fallback=False)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
