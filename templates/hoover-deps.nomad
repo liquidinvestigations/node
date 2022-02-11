@@ -585,6 +585,7 @@ job "hoover-deps" {
       }
     }
   }
+  {% endif %}
 
   group "rabbitmq" {
     ${ continuous_reschedule() }
