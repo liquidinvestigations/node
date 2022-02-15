@@ -79,7 +79,7 @@ job "hoover-workers" {
         {% if config.snoop_thumbnail_generator_enabled %}
           SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
         {% endif %}
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         {% if config.snoop_pdf_preview_enabled %}
           SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
@@ -110,7 +110,7 @@ job "hoover-workers" {
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
-        {{- range service "hoover-rabbitmq" }}
+        {{- range service "hoover-snoop-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
         {{ range service "zipkin" }}

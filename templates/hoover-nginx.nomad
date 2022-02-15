@@ -344,7 +344,7 @@ job "hoover-nginx" {
           {%- endif %}
           HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
-          {{- range service "hoover-rabbitmq" }}
+          {{- range service "hoover-search-rabbitmq" }}
             SEARCH_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
           {{- end }}
         EOF

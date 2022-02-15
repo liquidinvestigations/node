@@ -524,11 +524,107 @@ job "hoover-deps" {
   }
   {% endif %}
 
-  group "rabbitmq" {
+  group "search-rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
-    task "rabbitmq" {
+    task "search-rabbitmq" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      config {
+        image = "rabbitmq:3.8.5-management-alpine"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/search-rabbitmq-3.8.5:/var/lib/rabbitmq",
+          "local/conf:/etc/rabbitmq/rabbitmq.conf:ro",
+          "local/plugins:/etc/rabbitmq/enabled_plugins:ro",
+        ]
+        port_map {
+          amqp = 5672
+          http = 15672
+          prom = 15692
+        }
+        labels {
+          liquid_task = "search-rabbitmq"
+        }
+        memory_hard_limit = 1000
+      }
+
+      resources {
+        memory = 500
+        cpu = 250
+        network {
+          mbits = 1
+          port "amqp" {}
+          port "http" {}
+          port "prom" {}
+        }
+      }
+
+      #env { RABBITMQ_CONFIG_FILE = "/local/rabbitmq" }
+
+      template {
+        destination = "local/conf"
+        data = <<-EOF
+          collect_statistics_interval = 60000
+          management.path_prefix = /_search_rabbit
+          management.cors.allow_origins.1 = *
+          management.enable_queue_totals = true
+          listeners.tcp.default = 5672
+          management.tcp.port = 15672
+          loopback_users.guest = false
+          total_memory_available_override_value = 500MB
+          EOF
+      }
+
+      template {
+        destination = "local/plugins"
+        data = <<-EOF
+          [rabbitmq_management].
+          EOF
+        #[rabbitmq_prometheus,rabbitmq_management].
+      }
+
+      service {
+        name = "hoover-search-rabbitmq"
+        port = "amqp"
+      }
+
+      service {
+        name = "hoover-search-rabbitmq-http"
+        port = "http"
+        tags = ["fabio-/_search_rabbit"]
+        check {
+          name = "check-script"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "time rabbitmq-diagnostics check_running"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "snoop-rabbitmq" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "snoop-rabbitmq" {
       ${ task_logs() }
 
       constraint {
@@ -581,7 +677,7 @@ job "hoover-deps" {
         destination = "local/conf"
         data = <<-EOF
           collect_statistics_interval = 60000
-          management.path_prefix = /_rabbit
+          management.path_prefix = /_snoop_rabbit
           management.cors.allow_origins.1 = *
           management.enable_queue_totals = true
           listeners.tcp.default = 5672
@@ -600,14 +696,14 @@ job "hoover-deps" {
       }
 
       service {
-        name = "hoover-rabbitmq"
+        name = "hoover-snoop-rabbitmq"
         port = "amqp"
       }
 
       service {
-        name = "hoover-rabbitmq-http"
+        name = "hoover-snoop-rabbitmq-http"
         port = "http"
-        tags = ["fabio-/_rabbit"]
+        tags = ["fabio-/_snoop_rabbit"]
         check {
           name = "check-script"
           type = "script"

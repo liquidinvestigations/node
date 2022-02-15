@@ -4,7 +4,7 @@
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_rabbit/"
+        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
         {% if config.snoop_thumbnail_generator_enabled %}
           SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
         {% endif %}
@@ -131,7 +131,7 @@ job "hoover" {
           {%- endif %}
           HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
-          {{- range service "hoover-rabbitmq" }}
+          {{- range service "hoover-search-rabbitmq" }}
             SEARCH_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
           {{- end }}
         EOF
@@ -223,7 +223,7 @@ job "hoover" {
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
-        {{- range service "hoover-rabbitmq" }}
+        {{- range service "hoover-snoop-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
         {{ range service "zipkin" }}
@@ -332,7 +332,7 @@ job "hoover" {
           {{- end -}}
           @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
-        {{- range service "hoover-rabbitmq" }}
+        {{- range service "hoover-snoop-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
         {{ range service "zipkin" }}
@@ -431,7 +431,7 @@ job "hoover" {
           @{{.Address}}:{{.Port}}/snoop"
         {{- end }}
 
-        {{- range service "hoover-rabbitmq" }}
+        {{- range service "hoover-snoop-rabbitmq" }}
           SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
         {{- end }}
         {{- range service "zipkin" }}
