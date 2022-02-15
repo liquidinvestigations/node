@@ -177,6 +177,7 @@ class Configuration:
                                                 'hoover_web_count', fallback=1)
         self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
         self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=True)  # noqa: E501
+        self.rocketchat_autologout_days = self.ini.getint('liquid', 'rocketchat_autologout_days', fallback=100)  # noqa: E501
 
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
         self.hoover_es_max_concurrent_shard_requests = self.ini.getint(

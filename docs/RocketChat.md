@@ -44,9 +44,14 @@ that needs to be performed by an administrator through Rocket.Chat's web admin.
    ![7-success](pics/7-success.png)
 
 7. After you verify that the login button works correctly, please edit
-   `liquid.ini` and set the following setting: `[liquid]
-   rocketchat_show_login_form = false`. This will only keep the login button,
+   `liquid.ini` and set the following setting:
+   `[liquid] rocketchat_show_login_form = false`. This will only keep the login button,
    hiding the user/password form.
+
+8. Set the desired number of days for Login Expiration, by editing `liquid.ini`
+   and setting the following value: `[liquid] rocketchat_autologout_days = 7`.
+
+9. Run the command `./liquid deploy` and wait for server re-start.
 
 
 
@@ -74,9 +79,10 @@ Options to limit the data being shown are available in the RocketChat Admin UI, 
 Since we are running the Community Edition, it seems that **notifications are not secured, and can be intercepted by Apple, Google, or RocketChat Cloud**.
 More details here: [Rocket.Chat Guides -- Push Notifications Security](https://docs.rocket.chat/guides/mobile-guides/push-notifications/push-notification-security),
 and at their [Pricing Page](https://rocket.chat/pricing) under `Team Collaboration Features` see `Secured Push Notifications`.
-Nevertheless, it's recommended to keep the `Fetch full message content from server on receipt` flag set to TRUE,
-in case it does work as advertised in the Community Edition, and to never send message content through notifications.
+Nevertheless, it's recommended to keep the `Fetch full message content from server on receipt` flag set to TRUE.
 
+The push notification service free tier is limited at `10 000 notifications / month` for each server, or about `450 / work day` -- should be enough for about 100 users.
+The usage can be checked from [the RockeChat Cloud console](https://cloud.rocket.chat/).
 
 ### Steps to enable
 
