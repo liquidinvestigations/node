@@ -57,6 +57,31 @@ After changing the domain name or the internal cluster IP address, the Login Pag
 - login as `rocketchatadmin` with the secret extracted from the commandline (step 1. above)
 - delete the old Oauth2 entry for Liquid
 - re-create it as before (step 4. above)
+- double check the section: `General > Site URL`. It should have exactly the same url as the one in the browser.
 
 
 The login should work as expected again.
+
+
+--------
+
+## Mobile Notifications
+
+This allows sending the message sender name, chat room, and optionally the entire message content through the RocketChat Public Gateway, and then through the Google/Apple cloud notifications system.
+
+Options to limit the data being shown are available in the RocketChat Admin UI, section `Admin > Push > Privacy`.
+
+Since we are running the Community Edition, it seems that **notifications are not secured, and can be intercepted by Apple, Google, or RocketChat Cloud**.
+More details here: [Rocket.Chat Guides -- Push Notifications Security](https://docs.rocket.chat/guides/mobile-guides/push-notifications/push-notification-security),
+and at their [Pricing Page](https://rocket.chat/pricing) under `Team Collaboration Features` see `Secured Push Notifications`.
+Nevertheless, it's recommended to keep the `Fetch full message content from server on receipt` flag set to TRUE,
+in case it does work as advertised in the Community Edition, and to never send message content through notifications.
+
+
+### Steps to enable
+
+1. Enable feature via `liquid.ini` flag called `[liquid] rocketchat_enable_push`, and run `./liquid deploy`.
+2. Create an account for RocketChat Cloud here: [Rocket.Chat Cloud Registration](https://cloud.rocket.chat/register).
+3. With this account, click the `Workspaces > Register self-managed` button and obtain a `Registration Token`. More details here: [Rocket.Chat Guide -- Connectivity Services](https://docs.rocket.chat/guides/administration/admin-panel/connectivity-services).
+4. In your RocketChat instance, fill out all the fields under `Admin > Setup Wizard > Organization Info`, including a valid-looking e-mail address for the `Organization Email` field.
+5. In your RocketChat instance, navigate to the `Connectivity Services` tab and connect it with `RocketChat Cloud` by using the `Registration Token`.
