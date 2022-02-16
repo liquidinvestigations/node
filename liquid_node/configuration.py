@@ -176,7 +176,7 @@ class Configuration:
         self.hoover_web_count = self.ini.getint('liquid',
                                                 'hoover_web_count', fallback=1)
         self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
-        self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=True)  # noqa: E501
+        self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=False)  # noqa: E501
         self.rocketchat_autologout_days = self.ini.getint('liquid', 'rocketchat_autologout_days', fallback=100)  # noqa: E501
 
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
@@ -200,7 +200,7 @@ class Configuration:
         self.snoop_worker_hard_memory_limit = 2000 * (2 + self.snoop_max_workers_per_node)
         self.snoop_worker_cpu_limit = 400 * self.snoop_min_workers_per_node
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
-        self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="6s")
+        self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="1s")
 
         self.snoop_pdf_preview_enabled = self.ini.getboolean('snoop', 'pdf_preview_enabled', fallback=False)
         self.snoop_pdf_preview_count = self.ini.getint('snoop', 'pdf_preview_count', fallback=1)
