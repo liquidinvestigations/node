@@ -115,7 +115,7 @@ job "rocketchat" {
           OVERWRITE_SETTING_UI_Allow_room_names_with_special_chars=true
           OVERWRITE_SETTING_UserData_EnableDownload=false
           OVERWRITE_SETTING_Document_Domain=${config.liquid_domain}
-          OVERWRITE_SETTING_Accounts_LoginExpiration=${settings.rocketchat_autologout_days}
+          OVERWRITE_SETTING_Accounts_LoginExpiration=${config.rocketchat_autologout_days}
           {% if config.rocketchat_show_login_form %}
             OVERWRITE_SETTING_Accounts_ShowFormLogin=true
           {% else %}
