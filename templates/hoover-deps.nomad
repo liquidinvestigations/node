@@ -562,7 +562,7 @@ job "hoover-deps" {
       }
       resources {
         memory = ${config.snoop_nlp_memory_limit}
-        cpu = 1500
+        cpu = 400
         network {
           mbits = 1
           port "nlp" {}
@@ -578,7 +578,7 @@ job "hoover-deps" {
           type = "http"
           path = "/config"
           interval = "${check_interval}"
-          timeout = "600s"
+          timeout = "${check_timeout}"
         }
       }
     }
