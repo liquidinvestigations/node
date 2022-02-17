@@ -551,7 +551,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-nlp"
         }
-        memory_hard_limit = ${4 * config.nlp_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_nlp_memory_limit}
       }
       env {
         NLP_SERVICE_PRESET = "${config.snoop_nlp_preset}"
@@ -563,7 +563,7 @@ job "hoover-deps" {
         DETECT_LANGUAGE = "${config.snoop_nlp_language_detection_enabled}"
       }
       resources {
-        memory = ${config.nlp_memory_limit}
+        memory = ${config.snoop_nlp_memory_limit}
         cpu = 1500
         network {
           mbits = 1
