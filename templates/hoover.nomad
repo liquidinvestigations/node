@@ -6,12 +6,8 @@
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
            SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
-           {% if config.snoop_nlp_entity_extraction_enabled %}
-              EXTRACT_ENTITIES = True
-           {% endif %}
-           {% if config.snoop_nlp_language_detection_enabled %}
-              DETECT_LANGUAGE = True
-           {% endif %}
+           EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
+           DETECT_LANGUAGE = "${config.snoop_nlp_language_detection_enabled}"
         {% endif %}
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
         {% if config.snoop_thumbnail_generator_enabled %}
