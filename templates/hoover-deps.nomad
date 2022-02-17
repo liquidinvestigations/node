@@ -559,8 +559,6 @@ job "hoover-deps" {
         NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
         GUNICORN_WORKERS = ${config.snoop_nlp_gunicorn_workers}
         GUNICORN_THREADS = ${config.snoop_nlp_gunicorn_threads}
-        EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
-        DETECT_LANGUAGE = "${config.snoop_nlp_language_detection_enabled}"
       }
       resources {
         memory = ${config.snoop_nlp_memory_limit}
@@ -587,7 +585,7 @@ job "hoover-deps" {
   }
   {% endif %}
 
-  group "rabbitmq" {
+  group "search-rabbitmq" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
