@@ -302,7 +302,6 @@ job "hoover" {
           # exec tail -f /dev/null
           if  [ -z "$SNOOP_TIKA_URL" ] \
                   || [ -z "$SNOOP_DB" ] \
-                  || [ -z "$SNOOP_NLP_URL" ] \
                   || [ -z "$SNOOP_ES_URL" ] \
                   || [ -z "$SNOOP_AMQP_URL" ]; then
             echo "incomplete configuration!"
