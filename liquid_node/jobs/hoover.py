@@ -36,6 +36,13 @@ class Proxy(jobs.Job):
     stage = 4
 
 
+class DepsDownloads(jobs.Job):
+    name = 'hoover-deps-downloads'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'hoover'
+    stage = 1
+
+
 class Deps(jobs.Job):
     name = 'hoover-deps'
     template = jobs.TEMPLATES / f'{name}.nomad'
