@@ -245,11 +245,11 @@ class Configuration:
         self.snoop_nlp_language_detection_enabled = \
             self.ini.getboolean('snoop', 'nlp_language_detection_enabled', fallback=False)
 
-        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
-        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='30s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='29s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
-        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=4)
-        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=6)
+        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=10)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=5)
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
