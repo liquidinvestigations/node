@@ -237,8 +237,6 @@ class Configuration:
         self.snoop_nlp_preset = self.ini.get('snoop', 'nlp_preset', fallback="full_lg")
         self.snoop_nlp_spacy_text_limit = self.ini.get('snoop', 'nlp_spacy_text_limit', fallback=100000)
         self.snoop_nlp_memory_limit = self.ini.getint('snoop', 'nlp_memory_limit', fallback=1200)
-        self.snoop_nlp_gunicorn_workers = self.ini.getint('snoop', 'nlp_gunicorn_workers', fallback=2)
-        self.snoop_nlp_gunicorn_threads = self.ini.getint('snoop', 'nlp_gunicorn_threads', fallback=30)
         self.snoop_nlp_count = self.ini.getint('snoop', 'count', fallback=2)
         self.snoop_nlp_entity_extraction_enabled =  \
             self.ini.getboolean('snoop', 'nlp_entity_extraction_enabled', fallback=False)

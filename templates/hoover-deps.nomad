@@ -557,8 +557,6 @@ job "hoover-deps" {
         NLP_SERVICE_PRESET = "${config.snoop_nlp_preset}"
         NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
         NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
-        GUNICORN_WORKERS = ${config.snoop_nlp_gunicorn_workers}
-        GUNICORN_THREADS = ${config.snoop_nlp_gunicorn_threads}
       }
       resources {
         memory = ${config.snoop_nlp_memory_limit}
@@ -576,7 +574,7 @@ job "hoover-deps" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/config"
+          path = "/health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
