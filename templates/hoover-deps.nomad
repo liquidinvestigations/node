@@ -444,7 +444,7 @@ job "hoover-deps" {
         }
   
         env {
-          WEB_CONCURRENCY = 4
+          WEB_CONCURRENCY = 30
         }
   
         service {
@@ -461,7 +461,7 @@ job "hoover-deps" {
           }
           check_restart {
             limit = 5
-            grace = "60s"
+            grace = "480s"
           }
         }
       }
