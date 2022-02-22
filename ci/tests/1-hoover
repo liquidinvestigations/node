@@ -28,11 +28,11 @@ set +x
 echo "Waiting for processing to finish..."
 wait_testdata
 
-# echo "Retrying errors 2 times..."
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
-# wait_testdata
-# 
+echo "Retrying errors..."
+timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
+timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
+wait_testdata
+# echo "Retrying errors (second time)..."
 # timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
 # timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
 # wait_testdata
