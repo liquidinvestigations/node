@@ -108,11 +108,11 @@ job "hoover-nginx" {
 
             {% if config.hoover_maps_enabled %}
             location  ~ ^/api/map {
-              rewrite ^/api/map(.*) /_maps_tileserver/$1 break;
+              rewrite ^/api/map(.*) /_maps_tileserver$1 break;
               proxy_pass http://fabio;
             }
             location  ~ ^/api/geo {
-              rewrite ^/api/geo(.*) /_maps_osmnames_sphinxsearch/$1 break;
+              rewrite ^/api/geo(.*) /_maps_osmnames_sphinxsearch$1 break;
               proxy_pass http://fabio;
             }
             {% endif %}

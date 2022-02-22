@@ -857,13 +857,14 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "maptiler/tileserver-gl:v3.1.1"
+        # image = "maptiler/tileserver-gl:v3.1.1"
+        image = "klokantech/tileserver-gl:v2.6.0"
         args = [
           "--mbtiles",
           "2020-10-planet-14.mbtiles",
         ]
         port_map {
-          http = 8080
+          http = 80
         }
         labels {
           liquid_task = "hoover-maps-tileserver"
