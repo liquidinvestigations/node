@@ -18,7 +18,10 @@ function wait_testdata() {
   timeout 100 ./liquid dockerexec hoover:snoop ./manage.py rundispatcher || true
 
   until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>/dev/null 1>/dev/null; do
+    echo '---------------------------------------------------------------'
     curl http://10.66.60.1:9990/snoop/collections/testdata/json 2>/dev/null | jq .stats.progress_str
+    uptime | awk -F'[a-z]:' '{ print $2}'
+    free -h
     sleep 30
   done
 }
@@ -32,12 +35,7 @@ echo "Retrying errors..."
 timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
 timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
 wait_testdata
-# echo "Retrying errors (second time)..."
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
-# wait_testdata
-
-echo "Documents processed."
+echo "All documents processed."
 
 set -x
 echo "Run UI test suite..."
