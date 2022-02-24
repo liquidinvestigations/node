@@ -21,7 +21,7 @@ function wait_testdata() {
     echo '---------------------------------------------------------------'
     curl http://10.66.60.1:9990/snoop/collections/testdata/json 2>/dev/null | jq .stats.progress_str
     uptime | awk -F'[a-z]:' '{ print $2}'
-    free -h
+    free -h | head -n2
     sleep 30
   done
 }
