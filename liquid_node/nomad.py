@@ -41,9 +41,35 @@ class Nomad(JsonApi):
         if spec.get('Periodic') or spec.get('ParameterizedJob'):
             # HTTP 500 - "can't evaluate periodic/parameterized job"
             return
-        self.post(f'job/{job_id}/evaluate',
-                  {'JobID': job_id,
-                   "EvalOptions": {"ForceReschedule": True}})
+
+        evaluation = self.post(
+            f'job/{job_id}/evaluate',
+            {'JobID': job_id, "EvalOptions": {"ForceReschedule": True}},
+        )
+
+        if spec.get('Type') == 'batch':
+            self.wait_for_batch_job(spec, evaluation)
+
+    def wait_for_batch_job(self, spec, evaluation):
+        INTERVAL_S = 2
+        TOTAL_WAIT_H = 2
+
+        def check_eval(evaluation):
+            ev = self.get('evaluations?prefix=' + evaluation['EvalID'])
+            return ev[0]['Status'] == 'complete'
+
+        def check_job(spec):
+            job = self.get(f'job/{spec["ID"]}')
+            log.debug("job %s status is '%s'", spec['ID'], job['Status'])
+            return job['Status'] == 'dead'
+
+        log.info("Waiting for batch job %s  (max wait = %sh)", spec['ID'], TOTAL_WAIT_H)
+        for _ in range(int(TOTAL_WAIT_H * 3600 / INTERVAL_S)):
+            if check_eval(evaluation) and check_job(spec):
+                break
+            sleep(INTERVAL_S)
+        else:
+            raise RuntimeError("Batch Job {spec['ID']} Failed to finish in 2h")
 
     def get_health_checks(self, spec):
         """Generates (service, check_name_list) tuples for the supplied job"""
