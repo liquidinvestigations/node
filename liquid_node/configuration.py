@@ -213,13 +213,13 @@ class Configuration:
                                                                fallback=1)
         self.snoop_thumbnail_generator_memory_limit = self.ini.getint('snoop',
                                                                       'thumbnail_generator_memory_limit',
-                                                                      fallback=900)
+                                                                      fallback=1500)
 
         self.snoop_image_classification_count = self.ini.getint('snoop', 'image_classification_count',
                                                                 fallback=1)
         self.snoop_image_classification_memory_limit = self.ini.getint('snoop',
                                                                        'image_classification_memory_limit',
-                                                                       fallback=900)
+                                                                       fallback=1500)
         self.snoop_image_classification_waitress_threads = \
             self.ini.getint('snoop', 'image_classification_waitress_threads', fallback=30)
 
@@ -234,8 +234,8 @@ class Configuration:
             self.ini.get('snoop', 'image_classification_classify_images_model', fallback='mobilenet')
 
         self.snoop_nlp_fallback_language = self.ini.get('snoop', 'nlp_fallback_language', fallback="en")
-        self.snoop_nlp_preset = self.ini.get('snoop', 'nlp_preset', fallback="full_lg")
-        self.snoop_nlp_spacy_text_limit = self.ini.get('snoop', 'nlp_spacy_text_limit', fallback=100000)
+        self.snoop_nlp_preset = self.ini.get('snoop', 'nlp_preset', fallback="full_sm")
+        self.snoop_nlp_spacy_text_limit = self.ini.get('snoop', 'nlp_spacy_text_limit', fallback=40000)
         self.snoop_nlp_memory_limit = self.ini.getint('snoop', 'nlp_memory_limit', fallback=1200)
         self.snoop_nlp_count = self.ini.getint('snoop', 'count', fallback=2)
         self.snoop_nlp_entity_extraction_enabled =  \
