@@ -65,9 +65,9 @@ class Nomad(JsonApi):
 
         log.info("Waiting for batch job %s  (max wait = %sh)", spec['ID'], TOTAL_WAIT_H)
         for _ in range(int(TOTAL_WAIT_H * 3600 / INTERVAL_S)):
+            sleep(INTERVAL_S)
             if check_eval(evaluation) and check_job(spec):
                 break
-            sleep(INTERVAL_S)
         else:
             raise RuntimeError("Batch Job {spec['ID']} Failed to finish in 2h")
 
