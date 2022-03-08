@@ -119,6 +119,8 @@ job "hoover-nginx" {
             proxy_set_header X-Forwarded-Port  $server_port;
             proxy_pass_request_headers      on;
 
+            client_max_body_size 5M;
+
             location /_ping {
               return 200 "healthy\n";
             }
