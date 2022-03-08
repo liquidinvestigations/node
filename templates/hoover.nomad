@@ -122,6 +122,7 @@ job "hoover" {
         image = "${config.image('hoover-search')}"
         volumes = [
           ${hoover_search_repo}
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
         ]
         port_map {
           http = 8000
@@ -180,6 +181,8 @@ job "hoover" {
           SEARCH_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
 
           UPTRACE_DSN = "http://hoover@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
+          TUS_UPLOAD_DIR = ${config.hoover_tus_upload_dir}
+          TUS_DESTINATION_DIR = ${config.hoover_tus_files_dir}
         EOF
         destination = "local/hoover.env"
         env = true
