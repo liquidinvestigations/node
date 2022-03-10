@@ -533,17 +533,9 @@ job "hoover-deps" {
     task "nlp" {
       ${ task_logs() }
 
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
       driver = "docker"
       config {
         image = "${config.image('nlp-service')}"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nlp-service/data:/data",
-        ]
         port_map {
           nlp = 5000
         }
@@ -553,7 +545,6 @@ job "hoover-deps" {
         memory_hard_limit = ${4 * config.snoop_nlp_memory_limit}
       }
       env {
-        NLP_SERVICE_PRESET = "${config.snoop_nlp_preset}"
         NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
         NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
       }
