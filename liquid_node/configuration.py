@@ -220,8 +220,6 @@ class Configuration:
         self.snoop_image_classification_memory_limit = self.ini.getint('snoop',
                                                                        'image_classification_memory_limit',
                                                                        fallback=1500)
-        self.snoop_image_classification_waitress_threads = \
-            self.ini.getint('snoop', 'image_classification_waitress_threads', fallback=30)
 
         self.snoop_image_classification_object_detection_enabled = \
             self.ini.getboolean('snoop', 'image_classification_object_detection_enabled', fallback=False)
