@@ -981,7 +981,7 @@ job "hoover-deps" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
-    task "maps-tileserver" {
+    task "maps-osmnames-sphinxsearch" {
       ${ task_logs() }
 
       driver = "docker"
