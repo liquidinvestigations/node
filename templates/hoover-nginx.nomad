@@ -285,6 +285,8 @@ job "hoover-nginx" {
   group "hoover-search-workers" {
     # this container also runs periodic tasks, so don't scale it up from here.
     count = 1
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
     ${ group_disk() }
     ${ continuous_reschedule() }
     task "hoover-search-workers" {

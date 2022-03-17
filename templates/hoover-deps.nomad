@@ -285,10 +285,10 @@ job "hoover-deps" {
 
   group "tika" {
     count = ${config.tika_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     ${ continuous_reschedule() }
     ${ group_disk() }
-    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     task "tika" {
       ${ task_logs() }
@@ -362,6 +362,7 @@ job "hoover-deps" {
   {% if config.snoop_pdf_preview_enabled %}
   group "pdf-preview" {
     count = ${config.snoop_pdf_preview_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -416,6 +417,7 @@ job "hoover-deps" {
   {% if config.snoop_thumbnail_generator_enabled %}
   group "thumbnail-generator" {
     count = ${config.snoop_thumbnail_generator_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
   
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -485,6 +487,7 @@ job "hoover-deps" {
   {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
   group "image-classification" {
     count = ${config.snoop_image_classification_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -546,6 +549,7 @@ job "hoover-deps" {
   {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
    group "nlp-service" {
     count = ${config.snoop_nlp_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -1036,6 +1040,8 @@ job "hoover-deps" {
     ${ group_disk() }
 
     count = ${config.snoop_translation_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
     task "libre-translate-batch" {
       ${ task_logs() }
 
@@ -1086,7 +1092,7 @@ job "hoover-deps" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/"
+          path = "/languages"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -1099,6 +1105,8 @@ job "hoover-deps" {
     ${ group_disk() }
 
     count = 1
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
     task "libre-translate" {
       ${ task_logs() }
 
