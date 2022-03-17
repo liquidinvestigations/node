@@ -16,6 +16,12 @@ job "hoover-nginx" {
 
       driver = "docker"
 
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
       config {
         image = "nginx:1.19"
         args = ["bash", "/local/startup.sh"]
@@ -284,9 +290,10 @@ job "hoover-nginx" {
     task "hoover-search-workers" {
       ${ task_logs() }
 
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
       }
 
       driver = "docker"

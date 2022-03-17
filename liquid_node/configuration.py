@@ -191,8 +191,8 @@ class Configuration:
 
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
         self.snoop_min_workers_per_node = self.ini.getint('snoop', 'min_workers_per_node', fallback=2)
-        self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=4)
-        self.snoop_cpu_count_multiplier = self.ini.getfloat('snoop', 'worker_cpu_count_multiplier', fallback=0.85)  # noqa: E501
+        self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=25)
+        self.snoop_cpu_count_multiplier = self.ini.getfloat('snoop', 'worker_cpu_count_multiplier', fallback=0.55)  # noqa: E501
 
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
