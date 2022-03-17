@@ -442,11 +442,7 @@ job "hoover-deps" {
             mbits = 1
           }
         }
-  
-        env {
-          WEB_CONCURRENCY = 30
-        }
-  
+
         service {
           name = "hoover-thumbnail-generator"
           port = "thumbnail"
@@ -530,7 +526,7 @@ job "hoover-deps" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
-    task "nlp" {
+    task "nlp-service" {
       ${ task_logs() }
 
       driver = "docker"
@@ -1002,4 +998,60 @@ job "hoover-deps" {
 
   {% endif %}
 
+
+  {% if config.snoop_translation_enabled %}
+
+  group "libre-translate" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    count = ${config.snoop_translation_count}
+    task "libre-translate" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('libre-translate')}"
+        port_map {
+          http = 5000
+        }
+        labels {
+          liquid_task = "libre-translate"
+        }
+        memory_hard_limit = ${4 * config.snoop_translation_memory_limit}
+      }
+      env {
+        LT_CHAR_LIMIT = "157286400"
+
+        {% if config.liquid_debug %}
+          LT_DEBUG = "True"
+        {% endif %}
+      }
+
+      resources {
+        memory = ${config.snoop_translation_memory_limit}
+        cpu = 100
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-libre-translate"
+        port = "http"
+        tags = ["fabio-/libre_translate strip=/libre_translate"]
+
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+  {% endif %}
 }

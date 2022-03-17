@@ -81,9 +81,16 @@ job "hoover-workers" {
         {% endif %}
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
            SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
-           EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
-           DETECT_LANGUAGE = "${config.snoop_nlp_language_detection_enabled}"
+           SNOOP_EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
+           SNOOP_DETECT_LANGUAGES = "${config.snoop_nlp_language_detection_enabled}"
         {% endif %}
+
+        {% if config.snoop_translation_enabled %}
+          SNOOP_TRANSLATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/libre_translate"
+          SNOOP_TRANSLATION_TARGET_LANGUAGES = "${config.snoop_translation_target_languages}"
+          SNOOP_TRANSLATION_TEXT_LENGTH_LIMIT = "${config.snoop_translation_text_length_limit}"
+        {% endif %}
+
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         {% if config.snoop_pdf_preview_enabled %}

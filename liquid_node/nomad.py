@@ -20,6 +20,7 @@ class Nomad(JsonApi):
             return self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
         except urllib.error.HTTPError as e:
             log.error(e.read().decode('utf-8'))
+            log.debug('hcl: %s', hcl)
             raise e
 
     def run(self, spec):

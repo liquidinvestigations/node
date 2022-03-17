@@ -52,7 +52,13 @@ job "hoover-nginx" {
         data = <<-EOF
 
         daemon off;
-        error_log /dev/stdout info;
+
+        {% if config.liquid_debug %}
+          error_log /dev/stderr debug;
+        {% else %}
+          error_log /dev/stderr info;
+        {% endif %}
+
         worker_rlimit_nofile 8192;
         worker_processes 4;
         events {
@@ -60,7 +66,12 @@ job "hoover-nginx" {
         }
 
         http {
-          access_log  off;
+          {% if config.liquid_debug %}
+            access_log  /dev/stdout;
+          {% else %}
+            access_log  off;
+          {% endif %}
+
           tcp_nopush   on;
           server_names_hash_bucket_size 128;
           sendfile on;
@@ -116,6 +127,15 @@ job "hoover-nginx" {
               proxy_pass http://fabio;
             }
             {% endif %}
+
+            location  ^~ /libre_translate/static {
+              rewrite ^/libre_translate/static(.*) /libre_translate/libre_translate/static$1 break;
+              proxy_pass http://fabio;
+            }
+            location  ~ ^/libre_translate {
+              rewrite ^/libre_translate(.*) /libre_translate$1 break;
+              proxy_pass http://fabio;
+            }
 
             location  ~ ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc) {
               rewrite ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc)(.*) /hoover-search/$1$2 break;
