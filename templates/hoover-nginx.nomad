@@ -246,13 +246,15 @@ job "hoover-nginx" {
       env {
         AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
         MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
-      }
 
-      {% if config.hoover_maps_enabled %}
-      env {
-        HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
+        {% if config.hoover_maps_enabled %}
+          HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
+        {% endif %}
+
+        {% if config.snoop_translation_enabled %}
+          HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled}"
+        {% endif %}
       }
-      {% endif %}
 
       resources {
         memory = 900
