@@ -24,7 +24,7 @@
 
 ### Improvements
 
-- RocketChat platform now available in **RochetChat Mobile App** for Android and IOS. Push Notifications optional. [Configuration for RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L144-L149)
+- RocketChat platform now available in **RochetChat Mobile App** for Android and IOS. Push Notifications optional. [Steps to Enable RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/docs/RocketChat.md#mobile-notifications); [Configuration Flag for RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L144-L149)
 - RocketChat auto-logout interval is now configuarable separately. [Configuration for Rocketchat Auto-Logout](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L151-L155)
 - User Management: new users can now be onboarded into Hoover collections
   without needing to wait for them to log in and open Hoover for the first time.
