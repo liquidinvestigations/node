@@ -29,6 +29,7 @@
 - RocketChat auto-logout interval is now configuarable separately.
 - User Management: new users can now be onboarded into Hoover collections
   without needing to wait for them to log in and open Hoover for the first time.
+- Hoover Collections can now be configured individually for all the optional features. [New Per-Collection Configuration Flags](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L359-L372), [Example usage for all flags](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L387-L399).
 
 
 ### Bug Fixes
