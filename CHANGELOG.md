@@ -1,5 +1,42 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+### New Features
+
+- Hoover: Image AI: Image Classification and Object Recognition. Filter images
+  by the objects detected inside by AI models we download and run.
+  [Configuration for Image Classification and Object Recognition](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L251-L260)
+- Hoover: Named Entity Extraction -- automatically extract entities (persons,
+  locations, organizations). Filter documents by the entities that appear inside.
+  [Configuration for Named Entity Extraction and Language Detection](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L267-L279)
+- Hoover: Machine Translation -- automatically translate first paragraph of
+  document text between languages using LibreTranslate. Translation user
+  interface is also available in Hoover, to manually translate segments of
+  text.
+  [Configuration for Machine Translation](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L280-L296)
+- Hoover: Generate and display thumbnails for small documents, pictures and
+  office files. The thumbnails are shown in the document result list, and in
+  the document header.
+  [Configuration for Thumbnail Generator](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L243-L246)
+- Hoover: Convert office files to PDF for easier viewing in the browser.
+  [Configuration for PDF Preview](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L238-L242)
+
+
+### Improvements
+
+- RocketChat platform now available in **RochetChat Mobile App** for Android and IOS.
+- RocketChat auto-logout interval is now configuarable separately.
+- User Management: new users can now be onboarded into Hoover collections
+  without needing to wait for them to log in and open Hoover for the first time.
+
+
+### Bug Fixes
+
+- Hoover: Fixed a bug limiting PDF viewer performance for large files.
+
+--------------
+
 ## Version 0.15.0 (2021-11-10)
 
 
@@ -20,6 +57,8 @@
 
 - Fixed a broken Hoover link pointing to the Hoover documentation page.
 
+
+--------------
 
 ## Version 0.14.9 (2021-08-04)
 
@@ -74,6 +113,7 @@ In the `node` repository, run `pipenv install` to install the new plotting libra
 
 Then, you can simply run `./liquid deploy`.
 
+--------------
 
 ## Version 0.14.7 (2021-05-21)
 
@@ -84,6 +124,7 @@ This is a Hoover hotfix release that removes a problem with search queries that 
 - Fixed an issue where requests (or other search queries) would return an error
   if the time exceeded 60s.
 
+--------------
 
 ## Version 0.14.6 (2021-05-21)
 
@@ -103,6 +144,7 @@ expansive searches fit the timeout.
   off the last Elasticsearch data server. This command automates some
   manual steps required for this operation.
 
+--------------
 
 ## Version 0.14.5 (2021-05-05)
 
@@ -126,6 +168,7 @@ This is a Hoover UI hotfix release.
   `NOT Public Tag: trash` filter from Search (added in `v0.14.0`). This tag will
   behave like any other public tag (same as before `v0.14.0`).
 
+--------------
 
 ## Version 0.14.3 (2021-04-23)
 
@@ -156,6 +199,7 @@ and
 - Fixed bug where modified search query would be lost when changing Sort or Filters.
 - Fixed bug where some documents would be opened in a new tab instead of downloaded.
 
+--------------
 
 ## Version 0.14.2 (2021-03-30)
 
@@ -173,6 +217,7 @@ This release brings Hoover UI improvements and some
 
 - Fixed bug where TIF images wouldn't render: added browser renderer for `.TIF`/`.TIFF` images.
 
+--------------
 
 ## Version 0.14.1 (2021-03-16)
 
@@ -188,6 +233,7 @@ This is a bug fixing release targeting small Hoover UI issues.
 - Added missing redirect rules for annotations made on Hoover documents before November 2020.
 - Fixed a bug where Document pages would stay blank or loading in case of document fetching error. The pages will now display a proper error message.
 
+--------------
 
 ## Version 0.14.0 (2021-03-12)
 
@@ -241,6 +287,7 @@ We have upgraded Hoover's database to the latest version, and that means a dump/
 - delete the backup: `rm -rf TMP_BACKUP`
 
 
+--------------
 
 ## Versions 0.13 and older
 
