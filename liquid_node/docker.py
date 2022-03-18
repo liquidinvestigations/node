@@ -24,9 +24,12 @@ class Docker:
 
     @retry()
     def pull(self, name):
+        assert name is not None, 'bad name'
         cmd = "docker pull -q " + name
         run(cmd, shell=True, echo=False)
-        return self.image_digest(name)
+        img = self.image_digest(name)
+        assert img is not None, 'failed to get digest'
+        return img
 
     def exec_command(self, name, *args, tty=False):
         """Prepare and return the command to run in a user shell.

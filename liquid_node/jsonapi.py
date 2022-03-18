@@ -48,6 +48,7 @@ class JsonApi:
                 else:
                     return None
             else:
+                log.error('HTTP request to %s failed', url)
                 raise HTTPError(url, res.status, res.msg, res.headers, res)
 
     def get(self, url, data=None):

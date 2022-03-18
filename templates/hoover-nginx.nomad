@@ -16,6 +16,12 @@ job "hoover-nginx" {
 
       driver = "docker"
 
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
       config {
         image = "nginx:1.19"
         args = ["bash", "/local/startup.sh"]
@@ -52,7 +58,13 @@ job "hoover-nginx" {
         data = <<-EOF
 
         daemon off;
-        error_log /dev/stdout info;
+
+        {% if config.liquid_debug %}
+          error_log /dev/stderr debug;
+        {% else %}
+          error_log /dev/stderr info;
+        {% endif %}
+
         worker_rlimit_nofile 8192;
         worker_processes 4;
         events {
@@ -60,7 +72,12 @@ job "hoover-nginx" {
         }
 
         http {
-          access_log  off;
+          {% if config.liquid_debug %}
+            access_log  /dev/stdout;
+          {% else %}
+            access_log  off;
+          {% endif %}
+
           tcp_nopush   on;
           server_names_hash_bucket_size 128;
           sendfile on;
@@ -116,6 +133,15 @@ job "hoover-nginx" {
               proxy_pass http://fabio;
             }
             {% endif %}
+
+            location  ^~ /libre_translate/static {
+              rewrite ^/libre_translate/static(.*) /libre_translate/libre_translate/static$1 break;
+              proxy_pass http://fabio;
+            }
+            location  ~ ^/libre_translate {
+              rewrite ^/libre_translate(.*) /libre_translate$1 break;
+              proxy_pass http://fabio;
+            }
 
             location  ~ ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc) {
               rewrite ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc)(.*) /hoover-search/$1$2 break;
@@ -220,13 +246,15 @@ job "hoover-nginx" {
       env {
         AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
         MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
-      }
 
-      {% if config.hoover_maps_enabled %}
-      env {
-        HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
+        {% if config.hoover_maps_enabled %}
+          HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
+        {% endif %}
+
+        {% if config.snoop_translation_enabled %}
+          HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled}"
+        {% endif %}
       }
-      {% endif %}
 
       resources {
         memory = 900
@@ -259,14 +287,17 @@ job "hoover-nginx" {
   group "hoover-search-workers" {
     # this container also runs periodic tasks, so don't scale it up from here.
     count = 1
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
     ${ group_disk() }
     ${ continuous_reschedule() }
     task "hoover-search-workers" {
       ${ task_logs() }
 
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
       }
 
       driver = "docker"

@@ -285,18 +285,24 @@ job "hoover-deps" {
 
   group "tika" {
     count = ${config.tika_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     ${ continuous_reschedule() }
     ${ group_disk() }
-    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     task "tika" {
       ${ task_logs() }
 
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
       driver = "docker"
       config {
-        image = "logicalspark/docker-tikaserver:1.22"
-        args = ["-spawnChild", "-maxFiles", "1000"]
+        image = "logicalspark/docker-tikaserver:1.28.1"
+        args = ["-spawnChild", "-maxFiles", "500"]
         port_map {
           tika = 9998
         }
@@ -356,12 +362,19 @@ job "hoover-deps" {
   {% if config.snoop_pdf_preview_enabled %}
   group "pdf-preview" {
     count = ${config.snoop_pdf_preview_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     ${ continuous_reschedule() }
     ${ group_disk() }
 
     task "pdf-preview" {
       ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
 
       driver = "docker"
       config {
@@ -402,81 +415,91 @@ job "hoover-deps" {
   {% endif %}
 
   {% if config.snoop_thumbnail_generator_enabled %}
-    group "thumbnail-generator" {
-      count = ${config.snoop_thumbnail_generator_count}
+  group "thumbnail-generator" {
+    count = ${config.snoop_thumbnail_generator_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
   
-      ${ continuous_reschedule() }
-      ${ group_disk() }
+    ${ continuous_reschedule() }
+    ${ group_disk() }
   
-      task "thumbnail-generator" {
-        ${ task_logs() }
-        user = "root"
+    task "thumbnail-generator" {
+      ${ task_logs() }
+      user = "root"
   
-        driver = "docker"
-        config {
-          image = "${config.image('thumbnail-generator')}"
-          port_map {
-            thumbnail = 8000
-          }
-          labels {
-            liquid_task = "hoover-thumbnail-generator"
-          }
-          memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
-          mounts = [ 
-            {
-              type = "tmpfs"
-              target = "/tmp"
-              readonly = false
-              tmpfs_options {
-                # set size here if you want
-              }
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('thumbnail-generator')}"
+        port_map {
+          thumbnail = 8000
+        }
+        labels {
+          liquid_task = "hoover-thumbnail-generator"
+        }
+        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
+        mounts = [ 
+          {
+            type = "tmpfs"
+            target = "/tmp"
+            readonly = false
+            tmpfs_options {
+              # set size here if you want
             }
-          ]
-        }
-  
-        resources {
-          memory = ${config.snoop_thumbnail_generator_memory_limit}
-          cpu = 500
-          network {
-            port "thumbnail" {}
-            mbits = 1
           }
-        }
+        ]
+      }
   
-        env {
-          WEB_CONCURRENCY = 4
+      resources {
+        memory = ${config.snoop_thumbnail_generator_memory_limit}
+        cpu = 500
+        network {
+          port "thumbnail" {}
+          mbits = 1
         }
-  
-        service {
-          name = "hoover-thumbnail-generator"
-          port = "thumbnail"
-          tags = ["fabio-/_thumbnail-generator strip=/_thumbnail-generator"]
-          check {
-            name = "http"
-            initial_status = "critical"
-            type = "http"
-            path = "/"
-            interval = "${check_interval}"
-            timeout = "${check_timeout}"
-          }
-          check_restart {
-            limit = 5
-            grace = "60s"
-          }
+      }
+
+      service {
+        name = "hoover-thumbnail-generator"
+        port = "thumbnail"
+        tags = ["fabio-/_thumbnail-generator strip=/_thumbnail-generator"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+        check_restart {
+          limit = 5
+          grace = "480s"
         }
       }
     }
-    {% endif %}
+  }
+  {% endif %}
 
   {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
   group "image-classification" {
     count = ${config.snoop_image_classification_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     ${ continuous_reschedule() }
     ${ group_disk() }
 
     task "image-classification" {
       ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
 
       driver = "docker"
       config {
@@ -504,13 +527,69 @@ job "hoover-deps" {
         OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
         IMAGE_CLASSIFICATION_ENABLED = "${config.snoop_image_classification_classify_images_enabled}"
         IMAGE_CLASSIFICATION_MODEL = "${config.snoop_image_classification_classify_images_model}"
-        WAITRESS_THREADS = ${config.snoop_image_classification_waitress_threads}
       }
 
       service {
         name = "hoover-image-classification"
         port = "image_classification"
         tags = ["fabio-/_image-classification strip=/_image-classification"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+  {% endif %}
+
+  {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
+   group "nlp-service" {
+    count = ${config.snoop_nlp_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "nlp-service" {
+      ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('nlp-service')}"
+        port_map {
+          nlp = 5000
+        }
+        labels {
+          liquid_task = "hoover-nlp"
+        }
+        memory_hard_limit = ${4 * config.snoop_nlp_memory_limit}
+      }
+      env {
+        NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
+        NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
+      }
+      resources {
+        memory = ${config.snoop_nlp_memory_limit}
+        cpu = 400
+        network {
+          mbits = 1
+          port "nlp" {}
+        }
+      }
+      service {
+        name = "hoover-nlp-service"
+        tags = ["fabio-/_nlp strip=/_nlp"]
+        port = "nlp"
         check {
           name = "http"
           initial_status = "critical"
@@ -906,7 +985,7 @@ job "hoover-deps" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
-    task "maps-tileserver" {
+    task "maps-osmnames-sphinxsearch" {
       ${ task_logs() }
 
       driver = "docker"
@@ -953,4 +1032,138 @@ job "hoover-deps" {
 
   {% endif %}
 
+
+  {% if config.snoop_translation_enabled %}
+
+  group "libre-translate-batch" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    count = ${config.snoop_translation_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    task "libre-translate-batch" {
+      ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('libre-translate')}"
+        port_map {
+          http = 5000
+        }
+        labels {
+          liquid_task = "libre-translate-batch"
+        }
+        memory_hard_limit = ${4 * config.snoop_translation_memory_limit}
+      }
+      env {
+        LT_CHAR_LIMIT = "157286400"
+        LT_DISABLE_WEB_UI = "true"
+        OMP_NUM_THREADS = "2"
+        OMP_THREAD_LIMIT = "2"
+        # GUNICORN_NUM_WORKERS = "8"
+
+        {% if config.liquid_debug %}
+          LT_DEBUG = "True"
+        {% endif %}
+      }
+
+      resources {
+        memory = ${config.snoop_translation_memory_limit}
+        cpu = 100
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-libre-translate-batch"
+        port = "http"
+        tags = ["fabio-/libre_translate_batch strip=/libre_translate_batch"]
+
+        # disable check; it fails under load
+        # check {
+        #   name = "http"
+        #   initial_status = "critical"
+        #   type = "http"
+        #   path = "/languages"
+        #   interval = "${check_interval}"
+        #   timeout = "${check_timeout}"
+        # }
+      }
+    }
+  }
+
+  group "libre-translate" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    count = 1
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    task "libre-translate" {
+      ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('libre-translate')}"
+        port_map {
+          http = 5000
+        }
+        labels {
+          liquid_task = "libre-translate"
+        }
+        memory_hard_limit = 6000
+      }
+      env {
+        LT_CHAR_LIMIT = "157286400"
+        LT_DISABLE_WEB_UI = "false"
+        OMP_NUM_THREADS = "8"
+        OMP_THREAD_LIMIT = "8"
+        GUNICORN_NUM_WORKERS = "2"
+
+        {% if config.liquid_debug %}
+          LT_DEBUG = "True"
+        {% endif %}
+      }
+
+      resources {
+        memory = 1500
+        cpu = 400
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-libre-translate"
+        port = "http"
+        tags = ["fabio-/libre_translate strip=/libre_translate"]
+
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+  {% endif %}
 }

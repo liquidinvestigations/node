@@ -4,19 +4,37 @@
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
+
+        {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
+          SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
+          SNOOP_EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
+          SNOOP_DETECT_LANGUAGES = "${config.snoop_nlp_language_detection_enabled}"
+        {% endif %}
+
+        {% if config.snoop_translation_enabled %}
+          SNOOP_TRANSLATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/libre_translate_batch"
+          SNOOP_TRANSLATION_TARGET_LANGUAGES = "${config.snoop_translation_target_languages}"
+          SNOOP_TRANSLATION_TEXT_LENGTH_LIMIT = "${config.snoop_translation_text_length_limit}"
+        {% endif %}
+
         SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
+
         {% if config.snoop_thumbnail_generator_enabled %}
           SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
         {% endif %}
+
         {% if config.snoop_pdf_preview_enabled %}
           SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
         {% endif %}
+
         {% if config.snoop_image_classification_object_detection_enabled %}
           SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
         {% endif %}
+
         {% if config.snoop_image_classification_classify_images_enabled %}
           SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
         {% endif %}
+
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
     }
 {%- endmacro %}

@@ -78,8 +78,9 @@ def retry(count=4, wait_sec=5, exp=2):
                         log.exception(e)
                         raise
 
-                    log.warning("%s(): #%s/%s retrying in %s sec",
+                    log.warning("%s(): %s, #%s/%s retrying in %s sec",
                                 f.__qualname__,
+                                repr(e),
                                 i + 1, count, current_wait)
                     sleep(current_wait)
                     current_wait = int(current_wait * exp)

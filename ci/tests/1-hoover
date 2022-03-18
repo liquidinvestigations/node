@@ -17,9 +17,21 @@ echo "$TEST_ADMIN_PASSWORD" | wc -c
 function wait_testdata() {
   timeout 100 ./liquid dockerexec hoover:snoop ./manage.py rundispatcher || true
 
+  x=0
   until ./liquid dockerexec hoover:snoop ./manage.py workisdone testdata 2>/dev/null 1>/dev/null; do
+    x=$((x+1))
+    echo '---------------------------------------------------------------'
     curl http://10.66.60.1:9990/snoop/collections/testdata/json 2>/dev/null | jq .stats.progress_str
+    uptime | awk -F'[a-z]:' '{ print $2}'
+    free -h | head -n2
     sleep 30
+    if [ $x -gt 100 ]; then
+      print "PROCESSING NOT READY AFTER $((x * 100)) seconds"
+      timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status pending || true
+      timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status deferred || true
+      print "PROCESSING NOT READY AFTER $((x * 100)) seconds"
+      exit 1
+    fi
   done
 }
 
@@ -28,16 +40,11 @@ set +x
 echo "Waiting for processing to finish..."
 wait_testdata
 
-# echo "Retrying errors 2 times..."
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
-# wait_testdata
-# 
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
-# timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
-# wait_testdata
-
-echo "Documents processed."
+echo "Retrying errors..."
+timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status error || true
+timeout 100 ./liquid dockerexec hoover:snoop ./manage.py retrytasks testdata --status broken || true
+wait_testdata
+echo "All documents processed."
 
 set -x
 echo "Run UI test suite..."

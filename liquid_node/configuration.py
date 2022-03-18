@@ -44,6 +44,7 @@ class Configuration:
         liquid.Ingress(),
         liquid.CreateUser(),
         hoover.Hoover(),
+        hoover.DepsDownloads(),
         hoover.Deps(),
         hoover.Workers(),
         hoover.Proxy(),
@@ -158,7 +159,7 @@ class Configuration:
         self.elasticsearch_data_node_count = self.ini.getint('liquid', 'elasticsearch_data_node_count', fallback=0)  # noqa: E501
 
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
-        self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=800)
+        self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=2500)
 
         self.hypothesis_memory_limit = \
             self.ini.getint('liquid',
@@ -190,13 +191,13 @@ class Configuration:
 
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
         self.snoop_min_workers_per_node = self.ini.getint('snoop', 'min_workers_per_node', fallback=2)
-        self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=4)
-        self.snoop_cpu_count_multiplier = self.ini.getfloat('snoop', 'worker_cpu_count_multiplier', fallback=0.85)  # noqa: E501
+        self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=25)
+        self.snoop_cpu_count_multiplier = self.ini.getfloat('snoop', 'worker_cpu_count_multiplier', fallback=0.55)  # noqa: E501
 
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
         self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)  # noqa: E501
-        self.snoop_worker_memory_limit = 400 * (1 + self.snoop_min_workers_per_node)
+        self.snoop_worker_memory_limit = 350 * (1 + self.snoop_min_workers_per_node)
         self.snoop_worker_hard_memory_limit = 2000 * (2 + self.snoop_max_workers_per_node)
         self.snoop_worker_cpu_limit = 400 * self.snoop_min_workers_per_node
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
@@ -205,22 +206,20 @@ class Configuration:
         self.snoop_pdf_preview_enabled = self.ini.getboolean('snoop', 'pdf_preview_enabled', fallback=False)
         self.snoop_pdf_preview_count = self.ini.getint('snoop', 'pdf_preview_count', fallback=1)
         self.snoop_pdf_preview_memory_limit = self.ini.getint('snoop', 'pdf_preview_memory_limit',
-                                                              fallback=900)
+                                                              fallback=1500)
         self.snoop_thumbnail_generator_enabled = self.ini.getboolean('snoop', 'thumbnail_generator_enabled',
                                                                      fallback=False)
         self.snoop_thumbnail_generator_count = self.ini.getint('snoop', 'thumbnail_generator_count',
                                                                fallback=1)
         self.snoop_thumbnail_generator_memory_limit = self.ini.getint('snoop',
                                                                       'thumbnail_generator_memory_limit',
-                                                                      fallback=900)
+                                                                      fallback=1500)
 
         self.snoop_image_classification_count = self.ini.getint('snoop', 'image_classification_count',
                                                                 fallback=1)
         self.snoop_image_classification_memory_limit = self.ini.getint('snoop',
                                                                        'image_classification_memory_limit',
-                                                                       fallback=900)
-        self.snoop_image_classification_waitress_threads = \
-            self.ini.getint('snoop', 'image_classification_waitress_threads', fallback=30)
+                                                                       fallback=2500)
 
         self.snoop_image_classification_object_detection_enabled = \
             self.ini.getboolean('snoop', 'image_classification_object_detection_enabled', fallback=False)
@@ -232,11 +231,31 @@ class Configuration:
         self.snoop_image_classification_classify_images_model = \
             self.ini.get('snoop', 'image_classification_classify_images_model', fallback='mobilenet')
 
-        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='24s')
-        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='20s')
-        self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=300)
-        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=4)
-        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=6)
+        self.snoop_nlp_fallback_language = self.ini.get('snoop', 'nlp_fallback_language', fallback="en")
+        self.snoop_nlp_spacy_text_limit = self.ini.get('snoop', 'nlp_spacy_text_limit', fallback=40000)
+        self.snoop_nlp_memory_limit = self.ini.getint('snoop', 'nlp_memory_limit', fallback=5500)
+        self.snoop_nlp_count = self.ini.getint('snoop', 'count', fallback=1)
+        self.snoop_nlp_entity_extraction_enabled =  \
+            self.ini.getboolean('snoop', 'nlp_entity_extraction_enabled', fallback=False)
+        self.snoop_nlp_language_detection_enabled = \
+            self.ini.getboolean('snoop', 'nlp_language_detection_enabled', fallback=False)
+
+        self.snoop_translation_enabled = \
+            self.ini.getboolean('snoop', 'translation_enabled', fallback=False)
+        self.snoop_translation_count = \
+            self.ini.getint('snoop', 'translation_count', fallback=1)
+        self.snoop_translation_memory_limit = \
+            self.ini.getint('snoop', 'translation_memory_limit', fallback=2500)
+        self.snoop_translation_target_languages = \
+            self.ini.get('snoop', 'translation_target_languages', fallback="en")
+        self.snoop_translation_text_length_limit = \
+            self.ini.getint('snoop', 'translation_text_length_limit', fallback=400)
+
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='30s')
+        self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='29s')
+        self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=600)
+        self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=10)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=4)
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:
@@ -282,12 +301,58 @@ class Configuration:
                     'max_result_window': self.ini.getint(
                         key,
                         'max_result_window',
-                        fallback=self.snoop_max_result_window
+                        fallback=self.snoop_max_result_window,
                     ),
                     'refresh_interval': self.ini.getint(
                         key,
                         'refresh_interval',
-                        fallback=self.snoop_refresh_interval),
+                        fallback=self.snoop_refresh_interval,
+                    ),
+                    'pdf_preview_enabled': self.ini.getboolean(
+                        key,
+                        'pdf_preview_enabled',
+                        fallback=self.snoop_pdf_preview_enabled,
+                    ),
+                    'thumbnail_generator_enabled': self.ini.getboolean(
+                        key,
+                        'thumbnail_generator_enabled',
+                        fallback=self.snoop_thumbnail_generator_enabled,
+                    ),
+                    'image_classification_object_detection_enabled': self.ini.getboolean(
+                        key,
+                        'image_classification_object_detection_enabled',
+                        fallback=self.snoop_image_classification_object_detection_enabled,
+                    ),
+                    'image_classification_classify_images_enabled': self.ini.getboolean(
+                        key,
+                        'image_classification_classify_images_enabled',
+                        fallback=self.snoop_image_classification_classify_images_enabled,
+                    ),
+                    'nlp_language_detection_enabled': self.ini.getboolean(
+                        key,
+                        'nlp_language_detection_enabled',
+                        fallback=self.snoop_nlp_language_detection_enabled,
+                    ),
+                    'nlp_entity_extraction_enabled': self.ini.getboolean(
+                        key,
+                        'nlp_entity_extraction_enabled',
+                        fallback=self.snoop_nlp_entity_extraction_enabled,
+                    ),
+                    'translation_enabled': self.ini.getboolean(
+                        key,
+                        'translation_enabled',
+                        fallback=self.snoop_translation_enabled,
+                    ),
+                    'translation_target_languages': self.ini.get(
+                        key,
+                        'translation_target_languages',
+                        fallback=self.snoop_translation_target_languages,
+                    ),
+                    'translation_text_length_limit': self.ini.get(
+                        key,
+                        'translation_text_length_limit',
+                        fallback=self.snoop_translation_text_length_limit,
+                    ),
                 })
 
             elif cls == 'job':
