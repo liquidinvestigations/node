@@ -1064,9 +1064,9 @@ job "hoover-deps" {
       }
       env {
         LT_CHAR_LIMIT = "157286400"
-        LT_DISABLE_WEB_UI = "true"
-        OMP_NUM_THREADS = "2"
-        OMP_THREAD_LIMIT = "2"
+        LT_DISABLE_WEB_UI = "false"
+        OMP_NUM_THREADS = "1"
+        OMP_THREAD_LIMIT = "1"
         # GUNICORN_NUM_WORKERS = "8"
 
         {% if config.liquid_debug %}
