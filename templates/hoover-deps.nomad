@@ -1088,14 +1088,15 @@ job "hoover-deps" {
         port = "http"
         tags = ["fabio-/libre_translate_batch strip=/libre_translate_batch"]
 
-        check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/languages"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
+        # disable check; it fails under load
+        # check {
+        #   name = "http"
+        #   initial_status = "critical"
+        #   type = "http"
+        #   path = "/languages"
+        #   interval = "${check_interval}"
+        #   timeout = "${check_timeout}"
+        # }
       }
     }
   }
