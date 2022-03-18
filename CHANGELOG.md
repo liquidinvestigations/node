@@ -8,28 +8,27 @@
   by the objects detected inside by AI models we download and run.
   [Configuration for Image Classification and Object Recognition](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L251-L260)
 - Hoover: Named Entity Extraction -- automatically extract entities (persons,
-  locations, organizations). Filter documents by the entities that appear inside.
+  locations, organizations). Filter documents by the entities that appear in text.
   [Configuration for Named Entity Extraction and Language Detection](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L267-L279)
 - Hoover: Machine Translation -- automatically translate first paragraph of
   document text between languages using LibreTranslate. Translation user
-  interface is also available in Hoover, to manually translate segments of
-  text.
+  interface is also available in Hoover, to manually translate text.
   [Configuration for Machine Translation](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L280-L296)
 - Hoover: Generate and display thumbnails for small documents, pictures and
-  office files. The thumbnails are shown in the document result list, and in
+  Office files. The thumbnails are shown in the document result list, and in
   the document header.
   [Configuration for Thumbnail Generator](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L243-L246)
-- Hoover: Convert office files to PDF for easier viewing in the browser.
+- Hoover: Convert Office files to PDF for easier viewing in the browser.
   [Configuration for PDF Preview](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L238-L242)
 
 
 ### Improvements
 
-- RocketChat platform now available in **RochetChat Mobile App** for Android and IOS.
-- RocketChat auto-logout interval is now configuarable separately.
+- RocketChat platform now available in **RochetChat Mobile App** for Android and IOS. Push Notifications optional. [Configuration for RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L144-L149)
+- RocketChat auto-logout interval is now configuarable separately. [Configuration for Rocketchat Auto-Logout](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L151-L155)
 - User Management: new users can now be onboarded into Hoover collections
   without needing to wait for them to log in and open Hoover for the first time.
-- Hoover Collections can now be configured individually for all the optional features. [New Per-Collection Configuration Flags](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L359-L372), [Example usage for all flags](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L387-L399).
+- Hoover Collections can now be configured individually for all the optional features. [New Per-Collection Configuration Flags](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L359-L372), [Example usage for all Collection Flags](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L387-L399).
 
 
 ### Bug Fixes
