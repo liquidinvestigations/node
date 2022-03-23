@@ -405,7 +405,7 @@ job "hoover-deps" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/ping"
+          path = "/health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
