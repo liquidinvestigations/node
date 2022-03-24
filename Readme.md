@@ -53,8 +53,6 @@ whenever you make changes to the configuration:
 ./liquid deploy
 ```
 
-### Final steps
-
 The liquid instance will listen by default on port 80 on the local machine. If
 you don't have a DNS domain pointing to the macine, you can add entries to
 `/etc/hosts`:
@@ -65,19 +63,32 @@ you don't have a DNS domain pointing to the macine, you can add entries to
 ...
 ```
 
-Create an initial admin user:
+HTTPS, if configured, may take a few hours to obtain certificates for all the
+domains.
+
+### Final steps
+
+#### Create an initial admin user
+
 ```shell
 ./liquid shell liquid:core ./manage.py createsuperuser
 ```
 
-With enabled Two-factor authentication (`two_factor_auth = true` in `liquid.ini`), create an invitation for the initial admin user:
+If two-factor authentication was enabled (`two_factor_auth = true` in `liquid.ini`), then create an invitation for the initial admin user and use it to set up your device:
+
 ```shell
-./liquid shell liquid:core ./manage.py invite root
+./liquid shell liquid:core ./manage.py invite first_admin_user
 ```
 
-Configure RocketChat to use `liquid-core`'s oauth2 provider to authenticate
-users:
-[docs/RocketChat.md#set-up-authentication](docs/RocketChat.md#set-up-authentication)
+#### Configure RocketChat Authentication
+
+Rocketchat, if enabled, requires a manual step for setting up the Single Sign-On: [docs/RocketChat.md#set-up-authentication](docs/RocketChat.md#set-up-authentication)
+
+#### Optionally, Download Maps
+
+Maps take a long time to download and require 120 GB of extra storage.
+
+Instructions here: [docs/Maps.md](docs/Maps.md)
 
 
 ## Maintenance
