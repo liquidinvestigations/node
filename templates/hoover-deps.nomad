@@ -934,6 +934,11 @@ job "hoover-deps" {
     task "maps-tileserver" {
       ${ task_logs() }
 
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         # image = "maptiler/tileserver-gl:v3.1.1"
@@ -987,6 +992,11 @@ job "hoover-deps" {
 
     task "maps-osmnames-sphinxsearch" {
       ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
 
       driver = "docker"
       config {
