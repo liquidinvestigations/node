@@ -499,3 +499,15 @@ def remove_last_es_data_node():
 def plot_search(search_count, max_concurrent, path):
     from .hoover_search_benchmark import plot
     plot(search_count, max_concurrent, path)
+
+
+@liquid_commands.command()
+def show_docker_pull_commands():
+    images = sorted(set(all_images()) | set(config.images) | set(config._image(i) for i in config.image_keys))
+
+    print()
+    print('(')
+    for image in images:
+        print('    docker pull ' + image)
+    print(')')
+    print()
