@@ -1,0 +1,4 @@
+- [x] add minio to deps
+- [x] add minio to all snoop containers
+- [ ] run split workers
+- [ ] add blob buckets to backup/restore

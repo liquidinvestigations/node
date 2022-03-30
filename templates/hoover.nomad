@@ -4,6 +4,7 @@
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
+        SNOOP_BLOBS_MINIO_ADDRESS = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9991"
 
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
           SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
@@ -247,6 +248,15 @@ job "hoover" {
         {{ range service "zipkin" }}
           TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
+
+
+          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
+              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
+              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
         EOF
         destination = "local/snoop.env"
         env = true
@@ -283,7 +293,7 @@ job "hoover" {
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/tmp:/opt/hoover/snoop/tmp",
         ]
         mounts = [
           {
@@ -356,6 +366,16 @@ job "hoover" {
         {{ range service "zipkin" }}
           TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
+
+
+          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
+              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
+              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
+
         EOF
         destination = "local/snoop.env"
         env = true
@@ -390,7 +410,7 @@ job "hoover" {
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/tmp:/opt/hoover/snoop/tmp",
         ]
         port_map {
           http = 8080
@@ -455,6 +475,16 @@ job "hoover" {
         {{- range service "zipkin" }}
           TRACING_URL = "http://{{.Address}}:{{.Port}}"
         {{- end }}
+
+
+          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
+              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
+              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
+
         EOF
         destination = "local/snoop.env"
         env = true

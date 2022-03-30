@@ -1177,4 +1177,95 @@ job "hoover-deps" {
     }
   }
   {% endif %}
+
+  group "minio-blobs" {
+    # count = ${config.minio}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "minio-blobs" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('minio')}"
+        args = ["server", "--console-address", ":9001", "/data"]
+        port_map {
+          s3 = 9000
+          console = 9001
+        }
+        labels {
+          liquid_task = "hoover-snoop-blob-minio"
+        }
+        memory_hard_limit = 1000
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/data",
+        ]
+      }
+
+      resources {
+        memory = 100
+        cpu = 400
+        network {
+          mbits = 1
+          port "s3" { static = 9001 }
+          port "console" { static = 9002 }
+        }
+      }
+
+      template {
+        data = <<EOF
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
+              MINIO_ROOT_USER = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
+              MINIO_ROOT_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
+              MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
+              MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/minio.env"
+        env = true
+      }
+
+      service {
+        name = "hoover-minio-s3"
+        port = "s3"
+        tags = ["fabio-:9991 proto=tcp"]
+
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+
+      service {
+        name = "hoover-minio-console"
+        port = "console"
+        tags = ["fabio-/_snoop_minio_console strip=/_snoop_minio_console"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
 }

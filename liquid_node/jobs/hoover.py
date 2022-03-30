@@ -18,6 +18,10 @@ class Hoover(jobs.Job):
         'liquid/hoover/search.postgres',
         'liquid/hoover/snoop.django',
         'liquid/hoover/snoop.postgres',
+        'liquid/hoover/snoop.minio.blobs.user',
+        'liquid/hoover/snoop.minio.blobs.password',
+        'liquid/hoover/snoop.minio.blobs.access_key',
+        'liquid/hoover/snoop.minio.blobs.secret_key',
     ]
     generate_oauth2_proxy_cookie = True
 
