@@ -4,7 +4,8 @@
       env {
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        SNOOP_BLOBS_MINIO_ADDRESS = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9991"
+        SNOOP_BLOBS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9991"
+        S3FS_LOGGING_LEVEL="DEBUG"
 
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
           SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
@@ -250,10 +251,10 @@ job "hoover" {
         {{- end }}
 
 
-          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
               SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
               SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
 
@@ -261,6 +262,21 @@ job "hoover" {
         destination = "local/snoop.env"
         env = true
       }
+
+      template {
+        data = <<-EOF
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
+              {{.Data.secret_key }}
+          {{- end -}}:
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
+              {{.Data.secret_key }}
+          {{- end -}}
+        EOF
+        destination = "local/minio-blobs.pass"
+        perms = "600"
+        env = false
+      }
+
 
       resources {
         memory = 100
@@ -288,6 +304,10 @@ job "hoover" {
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
+        cap_add = ["mknod", "sys_admin"]
+        devices = [{host_path = "/dev/fuse", container_path = "/dev/fuse"}]
+        security_opt = ["apparmor=unconfined"]
+
         args = ["/local/startup.sh"]
         entrypoint = ["/bin/bash", "-ex"]
         volumes = [
@@ -306,7 +326,7 @@ job "hoover" {
           }
         ]
         labels {
-          liquid_task = "snoop-workers"
+          liquid_task = "snoop-system-workers"
         }
         memory_hard_limit = 3333
       }
@@ -368,10 +388,10 @@ job "hoover" {
         {{- end }}
 
 
-          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
               SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
               SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
 
@@ -380,6 +400,21 @@ job "hoover" {
         destination = "local/snoop.env"
         env = true
       }
+
+      template {
+        data = <<-EOF
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
+              {{.Data.secret_key }}
+          {{- end -}}:
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
+              {{.Data.secret_key }}
+          {{- end -}}
+        EOF
+        destination = "local/minio-blobs.pass"
+        perms = "600"
+        env = false
+      }
+
     }
   } // snoop-system-workers
 
@@ -404,9 +439,13 @@ job "hoover" {
       driver = "docker"
 
       config {
-        entrypoint = ["/bin/bash", "-ex"]
         image = "${config.image('hoover-snoop2')}"
+        cap_add = ["mknod", "sys_admin"]
+        devices = [{host_path = "/dev/fuse", container_path = "/dev/fuse"}]
+        security_opt = ["apparmor=unconfined"]
+
         args = ["/local/startup.sh"]
+        entrypoint = ["/bin/bash", "-ex"]
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
@@ -477,17 +516,30 @@ job "hoover" {
         {{- end }}
 
 
-          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
               SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
               SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-
 
         EOF
         destination = "local/snoop.env"
         env = true
+      }
+
+      template {
+        data = <<-EOF
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
+              {{.Data.secret_key }}
+          {{- end -}}:
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
+              {{.Data.secret_key }}
+          {{- end -}}
+        EOF
+        destination = "local/minio-blobs.pass"
+        perms = "600"
+        env = false
       }
 
       resources {

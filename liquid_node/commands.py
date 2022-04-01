@@ -502,8 +502,11 @@ def plot_search(search_count, max_concurrent, path):
 
 
 @liquid_commands.command()
-def show_docker_pull_commands():
+@click.option('--prefix', 'prefix', type=str, default='')
+def show_docker_pull_commands(prefix):
     images = sorted(set(all_images()) | set(config.images) | set(config._image(i) for i in config.image_keys))
+    if prefix:
+        images = [prefix + '/' + str(i) if str(i).count('/') <= 1 else i for i in images]
 
     print()
     print('(')

@@ -1228,12 +1228,6 @@ job "hoover-deps" {
           {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
               MINIO_ROOT_PASSWORD = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.access_key" }}
-              MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.secret_key" }}
-              MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
         EOF
         destination = "local/minio.env"
         env = true
