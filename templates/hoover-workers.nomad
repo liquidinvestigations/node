@@ -1,4 +1,5 @@
 {% from '_lib.hcl' import set_pg_password_template, task_logs, group_disk with context -%}
+{% from 'hoover.nomad' import snoop_dependency_envs with context -%}
 
 job "hoover-workers" {
   datacenters = ["dc1"]
@@ -32,8 +33,6 @@ job "hoover-workers" {
         entrypoint = ["/bin/bash", "-ex"]
         volumes = [
           ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/tmp:/opt/hoover/snoop/tmp",
         ]
         mounts = [
           {
@@ -77,92 +76,13 @@ job "hoover-workers" {
         destination = "local/startup.sh"
       }
 
+      ${ snoop_dependency_envs() }
+
       env {
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        SNOOP_BLOBS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9991"
-        S3FS_LOGGING_LEVEL="DEBUG"
-
-        {% if config.snoop_thumbnail_generator_enabled %}
-          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
-        {% endif %}
-        {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
-           SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
-           SNOOP_EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
-           SNOOP_DETECT_LANGUAGES = "${config.snoop_nlp_language_detection_enabled}"
-        {% endif %}
-
-        {% if config.snoop_translation_enabled %}
-          SNOOP_TRANSLATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/libre_translate_batch"
-          SNOOP_TRANSLATION_TARGET_LANGUAGES = "${config.snoop_translation_target_languages}"
-          SNOOP_TRANSLATION_TEXT_LENGTH_LIMIT = "${config.snoop_translation_text_length_limit}"
-        {% endif %}
-
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
-        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-        {% if config.snoop_pdf_preview_enabled %}
-          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
-        {% endif %}
-        {% if config.snoop_image_classification_classify_images_enabled %}
-          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
-        {% endif %}
-        {% if config.snoop_image_classification_object_detection_enabled %}
-          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
-        {% endif %}
-
         SNOOP_MIN_WORKERS = "${config.snoop_min_workers_per_node}"
         SNOOP_MAX_WORKERS = "${config.snoop_max_workers_per_node}"
         SNOOP_CPU_MULTIPLIER = "${config.snoop_cpu_count_multiplier}"
-
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
       }
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-
-
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
-              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
-              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-
-      template {
-        data = <<-EOF
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
-              {{.Data.secret_key }}
-          {{- end -}}:
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
-              {{.Data.secret_key }}
-          {{- end -}}
-        EOF
-        destination = "local/minio-blobs.pass"
-        perms = "600"
-        env = false
-      }
-
       #service {
       #  check {
       #    name = "check-workers-script"

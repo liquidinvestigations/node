@@ -642,7 +642,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "search-rabbitmq"
         }
-        memory_hard_limit = 1000
+        memory_hard_limit = 2000
       }
 
       resources {
@@ -1179,9 +1179,6 @@ job "hoover-deps" {
   {% endif %}
 
   group "minio-blobs" {
-    # count = ${config.minio}
-    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
-
     ${ continuous_reschedule() }
     ${ group_disk() }
 
@@ -1204,14 +1201,18 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-snoop-blob-minio"
         }
-        memory_hard_limit = 1000
+        memory_hard_limit = 2000
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/data",
         ]
       }
 
+      env {
+        MINIO_UPDATE = "off"
+      }
+
       resources {
-        memory = 100
+        memory = 200
         cpu = 400
         network {
           mbits = 1
@@ -1234,7 +1235,7 @@ job "hoover-deps" {
       }
 
       service {
-        name = "hoover-minio-s3"
+        name = "hoover-minio-s3-blobs"
         port = "s3"
         tags = ["fabio-:9991 proto=tcp"]
 
@@ -1248,9 +1249,96 @@ job "hoover-deps" {
       }
 
       service {
-        name = "hoover-minio-console"
+        name = "hoover-minio-console-blobs"
         port = "console"
-        tags = ["fabio-/_snoop_minio_console strip=/_snoop_minio_console"]
+        tags = ["fabio-/snoop_minio_conosole_blobs/ strip=/snoop_minio_conosole_blobs"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "minio-collections" {
+
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "minio-collections" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('minio')}"
+        args = ["server", "--console-address", ":9001", "/data"]
+        port_map {
+          s3 = 9000
+          console = 9001
+        }
+        labels {
+          liquid_task = "hoover-snoop-collections-minio"
+        }
+        memory_hard_limit = 2000
+        volumes = [
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/data",
+        ]
+      }
+
+      env {
+        MINIO_UPDATE = "off"
+      }
+
+      resources {
+        memory = 200
+        cpu = 400
+        network {
+          mbits = 1
+          port "s3" { static = 9003 }
+          port "console" { static = 9004 }
+        }
+      }
+
+      template {
+        data = <<EOF
+          {{- with secret "liquid/hoover/snoop.minio.collections.user" }}
+              MINIO_ROOT_USER = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.collections.password" }}
+              MINIO_ROOT_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/minio.env"
+        env = true
+      }
+
+      service {
+        name = "hoover-minio-s3-collections"
+        port = "s3"
+        tags = ["fabio-:9992 proto=tcp"]
+
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+
+      service {
+        name = "hoover-minio-console-collections"
+        port = "console"
+        tags = ["fabio-/snoop_minio_console_collections strip=/snoop_minio_console_collections"]
         check {
           name = "http"
           initial_status = "critical"

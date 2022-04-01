@@ -2,9 +2,12 @@
 
 {%- macro snoop_dependency_envs() %}
       env {
+        SNOOP_URL_PREFIX = "snoop/"
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
         SNOOP_BLOBS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9991"
+        SNOOP_COLLECTIONS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9992"
+
         S3FS_LOGGING_LEVEL="DEBUG"
 
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
@@ -39,6 +42,75 @@
 
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
     }
+
+      template {
+        data = <<-EOF
+        {{- if keyExists "liquid_debug" }}
+          DEBUG = {{key "liquid_debug" | toJSON }}
+        {{- end }}
+        {{- range service "snoop-pg" }}
+          SNOOP_DB = "postgresql://snoop:
+          {{- with secret "liquid/hoover/snoop.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop"
+        {{- end }}
+        {{- range service "hoover-snoop-rabbitmq" }}
+          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
+        {{- end }}
+        {{ range service "zipkin" }}
+          TRACING_URL = "http://{{.Address}}:{{.Port}}"
+        {{- end }}
+
+
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
+              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
+              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
+
+          {{- with secret "liquid/hoover/snoop.minio.collections.user" }}
+              SNOOP_COLLECTIONS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.collections.password" }}
+              SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
+        EOF
+        destination = "local/snoop.env"
+        env = true
+      }
+
+      template {
+        data = <<-EOF
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
+              {{.Data.secret_key }}
+          {{- end -}}:
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
+              {{.Data.secret_key }}
+          {{- end -}}
+        EOF
+        destination = "local/minio-blobs.pass"
+        perms = "600"
+        env = false
+      }
+
+      template {
+        data = <<-EOF
+          {{- with secret "liquid/hoover/snoop.minio.collections.user" -}}
+              {{.Data.secret_key }}
+          {{- end -}}:
+          {{- with secret "liquid/hoover/snoop.minio.collections.password" -}}
+              {{.Data.secret_key }}
+          {{- end -}}
+        EOF
+        destination = "local/minio-collections.pass"
+        perms = "600"
+        env = false
+      }
+
 {%- endmacro %}
 
 job "hoover" {
@@ -56,10 +128,6 @@ job "hoover" {
 
     task "search" {
       ${ task_logs() }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
 
       driver = "docker"
 
@@ -223,60 +291,7 @@ job "hoover" {
         destination = "local/startup.sh"
       }
 
-      env {
-        SNOOP_URL_PREFIX = "snoop/"
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
-      }
-
       ${ snoop_dependency_envs() }
-
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-
-
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
-              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
-              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-
-      template {
-        data = <<-EOF
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
-              {{.Data.secret_key }}
-          {{- end -}}:
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
-              {{.Data.secret_key }}
-          {{- end -}}
-        EOF
-        destination = "local/minio-blobs.pass"
-        perms = "600"
-        env = false
-      }
-
 
       resources {
         memory = 100
@@ -292,15 +307,6 @@ job "hoover" {
       user = "root:root"
       ${ task_logs() }
 
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
-        operator = "is_set"
-      }
-
       driver = "docker"
       config {
         image = "${config.image('hoover-snoop2')}"
@@ -313,7 +319,6 @@ job "hoover" {
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/tmp:/opt/hoover/snoop/tmp",
         ]
         mounts = [
           {
@@ -363,58 +368,7 @@ job "hoover" {
         SNOOP_MIN_WORKERS = "3"
         SNOOP_MAX_WORKERS = "3"
         SNOOP_CPU_MULTIPLIER = "0.1"
-
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
       }
-
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-
-
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
-              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
-              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-
-
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-
-      template {
-        data = <<-EOF
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
-              {{.Data.secret_key }}
-          {{- end -}}:
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
-              {{.Data.secret_key }}
-          {{- end -}}
-        EOF
-        destination = "local/minio-blobs.pass"
-        perms = "600"
-        env = false
-      }
-
     }
   } // snoop-system-workers
 
@@ -426,15 +380,6 @@ job "hoover" {
     task "snoop" {
       user = "root:root"
       ${ task_logs() }
-
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
-        operator = "is_set"
-      }
 
       driver = "docker"
 
@@ -449,7 +394,6 @@ job "hoover" {
         volumes = [
           ${hoover_snoop2_repo}
           "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/tmp:/opt/hoover/snoop/tmp",
         ]
         port_map {
           http = 8080
@@ -462,10 +406,6 @@ job "hoover" {
       # This container uses "runserver" so we don't need to auto-reload
       # env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
-      env {
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SNOOP_URL_PREFIX = "snoop/"
-      }
       template {
         data = <<-EOF
           #!/bin/bash
@@ -491,56 +431,6 @@ job "hoover" {
       }
 
       ${ snoop_dependency_envs() }
-
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{ key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- with secret "liquid/hoover/snoop.django" }}
-          SECRET_KEY = {{.Data.secret_key | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{- range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-
-
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
-              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
-              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-
-      template {
-        data = <<-EOF
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" -}}
-              {{.Data.secret_key }}
-          {{- end -}}:
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" -}}
-              {{.Data.secret_key }}
-          {{- end -}}
-        EOF
-        destination = "local/minio-blobs.pass"
-        perms = "600"
-        env = false
-      }
 
       resources {
         memory = ${config.hoover_web_memory_limit}
