@@ -2,3 +2,9 @@
 - [x] add minio to all snoop containers
 - [ ] run split workers
 - [ ] add blob buckets to backup/restore
+- [ ] automatically calculate worker count & distribuiton
+  - fetch CPU and RAM avail from Nomad
+  - method to compute weights of each worker queue for current collection
+  - publish some fair guess defaults for worker weights to use as defaults
+  - compute # of processes for each container
+  - compute # of containers for each worker queue
