@@ -10,5 +10,6 @@ job "dokuwiki-proxy" {
       'dokuwiki',
       host='dokuwiki.' + liquid_domain,
       upstream='dokuwiki-php',
+      group='dokuwiki',
     ) }
 }
