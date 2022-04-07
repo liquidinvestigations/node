@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+
+### Upgrade Notes
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with [cluster version 0.13.4](https://github.com/liquidinvestigations/cluster/tree/v0.13.4)
+- Make sure the `/` filesystem has at least `120 GB` for new Docker images, or bind mount `/var/lib/docker` to a place with more space.
+- When updating, the service `hoover-snoop` will run migrations that may take a few hours.  Because of that, do not restart the `./liquid deploy` service before checking that migrations are finished in the Nomad UI, at `Jobs > hoover > snoop-web > snoop`.
+
 ### New Features
 
 - Hoover: Image AI: Image Classification and Object Recognition. Filter images
