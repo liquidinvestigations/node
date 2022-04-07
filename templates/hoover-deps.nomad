@@ -385,6 +385,8 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-pdf-preview"
         }
+        command = "gotenberg"
+        args = ["--api-timeout", "7200s"]
         memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit}
       }
 
