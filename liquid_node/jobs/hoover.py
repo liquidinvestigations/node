@@ -26,13 +26,6 @@ class Hoover(jobs.Job):
     generate_oauth2_proxy_cookie = True
 
 
-class Workers(jobs.Job):
-    name = 'hoover-workers'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'hoover-workers'
-    stage = 3
-
-
 class Proxy(jobs.Job):
     name = 'hoover-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'

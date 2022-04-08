@@ -309,10 +309,12 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-tika"
         }
+        # warning: config is for whole container
         memory_hard_limit = ${4 * config.tika_memory_limit}
       }
 
       resources {
+        # warning: config is for whole container
         memory = ${config.tika_memory_limit}
         cpu = 400
         network {
@@ -323,6 +325,9 @@ job "hoover-deps" {
 
       env {
         TIKA_CONFIG = "/local/tika.xml"
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
       }
 
       template {
@@ -378,6 +383,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('pdf-preview')}"
         port_map {
           pdf_preview = 3000
@@ -387,16 +393,23 @@ job "hoover-deps" {
         }
         command = "gotenberg"
         args = ["--api-timeout", "7200s"]
-        memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       resources {
-        memory = ${config.snoop_pdf_preview_memory_limit}
+        memory = ${config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
         cpu = 100
         network {
           mbits = 1
           port "pdf_preview" {}
         }
+      }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
+        GOMAXPROCS = "${1 + config.snoop_container_process_count}"
       }
 
       service {
@@ -436,6 +449,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('thumbnail-generator')}"
         port_map {
           thumbnail = 8000
@@ -443,7 +457,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-thumbnail-generator"
         }
-        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
         mounts = [ 
           {
             type = "tmpfs"
@@ -455,9 +469,16 @@ job "hoover-deps" {
           }
         ]
       }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
+      }
   
       resources {
-        memory = ${config.snoop_thumbnail_generator_memory_limit}
+        memory = ${config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
         cpu = 500
         network {
           port "thumbnail" {}
@@ -505,6 +526,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('image-classification')}"
         port_map {
           image_classification = 5001
@@ -512,11 +534,17 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-image-classification"
         }
-        memory_hard_limit = ${4 * config.snoop_image_classification_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
+      }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
       }
 
       resources {
-        memory = ${config.snoop_image_classification_memory_limit}
+        memory = ${config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
         cpu = 100
         network {
           mbits = 1
@@ -529,6 +557,7 @@ job "hoover-deps" {
         OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
         IMAGE_CLASSIFICATION_ENABLED = "${config.snoop_image_classification_classify_images_enabled}"
         IMAGE_CLASSIFICATION_MODEL = "${config.snoop_image_classification_classify_images_model}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
 
       service {
@@ -567,6 +596,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('nlp-service')}"
         port_map {
           nlp = 5000
@@ -574,14 +604,23 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-nlp"
         }
-        memory_hard_limit = ${4 * config.snoop_nlp_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
       }
+
       env {
         NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
         NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
+      }
+
       resources {
-        memory = ${config.snoop_nlp_memory_limit}
+        memory = ${config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
         cpu = 400
         network {
           mbits = 1
@@ -1072,14 +1111,14 @@ job "hoover-deps" {
         labels {
           liquid_task = "libre-translate-batch"
         }
-        memory_hard_limit = ${4 * config.snoop_translation_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_translation_memory_limit * (1 + config.snoop_container_process_count)}
       }
       env {
         LT_CHAR_LIMIT = "157286400"
         LT_DISABLE_WEB_UI = "false"
         OMP_NUM_THREADS = "1"
         OMP_THREAD_LIMIT = "1"
-        # GUNICORN_NUM_WORKERS = "8"
+        GUNICORN_NUM_WORKERS = "${1 + config.snoop_container_process_count}"
 
         {% if config.liquid_debug %}
           LT_DEBUG = "True"
@@ -1087,7 +1126,7 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.snoop_translation_memory_limit}
+        memory = ${config.snoop_translation_memory_limit * (1 + config.snoop_container_process_count)}
         cpu = 100
         network {
           mbits = 1
