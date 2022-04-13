@@ -10,6 +10,7 @@ job "hoover-proxy" {
   ${- authproxy_group(
       'hoover',
       host='hoover.' + liquid_domain,
-      upstream='hoover-nginx'
+      upstream='hoover-nginx',
+      group='hoover',
     ) }
 }

@@ -34,7 +34,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false, skip_button=True) %}
+{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false, skip_button=True, group=None) %}
   group "authproxy" {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
@@ -94,6 +94,7 @@ ephemeral_disk {
           OAUTH2_PROXY_SET_XAUTHREQUEST = true
           #OAUTH2_PROXY_SCOPE = "openid email profile read_user"
           OAUTH2_PROXY_SCOPE = "write read"
+          OAUTH2_PROXY_ALLOWED_GROUPS = "${group}"
           OAUTH2_PROXY_OIDC_GROUPS_CLAIM = "roles"
           OAUTH2_PROXY_PASS_USER_HEADERS = true
           OAUTH2_PROXY_PASS_ACCESS_TOKEN = true

@@ -9,5 +9,6 @@ job "nextcloud-proxy" {
       'nextcloud',
       host='nextcloud.' + liquid_domain,
       upstream='nextcloud-app',
+      group='nextcloud',
     ) }
 }

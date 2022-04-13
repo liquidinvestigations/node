@@ -10,5 +10,6 @@ job "codimd-proxy" {
       'codimd',
       host='codimd.' + liquid_domain,
       upstream='codimd-app',
+      group='codimd',
     ) }
 }
