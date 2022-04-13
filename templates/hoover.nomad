@@ -156,16 +156,17 @@
 
       ${ snoop_dependency_envs() }
 
-      service {
-        check {
-          name = "check-workers-script-${queue}"
-          type = "script"
-          command = "/bin/bash"
-          args = ["-exc", "cd /opt/hoover/snoop; ./manage.py checkworkers"]
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
+      # these have very high load!
+      # service {
+      #   check {
+      #     name = "check-workers-script-${queue}"
+      #     type = "script"
+      #     command = "/bin/bash"
+      #     args = ["-exc", "cd /opt/hoover/snoop; ./manage.py checkworkers"]
+      #     interval = "${check_interval}"
+      #     timeout = "${check_timeout}"
+      #   }
+      # }
     }
   }
 {%- endmacro %}
@@ -464,7 +465,7 @@ job "hoover" {
         container_count=config.snoop_default_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1500,
+        cpu_per_proc=1200,
       ) }
 
     ${ snoop_worker_group(
@@ -472,7 +473,7 @@ job "hoover" {
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1000,
+        cpu_per_proc=1200,
       ) }
 
     ${ snoop_worker_group(
@@ -480,7 +481,7 @@ job "hoover" {
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1500,
+        cpu_per_proc=1200,
       ) }
 
     ${ snoop_worker_group(
@@ -488,7 +489,7 @@ job "hoover" {
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1500,
+        cpu_per_proc=1200,
       ) }
 
     # HTTP CLIENT WORKER GROUPS
