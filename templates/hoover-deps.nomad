@@ -385,6 +385,8 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-pdf-preview"
         }
+        command = "gotenberg"
+        args = ["--api-timeout", "7200s"]
         memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit}
       }
 
@@ -405,7 +407,7 @@ job "hoover-deps" {
           name = "http"
           initial_status = "critical"
           type = "http"
-          path = "/ping"
+          path = "/health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -934,6 +936,11 @@ job "hoover-deps" {
     task "maps-tileserver" {
       ${ task_logs() }
 
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
       config {
         # image = "maptiler/tileserver-gl:v3.1.1"
@@ -987,6 +994,11 @@ job "hoover-deps" {
 
     task "maps-osmnames-sphinxsearch" {
       ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
 
       driver = "docker"
       config {

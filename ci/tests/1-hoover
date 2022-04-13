@@ -7,6 +7,8 @@ echo "Add some collections, check resources and deploy"
 cp ci/conf/1-with-collections.ini liquid.ini
 
 ./liquid resources
+./liquid show-docker-pull-commands
+
 ./liquid deploy || ./liquid deploy
 
 echo "Creating users..."
