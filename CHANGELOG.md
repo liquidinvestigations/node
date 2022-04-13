@@ -26,6 +26,7 @@
   [Configuration for Thumbnail Generator](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L243-L246)
 - Hoover: Convert Office files to PDF for easier viewing in the browser.
   [Configuration for PDF Preview](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L238-L242)
+- App Permissions: User access to specific applications is now configurable by system admins.
 
 
 ### Improvements
