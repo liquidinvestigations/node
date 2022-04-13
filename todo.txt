@@ -1,7 +1,10 @@
 - [x] add minio to deps
 - [x] add minio to all snoop containers
-- [ ] run split workers
+- [x] run split workers
+- [x] use pgpool-II to proxy snoop worker DB connections to 1 per collection: https://hub.docker.com/r/bitnami/pgpool/
 - [ ] add blob buckets to backup/restore
+
+FUTURE:
 - [ ] automatically calculate worker count & distribuiton
   - fetch CPU and RAM avail from Nomad
   - method to compute weights of each worker queue for current collection

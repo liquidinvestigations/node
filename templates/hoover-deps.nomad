@@ -275,7 +275,7 @@ job "hoover-deps" {
           name = "pg_isready"
           type = "script"
           command = "/bin/sh"
-          args = ["-c", "pg_isready"]
+          args = ["-c", "pg_isready -U search"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -429,18 +429,19 @@ job "hoover-deps" {
   }
   {% endif %}
 
+
   {% if config.snoop_thumbnail_generator_enabled %}
   group "thumbnail-generator" {
     count = ${config.snoop_thumbnail_generator_count}
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
-  
+
     ${ continuous_reschedule() }
     ${ group_disk() }
-  
+
     task "thumbnail-generator" {
       ${ task_logs() }
       user = "root"
-  
+
       affinity {
         attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
         value     = "true"
@@ -458,14 +459,12 @@ job "hoover-deps" {
           liquid_task = "hoover-thumbnail-generator"
         }
         memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
-        mounts = [ 
+        mounts = [
           {
             type = "tmpfs"
             target = "/tmp"
             readonly = false
-            tmpfs_options {
-              # set size here if you want
-            }
+            tmpfs_options { }
           }
         ]
       }
@@ -476,7 +475,7 @@ job "hoover-deps" {
         TMPDIR = "/alloc/data"
         WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
-  
+
       resources {
         memory = ${config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
         cpu = 500
@@ -506,6 +505,7 @@ job "hoover-deps" {
     }
   }
   {% endif %}
+
 
   {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
   group "image-classification" {
@@ -959,13 +959,121 @@ job "hoover-deps" {
           name = "pg_isready"
           type = "script"
           command = "/bin/sh"
-          args = ["-c", "pg_isready"]
+          args = ["-c", "pg_isready -U snoop"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
       }
     }
   }
+
+  group "snoop-pg-pool" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "snoop-pg-pool" {
+      ${ task_logs() }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      config {
+        entrypoint = []
+        command = "pgpool"
+        args = ["-f", "/local/pgpool.conf", "-n", "-m", "fast"]
+        image = "${config.image('pgpool')}"
+        labels {
+          liquid_task = "snoop-pg-pool"
+        }
+        port_map {
+          pg = 5432
+        }
+        memory_hard_limit = 3000
+        mounts = [
+          {
+            type = "tmpfs"
+            target = "/tmp"
+            readonly = false
+            tmpfs_options { }
+          },
+          {
+            type = "tmpfs"
+            target = "/var/run/pgpool"
+            readonly = false
+            tmpfs_options { }
+          }
+        ]
+      }
+
+      template {
+        data = <<EOF
+          num_init_children = ${config.snoop_postgres_pool_children}
+          max_pool = 2
+          child_max_connections = 1000
+          child_life_time = 300
+          client_idle_limit = 300
+          connection_life_time = 300
+
+          connection_cache = true
+          listen_addresses = '*'
+          port = 5432
+          replication_mode = false
+          load_balance_mode = false
+          backend_clustering_mode = 'raw'
+          {{ range service "snoop-pg" }}
+          backend_hostname0 = '{{.Address}}'
+          backend_port0 = {{.Port}}
+          backend_weight0 = 1
+          {{ end }}
+        EOF
+        destination = "local/pgpool.conf"
+        env = false
+      }
+
+      template {
+        data = <<EOF
+          {{- range service "snoop-pg" }}
+            PGPOOL_BACKEND_NODES = "0:{{.Address}}:{{.Port}}"
+          {{- end }}
+        EOF
+        destination = "local/postgres-pool.env"
+        env = true
+      }
+
+      resources {
+        cpu = 400
+        memory = 300
+        network {
+          mbits = 1
+          port "pg" {}
+        }
+      }
+
+      service {
+        name = "snoop-pg-pool"
+        port = "pg"
+
+        check {
+          name = "tcp"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
 
   {% if config.hoover_maps_enabled %}
   group "maps-tileserver" {

@@ -210,6 +210,8 @@ class Configuration:
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
         self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)  # noqa: E501
+        self.snoop_postgres_pool_children = int(self.snoop_postgres_max_connections / 2 - 3)
+
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
         self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="1s")
 
@@ -249,6 +251,8 @@ class Configuration:
             self.ini.getboolean('snoop', 'nlp_entity_extraction_enabled', fallback=False)
         self.snoop_nlp_language_detection_enabled = \
             self.ini.getboolean('snoop', 'nlp_language_detection_enabled', fallback=False)
+        self.snoop_nlp_text_length_limit = \
+            self.ini.getboolean('snoop', 'nlp_text_length_limit', fallback=6000000)
 
         self.snoop_translation_enabled = \
             self.ini.getboolean('snoop', 'translation_enabled', fallback=False)

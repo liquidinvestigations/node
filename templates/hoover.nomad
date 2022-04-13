@@ -48,7 +48,7 @@
         {{- if keyExists "liquid_debug" }}
           DEBUG = {{key "liquid_debug" | toJSON }}
         {{- end }}
-        {{- range service "snoop-pg" }}
+        {{- range service "snoop-pg-pool" }}
           SNOOP_DB = "postgresql://snoop:
           {{- with secret "liquid/hoover/snoop.postgres" -}}
             {{.Data.secret_key }}
