@@ -50,4 +50,4 @@ echo "All documents processed."
 
 set -x
 echo "Run UI test suite..."
-(cd ./ci/ui/ && ./run_ui_tests.sh) || (echo "Sleeping for 10min because integration UI tests failed!" && sleep 600)
+(cd ./ci/ui/ && ./run_ui_tests.sh) || (echo "!!!\nUI TESTS FAILED!\n!!!!" && sleep 30)

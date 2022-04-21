@@ -17,6 +17,7 @@ SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
 HYPOTHESIS_ES_ALLOC = "hypothesis-deps:es"
 SNOOP_API_ALLOC = "hoover:snoop"
+SNOOP_BLOBS_DATA_ALLOC = "hoover-deps:minio-blobs"
 
 
 @click.group()
@@ -298,8 +299,14 @@ def restore_files(src_file, path, alloc):
 
 
 def backup_collection_blobs(dest, name):
+
+    log.info('installing tar...')
+    cmd_install_tar = f'./liquid dockerexec {SNOOP_BLOBS_DATA_ALLOC} microdnf install tar gzip'
+    subprocess.check_call(["/bin/bash", "-c", cmd_install_tar])
+    log.info('tar installed.')
+
     log.info(f"Dumping collection {name} blobs to {dest}")
-    backup_files(dest / "blobs.tgz", "blobs/" + name, ['./tmp'], SNOOP_API_ALLOC)
+    backup_files(dest / "blobs.tgz", "/data/" + name, ['./tmp'], SNOOP_BLOBS_DATA_ALLOC)
 
 
 def restore_collection_blobs(src, name):
@@ -307,8 +314,14 @@ def restore_collection_blobs(src, name):
     if not src_file.is_file():
         log.warn(f"No blobs backup at {src_file}, skipping blob restore")
         return
+
+    log.info('installing tar...')
+    cmd_install_tar = f'./liquid dockerexec {SNOOP_BLOBS_DATA_ALLOC} microdnf install tar gzip'
+    subprocess.check_call(["/bin/bash", "-c", cmd_install_tar])
+    log.info('tar installed.')
+
     log.info(f"Restoring collection {name} blobs from {src_file}")
-    restore_files(src / "blobs.tgz", "blobs/" + name, SNOOP_API_ALLOC)
+    restore_files(src / "blobs.tgz", "/data/" + name, SNOOP_BLOBS_DATA_ALLOC)
 
 
 def is_index_available(es_client, name):

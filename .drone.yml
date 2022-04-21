@@ -63,28 +63,28 @@ steps:
       - ./ci/run-integration-tests.sh 1
 
 
-        # - name: 2 - test backup, restore
-        #   image: appleboy/drone-ssh:1.6.3
-        #   environment:
-        #     TEST_ADMIN_PASSWORD:
-        #       from_secret: test_admin_password
-        #   settings:
-        #     host:
-        #       from_secret: target_hostname
-        #     username:
-        #       from_secret: target_username
-        #     password:
-        #       from_secret: target_password
-        #     port:
-        #       from_secret: target_port
-        #     envs: [test_admin_password]
-        #     command_timeout: 120m
-        #     script:
-        #       - set -x
-        #       - set -e
-        #       - cd /app-test/code
-        #       - export TEST_ADMIN_PASSWORD=$${TEST_ADMIN_PASSWORD}
-        #       - ./ci/run-integration-tests.sh 2
+ - name: 2 - test backup, restore
+   image: appleboy/drone-ssh:1.6.3
+   environment:
+     TEST_ADMIN_PASSWORD:
+       from_secret: test_admin_password
+   settings:
+     host:
+       from_secret: target_hostname
+     username:
+       from_secret: target_username
+     password:
+       from_secret: target_password
+     port:
+       from_secret: target_port
+     envs: [test_admin_password]
+     command_timeout: 120m
+     script:
+       - set -x
+       - set -e
+       - cd /app-test/code
+       - export TEST_ADMIN_PASSWORD=$${TEST_ADMIN_PASSWORD}
+       - ./ci/run-integration-tests.sh 2
 
 
 ---
