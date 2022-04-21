@@ -85,7 +85,6 @@ These commands should be run periodically (once per year) for the apps. You shou
 - snoop, everything: `./liquid dockerexec hoover-deps:snoop-pg reindexdb -a -U snoop`
 - snoop, just collection `testdata`: `./liquid dockerexec hoover-deps:snoop-pg reindexdb -U snoop -v collection_testdata`
 - codimd:  `./liquid dockerexec codimd-deps:postgres reindexdb -a -U codimd`
-- hypothesis:  `./liquid dockerexec hypothesis-deps:pg reindexdb -a -U hypothesis`
 
  Warning: the reindex operation for large Snoop collections will take some 3-5h /
 1M documents, regardless of their size. Please turn all snoop workers off before running this step.

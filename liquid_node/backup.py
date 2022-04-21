@@ -15,7 +15,6 @@ log = logging.getLogger(__name__)
 
 SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
-HYPOTHESIS_ES_ALLOC = "hypothesis-deps:es"
 SNOOP_API_ALLOC = "hoover:snoop"
 SNOOP_BLOBS_DATA_ALLOC = "hoover-deps:minio-blobs"
 
@@ -51,12 +50,6 @@ def backup(blobs, es, pg, backup_collections, collections, apps, dest):
 
         if config.is_app_enabled('dokuwiki'):
             backup_files(dest / 'dokuwiki.tgz', '/bitnami/dokuwiki', [], 'dokuwiki:php')
-
-        if config.is_app_enabled('hypothesis'):
-            backup_dir = dest / "hypothesis"
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            backup_pg(backup_dir / 'hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis-deps:pg')
-            backup_es(dest / 'hypothesis', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
 
     if not backup_collections or not config.is_app_enabled('hoover'):
         log.warning('not backing up collection data (--no-collections)')
@@ -161,11 +154,6 @@ def restore_apps(ctx, src):
     if config.is_app_enabled('dokuwiki'):
         restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
         nomad.stop_and_wait(['dokuwiki', 'dokuwiki-proxy'])
-
-    if config.is_app_enabled('hypothesis'):
-        restore_es(src / 'hypothesis/', 'hypothesis', '/_h_es', HYPOTHESIS_ES_ALLOC)
-        nomad.stop_and_wait(['hypothesis', 'hypothesis-proxy'])
-        restore_pg(src / 'hypothesis/hypothesis.pg.sql.gz', 'hypothesis', 'hypothesis', 'hypothesis-deps:pg')
 
     log.info("Restore done; deploying everything")
     ctx.invoke(halt)

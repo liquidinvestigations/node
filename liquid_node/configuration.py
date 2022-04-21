@@ -10,7 +10,7 @@ from pathlib import Path
 from .util import import_string
 from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, hypothesis, codimd, ci
+    nextcloud, codimd, ci
 
 
 log = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ def split_lang_codes(option):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
-                'hypothesis', 'codimd',)
+                'codimd',)
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -37,7 +37,6 @@ class Configuration:
 
     APP_DESCRIPTION = {
         'hoover': 'is a search app.',
-        'hypothesis': 'is an annotation system.',
         'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
         'codimd': 'is a real-time collaboration pad.',
         'nextcloud': 'has a file share system and a contact list of users.',
@@ -64,10 +63,6 @@ class Configuration:
         nextcloud.Migrate(),
         nextcloud.Periodic(),
         nextcloud.Proxy(),
-        hypothesis.Hypothesis(),
-        hypothesis.Deps(),
-        hypothesis.UserSync(),
-        hypothesis.Proxy(),
         codimd.Codimd(),
         codimd.Deps(),
         codimd.Proxy(),
@@ -125,10 +120,6 @@ class Configuration:
                                      fallback=str((self.root / 'repos' / 'liquidinvestigations')))
         self.liquidinvestigations_repos_path = str(Path(li_repos_path).resolve())
 
-        h_repos_path = self.ini.get('liquid', 'hypothesis_repos_path',
-                                    fallback=str((self.root / 'repos' / 'hypothesis')))
-        self.hypothesis_repos_path = str(Path(h_repos_path).resolve())
-
         self.liquid_volumes = self.ini.get('liquid', 'volumes', fallback=None)
 
         self.liquid_collections = self.ini.get('liquid', 'collections',
@@ -166,10 +157,6 @@ class Configuration:
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=2500)
 
-        self.hypothesis_memory_limit = \
-            self.ini.getint('liquid',
-                            'hypothesis_memory_limit',
-                            fallback=1024)
         self.nextcloud_memory_limit = \
             self.ini.getint('liquid',
                             'nextcloud_memory_limit',
@@ -418,11 +405,6 @@ class Configuration:
             snoop = tag('hoover-snoop2')
             ui = tag('hoover-ui')
             return f'search: {search},  snoop: {snoop}, ui: {ui}'
-
-        if name == 'hypothesis':
-            h = tag('hypothesis-h')
-            client = tag('h-client')
-            return f'h: {h},  client: {client}'
 
         if name in ['dokuwiki', 'nextcloud']:
             return tag('liquid-' + name)

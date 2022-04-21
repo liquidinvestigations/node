@@ -111,6 +111,5 @@ To avoid running the cluster locally, you can use Vagrant, see
 * [RocketChat](docs/RocketChat.md)
 * [Hoover](docs/Hoover.md)
 * [Nextcloud](docs/Nextcloud.md)
-* [Hypothesis](docs/Hypothesis.md)
 * DokuWiki
 * CodiMD

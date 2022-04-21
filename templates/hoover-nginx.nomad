@@ -236,7 +236,6 @@ job "hoover-nginx" {
 
       template {
         data = <<-EOF
-          NEXT_PUBLIC_HOOVER_HYPOTHESIS_URL="${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
           API_URL = "http://{{env "attr.unique.network.ip-address"}}:9990/hoover-search"
         EOF
         env = true
@@ -366,7 +365,6 @@ job "hoover-nginx" {
           HOOVER_TITLE = "Hoover"
           HOOVER_LIQUID_TITLE = "${config.liquid_title}"
           HOOVER_LIQUID_URL = "${config.liquid_core_url}"
-          HOOVER_HYPOTHESIS_EMBED = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
           HOOVER_AUTHPROXY = "true"
           USE_X_FORWARDED_HOST = "true"
           LIQUID_CORE_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
