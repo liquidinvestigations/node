@@ -202,6 +202,8 @@ class Configuration:
             os.exit(1)
         self.snoop_container_process_count = self.ini.getboolean('snoop',
                                                                  'container_process_count', fallback=1)  # noqa: E501
+        assert 1 <= self.snoop_container_process_count <= 8, 'invalid process container count: not in [1, 8]'
+
         self.snoop_default_queue_worker_count = self.ini.getboolean('snoop', 'default_queue_worker_count', fallback=1)  # noqa: E501
         self.snoop_filesystem_queue_worker_count = self.ini.getboolean('snoop', 'filesystem_queue_worker_count', fallback=1)  # noqa: E501
         self.snoop_ocr_queue_worker_count = self.ini.getboolean('snoop', 'ocr_queue_worker_count', fallback=1)  # noqa: E501
