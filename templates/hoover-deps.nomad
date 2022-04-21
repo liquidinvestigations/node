@@ -316,7 +316,7 @@ job "hoover-deps" {
       resources {
         # warning: config is for whole container
         memory = ${config.tika_memory_limit}
-        cpu = ${1000 * config.snoop_container_process_count}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "tika" {}
@@ -397,8 +397,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
-        cpu = ${1000 * config.snoop_container_process_count}
+        memory = ${config.snoop_pdf_preview_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "pdf_preview" {}
@@ -477,8 +477,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
-        cpu = ${1000 * config.snoop_container_process_count}
+        memory = ${config.snoop_thumbnail_generator_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           port "thumbnail" {}
           mbits = 1
@@ -544,8 +544,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
-        cpu = ${1000 * config.snoop_container_process_count}
+        memory = ${config.snoop_image_classification_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "image_classification" {}
@@ -620,8 +620,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
-        cpu = ${1000 * config.snoop_container_process_count}
+        memory = ${config.snoop_nlp_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "nlp" {}
@@ -777,7 +777,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "snoop-rabbitmq"
         }
-        memory_hard_limit = ${2 * config.snoop_rabbitmq_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_rabbitmq_memory_limit}
       }
 
       resources {
@@ -1234,8 +1234,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.snoop_translation_memory_limit * (1 + config.snoop_container_process_count)}
-        cpu = ${1000 * config.snoop_container_process_count}
+        memory = ${config.snoop_translation_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "http" {}

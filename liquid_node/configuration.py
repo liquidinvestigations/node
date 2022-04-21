@@ -1,3 +1,4 @@
+import sys
 import logging
 import configparser
 import os
@@ -199,15 +200,15 @@ class Configuration:
             log.error('These settings have been removed, but they are still present: ')
             log.error('"min_workers_per_node", "max_workers_per_node", "worker_cpu_count_multiplier".')
             log.error('Please remove them from your configuration.')
-            os.exit(1)
-        self.snoop_container_process_count = self.ini.getboolean('snoop',
-                                                                 'container_process_count', fallback=1)  # noqa: E501
+            sys.exit(1)
+        self.snoop_container_process_count = self.ini.getint('snoop',
+                                                             'container_process_count', fallback=1)  # noqa: E501
         assert 1 <= self.snoop_container_process_count <= 8, 'invalid process container count: not in [1, 8]'
 
-        self.snoop_default_queue_worker_count = self.ini.getboolean('snoop', 'default_queue_worker_count', fallback=1)  # noqa: E501
-        self.snoop_filesystem_queue_worker_count = self.ini.getboolean('snoop', 'filesystem_queue_worker_count', fallback=1)  # noqa: E501
-        self.snoop_ocr_queue_worker_count = self.ini.getboolean('snoop', 'ocr_queue_worker_count', fallback=1)  # noqa: E501
-        self.snoop_digests_queue_worker_count = self.ini.getboolean('snoop', 'digests_queue_worker_count', fallback=1)  # noqa: E501
+        self.snoop_default_queue_worker_count = self.ini.getint('snoop', 'default_queue_worker_count', fallback=1)  # noqa: E501
+        self.snoop_filesystem_queue_worker_count = self.ini.getint('snoop', 'filesystem_queue_worker_count', fallback=1)  # noqa: E501
+        self.snoop_ocr_queue_worker_count = self.ini.getint('snoop', 'ocr_queue_worker_count', fallback=1)  # noqa: E501
+        self.snoop_digests_queue_worker_count = self.ini.getint('snoop', 'digests_queue_worker_count', fallback=1)  # noqa: E501
 
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
@@ -254,7 +255,7 @@ class Configuration:
         self.snoop_nlp_language_detection_enabled = \
             self.ini.getboolean('snoop', 'nlp_language_detection_enabled', fallback=False)
         self.snoop_nlp_text_length_limit = \
-            self.ini.getboolean('snoop', 'nlp_text_length_limit', fallback=6000000)
+            self.ini.getint('snoop', 'nlp_text_length_limit', fallback=1000000)
 
         self.snoop_translation_enabled = \
             self.ini.getboolean('snoop', 'translation_enabled', fallback=False)

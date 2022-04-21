@@ -1,3 +1,4 @@
+import sys
 from time import time, sleep
 from collections import defaultdict
 import click
@@ -24,9 +25,12 @@ def liquid_commands():
     pass
 
 
-@liquid_commands.command()
-def resources():
-    """Get memory and CPU usage for the deployment"""
+def check_resources():
+    EXTRA_REQ = {
+        "CPU": 1000,
+        "MemoryMB": 1000,
+        "EphemeralDiskMB": 10000,
+    }
 
     def get_all_res():
         jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
@@ -34,6 +38,7 @@ def resources():
             yield from nomad.get_resources(spec)
 
     total = defaultdict(int)
+    req = defaultdict(int)
     for name, count, _type, res in get_all_res():
         for key in ['MemoryMB', 'CPU', 'EphemeralDiskMB']:
             if key not in res:
@@ -41,10 +46,33 @@ def resources():
             if res[key] is None:
                 raise RuntimeError("Please update Nomad to 0.9.3+")
             total[f'{_type} {key}'] += res[key] * count
+            req[key] += res[key] * count
 
-    print('Resource requirement totals: ')
+    for key in req:
+        req[key] += EXTRA_REQ[key]
+        total[f'extra {key}'] += EXTRA_REQ[key]
+
+    avail = nomad.get_available_resources()
+    log.debug('Resource available (total): ')
+    for key, value in sorted(avail.items()):
+        log.debug(f'  {key: <30}: {value:,}')
+
+    log.debug('Resource requirements (split): ')
     for key, value in sorted(total.items()):
-        print(f'  {key}: {value}')
+        log.debug(f'  {key: <30}: {value:,}')
+
+    log.info('Resource requirements (required / available): ')
+    for key, value in sorted(req.items()):
+        log.info(f'  {key: <30}: {value:,} / {avail[key]:,}')
+        if req[key] > avail[key]:
+            log.error('not enough %s: %s / %s', key, req[key], avail[key])
+            sys.exit(1)
+
+
+@liquid_commands.command()
+def resources():
+    """Get memory and CPU usage for the deployment"""
+    check_resources()
 
 
 def all_images():
@@ -159,6 +187,8 @@ def check_system_config():
 
     assert int(run("cat /proc/sys/vm/max_map_count", shell=True)) >= 262144, \
         'the "vm.max_map_count" kernel parameter is too low, check readme'
+
+    check_resources()
 
 
 def start_job(job, hcl):
@@ -292,11 +322,13 @@ def _update_images():
 @click.option('--no-update-images', 'update_images', is_flag=True, default=True)
 @click.option('--no-secrets', 'secrets', is_flag=True, default=True)
 @click.option('--no-checks', 'checks', is_flag=True, default=True)
+@click.option('--no-resource-checks', 'resource_checks', is_flag=True, default=True)
 @click.option('--new-images-only', 'new_images_only', is_flag=True, default=False)
-def deploy(update_images, secrets, checks, new_images_only):
+def deploy(update_images, secrets, checks, resource_checks, new_images_only):
     """Run all the jobs in nomad."""
 
-    check_system_config()
+    if resource_checks:
+        check_system_config()
     consul.set_kv('liquid_domain', config.liquid_domain)
     consul.set_kv('liquid_debug', 'true' if config.liquid_debug else 'false')
     consul.set_kv('liquid_http_protocol', config.liquid_http_protocol)

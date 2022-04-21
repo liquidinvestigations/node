@@ -98,6 +98,29 @@ class Nomad(JsonApi):
                 name = f'{group_name}-{task["Name"]}'
                 yield name, count, spec['Type'], task['Resources']
 
+    def get_available_resources(self):
+        cpu_shares = 0
+        cpu_count = 0
+        memory_mb = 0
+        disk_mb = 0
+        node_count = 0
+
+        for node in self.get('nodes'):
+            node_info = self.get('node/' + node['ID'])
+
+            cpu_shares += int(node_info['Resources']['CPU'])
+            memory_mb += int(node_info['Resources']['MemoryMB'])
+            disk_mb += int(node_info['Resources']['DiskMB'])
+            cpu_count += int(node_info['Attributes']['cpu.numcores'])
+            node_count += 1
+        return {
+            "CPU": cpu_shares,
+            "MemoryMB": memory_mb,
+            "EphemeralDiskMB": disk_mb,
+            "cpu_count": cpu_count,
+            "node_count": node_count,
+        }
+
     def get_images(self, spec):
         """Generates docker image names from spec."""
 
