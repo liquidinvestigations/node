@@ -196,10 +196,10 @@ class Configuration:
         if (self.ini.get('snoop', 'min_workers_per_node', fallback='')
                 or self.ini.get('snoop', 'max_workers_per_node', fallback='')
                 or self.ini.get('snoop', 'worker_cpu_count_multiplier', fallback='')):
-            log.warning('These settings have been removed, but they are still present: ')
-            log.warning('"min_workers_per_node", "max_workers_per_node", "worker_cpu_count_multiplier".')
-            log.warning('Please remove them from your configuration.')
-            # os.exit(1)
+            log.error('These settings have been removed, but they are still present: ')
+            log.error('"min_workers_per_node", "max_workers_per_node", "worker_cpu_count_multiplier".')
+            log.error('Please remove them from your configuration.')
+            os.exit(1)
         self.snoop_container_process_count = self.ini.getboolean('snoop',
                                                                  'container_process_count', fallback=1)  # noqa: E501
         self.snoop_default_queue_worker_count = self.ini.getboolean('snoop', 'default_queue_worker_count', fallback=1)  # noqa: E501
