@@ -71,7 +71,7 @@ case "$ARGUMENT" in
     ;;
 
   3)
-    ./ci/tests/3-wait
+    ./ci/tests/3-integration
     ;;
 
   *)

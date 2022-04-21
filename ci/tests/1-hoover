@@ -49,5 +49,5 @@ wait_testdata
 echo "All documents processed."
 
 set -x
-echo "Run UI test suite..."
+echo "Run UI test suite (first pass)..."
 (cd ./ci/ui/ && ./run_ui_tests.sh) || (echo "!!!\nUI TESTS FAILED!\n!!!!" && sleep 30)
