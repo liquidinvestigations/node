@@ -1412,7 +1412,6 @@ job "hoover-deps" {
   }
 
   group "minio-collections" {
-
     ${ continuous_reschedule() }
     ${ group_disk() }
 
@@ -1491,6 +1490,58 @@ job "hoover-deps" {
           initial_status = "critical"
           type = "http"
           path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "broken-filename-service-collections" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "broken-filename-service-collections" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "liquidinvestigations/broken-filename-service:0.0.6"
+        port_map {
+          http = 5000
+        }
+        labels {
+          liquid_task = "hoover-snoop-broken-filename-service"
+        }
+        memory_hard_limit = 2000
+        volumes = [
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/data:ro",
+        ]
+      }
+
+      resources {
+        memory = 200
+        cpu = 400
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-snoop-broken-filename-service"
+        port = "http"
+        tags = ["fabio-/_snoop_broken_filename_service strip=/_snoop_broken_filename_service"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
