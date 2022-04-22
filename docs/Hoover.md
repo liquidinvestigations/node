@@ -77,7 +77,7 @@ LSTM](https://tesseract-ocr.github.io/tessdoc/Data-Files#data-files-for-version-
 
 After changing the `ocr_languages` setting for an already processed collection, please run:
 
-     ./liquid dockerexec hoover-workers:snoop-workers ./manage.py retrytasks COLLECTION -- --func digests.launch
+     ./liquid dockerexec hoover:snoop ./manage.py retrytasks COLLECTION -- --func digests.launch
 
 ### External OCR
 

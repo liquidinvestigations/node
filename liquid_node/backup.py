@@ -106,13 +106,10 @@ def restore_collection(ctx, src, name):
 
     src = Path(src).resolve()
     assert src.is_dir(), 'source is not a directory'
-    # es and blobs restores require web containers to be on
+
     restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
     restore_collection_blobs(src, name)
     restore_collection_pg(src, name)
-
-    # nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
-    # ctx.invoke(deploy, secrets=False)
 
     log.info("Collection restored: " + name)
     log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
@@ -139,11 +136,6 @@ def restore_all_collections(ctx, backup_root):
         restore_collection_blobs(src, name)
         restore_collection_pg(src, name)
 
-    # pg requires all clients to be off
-    # nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
-    # for name, src in all_collections:
-
-    # ctx.invoke(deploy, secrets=False)
     log.info("Collections restored: " + ", ".join(a[0] for a in all_collections))
     log.info("Please add all collections to `./liquid.ini` and re-run `./liquid deploy`")
 
@@ -157,9 +149,10 @@ def restore_apps(ctx, src):
     nomad.stop_and_wait(['liquid'])
 
     if config.is_app_enabled('hoover'):
-        nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
-        restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
+        nomad.stop_and_wait(['hoover-proxy', 'hoover-nginx'])
         restore_pg(src / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
+        nomad.stop_and_wait(['hoover'])
+        restore_pg(src / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
 
     if config.is_app_enabled('codimd'):
         nomad.stop_and_wait(['codimd', 'codimd-proxy'])
@@ -252,6 +245,7 @@ def restore_pg(src_file, username, dbname, alloc):
             subprocess.check_call(reset_cmd, shell=True)
         except Exception:
             log.warning('cannot run dropdb for snoop')
+
     if alloc == 'hoover-deps:search-pg':
         dropdb_force = ' --force '
     else:

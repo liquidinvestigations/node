@@ -462,8 +462,6 @@ class Configuration:
         return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
 
     def is_app_enabled(self, app_name):
-        if app_name == 'hoover-workers':
-            return self.snoop_workers_enabled and self.is_app_enabled('hoover')
         if app_name == 'ci':
             return self.ci_enabled
         return app_name in Configuration.CORE_APPS or \
@@ -474,9 +472,13 @@ class Configuration:
         if not name.islower():
             raise ValueError(f'''Invalid collection name "{name}"!
 
-Collection names must start with lower case letters and must contain only
-lower case letters and digits.
-''')
+                Collection names must start with lower case letters and must contain only
+                lower case letters and digits.
+                ''')
+        if len(name) < 3:
+            raise ValueError(f'''Invalid collection name "{name}"!
+
+                Collection name must be at least 3 characters long (Minio / S3 bucket name restriction).''')
 
 
 config = Configuration()
