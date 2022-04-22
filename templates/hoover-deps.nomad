@@ -275,7 +275,7 @@ job "hoover-deps" {
           name = "pg_isready"
           type = "script"
           command = "/bin/sh"
-          args = ["-c", "pg_isready"]
+          args = ["-c", "pg_isready -U search"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -309,12 +309,14 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-tika"
         }
+        # warning: config is for whole container
         memory_hard_limit = ${4 * config.tika_memory_limit}
       }
 
       resources {
+        # warning: config is for whole container
         memory = ${config.tika_memory_limit}
-        cpu = 400
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "tika" {}
@@ -323,6 +325,9 @@ job "hoover-deps" {
 
       env {
         TIKA_CONFIG = "/local/tika.xml"
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
       }
 
       template {
@@ -378,6 +383,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('pdf-preview')}"
         port_map {
           pdf_preview = 3000
@@ -387,16 +393,23 @@ job "hoover-deps" {
         }
         command = "gotenberg"
         args = ["--api-timeout", "7200s"]
-        memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       resources {
-        memory = ${config.snoop_pdf_preview_memory_limit}
-        cpu = 100
+        memory = ${config.snoop_pdf_preview_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "pdf_preview" {}
         }
+      }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
+        GOMAXPROCS = "${1 + config.snoop_container_process_count}"
       }
 
       service {
@@ -416,18 +429,19 @@ job "hoover-deps" {
   }
   {% endif %}
 
+
   {% if config.snoop_thumbnail_generator_enabled %}
   group "thumbnail-generator" {
     count = ${config.snoop_thumbnail_generator_count}
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
-  
+
     ${ continuous_reschedule() }
     ${ group_disk() }
-  
+
     task "thumbnail-generator" {
       ${ task_logs() }
       user = "root"
-  
+
       affinity {
         attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
         value     = "true"
@@ -436,6 +450,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('thumbnail-generator')}"
         port_map {
           thumbnail = 8000
@@ -443,22 +458,27 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-thumbnail-generator"
         }
-        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit}
-        mounts = [ 
+        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
+        mounts = [
           {
             type = "tmpfs"
             target = "/tmp"
             readonly = false
-            tmpfs_options {
-              # set size here if you want
-            }
+            tmpfs_options { }
           }
         ]
       }
-  
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
+      }
+
       resources {
-        memory = ${config.snoop_thumbnail_generator_memory_limit}
-        cpu = 500
+        memory = ${config.snoop_thumbnail_generator_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           port "thumbnail" {}
           mbits = 1
@@ -486,6 +506,7 @@ job "hoover-deps" {
   }
   {% endif %}
 
+
   {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
   group "image-classification" {
     count = ${config.snoop_image_classification_count}
@@ -505,6 +526,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('image-classification')}"
         port_map {
           image_classification = 5001
@@ -512,12 +534,18 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-image-classification"
         }
-        memory_hard_limit = ${4 * config.snoop_image_classification_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
+      }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
       }
 
       resources {
-        memory = ${config.snoop_image_classification_memory_limit}
-        cpu = 100
+        memory = ${config.snoop_image_classification_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "image_classification" {}
@@ -529,6 +557,7 @@ job "hoover-deps" {
         OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
         IMAGE_CLASSIFICATION_ENABLED = "${config.snoop_image_classification_classify_images_enabled}"
         IMAGE_CLASSIFICATION_MODEL = "${config.snoop_image_classification_classify_images_model}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
 
       service {
@@ -567,6 +596,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
+        ulimit { core = "0" }
         image = "${config.image('nlp-service')}"
         port_map {
           nlp = 5000
@@ -574,15 +604,24 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-nlp"
         }
-        memory_hard_limit = ${4 * config.snoop_nlp_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
       }
+
       env {
         NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
         NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
+      }
+
       resources {
-        memory = ${config.snoop_nlp_memory_limit}
-        cpu = 400
+        memory = ${config.snoop_nlp_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "nlp" {}
@@ -642,7 +681,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "search-rabbitmq"
         }
-        memory_hard_limit = 1000
+        memory_hard_limit = 2000
       }
 
       resources {
@@ -738,7 +777,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "snoop-rabbitmq"
         }
-        memory_hard_limit = ${2 * config.snoop_rabbitmq_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_rabbitmq_memory_limit}
       }
 
       resources {
@@ -920,13 +959,121 @@ job "hoover-deps" {
           name = "pg_isready"
           type = "script"
           command = "/bin/sh"
-          args = ["-c", "pg_isready"]
+          args = ["-c", "pg_isready -U snoop"]
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
       }
     }
   }
+
+  group "snoop-pg-pool" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "snoop-pg-pool" {
+      ${ task_logs() }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      config {
+        entrypoint = []
+        command = "pgpool"
+        args = ["-f", "/local/pgpool.conf", "-n", "-m", "fast"]
+        image = "${config.image('pgpool')}"
+        labels {
+          liquid_task = "snoop-pg-pool"
+        }
+        port_map {
+          pg = 5432
+        }
+        memory_hard_limit = 3000
+        mounts = [
+          {
+            type = "tmpfs"
+            target = "/tmp"
+            readonly = false
+            tmpfs_options { }
+          },
+          {
+            type = "tmpfs"
+            target = "/var/run/pgpool"
+            readonly = false
+            tmpfs_options { }
+          }
+        ]
+      }
+
+      template {
+        data = <<EOF
+          num_init_children = ${config.snoop_postgres_pool_children}
+          max_pool = 2
+          child_max_connections = 1000
+          child_life_time = 300
+          client_idle_limit = 300
+          connection_life_time = 300
+
+          connection_cache = true
+          listen_addresses = '*'
+          port = 5432
+          replication_mode = false
+          load_balance_mode = false
+          backend_clustering_mode = 'raw'
+          {{ range service "snoop-pg" }}
+          backend_hostname0 = '{{.Address}}'
+          backend_port0 = {{.Port}}
+          backend_weight0 = 1
+          {{ end }}
+        EOF
+        destination = "local/pgpool.conf"
+        env = false
+      }
+
+      template {
+        data = <<EOF
+          {{- range service "snoop-pg" }}
+            PGPOOL_BACKEND_NODES = "0:{{.Address}}:{{.Port}}"
+          {{- end }}
+        EOF
+        destination = "local/postgres-pool.env"
+        env = true
+      }
+
+      resources {
+        cpu = 400
+        memory = 300
+        network {
+          mbits = 1
+          port "pg" {}
+        }
+      }
+
+      service {
+        name = "snoop-pg-pool"
+        port = "pg"
+
+        check {
+          name = "tcp"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
 
   {% if config.hoover_maps_enabled %}
   group "maps-tileserver" {
@@ -1072,14 +1219,14 @@ job "hoover-deps" {
         labels {
           liquid_task = "libre-translate-batch"
         }
-        memory_hard_limit = ${4 * config.snoop_translation_memory_limit}
+        memory_hard_limit = ${4 * config.snoop_translation_memory_limit * (1 + config.snoop_container_process_count)}
       }
       env {
         LT_CHAR_LIMIT = "157286400"
         LT_DISABLE_WEB_UI = "false"
         OMP_NUM_THREADS = "1"
         OMP_THREAD_LIMIT = "1"
-        # GUNICORN_NUM_WORKERS = "8"
+        GUNICORN_NUM_WORKERS = "${1 + config.snoop_container_process_count}"
 
         {% if config.liquid_debug %}
           LT_DEBUG = "True"
@@ -1087,8 +1234,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = ${config.snoop_translation_memory_limit}
-        cpu = 100
+        memory = ${config.snoop_translation_memory_limit * (config.snoop_container_process_count)}
+        cpu = ${500 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "http" {}
@@ -1177,4 +1324,228 @@ job "hoover-deps" {
     }
   }
   {% endif %}
+
+  group "minio-blobs" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "minio-blobs" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('minio')}"
+        args = ["server", "--console-address", ":9001", "/data"]
+        port_map {
+          s3 = 9000
+          console = 9001
+        }
+        labels {
+          liquid_task = "hoover-snoop-blob-minio"
+        }
+        memory_hard_limit = 2000
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/data",
+        ]
+      }
+
+      env {
+        MINIO_UPDATE = "off"
+      }
+
+      resources {
+        memory = 200
+        cpu = 400
+        network {
+          mbits = 1
+          port "s3" { static = 9001 }
+          port "console" { static = 9002 }
+        }
+      }
+
+      template {
+        data = <<EOF
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
+              MINIO_ROOT_USER = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
+              MINIO_ROOT_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/minio.env"
+        env = true
+      }
+
+      service {
+        name = "hoover-minio-s3-blobs"
+        port = "s3"
+        tags = ["fabio-:9991 proto=tcp"]
+
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+
+      service {
+        name = "hoover-minio-console-blobs"
+        port = "console"
+        tags = ["fabio-/snoop_minio_conosole_blobs/ strip=/snoop_minio_conosole_blobs"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "minio-collections" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "minio-collections" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('minio')}"
+        args = ["server", "--console-address", ":9001", "/data"]
+        port_map {
+          s3 = 9000
+          console = 9001
+        }
+        labels {
+          liquid_task = "hoover-snoop-collections-minio"
+        }
+        memory_hard_limit = 2000
+        volumes = [
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/data",
+        ]
+      }
+
+      env {
+        MINIO_UPDATE = "off"
+      }
+
+      resources {
+        memory = 200
+        cpu = 400
+        network {
+          mbits = 1
+          port "s3" { static = 9003 }
+          port "console" { static = 9004 }
+        }
+      }
+
+      template {
+        data = <<EOF
+          {{- with secret "liquid/hoover/snoop.minio.collections.user" }}
+              MINIO_ROOT_USER = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.collections.password" }}
+              MINIO_ROOT_PASSWORD = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        EOF
+        destination = "local/minio.env"
+        env = true
+      }
+
+      service {
+        name = "hoover-minio-s3-collections"
+        port = "s3"
+        tags = ["fabio-:9992 proto=tcp"]
+
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+
+      service {
+        name = "hoover-minio-console-collections"
+        port = "console"
+        tags = ["fabio-/snoop_minio_console_collections strip=/snoop_minio_console_collections"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "broken-filename-service-collections" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "broken-filename-service-collections" {
+      ${ task_logs() }
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
+      driver = "docker"
+      config {
+        image = "liquidinvestigations/broken-filename-service:0.0.6"
+        port_map {
+          http = 5000
+        }
+        labels {
+          liquid_task = "hoover-snoop-broken-filename-service"
+        }
+        memory_hard_limit = 2000
+        volumes = [
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/data:ro",
+        ]
+      }
+
+      resources {
+        memory = 200
+        cpu = 400
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-snoop-broken-filename-service"
+        port = "http"
+        tags = ["fabio-/_snoop_broken_filename_service strip=/_snoop_broken_filename_service"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
 }

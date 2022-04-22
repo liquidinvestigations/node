@@ -1,3 +1,5 @@
+import sys
+import logging
 import configparser
 import os
 import subprocess
@@ -9,6 +11,9 @@ from .util import import_string
 from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
     nextcloud, hypothesis, codimd, ci
+
+
+log = logging.getLogger(__name__)
 
 
 def split_lang_codes(option):
@@ -46,7 +51,6 @@ class Configuration:
         hoover.Hoover(),
         hoover.DepsDownloads(),
         hoover.Deps(),
-        hoover.Workers(),
         hoover.Proxy(),
         hoover.Nginx(),
         dokuwiki.Dokuwiki(),
@@ -190,36 +194,47 @@ class Configuration:
         self.hoover_maps_enabled = self.ini.getboolean('liquid', 'hoover_maps_enabled', fallback=False)
 
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
-        self.snoop_min_workers_per_node = self.ini.getint('snoop', 'min_workers_per_node', fallback=2)
-        self.snoop_max_workers_per_node = self.ini.getint('snoop', 'max_workers_per_node', fallback=25)
-        self.snoop_cpu_count_multiplier = self.ini.getfloat('snoop', 'worker_cpu_count_multiplier', fallback=0.55)  # noqa: E501
+        if (self.ini.get('snoop', 'min_workers_per_node', fallback='')
+                or self.ini.get('snoop', 'max_workers_per_node', fallback='')
+                or self.ini.get('snoop', 'worker_cpu_count_multiplier', fallback='')):
+            log.error('These settings have been removed, but they are still present: ')
+            log.error('"min_workers_per_node", "max_workers_per_node", "worker_cpu_count_multiplier".')
+            log.error('Please remove them from your configuration.')
+            sys.exit(1)
+        self.snoop_container_process_count = self.ini.getint('snoop',
+                                                             'container_process_count', fallback=1)  # noqa: E501
+        assert 1 <= self.snoop_container_process_count <= 8, 'invalid process container count: not in [1, 8]'
+
+        self.snoop_default_queue_worker_count = self.ini.getint('snoop', 'default_queue_worker_count', fallback=1)  # noqa: E501
+        self.snoop_filesystem_queue_worker_count = self.ini.getint('snoop', 'filesystem_queue_worker_count', fallback=1)  # noqa: E501
+        self.snoop_ocr_queue_worker_count = self.ini.getint('snoop', 'ocr_queue_worker_count', fallback=1)  # noqa: E501
+        self.snoop_digests_queue_worker_count = self.ini.getint('snoop', 'digests_queue_worker_count', fallback=1)  # noqa: E501
 
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
         self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)  # noqa: E501
-        self.snoop_worker_memory_limit = 350 * (1 + self.snoop_min_workers_per_node)
-        self.snoop_worker_hard_memory_limit = 2000 * (2 + self.snoop_max_workers_per_node)
-        self.snoop_worker_cpu_limit = 400 * self.snoop_min_workers_per_node
+        self.snoop_postgres_pool_children = int(self.snoop_postgres_max_connections / 2 - 3)
+
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
         self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="1s")
 
         self.snoop_pdf_preview_enabled = self.ini.getboolean('snoop', 'pdf_preview_enabled', fallback=False)
         self.snoop_pdf_preview_count = self.ini.getint('snoop', 'pdf_preview_count', fallback=1)
         self.snoop_pdf_preview_memory_limit = self.ini.getint('snoop', 'pdf_preview_memory_limit',
-                                                              fallback=1500)
+                                                              fallback=650)
         self.snoop_thumbnail_generator_enabled = self.ini.getboolean('snoop', 'thumbnail_generator_enabled',
                                                                      fallback=False)
         self.snoop_thumbnail_generator_count = self.ini.getint('snoop', 'thumbnail_generator_count',
                                                                fallback=1)
         self.snoop_thumbnail_generator_memory_limit = self.ini.getint('snoop',
                                                                       'thumbnail_generator_memory_limit',
-                                                                      fallback=1500)
+                                                                      fallback=550)
 
         self.snoop_image_classification_count = self.ini.getint('snoop', 'image_classification_count',
                                                                 fallback=1)
         self.snoop_image_classification_memory_limit = self.ini.getint('snoop',
                                                                        'image_classification_memory_limit',
-                                                                       fallback=2500)
+                                                                       fallback=1150)
 
         self.snoop_image_classification_object_detection_enabled = \
             self.ini.getboolean('snoop', 'image_classification_object_detection_enabled', fallback=False)
@@ -233,19 +248,21 @@ class Configuration:
 
         self.snoop_nlp_fallback_language = self.ini.get('snoop', 'nlp_fallback_language', fallback="en")
         self.snoop_nlp_spacy_text_limit = self.ini.get('snoop', 'nlp_spacy_text_limit', fallback=40000)
-        self.snoop_nlp_memory_limit = self.ini.getint('snoop', 'nlp_memory_limit', fallback=5500)
+        self.snoop_nlp_memory_limit = self.ini.getint('snoop', 'nlp_memory_limit', fallback=950)
         self.snoop_nlp_count = self.ini.getint('snoop', 'count', fallback=1)
         self.snoop_nlp_entity_extraction_enabled =  \
             self.ini.getboolean('snoop', 'nlp_entity_extraction_enabled', fallback=False)
         self.snoop_nlp_language_detection_enabled = \
             self.ini.getboolean('snoop', 'nlp_language_detection_enabled', fallback=False)
+        self.snoop_nlp_text_length_limit = \
+            self.ini.getint('snoop', 'nlp_text_length_limit', fallback=1000000)
 
         self.snoop_translation_enabled = \
             self.ini.getboolean('snoop', 'translation_enabled', fallback=False)
         self.snoop_translation_count = \
             self.ini.getint('snoop', 'translation_count', fallback=1)
         self.snoop_translation_memory_limit = \
-            self.ini.getint('snoop', 'translation_memory_limit', fallback=2500)
+            self.ini.getint('snoop', 'translation_memory_limit', fallback=650)
         self.snoop_translation_target_languages = \
             self.ini.get('snoop', 'translation_target_languages', fallback="en")
         self.snoop_translation_text_length_limit = \

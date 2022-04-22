@@ -17,6 +17,7 @@ SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
 HYPOTHESIS_ES_ALLOC = "hypothesis-deps:es"
 SNOOP_API_ALLOC = "hoover:snoop"
+SNOOP_BLOBS_DATA_ALLOC = "hoover-deps:minio-blobs"
 
 
 @click.group()
@@ -108,11 +109,10 @@ def restore_collection(ctx, src, name):
     # es and blobs restores require web containers to be on
     restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
     restore_collection_blobs(src, name)
-
-    # pg requires all clients to be off
-    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
     restore_collection_pg(src, name)
-    ctx.invoke(deploy, secrets=False)
+
+    # nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
+    # ctx.invoke(deploy, secrets=False)
 
     log.info("Collection restored: " + name)
     log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
@@ -137,13 +137,13 @@ def restore_all_collections(ctx, backup_root):
     for name, src in all_collections:
         restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
         restore_collection_blobs(src, name)
-
-    # pg requires all clients to be off
-    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
-    for name, src in all_collections:
         restore_collection_pg(src, name)
 
-    ctx.invoke(deploy, secrets=False)
+    # pg requires all clients to be off
+    # nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
+    # for name, src in all_collections:
+
+    # ctx.invoke(deploy, secrets=False)
     log.info("Collections restored: " + ", ".join(a[0] for a in all_collections))
     log.info("Please add all collections to `./liquid.ini` and re-run `./liquid deploy`")
 
@@ -242,6 +242,14 @@ def restore_pg(src_file, username, dbname, alloc):
         log.warn(f"No pg backup at {src_file}, skipping pgrestore")
         return
 
+    if alloc == SNOOP_PG_ALLOC:
+        log.info(f'Dropping existing database: {dbname}')
+        reset_cmd = (
+            f"./liquid dockerexec {SNOOP_API_ALLOC} "
+            f"./manage.py dropdb {dbname} --force || true"
+        )
+        subprocess.check_call(reset_cmd, shell=True)
+
     log.info(f"Restore postgres from {src_file} to alloc {alloc} user {username} db {dbname}")
     cmd = (
         f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
@@ -298,8 +306,14 @@ def restore_files(src_file, path, alloc):
 
 
 def backup_collection_blobs(dest, name):
+
+    log.info('installing tar...')
+    cmd_install_tar = f'./liquid dockerexec {SNOOP_BLOBS_DATA_ALLOC} microdnf install tar gzip'
+    subprocess.check_call(["/bin/bash", "-c", cmd_install_tar])
+    log.info('tar installed.')
+
     log.info(f"Dumping collection {name} blobs to {dest}")
-    backup_files(dest / "blobs.tgz", "blobs/" + name, ['./tmp'], SNOOP_API_ALLOC)
+    backup_files(dest / "blobs.tgz", "/data/" + name, ['./tmp'], SNOOP_BLOBS_DATA_ALLOC)
 
 
 def restore_collection_blobs(src, name):
@@ -307,8 +321,14 @@ def restore_collection_blobs(src, name):
     if not src_file.is_file():
         log.warn(f"No blobs backup at {src_file}, skipping blob restore")
         return
+
+    log.info('installing tar...')
+    cmd_install_tar = f'./liquid dockerexec {SNOOP_BLOBS_DATA_ALLOC} microdnf install tar gzip'
+    subprocess.check_call(["/bin/bash", "-c", cmd_install_tar])
+    log.info('tar installed.')
+
     log.info(f"Restoring collection {name} blobs from {src_file}")
-    restore_files(src / "blobs.tgz", "blobs/" + name, SNOOP_API_ALLOC)
+    restore_files(src / "blobs.tgz", "/data/" + name, SNOOP_BLOBS_DATA_ALLOC)
 
 
 def is_index_available(es_client, name):

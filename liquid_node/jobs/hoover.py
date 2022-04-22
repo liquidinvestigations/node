@@ -18,15 +18,12 @@ class Hoover(jobs.Job):
         'liquid/hoover/search.postgres',
         'liquid/hoover/snoop.django',
         'liquid/hoover/snoop.postgres',
+        'liquid/hoover/snoop.minio.blobs.user',
+        'liquid/hoover/snoop.minio.blobs.password',
+        'liquid/hoover/snoop.minio.collections.user',
+        'liquid/hoover/snoop.minio.collections.password',
     ]
     generate_oauth2_proxy_cookie = True
-
-
-class Workers(jobs.Job):
-    name = 'hoover-workers'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'hoover-workers'
-    stage = 3
 
 
 class Proxy(jobs.Job):

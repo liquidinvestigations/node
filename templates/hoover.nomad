@@ -2,8 +2,14 @@
 
 {%- macro snoop_dependency_envs() %}
       env {
+        SNOOP_URL_PREFIX = "snoop/"
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
+        SNOOP_BLOBS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9991"
+        SNOOP_COLLECTIONS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9992"
+        SNOOP_BROKEN_FILENAME_SERVICE = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_broken_filename_service"
+
+        S3FS_LOGGING_LEVEL="DEBUG"
 
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
           SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
@@ -37,6 +43,133 @@
 
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
     }
+
+      template {
+        data = <<-EOF
+        {{- if keyExists "liquid_debug" }}
+          DEBUG = {{key "liquid_debug" | toJSON }}
+        {{- end }}
+        {{- range service "snoop-pg-pool" }}
+          SNOOP_DB = "postgresql://snoop:
+          {{- with secret "liquid/hoover/snoop.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{.Address}}:{{.Port}}/snoop"
+        {{- end }}
+        {{- range service "hoover-snoop-rabbitmq" }}
+          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
+        {{- end }}
+        {{ range service "zipkin" }}
+          TRACING_URL = "http://{{.Address}}:{{.Port}}"
+        {{- end }}
+
+
+          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
+              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
+              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
+
+          {{- with secret "liquid/hoover/snoop.minio.collections.user" }}
+              SNOOP_COLLECTIONS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/snoop.minio.collections.password" }}
+              SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+
+        EOF
+        destination = "local/snoop.env"
+        env = true
+      }
+
+      env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
+      }
+
+{%- endmacro %}
+
+
+{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=200, cpu_per_proc=200) %}
+  group "snoop-workers-${queue}" {
+    ${ group_disk() }
+    count = ${container_count}
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    task "snoop-workers-${queue}" {
+      user = "root:root"
+      ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      driver = "docker"
+      config {
+        ulimit { core = "0" }
+        image = "${config.image('hoover-snoop2')}"
+        cap_add = ["mknod", "sys_admin"]
+        devices = [{host_path = "/dev/fuse", container_path = "/dev/fuse"}]
+        security_opt = ["apparmor=unconfined"]
+
+        args = ["/local/startup.sh"]
+        entrypoint = ["/bin/bash", "-ex"]
+        volumes = [
+          ${hoover_snoop2_repo}
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
+        ]
+        labels {
+          liquid_task = "snoop-workers-${queue}"
+        }
+        memory_hard_limit = ${1000 + 4 * mem_per_proc * (proc_count)}
+      }
+      # used to auto-restart containers when running deploy, after you make a new commit
+      env { __GIT_TAGS = "${hoover_snoop2_git}" }
+
+      resources {
+        memory = ${100 + mem_per_proc * (proc_count)}
+        cpu = ${cpu_per_proc * proc_count}
+      }
+
+      template {
+        data = <<-EOF
+          #!/bin/bash
+          set -ex
+          # exec tail -f /dev/null
+          if  [ -z "$SNOOP_TIKA_URL" ] \
+                  || [ -z "$SNOOP_DB" ] \
+                  || [ -z "$SNOOP_ES_URL" ] \
+                  || [ -z "$SNOOP_AMQP_URL" ]; then
+            echo "incomplete configuration!"
+            sleep 5
+            exit 1
+          fi
+          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc}
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      ${ snoop_dependency_envs() }
+
+      # these have very high load!
+      # service {
+      #   check {
+      #     name = "check-workers-script-${queue}"
+      #     type = "script"
+      #     command = "/bin/bash"
+      #     args = ["-exc", "cd /opt/hoover/snoop; ./manage.py checkworkers"]
+      #     interval = "${check_interval}"
+      #     timeout = "${check_timeout}"
+      #   }
+      # }
+    }
+  }
 {%- endmacro %}
 
 job "hoover" {
@@ -54,10 +187,6 @@ job "hoover" {
 
     task "search" {
       ${ task_logs() }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
 
       driver = "docker"
 
@@ -182,7 +311,100 @@ job "hoover" {
     }
   }
 
+
+  group "snoop-web" {
+    count = ${config.hoover_web_count}
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "snoop" {
+      user = "root:root"
+      ${ task_logs() }
+
+      driver = "docker"
+
+      config {
+        image = "${config.image('hoover-snoop2')}"
+        cap_add = ["mknod", "sys_admin"]
+        devices = [{host_path = "/dev/fuse", container_path = "/dev/fuse"}]
+        security_opt = ["apparmor=unconfined"]
+
+        args = ["/local/startup.sh"]
+        entrypoint = ["/bin/bash", "-ex"]
+        volumes = [
+          ${hoover_snoop2_repo}
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
+        ]
+        port_map {
+          http = 8080
+        }
+        labels {
+          liquid_task = "snoop-api"
+        }
+        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
+      }
+      # This container uses "runserver" so we don't need to auto-reload
+      # env { __GIT_TAGS = "${hoover_snoop2_git}" }
+
+      template {
+        data = <<-EOF
+          #!/bin/bash
+          set -ex
+          if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
+            echo "incomplete configuration!"
+            sleep 5
+            exit 1
+          fi
+          date
+          ./manage.py migrate --noinput
+          ./manage.py migratecollections
+          ./manage.py healthcheck
+          date
+          if [[ "$DEBUG" == "true" ]]; then
+            exec ./manage.py runserver 0.0.0.0:8080
+          else
+            exec /runserver
+          fi
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      ${ snoop_dependency_envs() }
+
+      resources {
+        memory = ${config.hoover_web_memory_limit}
+        cpu = 200
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-snoop"
+        port = "http"
+        tags = ["fabio-/snoop"]
+        check {
+          name = "http"
+          initial_status = "critical"
+          type = "http"
+          path = "/snoop/_health"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["snoop.${liquid_domain}"]
+          }
+        }
+      }
+    }
+  }
+
+  # SNOOP WORKERS
+  # =============
+
   {% if config.snoop_workers_enabled %}
+
   group "snoop-celery-beat" {
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -221,270 +443,104 @@ job "hoover" {
         destination = "local/startup.sh"
       }
 
-      env {
-        SNOOP_URL_PREFIX = "snoop/"
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
-      }
-
       ${ snoop_dependency_envs() }
-
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
 
       resources {
         memory = 100
       }
     }
   } // snoop-celery-beat
+
+    # SYSTEM GROUP
+    # ============
+    ${ snoop_worker_group(
+        queue="system",
+        container_count=1,
+        proc_count=3,
+      ) }
+
+    # CPU WORKER GROUPS
+    # =================
+    ${ snoop_worker_group(
+        queue="default",
+        container_count=config.snoop_default_queue_worker_count,
+        proc_count=config.snoop_container_process_count,
+        mem_per_proc=500,
+        cpu_per_proc=1200,
+      ) }
+
+    ${ snoop_worker_group(
+        queue="filesystem",
+        container_count=config.snoop_filesystem_queue_worker_count,
+        proc_count=config.snoop_container_process_count,
+        mem_per_proc=500,
+        cpu_per_proc=1200,
+      ) }
+
+    ${ snoop_worker_group(
+        queue="ocr",
+        container_count=config.snoop_ocr_queue_worker_count,
+        proc_count=config.snoop_container_process_count,
+        mem_per_proc=500,
+        cpu_per_proc=1200,
+      ) }
+
+    ${ snoop_worker_group(
+        queue="digests",
+        container_count=config.snoop_digests_queue_worker_count,
+        proc_count=config.snoop_container_process_count,
+        mem_per_proc=500,
+        cpu_per_proc=1200,
+      ) }
+
+    # HTTP CLIENT WORKER GROUPS
+    # =========================
+
+    ${ snoop_worker_group(
+        queue="tika",
+        container_count=config.tika_count,
+        proc_count=config.snoop_container_process_count,
+      ) }
+
+    {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
+    ${ snoop_worker_group(
+        queue="entities",
+        container_count=config.snoop_nlp_count,
+        proc_count=config.snoop_container_process_count,
+      ) }
+    {% endif %}
+
+    {% if config.snoop_translation_enabled %}
+    ${ snoop_worker_group(
+        queue="translate",
+        container_count=config.snoop_translation_count,
+        proc_count=config.snoop_container_process_count,
+      ) }
+    {% endif %}
+
+    {% if config.snoop_image_classification_classify_images_enabled or config.snoop_image_classification_object_detection_enabled %}
+    ${ snoop_worker_group(
+        queue="img-cls",
+        container_count=config.snoop_image_classification_count,
+        proc_count=config.snoop_container_process_count,
+      ) }
+    {% endif %}
+
+    {% if config.snoop_pdf_preview_enabled %}
+    ${ snoop_worker_group(
+        queue="pdf-preview",
+        container_count=config.snoop_pdf_preview_count,
+        proc_count=config.snoop_container_process_count,
+      ) }
+    {% endif %}
+
+    {% if config.snoop_thumbnail_generator_enabled %}
+    ${ snoop_worker_group(
+        queue="thumbnails",
+        container_count=config.snoop_thumbnail_generator_count,
+        proc_count=config.snoop_container_process_count,
+      ) }
+    {% endif %}
+
   {% endif %}
-
-  group "snoop-system-workers" {
-    ${ group_disk() }
-
-    task "snoop-system-workers" {
-      user = "root:root"
-      ${ task_logs() }
-
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
-      config {
-        image = "${config.image('hoover-snoop2')}"
-        args = ["/local/startup.sh"]
-        entrypoint = ["/bin/bash", "-ex"]
-        volumes = [
-          ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
-        ]
-        mounts = [
-          {
-            type = "tmpfs"
-            target = "/tmp"
-            readonly = false
-            tmpfs_options {
-              #size = 3221225472  # 3G
-            }
-          }
-        ]
-        labels {
-          liquid_task = "snoop-workers"
-        }
-        memory_hard_limit = 3333
-      }
-      # used to auto-restart containers when running deploy, after you make a new commit
-      env { __GIT_TAGS = "${hoover_snoop2_git}" }
-
-      resources {
-        memory = 333
-        cpu = 200
-      }
-
-      template {
-        data = <<-EOF
-          #!/bin/bash
-          set -ex
-          # exec tail -f /dev/null
-          if  [ -z "$SNOOP_TIKA_URL" ] \
-                  || [ -z "$SNOOP_DB" ] \
-                  || [ -z "$SNOOP_ES_URL" ] \
-                  || [ -z "$SNOOP_AMQP_URL" ]; then
-            echo "incomplete configuration!"
-            sleep 5
-            exit 1
-          fi
-          exec ./manage.py runworkers --system-queues
-          EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-
-      ${ snoop_dependency_envs() }
-
-      env {
-        SNOOP_MIN_WORKERS = "3"
-        SNOOP_MAX_WORKERS = "3"
-        SNOOP_CPU_MULTIPLIER = "0.1"
-
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SYNC_FILES = "${sync}"
-      }
-
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-    }
-  } // snoop-system-workers
-
-  group "snoop-web" {
-    count = ${config.hoover_web_count}
-    ${ continuous_reschedule() }
-    ${ group_disk() }
-
-    task "snoop" {
-      user = "root:root"
-      ${ task_logs() }
-
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-      constraint {
-        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
-        operator = "is_set"
-      }
-
-      driver = "docker"
-
-      config {
-        entrypoint = ["/bin/bash", "-ex"]
-        image = "${config.image('hoover-snoop2')}"
-        args = ["/local/startup.sh"]
-        volumes = [
-          ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/opt/hoover/snoop/blobs",
-        ]
-        port_map {
-          http = 8080
-        }
-        labels {
-          liquid_task = "snoop-api"
-        }
-        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
-      }
-      # This container uses "runserver" so we don't need to auto-reload
-      # env { __GIT_TAGS = "${hoover_snoop2_git}" }
-
-      env {
-        SNOOP_COLLECTION_ROOT = "/opt/hoover/collections"
-        SNOOP_URL_PREFIX = "snoop/"
-      }
-      template {
-        data = <<-EOF
-          #!/bin/bash
-          set -ex
-          if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
-            echo "incomplete configuration!"
-            sleep 5
-            exit 1
-          fi
-          date
-          ./manage.py migrate --noinput
-          ./manage.py migratecollections
-          ./manage.py healthcheck
-          date
-          if [[ "$DEBUG" == "true" ]]; then
-            exec ./manage.py runserver 0.0.0.0:8080
-          else
-            exec /runserver
-          fi
-          EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-
-      ${ snoop_dependency_envs() }
-
-      template {
-        data = <<-EOF
-        {{- if keyExists "liquid_debug" }}
-          DEBUG = {{ key "liquid_debug" | toJSON }}
-        {{- end }}
-        {{- with secret "liquid/hoover/snoop.django" }}
-          SECRET_KEY = {{.Data.secret_key | toJSON }}
-        {{- end }}
-        {{- range service "snoop-pg" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{- range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
-        EOF
-        destination = "local/snoop.env"
-        env = true
-      }
-
-      resources {
-        memory = ${config.hoover_web_memory_limit}
-        cpu = 200
-        network {
-          mbits = 1
-          port "http" {}
-        }
-      }
-
-      service {
-        name = "hoover-snoop"
-        port = "http"
-        tags = ["fabio-/snoop"]
-        check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/snoop/_health"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-          header {
-            Host = ["snoop.${liquid_domain}"]
-          }
-        }
-      }
-    }
-  }
 }

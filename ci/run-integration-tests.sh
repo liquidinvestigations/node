@@ -41,11 +41,10 @@ function install {
 
   (
     cd /opt/node/collections
-    if ! [ -d testdata ]; then
-      devnull "git clone https://github.com/liquidinvestigations/testdata testdata"
+    if [ -d testdata ]; then
+      rm -rf testdata
     fi
-    cd testdata
-    devnull "git pull origin master"
+    devnull "git clone https://github.com/liquidinvestigations/testdata testdata"
   ) &
 
   (
@@ -72,7 +71,7 @@ case "$ARGUMENT" in
     ;;
 
   3)
-    ./ci/tests/3-wait
+    ./ci/tests/3-integration
     ;;
 
   *)

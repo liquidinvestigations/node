@@ -6,7 +6,7 @@ BACKUP="$(dirname $PWD)/backups"
 
 echo "Make a Backup"
 cp ci/conf/1-with-collections-stopped.ini liquid.ini
-./liquid deploy
+./liquid deploy || ./liquid deploy
 ./liquid backup $BACKUP/backup
 
 echo "Check backup"
@@ -14,7 +14,7 @@ ls -aRlh $BACKUP/backup
 
 zcat $BACKUP/backup/collection-testdata/pg.sql.gz | grep -q "PostgreSQL database dump complete"
 tar tz < $BACKUP/backup/collection-testdata/es.tgz | grep -q 'index.latest'
-#tar tz < $BACKUP/backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
+# tar tz < $BACKUP/backup/collection-testdata/blobs.tgz | grep -q '6b/2b/b2ac1b581c3dc6c3c19197b0603a83f2440fb4e2b74f2fe0b76f50e240bf'
 ./liquid backup --no-es --no-pg --no-apps $BACKUP/backup2
 ./liquid backup --no-blobs --no-apps --collection testdata --collection uploads $BACKUP/backup3
 ./liquid restore-collection $BACKUP/backup/collection-testdata testdata2
@@ -22,8 +22,10 @@ tar tz < $BACKUP/backup/collection-testdata/es.tgz | grep -q 'index.latest'
 echo "Remove all collections, gc, restore from backup"
 cp ci/conf/1-no-collections.ini liquid.ini
 ./liquid nomadgc
-./liquid deploy --no-secrets
-./liquid dockerexec hoover:snoop ./manage.py purge --force
+./liquid deploy
+./liquid dockerexec hoover:snoop ./manage.py purge --force || (
+  sleep 45 && ./liquid dockerexec hoover:snoop ./manage.py purge --force
+)
 ./liquid restore-all-collections $BACKUP/backup
 
 echo "Restore apps"
@@ -38,13 +40,6 @@ sudo rm -rf /opt/cluster/var/*
 echo
 docker start cluster
 docker exec cluster ./cluster.py wait
-./liquid deploy
-./liquid restore-all-collections $BACKUP/backup
-./liquid restore-apps $BACKUP/backup
-
-
-echo "Running UI integration suite a second time"
-
-cp ci/conf/1-with-collections-stopped.ini liquid.ini
-./liquid deploy
-(cd ./ci/ui/ && ./run_ui_tests.sh) || (echo "Sleeping for 10min because integration UI tests failed!" && sleep 600)
+./liquid deploy || ./liquid deploy
+./liquid restore-all-collections $BACKUP/backup || ( sleep 45 && ./liquid restore-all-collections $BACKUP/backup )
+./liquid restore-apps $BACKUP/backup || ( sleep 45 && o./liquid restore-apps $BACKUP/backup )
