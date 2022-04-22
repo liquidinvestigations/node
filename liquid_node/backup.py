@@ -242,12 +242,13 @@ def restore_pg(src_file, username, dbname, alloc):
         log.warn(f"No pg backup at {src_file}, skipping pgrestore")
         return
 
-    log.info(f'Dropping existing database: {dbname}')
-    reset_cmd = (
-        f"./liquid dockerexec {SNOOP_API_ALLOC} "
-        f"./manage.py dropdb {dbname} --force"
-    )
-    subprocess.check_call(reset_cmd, shell=True)
+    if alloc == SNOOP_PG_ALLOC:
+        log.info(f'Dropping existing database: {dbname}')
+        reset_cmd = (
+            f"./liquid dockerexec {SNOOP_API_ALLOC} "
+            f"./manage.py dropdb {dbname} --force || true"
+        )
+        subprocess.check_call(reset_cmd, shell=True)
 
     log.info(f"Restore postgres from {src_file} to alloc {alloc} user {username} db {dbname}")
     cmd = (
