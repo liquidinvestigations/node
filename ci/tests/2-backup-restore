@@ -6,7 +6,7 @@ BACKUP="$(dirname $PWD)/backups"
 
 echo "Make a Backup"
 cp ci/conf/1-with-collections-stopped.ini liquid.ini
-./liquid deploy
+./liquid deploy || ./liquid deploy
 ./liquid backup $BACKUP/backup
 
 echo "Check backup"
@@ -22,8 +22,10 @@ tar tz < $BACKUP/backup/collection-testdata/es.tgz | grep -q 'index.latest'
 echo "Remove all collections, gc, restore from backup"
 cp ci/conf/1-no-collections.ini liquid.ini
 ./liquid nomadgc
-./liquid deploy --no-secrets
-./liquid dockerexec hoover:snoop ./manage.py purge --force
+./liquid deploy
+./liquid dockerexec hoover:snoop ./manage.py purge --force || (
+  sleep 45 && ./liquid dockerexec hoover:snoop ./manage.py purge --force
+)
 ./liquid restore-all-collections $BACKUP/backup
 
 echo "Restore apps"
@@ -38,6 +40,6 @@ sudo rm -rf /opt/cluster/var/*
 echo
 docker start cluster
 docker exec cluster ./cluster.py wait
-./liquid deploy
-./liquid restore-all-collections $BACKUP/backup
-./liquid restore-apps $BACKUP/backup
+./liquid deploy || ./liquid deploy
+./liquid restore-all-collections $BACKUP/backup || ( sleep 45 && ./liquid restore-all-collections $BACKUP/backup )
+./liquid restore-apps $BACKUP/backup || ( sleep 45 && o./liquid restore-apps $BACKUP/backup )
