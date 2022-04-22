@@ -121,7 +121,6 @@
         entrypoint = ["/bin/bash", "-ex"]
         volumes = [
           ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
         ]
         labels {
           liquid_task = "snoop-workers-${queue}"
@@ -333,7 +332,6 @@ job "hoover" {
         entrypoint = ["/bin/bash", "-ex"]
         volumes = [
           ${hoover_snoop2_repo}
-          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
         ]
         port_map {
           http = 8080
