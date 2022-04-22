@@ -109,11 +109,10 @@ def restore_collection(ctx, src, name):
     # es and blobs restores require web containers to be on
     restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
     restore_collection_blobs(src, name)
-
-    # pg requires all clients to be off
-    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
     restore_collection_pg(src, name)
-    ctx.invoke(deploy, secrets=False)
+
+    # nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
+    # ctx.invoke(deploy, secrets=False)
 
     log.info("Collection restored: " + name)
     log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
@@ -138,13 +137,13 @@ def restore_all_collections(ctx, backup_root):
     for name, src in all_collections:
         restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
         restore_collection_blobs(src, name)
-
-    # pg requires all clients to be off
-    nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
-    for name, src in all_collections:
         restore_collection_pg(src, name)
 
-    ctx.invoke(deploy, secrets=False)
+    # pg requires all clients to be off
+    # nomad.stop_and_wait(['hoover', 'hoover-workers', 'hoover-proxy', 'hoover-nginx'])
+    # for name, src in all_collections:
+
+    # ctx.invoke(deploy, secrets=False)
     log.info("Collections restored: " + ", ".join(a[0] for a in all_collections))
     log.info("Please add all collections to `./liquid.ini` and re-run `./liquid deploy`")
 
@@ -242,6 +241,13 @@ def restore_pg(src_file, username, dbname, alloc):
     if not src_file.is_file():
         log.warn(f"No pg backup at {src_file}, skipping pgrestore")
         return
+
+    log.info(f'Dropping existing database: {dbname}')
+    reset_cmd = (
+        f"./liquid dockerexec {SNOOP_API_ALLOC} "
+        f"./manage.py dropdb {dbname} --force"
+    )
+    subprocess.check_call(reset_cmd, shell=True)
 
     log.info(f"Restore postgres from {src_file} to alloc {alloc} user {username} db {dbname}")
     cmd = (
