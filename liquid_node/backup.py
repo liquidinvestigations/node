@@ -239,7 +239,7 @@ def restore_pg(src_file, username, dbname, alloc):
         try:
             log.info(f'Dropping existing database: {dbname}')
             reset_cmd = (
-                f"./liquid dockerexec {SNOOP_API_ALLOC} "
+                f"yes yes | ./liquid dockerexec {SNOOP_API_ALLOC} "
                 f"./manage.py dropdb {dbname} --force || true"
             )
             subprocess.check_call(reset_cmd, shell=True)
