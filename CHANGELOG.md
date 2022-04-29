@@ -1,10 +1,9 @@
 # Liquid Investigations Change Log
 
-## Unreleased
-
+## v0.18.2 (2022-04-29)
 
 ### Upgrade Notes
-- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with [cluster version 0.13.4](https://github.com/liquidinvestigations/cluster/tree/v0.13.4)
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with [cluster version 0.13.7](https://github.com/liquidinvestigations/cluster/tree/v0.13.7)
 - Collections with names shorter than 3 characters (like "ab" or "x") will not work starting with this version. Before upgrading, please backup the offending collections and restore them with names longer than 3 characters.
 - Make sure the `/` filesystem has at least `120 GB` for new Docker images, or bind mount `/var/lib/docker` to a place with more space.
 - When updating, the service `hoover-snoop` will run migrations that may take a few hours.  Because of that, do not restart the `./liquid deploy` service before checking that migrations are finished in the Nomad UI, at `Jobs > hoover > snoop-web > snoop`.
