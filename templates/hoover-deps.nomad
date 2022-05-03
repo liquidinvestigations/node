@@ -1348,7 +1348,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-snoop-blob-minio"
         }
-        memory_hard_limit = 2000
+        memory_hard_limit = 4000
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/data",
         ]
@@ -1359,7 +1359,7 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 200
+        memory = 300
         cpu = 400
         network {
           mbits = 1
@@ -1434,7 +1434,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-snoop-collections-minio"
         }
-        memory_hard_limit = 2000
+        memory_hard_limit = 4000
         volumes = [
           "{% raw %}${meta.liquid_collections}{% endraw %}:/data",
         ]
@@ -1445,7 +1445,7 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 200
+        memory = 300
         cpu = 400
         network {
           mbits = 1
