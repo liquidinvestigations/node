@@ -55,6 +55,10 @@ job "liquid" {
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
           LIQUID_HYPOTHESIS_EMBED = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
           NOMAD_URL = "${config.nomad_url}"
+
+          {{- range service "authproxy-redis" }}
+              AUTHPROXY_REDIS_URL = "redis://{{.Address}}:{{.Port}}/"
+          {{- end }}
         EOF
         destination = "local/docker.env"
         env = true

@@ -34,7 +34,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false, skip_button=True, group=None) %}
+{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false, skip_button=True, group=None, redis_id=None) %}
   group "authproxy" {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
@@ -100,7 +100,7 @@ ephemeral_disk {
           OAUTH2_PROXY_PASS_ACCESS_TOKEN = true
           # OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER  = true
 
-          OAUTH2_PROXY_COOKIE_NAME = "_oauth2_proxy_${name}_${config.liquid_domain}"
+          OAUTH2_PROXY_COOKIE_NAME = "_oauth2_proxy_${name}"
           OAUTH2_PROXY_COOKIE_SAMESITE = "lax"
           OAUTH2_PROXY_COOKIE_SECURE = {% if config.https_enabled %}true{% else %}false{% endif %}
           OAUTH2_PROXY_COOKIE_EXPIRE = "${config.auth_auto_logout}"
@@ -117,6 +117,10 @@ ephemeral_disk {
 
           OAUTH2_PROXY_WHITELIST_DOMAINS = ".${config.liquid_domain}"
           OAUTH2_PROXY_SILENCE_PING_LOGGING = true
+          OAUTH2_PROXY_SESSION_STORE_TYPE = "redis"
+          {{- range service "authproxy-redis" }}
+              OAUTH2_PROXY_REDIS_CONNECTION_URL = "redis://{{.Address}}:{{.Port}}/${redis_id}"
+          {{- end }}
           OAUTH2_PROXY_REQUEST_LOGGING = false
 
           {%- if hypothesis_user_header %}

@@ -12,5 +12,6 @@ job "hoover-proxy" {
       host='hoover.' + liquid_domain,
       upstream='hoover-nginx',
       group='hoover',
+      redis_id=1
     ) }
 }

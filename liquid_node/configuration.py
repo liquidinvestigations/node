@@ -48,6 +48,7 @@ class Configuration:
         liquid.Liquid(),
         liquid.Ingress(),
         liquid.CreateUser(),
+        liquid.AuthproxyRedis(),
         hoover.Hoover(),
         hoover.DepsDownloads(),
         hoover.Deps(),

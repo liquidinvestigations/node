@@ -10,5 +10,6 @@ job "hypothesis-proxy" {
       host='hypothesis.' + liquid_domain,
       upstream='hypothesis',
       user_header_template="acct:{}@" + liquid_domain,
+      redis_id=5
     ) }
 }
