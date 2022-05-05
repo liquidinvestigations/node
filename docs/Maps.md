@@ -41,7 +41,8 @@ time docker run --rm -v $(pwd):/data/ klokantech/osmnames-sphinxsearch:2.0.6 bas
 -----
 
 You should get something like this:
-```user@server:/opt/node/volumes/hoover/osmdata$ du -ahd1 .
+```
+user@server:/opt/node/volumes/hoover/osmdata$ du -ahd1 .
 396K	./wget-log
 84G	./2020-10-planet-14.mbtiles
 34G	./index
