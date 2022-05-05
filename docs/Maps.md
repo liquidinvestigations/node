@@ -40,4 +40,13 @@ time docker run --rm -v $(pwd):/data/ klokantech/osmnames-sphinxsearch:2.0.6 bas
 
 -----
 
+You should get something like this:
+```user@server:/opt/node/volumes/hoover/osmdata$ du -ahd1 .
+396K	./wget-log
+84G	./2020-10-planet-14.mbtiles
+34G	./index
+6.4G	./input
+124G	.
+```
+
 After both steps are done, you can enable the feature using this config flag: [[liquid]hoover_maps_enabled = true](https://github.com/liquidinvestigations/node/blob/63b0f598ba068f0068c362c6682bf54be4701f93/examples/liquid.ini#L138) and re-deploy.
