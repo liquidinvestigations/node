@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import shutdown_delay, continuous_reschedule, set_pg_password_template, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import shutdown_delay, continuous_reschedule, set_pg_password_template, set_pg_drop_template, task_logs, group_disk with context -%}
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
@@ -261,6 +261,8 @@ job "hoover-deps" {
         env = true
       }
       ${ set_pg_password_template('search') }
+      ${ set_pg_drop_template('search') }
+
       resources {
         memory = 350
         network {
@@ -942,6 +944,7 @@ job "hoover-deps" {
       }
 
       ${ set_pg_password_template('snoop') }
+      ${ set_pg_drop_template('snoop') }
 
       resources {
         cpu = 400

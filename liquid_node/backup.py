@@ -235,17 +235,6 @@ def restore_pg(src_file, username, dbname, alloc):
         log.warn(f"No pg backup at {src_file}, skipping pgrestore")
         return
 
-    if alloc == SNOOP_PG_ALLOC:
-        try:
-            log.info(f'Dropping existing database: {dbname}')
-            reset_cmd = (
-                f"yes yes | ./liquid dockerexec {SNOOP_API_ALLOC} "
-                f"./manage.py dropdb {dbname} --force || true"
-            )
-            subprocess.check_call(reset_cmd, shell=True)
-        except Exception:
-            log.warning('cannot run dropdb for snoop')
-
     if alloc == 'hoover-deps:search-pg':
         dropdb_force = ' --force '
     else:
@@ -254,10 +243,11 @@ def restore_pg(src_file, username, dbname, alloc):
     log.info(f"Restore postgres from {src_file} to alloc {alloc} user {username} db {dbname}")
     cmd = (
         f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
-        f"'set -exo pipefail;"
-        f"dropdb -U {username} --if-exists {dropdb_force} {dbname};"
-        f" createdb -U {username} {dbname};"
-        f" zcat | psql -U {username} {dbname}' > /dev/null "
+        f"'set -exo pipefail; "
+        f"bash /local/pg_drop_db.sh {dbname}; "
+        f"dropdb -U {username} --if-exists {dropdb_force} {dbname}; "
+        f"createdb -U {username} {dbname}; "
+        f"zcat | psql -U {username} {dbname}' > /dev/null "
         f"< {src_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
