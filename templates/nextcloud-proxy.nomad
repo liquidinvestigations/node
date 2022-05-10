@@ -10,5 +10,6 @@ job "nextcloud-proxy" {
       host='nextcloud.' + liquid_domain,
       upstream='nextcloud-app',
       group='nextcloud',
+      redis_id=4
     ) }
 }

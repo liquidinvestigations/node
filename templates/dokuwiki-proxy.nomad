@@ -11,5 +11,6 @@ job "dokuwiki-proxy" {
       host='dokuwiki.' + liquid_domain,
       upstream='dokuwiki-php',
       group='dokuwiki',
+      redis_id=2
     ) }
 }
