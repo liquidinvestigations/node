@@ -12,7 +12,7 @@ job "liquid" {
     task "core" {
       ${ task_logs() }
 
-      # Constraint required for hypothesis-usersync
+      # Constraint required for user sync
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
@@ -53,7 +53,6 @@ job "liquid" {
           AUTH_AUTO_LOGOUT = "${config.auth_auto_logout}"
           LIQUID_2FA = "${config.liquid_2fa}"
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
-          LIQUID_HYPOTHESIS_EMBED = "${config.liquid_http_protocol}://hypothesis.${config.liquid_domain}/embed.js"
           NOMAD_URL = "${config.nomad_url}"
 
           {{- range service "authproxy-redis" }}

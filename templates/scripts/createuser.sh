@@ -10,11 +10,6 @@ echo "Creating Hoover user..."
 ${exec_command('hoover:search', './manage.py', 'createuser', '${NOMAD_META_USERNAME}')}
 {% endif %}
 
-{% if config.is_app_enabled('hypothesis') %}
-echo "Creating Hypothesis user..."
-hypothesis_users="$(${exec_command('hypothesis-deps:pg', 'psql', '-U', 'hypothesis', 'hypothesis', '-c', "'COPY (SELECT username FROM public.user) TO stdout WITH CSV;'")})"
-${exec_command('hypothesis:hypothesis', '/local/createuser.py', '${NOMAD_META_USERNAME}', '"$hypothesis_users"')}
-{% endif %}
 
 {% if config.is_app_enabled('rocketchat') %}
 echo "Creating Rocketchat user..."

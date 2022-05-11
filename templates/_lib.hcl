@@ -34,7 +34,7 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream=None, hypothesis_user_header = false, skip_button=True, group=None, redis_id=None) %}
+{%- macro authproxy_group(name, host, upstream=None, skip_button=True, group=None, redis_id=None) %}
   group "authproxy" {
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
@@ -123,9 +123,6 @@ ephemeral_disk {
           {{- end }}
           OAUTH2_PROXY_REQUEST_LOGGING = false
 
-          {%- if hypothesis_user_header %}
-            LIQUID_ENABLE_HYPOTHESIS_HEADERS = true
-          {%- endif %}
 
           LIQUID_DOMAIN = ${config.liquid_domain}
           LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
@@ -164,88 +161,6 @@ ephemeral_disk {
     }
   }
 {%- endmacro %}
-
-{%- macro authproxy_group_old(name, host, upstream, threads=16, memory=300, user_header_template="{}", count=1) %}
-  group "authproxy" {
-    ${ group_disk() }
-    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
-
-    ${ continuous_reschedule() }
-
-    count = ${count}
-
-    task "authproxy-web" {
-      ${ task_logs() }
-
-      affinity {
-        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
-        value     = "true"
-        weight    = -99
-      }
-
-      driver = "docker"
-      config {
-        image = "liquidinvestigations/authproxy:0.3.6"
-        labels {
-          liquid_task = "${name}-authproxy"
-        }
-        port_map {
-          authproxy = 5000
-        }
-        memory_hard_limit = ${memory * 10}
-      }
-      template {
-        data = <<-EOF
-          CONSUL_URL = ${consul_url|tojson}
-          UPSTREAM_SERVICE = ${upstream|tojson}
-          DEBUG = {{key "liquid_debug" | toJSON }}
-          USER_HEADER_TEMPLATE = ${user_header_template|tojson}
-          LIQUID_CORE_SERVICE = "core"
-          LIQUID_PUBLIC_URL = "${config.liquid_http_protocol}://{{key "liquid_domain"}}"
-          {{- with secret "liquid/${name}/auth.django" }}
-            SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/${name}/auth.oauth2" }}
-            LIQUID_CLIENT_ID = {{.Data.client_id | toJSON }}
-            LIQUID_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
-          {{- end }}
-          THREADS = ${threads}
-          EOF
-        destination = "local/docker.env"
-        env = true
-      }
-      resources {
-        network {
-          mbits = 1
-          port "authproxy" {}
-        }
-        memory = ${memory}
-        cpu = 150
-      }
-      service {
-        name = "${name}-authproxy-old"
-        port = "authproxy"
-        tags = [
-          "traefik.enable=true",
-          "traefik.frontend.rule=Host:${host}",
-        ]
-        check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/__auth/logout"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-        check_restart {
-          limit = 5
-          grace = "435s"
-        }
-      }
-    }
-  }
-{%- endmacro %}
-
 
 {%- macro set_pg_password_template(username) %}
   template {

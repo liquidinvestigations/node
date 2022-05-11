@@ -1,12 +1,25 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+**Hypothesis is removed** from the project starting with this version.
+
+This version brings many Hoover new features, as well as individual App Permissions.
+
 ## v0.18.2 (2022-04-29)
 
 ### Upgrade Notes
-- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with [cluster version 0.13.7](https://github.com/liquidinvestigations/cluster/tree/v0.13.7)
-- Collections with names shorter than 3 characters (like "ab" or "x") will not work starting with this version. Before upgrading, please backup the offending collections and restore them with names longer than 3 characters.
-- Make sure the `/` filesystem has at least `120 GB` for new Docker images, or bind mount `/var/lib/docker` to a place with more space.
-- When updating, the service `hoover-snoop` will run migrations that may take a few hours.  Because of that, do not restart the `./liquid deploy` service before checking that migrations are finished in the Nomad UI, at `Jobs > hoover > snoop-web > snoop`.
+- For very large installations expect a few hours of downtime during release.
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.13.6](https://github.com/liquidinvestigations/cluster/tree/v0.13.6)**
+- New restriction for **collection names: at least 3 characters** in length.
+  Before upgrading, please backup the offending collections and restore them
+  with names longer than 2 characters.
+- **Make sure the `/` filesystem has at least `120 GB`** for new Docker images,
+  or bind mount `/var/lib/docker` to a place with more space.
+- When updating, the service `hoover-snoop` will run migrations that may take a few hours. 
+  Because of that, do not restart the `./liquid deploy` command before checking that migrations
+  are finished in the Nomad UI, at `Jobs > hoover > snoop-web > snoop`.
+
 
 ### New Features
 
@@ -26,12 +39,12 @@
   [Configuration for Thumbnail Generator](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L243-L246)
 - Hoover: Convert Office files to PDF for easier viewing in the browser.
   [Configuration for PDF Preview](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L238-L242)
-- App Permissions: User access to specific applications is now configurable by system admins.
+- App Permissions: User access to specific applications is now configurable by system admins, at the User or Group level.
 
 
 ### Improvements
 
-- RocketChat platform now available in **RochetChat Mobile App** for Android and IOS. Push Notifications optional. [Steps to Enable RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/docs/RocketChat.md#mobile-notifications); [Configuration Flag for RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L144-L149)
+- RocketChat platform now available in **RochetChat Mobile App for Android and IOS**. Push Notifications optional. [Steps to Enable RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/docs/RocketChat.md#mobile-notifications); [Configuration Flag for RocketChat Push](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L144-L149)
 - RocketChat auto-logout interval is now configuarable separately. [Configuration for Rocketchat Auto-Logout](https://github.com/liquidinvestigations/node/blob/5ac3114bcedb8899e8326e332dbe5198e4688b10/examples/liquid.ini#L151-L155)
 - User Management: new users can now be onboarded into Hoover collections
   without needing to wait for them to log in and open Hoover for the first time.
