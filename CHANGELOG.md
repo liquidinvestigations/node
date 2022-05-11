@@ -4,7 +4,14 @@
 
 **Hypothesis is removed** from the project starting with this version.
 
-This version brings many Hoover new features, as well as individual App Permissions.
+### Bug Fixes
+- Fixed problem where some user sessions would still be active after user logout.
+
+### Improvements
+- Hoover: Fix performance issue related to document processing.
+- Hoover: Fix ETA display for document processing.
+- Hoover: Collection Access Management now implemented for Admins too. Admins can't give access to collections they're not a part of.
+
 
 ## v0.18.2 (2022-04-29)
 
