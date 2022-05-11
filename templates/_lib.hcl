@@ -253,7 +253,7 @@ ephemeral_disk {
     #!/bin/bash
     set -e
     sed -i 's/host all all all trust/host all all all md5/' $PGDATA/pg_hba.conf
-    psql -h localhost -U ${username} postgres -c "UPDATE pg_database SET datallowconn = true WHERE datname = '${username}';" || true
+    psql -h localhost -U ${username} postgres -c "UPDATE pg_database SET datallowconn = true WHERE datname = '${username}'; ALTER DATABASE ${username} CONNECTION LIMIT 200;" || true
     psql -U ${username} -c "ALTER USER ${username} password '$POSTGRES_PASSWORD'"
     echo "password set for postgresql host=$(hostname) user=${username}"
     EOF
@@ -267,7 +267,7 @@ ephemeral_disk {
     #!/bin/bash
     set -e
     psql -h localhost -U ${username} postgres -c "UPDATE pg_database SET datallowconn = 'false' WHERE datname = '$1'; ALTER DATABASE $1 CONNECTION LIMIT 1; SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$1';"
-    dropdb -h localhost -U ${username} $1
+    dropdb -h localhost -U ${username} $1 --if-exists || true
     echo "postgres database $1 forcefully dropped."
     EOF
     destination = "local/pg_drop_db.sh"

@@ -244,8 +244,8 @@ def restore_pg(src_file, username, dbname, alloc):
     cmd = (
         f"set -eo pipefail; ./liquid dockerexec {alloc} bash -c "
         f"'set -exo pipefail; "
-        f"bash /local/pg_drop_db.sh {dbname}; "
-        f"dropdb -U {username} --if-exists {dropdb_force} {dbname}; "
+        f"bash /local/pg_drop_db.sh {dbname} || true; "
+        f"dropdb -U {username} --if-exists {dropdb_force} {dbname} || true; "
         f"createdb -U {username} {dbname}; "
         f"zcat | psql -U {username} {dbname}' > /dev/null "
         f"< {src_file}"
