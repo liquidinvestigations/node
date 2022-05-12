@@ -28,8 +28,9 @@ def liquid_commands():
 def check_resources():
     enabled_app_count = len(list(c for c in config.liquid_apps if c['enabled']))
     # formula to allow running on very low cpu count while also not allowing a huge
-    # CPU overscheduling; we effectively cap the load at around 1.5X cpu count.
-    cpu_count_req = 1 + int(0.3 * enabled_app_count + 0.7 * config.total_snoop_worker_count)
+    # CPU overscheduling; we effectively cap the load at around 1.2X cpu count.
+    cpu_count_req = int(0.83 * (enabled_app_count + config.total_snoop_worker_count))
+
     SMALL_CPU_COUNT_IGNORE = 16
     EXTRA_REQ = {
         "CPU": 1000,
