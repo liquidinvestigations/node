@@ -463,5 +463,35 @@ class Configuration:
 
                 Collection name must be at least 3 characters long (Minio / S3 bucket name restriction).''')
 
+    @property
+    def total_snoop_worker_count(self):
+        """Get total number of CPU cores to run in Snoop."""
+        if not config.snoop_workers_enabled:
+            return 0
+
+        container_count = 0
+        container_count += self.snoop_default_queue_worker_count
+        container_count += self.snoop_filesystem_queue_worker_count
+        container_count += self.snoop_ocr_queue_worker_count
+        container_count += self.snoop_digests_queue_worker_count
+
+        if self.snoop_pdf_preview_enabled:
+            container_count += self.snoop_pdf_preview_count
+
+        if self.snoop_thumbnail_generator_enabled:
+            container_count += self.snoop_thumbnail_generator_count
+
+        if self.snoop_image_classification_object_detection_enabled \
+                or self.snoop_image_classification_classify_images_enabled:
+            container_count += self.snoop_image_classification_count
+
+        if self.snoop_nlp_entity_extraction_enabled:
+            container_count += self.snoop_nlp_count
+
+        if self.snoop_translation_enabled:
+            container_count += self.snoop_translation_count
+
+        return self.snoop_container_process_count * container_count
+
 
 config = Configuration()

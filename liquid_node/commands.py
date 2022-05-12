@@ -26,10 +26,17 @@ def liquid_commands():
 
 
 def check_resources():
+    enabled_app_count = len(list(c for c in config.liquid_apps if c['enabled']))
+    # formula to allow running on very low cpu count while also not allowing a huge
+    # CPU overscheduling; we effectively cap the load at around 1.5X cpu count.
+    cpu_count_req = 1 + int(0.3 * enabled_app_count + 0.7 * config.total_snoop_worker_count)
+    SMALL_CPU_COUNT_IGNORE = 16
     EXTRA_REQ = {
         "CPU": 1000,
         "MemoryMB": 1000,
         "EphemeralDiskMB": 10000,
+        "cpu_count": cpu_count_req,
+        'node_count': 1,
     }
 
     def get_all_res():
@@ -40,7 +47,7 @@ def check_resources():
     total = defaultdict(int)
     req = defaultdict(int)
     for name, count, _type, res in get_all_res():
-        for key in ['MemoryMB', 'CPU', 'EphemeralDiskMB']:
+        for key in EXTRA_REQ.keys():
             if key not in res:
                 continue
             if res[key] is None:
@@ -48,7 +55,7 @@ def check_resources():
             total[f'{_type} {key}'] += res[key] * count
             req[key] += res[key] * count
 
-    for key in req:
+    for key in EXTRA_REQ:
         req[key] += EXTRA_REQ[key]
         total[f'extra {key}'] += EXTRA_REQ[key]
 
@@ -56,6 +63,12 @@ def check_resources():
     log.debug('Resource available (total): ')
     for key, value in sorted(avail.items()):
         log.debug(f'  {key: <30}: {value:,}')
+
+    if avail['cpu_count'] < SMALL_CPU_COUNT_IGNORE:
+        if req['cpu_count'] > avail['cpu_count']:
+            req['cpu_count'] = avail['cpu_count']
+            log.debug('lowering requirements for small cluster (<%s cores) to cpu_count = %s',
+                      SMALL_CPU_COUNT_IGNORE, avail['cpu_count'])
 
     log.debug('Resource requirements (split): ')
     for key, value in sorted(total.items()):
