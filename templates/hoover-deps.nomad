@@ -1024,9 +1024,9 @@ job "hoover-deps" {
           num_init_children = ${config.snoop_postgres_pool_children}
           max_pool = 2
           child_max_connections = 1000
-          child_life_time = 300
-          client_idle_limit = 300
-          connection_life_time = 300
+          child_life_time = 186400
+          client_idle_limit = 186400
+          connection_life_time = 186400
 
           connection_cache = true
           listen_addresses = '*'
