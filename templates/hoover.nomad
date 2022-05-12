@@ -148,7 +148,7 @@
             sleep 5
             exit 1
           fi
-          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc}
+          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}
           EOF
         env = false
         destination = "local/startup.sh"
