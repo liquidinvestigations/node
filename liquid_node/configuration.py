@@ -149,9 +149,9 @@ class Configuration:
         self.liquid_2fa = self.ini.getboolean('liquid', 'two_factor_auth', fallback=False)
 
         self.elasticsearch_heap_size = self.ini.getint('liquid', 'elasticsearch_heap_size',
-                                                       fallback=1024)
+                                                       fallback=2000)
         self.elasticsearch_memory_limit = self.ini.getint('liquid', 'elasticsearch_memory_limit',
-                                                          fallback=1536)
+                                                          fallback=3000)
         self.elasticsearch_data_node_count = self.ini.getint('liquid', 'elasticsearch_data_node_count', fallback=0)  # noqa: E501
 
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
@@ -165,7 +165,7 @@ class Configuration:
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='100,13')
 
         self.hoover_web_memory_limit = self.ini.getint('liquid',
-                                                       'hoover_web_memory_limit', fallback=300)
+                                                       'hoover_web_memory_limit', fallback=400)
         self.hoover_web_count = self.ini.getint('liquid',
                                                 'hoover_web_count', fallback=1)
         self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
@@ -198,9 +198,9 @@ class Configuration:
         self.snoop_ocr_queue_worker_count = self.ini.getint('snoop', 'ocr_queue_worker_count', fallback=1)  # noqa: E501
         self.snoop_digests_queue_worker_count = self.ini.getint('snoop', 'digests_queue_worker_count', fallback=1)  # noqa: E501
 
-        self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=700)
-        self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=1400)
-        self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=250)  # noqa: E501
+        self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=1500)
+        self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=2100)
+        self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=350)  # noqa: E501
         self.snoop_postgres_pool_children = int(self.snoop_postgres_max_connections / 2 - 3)
 
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
@@ -209,14 +209,14 @@ class Configuration:
         self.snoop_pdf_preview_enabled = self.ini.getboolean('snoop', 'pdf_preview_enabled', fallback=False)
         self.snoop_pdf_preview_count = self.ini.getint('snoop', 'pdf_preview_count', fallback=1)
         self.snoop_pdf_preview_memory_limit = self.ini.getint('snoop', 'pdf_preview_memory_limit',
-                                                              fallback=650)
+                                                              fallback=950)
         self.snoop_thumbnail_generator_enabled = self.ini.getboolean('snoop', 'thumbnail_generator_enabled',
                                                                      fallback=False)
         self.snoop_thumbnail_generator_count = self.ini.getint('snoop', 'thumbnail_generator_count',
                                                                fallback=1)
         self.snoop_thumbnail_generator_memory_limit = self.ini.getint('snoop',
                                                                       'thumbnail_generator_memory_limit',
-                                                                      fallback=550)
+                                                                      fallback=850)
 
         self.snoop_image_classification_count = self.ini.getint('snoop', 'image_classification_count',
                                                                 fallback=1)
@@ -250,7 +250,7 @@ class Configuration:
         self.snoop_translation_count = \
             self.ini.getint('snoop', 'translation_count', fallback=1)
         self.snoop_translation_memory_limit = \
-            self.ini.getint('snoop', 'translation_memory_limit', fallback=650)
+            self.ini.getint('snoop', 'translation_memory_limit', fallback=850)
         self.snoop_translation_target_languages = \
             self.ini.get('snoop', 'translation_target_languages', fallback="en")
         self.snoop_translation_text_length_limit = \
