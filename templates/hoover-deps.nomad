@@ -1359,6 +1359,8 @@ job "hoover-deps" {
 
       env {
         MINIO_UPDATE = "off"
+        MINIO_API_REQUESTS_MAX = "300"
+        MINIO_API_REQUESTS_DEADLINE = "2m"
       }
 
       resources {
@@ -1445,6 +1447,8 @@ job "hoover-deps" {
 
       env {
         MINIO_UPDATE = "off"
+        MINIO_API_REQUESTS_MAX = "300"
+        MINIO_API_REQUESTS_DEADLINE = "2m"
       }
 
       resources {
