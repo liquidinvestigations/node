@@ -358,6 +358,11 @@ class Configuration:
                         'translation_text_length_limit',
                         fallback=self.snoop_translation_text_length_limit,
                     ),
+                    'default_table_header': self.ini.get(
+                        key,
+                        'default_table_header',
+                        fallback='',
+                    ),
                 })
 
             elif cls == 'job':
