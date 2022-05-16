@@ -363,6 +363,11 @@ class Configuration:
                         'default_table_header',
                         fallback='',
                     ),
+                    'explode_table_rows': self.ini.getboolean(
+                        key,
+                        'explode_table_rows',
+                        fallback=False,
+                    ),
                 })
 
             elif cls == 'job':
