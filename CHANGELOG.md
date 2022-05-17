@@ -1,16 +1,23 @@
 # Liquid Investigations Change Log
 
-## Unreleased
+## v0.19.0 (2022-05-17)
 
 **Hypothesis is removed** from the project starting with this version.
 
-### Bug Fixes
-- Fixed problem where some user sessions would still be active after user logout.
+### New Features
+- Hoover now recognizes tables (CSV, Excel, ODT) and splits them into smaller parts that can be viewed in the UI.
 
 ### Improvements
-- Hoover: Fix performance issue related to document processing.
-- Hoover: Fix ETA display for document processing.
+- Hoover: Run OCR analyzer on Office type documents (doc, docx, odt). Previously, OCR would only run on PDF files only.
+- Hoover: Improved performance of whole-document OCR with existing text.
 - Hoover: Collection Access Management now implemented for Admins too. Admins can't give access to collections they're not a part of.
+
+### Bug Fixes
+- Hoover: Fixed ETA display for document processing.
+- Fixed problem where some user sessions would still be active after user logout.
+- Hoover: Fix performance issue related to document processing.
+- Hoover: Fixed bug where collections couldn't be deleted if they had a certain name.
+- Hoover: Fixed bug where Entity Extraction wouldn't work on some languages (Japanese, Russian, Arabic).
 
 
 ## v0.18.2 (2022-04-29)
