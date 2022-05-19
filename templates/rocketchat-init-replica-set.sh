@@ -7,7 +7,7 @@ var config = {
     "members": [
         {
             "_id": 0,
-            "host": "localhost:27017",
+            "$MONGO_ADDRESS:$MONGO_PORT",
             "priority": 3
         }
     ]
