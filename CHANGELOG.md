@@ -3,6 +3,8 @@
 ## v0.19.0 (2022-05-17)
 
 **Hypothesis is removed** from the project starting with this version.
+### Upgrade Notes
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.13.7](https://github.com/liquidinvestigations/cluster/tree/v0.13.7)**
 
 ### New Features
 - Hoover now recognizes tables (CSV, Excel, ODT) and splits them into smaller parts that can be viewed in the UI.
