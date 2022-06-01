@@ -562,15 +562,16 @@ job "hoover-deps" {
         WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
 
+      # HTTP Sometimes fails under load.
       service {
         name = "hoover-image-classification"
         port = "image_classification"
         tags = ["fabio-/_image-classification strip=/_image-classification"]
         check {
-          name = "http"
+          name = "tcp"
           initial_status = "critical"
-          type = "http"
-          path = "/health"
+          type = "tcp"
+          # path = "/health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -629,15 +630,16 @@ job "hoover-deps" {
           port "nlp" {}
         }
       }
+      # HTTP Sometimes fails under load.
       service {
-        name = "hoover-nlp-service"
+        name = "hoover-nlp-service-tcp"
         tags = ["fabio-/_nlp strip=/_nlp"]
         port = "nlp"
         check {
-          name = "http"
+          name = "tcp"
           initial_status = "critical"
-          type = "http"
-          path = "/health"
+          type = "tcp"
+          # path = "/health"
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
@@ -1302,7 +1304,7 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 1500
+        memory = 900
         cpu = 400
         network {
           mbits = 1

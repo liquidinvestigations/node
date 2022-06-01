@@ -31,10 +31,11 @@ def check_resources():
     # CPU overscheduling; we effectively cap the load at around 1.2X cpu count.
     cpu_count_req = int(0.83 * (enabled_app_count + config.total_snoop_worker_count))
 
+    AVAILABLE_MEMORY_SCALE = 0.8
     SMALL_CPU_COUNT_IGNORE = 16
     EXTRA_REQ = {
-        "CPU": 1000,
-        "MemoryMB": 1000,
+        "CPU": 2000,
+        "MemoryMB": 2000,
         "EphemeralDiskMB": 10000,
         "cpu_count": cpu_count_req,
         'node_count': 1,
@@ -77,6 +78,8 @@ def check_resources():
 
     log.info('Resource requirements (required / available): ')
     for key, value in sorted(req.items()):
+        if key in ['MemoryMB', 'CPU']:
+            avail[key] = int(avail[key] * AVAILABLE_MEMORY_SCALE / 100) * 100
         log.info(f'  {key: <30}: {value:,} / {avail[key]:,}')
         if req[key] > avail[key]:
             log.error('not enough %s: %s / %s', key, req[key], avail[key])

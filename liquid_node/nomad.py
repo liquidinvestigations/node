@@ -10,6 +10,20 @@ from .util import first, retry
 log = logging.getLogger(__name__)
 
 
+def scale_cpu_and_memory(spec):
+    spec = dict(spec)
+    for group in spec.get('TaskGroups', []):
+        for task in group['Tasks'] or []:
+            task['Resources']['CPU'] = int(task['Resources']['CPU'] * config.container_cpu_scale)
+            task['Resources']['MemoryMB'] = int(task['Resources']['MemoryMB']
+                                                * config.container_memory_limit_scale)
+            if 'memory_hard_limit' in task['Config']:
+                task['Config']['memory_hard_limit'] = int(
+                    task['Config']['memory_hard_limit'] * config.container_memory_limit_scale
+                )
+    return spec
+
+
 class Nomad(JsonApi):
 
     def __init__(self, endpoint):
@@ -17,7 +31,7 @@ class Nomad(JsonApi):
 
     def parse(self, hcl):
         try:
-            return self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})
+            return scale_cpu_and_memory(self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True}))
         except urllib.error.HTTPError as e:
             log.error(e.read().decode('utf-8'))
             log.debug('hcl: %s', hcl)

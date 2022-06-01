@@ -97,7 +97,7 @@
 {%- endmacro %}
 
 
-{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=200, cpu_per_proc=700) %}
+{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=200, cpu_per_proc=500) %}
   group "snoop-workers-${queue}" {
     ${ group_disk() }
     count = ${container_count}
@@ -129,13 +129,13 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${100 + 3 * mem_per_proc * (proc_count)}
+        memory_hard_limit = ${3 * mem_per_proc * (proc_count)}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       resources {
-        memory = ${100 + mem_per_proc * (proc_count)}
+        memory = ${mem_per_proc * (proc_count)}
         cpu = ${cpu_per_proc * proc_count}
       }
 
@@ -467,7 +467,7 @@ job "hoover" {
         container_count=config.snoop_default_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1100,
+        cpu_per_proc=1000,
       ) }
 
     ${ snoop_worker_group(
@@ -475,7 +475,7 @@ job "hoover" {
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1100,
+        cpu_per_proc=1000,
       ) }
 
     ${ snoop_worker_group(
@@ -483,7 +483,7 @@ job "hoover" {
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1100,
+        cpu_per_proc=1000,
       ) }
 
     ${ snoop_worker_group(
@@ -491,7 +491,7 @@ job "hoover" {
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1100,
+        cpu_per_proc=1000,
       ) }
 
     # HTTP CLIENT WORKER GROUPS

@@ -151,7 +151,7 @@ class Configuration:
         self.elasticsearch_heap_size = self.ini.getint('liquid', 'elasticsearch_heap_size',
                                                        fallback=2000)
         self.elasticsearch_memory_limit = self.ini.getint('liquid', 'elasticsearch_memory_limit',
-                                                          fallback=3000)
+                                                          fallback=4000)
         self.elasticsearch_data_node_count = self.ini.getint('liquid', 'elasticsearch_data_node_count', fallback=0)  # noqa: E501
 
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
@@ -266,6 +266,14 @@ class Configuration:
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=600)
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=10)
         self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=4)
+
+        self.container_memory_limit_scale = self.ini.getfloat(
+            'deploy', 'container_memory_limit_scale', fallback=1.0)
+        assert 0.7 <= self.container_memory_limit_scale <= 5.0, 'invalid value'
+        self.container_cpu_scale = self.ini.getfloat('deploy', 'container_cpu_scale', fallback=1.0)
+        assert 0.7 <= self.container_cpu_scale <= 5.0, 'invalid value'
+        # scale heap size separately because it's not reached by the nomad MemoryMB edit function
+        self.elasticsearch_heap_size = int(self.elasticsearch_heap_size * self.container_memory_limit_scale)
 
         self.ci_enabled = 'ci' in self.ini
         if self.ci_enabled:

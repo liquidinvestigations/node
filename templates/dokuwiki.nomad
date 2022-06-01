@@ -40,7 +40,7 @@ job "dokuwiki" {
       }
 
       resources {
-        memory = 500
+        memory = 400
         cpu = 290
         network {
           mbits = 1
