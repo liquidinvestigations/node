@@ -256,6 +256,11 @@ class Configuration:
         self.snoop_translation_text_length_limit = \
             self.ini.getint('snoop', 'translation_text_length_limit', fallback=400)
 
+        self.snoop_skip_mime_types = \
+            self.ini.get('snoop', 'skip_mime_types', fallback='application/octet-stream,application/x-dosexec,text/xml,application/x-setupscript,text/x-c,font/sfnt,image/x-win-bitmap,application/x-pnf,image/vnd.microsoft.icon,application/x-wine-extension-ini,application/x-empty,application/x-object,application/x-sharedlib,text/x-bytecode.python,text/x-shellscript,text/x-script.python,image/svg+xml,amd64.md5sums,amd64.list,amd64.triggers,amd64.shlibs,amd64.symbols,application/x-pie-executable,application/vnd.debian.binary-package,text/x-asm')  # noqa: E501
+        self.snoop_skip_extensions = \
+            self.ini.get('snoop', 'skip_extensions', fallback='.3gr,.acm,.adml,.admx,.aspx,.aux,.ax,.bin,.cat,.cdf-ms,.cdxml,.com,.config,.cpl,.css,.cur,.dat,.dll,.dll,.drv,.etl,.exe,.fon,.fot,.ico,.ime,.inf,.inf_loc,.ini,.js,.lnk,.man,.manifest,.mfl,.mof,.msc,.msi,.mui,.mum,.mun,.nls,.ocx,.pnf,.pnf,.pri,.ps1,.ps1xml,.psd1,.psm1,.resx,.scr,.sys,.tlb,.tte,.ttf,.vbx,.winmd,.xbf,.xml,.xrm-ms,.xsd')  # noqa: E501
+
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='30s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='29s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=600)

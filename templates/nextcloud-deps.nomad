@@ -49,7 +49,7 @@ job "nextcloud-deps" {
         env = true
       }
       resources {
-        cpu = 100
+        cpu = 200
         memory = 250
         network {
           mbits = 1

@@ -136,7 +136,7 @@ ephemeral_disk {
           port "authproxy" {}
         }
         memory = 150
-        cpu = 150
+        cpu = 250
       }
       service {
         name = "${name}-authproxy"

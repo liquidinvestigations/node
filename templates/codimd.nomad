@@ -43,7 +43,7 @@ job "codimd" {
       env { __GIT_TAGS = "${liquidinvestigations_codimd_server_git}" }
 
       resources {
-        cpu = 100
+        cpu = 300
         memory = 250
         network {
           mbits = 1

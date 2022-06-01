@@ -40,7 +40,7 @@ job "nextcloud" {
         memory_hard_limit = ${3 * config.nextcloud_memory_limit}
       }
       resources {
-        cpu = 100
+        cpu = 200
         memory = ${config.nextcloud_memory_limit}
         network {
           mbits = 1

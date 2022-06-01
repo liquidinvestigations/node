@@ -41,7 +41,7 @@ job "dokuwiki" {
 
       resources {
         memory = 500
-        cpu = 90
+        cpu = 290
         network {
           mbits = 1
           port "php" {}

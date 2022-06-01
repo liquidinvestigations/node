@@ -42,6 +42,10 @@
         {% endif %}
 
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+
+        SNOOP_SKIP_PROCESSING_MIME_TYPES = "${ config.snoop_skip_mime_types }"
+        SNOOP_SKIP_PROCESSING_EXTENSIONS = "${ config.snoop_skip_extensions }"
+
     }
 
       template {
@@ -93,7 +97,7 @@
 {%- endmacro %}
 
 
-{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=200, cpu_per_proc=200) %}
+{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=200, cpu_per_proc=700) %}
   group "snoop-workers-${queue}" {
     ${ group_disk() }
     count = ${container_count}
@@ -125,7 +129,7 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${1000 + 4 * mem_per_proc * (proc_count)}
+        memory_hard_limit = ${100 + 3 * mem_per_proc * (proc_count)}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }

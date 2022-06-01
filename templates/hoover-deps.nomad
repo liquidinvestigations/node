@@ -91,7 +91,7 @@ job "hoover-deps" {
       }
 
       resources {
-        cpu = 400
+        cpu = 1000
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -176,7 +176,7 @@ job "hoover-deps" {
         env = true
       }
       resources {
-        cpu = 400
+        cpu = 1000
         memory = ${config.elasticsearch_memory_limit}
         network {
           mbits = 1
@@ -247,7 +247,7 @@ job "hoover-deps" {
         }
         # 128MB, the default postgresql shared_memory config
         shm_size = 134217728
-        memory_hard_limit = 1200
+        memory_hard_limit = 5200
       }
       template {
         data = <<EOF
@@ -264,7 +264,7 @@ job "hoover-deps" {
       ${ set_pg_drop_template('search') }
 
       resources {
-        memory = 350
+        memory = 1200
         network {
           mbits = 1
           port "pg" {}
@@ -312,13 +312,13 @@ job "hoover-deps" {
           liquid_task = "hoover-tika"
         }
         # warning: config is for whole container
-        memory_hard_limit = ${4 * config.tika_memory_limit}
+        memory_hard_limit = ${3 * config.tika_memory_limit}
       }
 
       resources {
         # warning: config is for whole container
         memory = ${config.tika_memory_limit}
-        cpu = ${500 * config.snoop_container_process_count}
+        cpu = ${700 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "tika" {}
@@ -395,12 +395,12 @@ job "hoover-deps" {
         }
         command = "gotenberg"
         args = ["--api-timeout", "7200s"]
-        memory_hard_limit = ${4 * config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       resources {
         memory = ${config.snoop_pdf_preview_memory_limit * (config.snoop_container_process_count)}
-        cpu = ${500 * config.snoop_container_process_count}
+        cpu = ${700 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "pdf_preview" {}
@@ -460,7 +460,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-thumbnail-generator"
         }
-        memory_hard_limit = ${4 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
         mounts = [
           {
             type = "tmpfs"
@@ -480,7 +480,7 @@ job "hoover-deps" {
 
       resources {
         memory = ${config.snoop_thumbnail_generator_memory_limit * (config.snoop_container_process_count)}
-        cpu = ${500 * config.snoop_container_process_count}
+        cpu = ${700 * config.snoop_container_process_count}
         network {
           port "thumbnail" {}
           mbits = 1
@@ -536,7 +536,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-image-classification"
         }
-        memory_hard_limit = ${4 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       env {
@@ -547,7 +547,7 @@ job "hoover-deps" {
 
       resources {
         memory = ${config.snoop_image_classification_memory_limit * (config.snoop_container_process_count)}
-        cpu = ${500 * config.snoop_container_process_count}
+        cpu = ${700 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "image_classification" {}
@@ -606,7 +606,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-nlp"
         }
-        memory_hard_limit = ${4 * config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       env {
@@ -623,7 +623,7 @@ job "hoover-deps" {
 
       resources {
         memory = ${config.snoop_nlp_memory_limit * (config.snoop_container_process_count)}
-        cpu = ${500 * config.snoop_container_process_count}
+        cpu = ${700 * config.snoop_container_process_count}
         network {
           mbits = 1
           port "nlp" {}
@@ -688,7 +688,7 @@ job "hoover-deps" {
 
       resources {
         memory = 500
-        cpu = 250
+        cpu = 350
         network {
           mbits = 1
           port "amqp" {}
@@ -779,12 +779,12 @@ job "hoover-deps" {
         labels {
           liquid_task = "snoop-rabbitmq"
         }
-        memory_hard_limit = ${4 * config.snoop_rabbitmq_memory_limit}
+        memory_hard_limit = ${3 * config.snoop_rabbitmq_memory_limit}
       }
 
       resources {
         memory = ${config.snoop_rabbitmq_memory_limit}
-        cpu = 250
+        cpu = 1000
         network {
           mbits = 1
           port "amqp" {}
@@ -873,7 +873,7 @@ job "hoover-deps" {
           pg = 5432
         }
         shm_size = ${int(config.snoop_postgres_memory_limit * 0.27) * 1024 * 1024}
-        memory_hard_limit = ${2 * config.snoop_postgres_memory_limit}
+        memory_hard_limit = ${3 * config.snoop_postgres_memory_limit}
       }
 
       template {
@@ -947,8 +947,8 @@ job "hoover-deps" {
       ${ set_pg_drop_template('snoop') }
 
       resources {
-        cpu = 400
-        memory = ${config.snoop_postgres_memory_limit}
+        cpu = 1000
+        memory = ${2 * config.snoop_postgres_memory_limit}
         network {
           mbits = 1
           port "pg" {}
@@ -1055,7 +1055,7 @@ job "hoover-deps" {
       }
 
       resources {
-        cpu = 400
+        cpu = 600
         memory = 300
         network {
           mbits = 1
@@ -1114,7 +1114,7 @@ job "hoover-deps" {
 
       resources {
         memory = 200
-        cpu = 100
+        cpu = 300
         network {
           mbits = 1
           port "http" {}
@@ -1168,7 +1168,7 @@ job "hoover-deps" {
 
       resources {
         memory = 200
-        cpu = 100
+        cpu = 400
         network {
           mbits = 1
           port "http" {}
@@ -1222,7 +1222,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "libre-translate-batch"
         }
-        memory_hard_limit = ${4 * config.snoop_translation_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_translation_memory_limit * (1 + config.snoop_container_process_count)}
       }
       env {
         LT_CHAR_LIMIT = "157286400"

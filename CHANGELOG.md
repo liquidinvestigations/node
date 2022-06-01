@@ -1,5 +1,16 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+This bugfixing version brings stability improvements for multi-host deployments.
+
+### Improvements
+- Hoover: Skip Windows and Linux installation files and extensions by default. Added new configuration flags to control what file types and extensionis are skipped.
+
+### Bug Fixes
+- Fixed issue when optional processes (OCR, NLP and Image Recognition, etc) would be turned on and then off again, while the collection is actively processing.
+
+
 ## v0.19.0 (2022-05-17)
 
 **Hypothesis is removed** from the project starting with this version.
