@@ -46,8 +46,9 @@
         SNOOP_SKIP_PROCESSING_MIME_TYPES = "${ config.snoop_skip_mime_types }"
         SNOOP_SKIP_PROCESSING_EXTENSIONS = "${ config.snoop_skip_extensions }"
 
-        # OCR: use 8 threads
         OMP_THREAD_LIMIT = "${ config.snoop_worker_omp_thread_limit }"
+        OMP_NUM_THREADS = "${ config.snoop_worker_omp_thread_limit }"
+
     }
 
       template {
