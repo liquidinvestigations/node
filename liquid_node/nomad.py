@@ -106,6 +106,8 @@ class Nomad(JsonApi):
         node_count = 0
 
         for node in self.get('nodes'):
+            if node['Status'] != "ready" or node['SchedulingEligibility'] != "eligible":
+                continue
             node_info = self.get('node/' + node['ID'])
 
             cpu_shares += int(node_info['Resources']['CPU'])
