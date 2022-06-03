@@ -132,7 +132,7 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${1000 + 5 * mem_per_proc * (proc_count)}
+        memory_hard_limit = ${2 * mem_per_proc * (proc_count)}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }
