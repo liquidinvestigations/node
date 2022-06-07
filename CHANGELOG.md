@@ -1,14 +1,17 @@
 # Liquid Investigations Change Log
 
-## Unreleased
+## v0.19.1 (2022-06-07)
 
 This bugfixing version brings stability improvements for multi-host deployments.
+
+### Upgrade Notes
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.14.2](https://github.com/liquidinvestigations/cluster/tree/v0.14.2)**
 
 ### Improvements
 - Hoover: Skip Windows and Linux installation files and extensions by default. Added new configuration flags to control what file types and extensionis are skipped.
 
 ### Bug Fixes
-- Fixed issue when optional processes (OCR, NLP and Image Recognition, etc) would be turned on and then off again, while the collection is actively processing.
+- Hoover: Fixed issue when optional processes (OCR, NLP and Image Recognition, etc) would be turned on and then off again on an active collection.
 
 
 ## v0.19.0 (2022-05-17)
