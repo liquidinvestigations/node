@@ -1,5 +1,13 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+
+### Bug Fixes
+- Hoover: Fixed issue where mail fields wouldn't appear (From, To, text) for some mail formats.
+
+
+---
 ## v0.19.1 (2022-06-07)
 
 This bugfixing version brings stability improvements for multi-host deployments.
