@@ -33,8 +33,8 @@ class Nomad(JsonApi):
         try:
             return scale_cpu_and_memory(self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True}))
         except urllib.error.HTTPError as e:
-            log.error(e.read().decode('utf-8'))
             log.debug('hcl: %s', hcl)
+            log.error(e.read().decode('utf-8'))
             raise e
 
     def run(self, spec):
