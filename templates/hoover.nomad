@@ -477,24 +477,24 @@ job "hoover" {
         queue="filesystem",
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=500,
-        cpu_per_proc=1000,
+        mem_per_proc=1000,
+        cpu_per_proc=2000,
       ) }
 
     ${ snoop_worker_group(
         queue="ocr",
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=500,
-        cpu_per_proc=1000,
+        mem_per_proc=700,
+        cpu_per_proc=2000,
       ) }
 
     ${ snoop_worker_group(
         queue="digests",
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=500,
-        cpu_per_proc=1000,
+        mem_per_proc=1000,
+        cpu_per_proc=2000,
       ) }
 
     # HTTP CLIENT WORKER GROUPS
