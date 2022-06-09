@@ -1353,7 +1353,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-snoop-blob-minio"
         }
-        memory_hard_limit = 4000
+        memory_hard_limit = 5000
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/data",
         ]
@@ -1363,11 +1363,12 @@ job "hoover-deps" {
         MINIO_UPDATE = "off"
         MINIO_API_REQUESTS_MAX = "300"
         MINIO_API_REQUESTS_DEADLINE = "2m"
+        GOMAXPROCS = "10"
       }
 
       resources {
-        memory = 300
-        cpu = 400
+        memory = 1000
+        cpu = 1000
         network {
           mbits = 1
           port "s3" { static = 9001 }
@@ -1441,7 +1442,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-snoop-collections-minio"
         }
-        memory_hard_limit = 4000
+        memory_hard_limit = 5000
         volumes = [
           "{% raw %}${meta.liquid_collections}{% endraw %}:/data",
         ]
@@ -1451,11 +1452,12 @@ job "hoover-deps" {
         MINIO_UPDATE = "off"
         MINIO_API_REQUESTS_MAX = "300"
         MINIO_API_REQUESTS_DEADLINE = "2m"
+        GOMAXPROCS = "10"
       }
 
       resources {
-        memory = 300
-        cpu = 400
+        memory = 1000
+        cpu = 1000
         network {
           mbits = 1
           port "s3" { static = 9003 }
