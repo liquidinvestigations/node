@@ -122,8 +122,13 @@ def wait_for_service_health_checks(health_checks):
         for all failing checks after checking with Consul"""
 
         consul_status = {}
+        healthy_nodes = [n['Name'] for n in nomad.get('nodes')
+                         if n['Status'] == 'ready'
+                         and n['SchedulingEligibility'] == 'eligible']
         for service in health_checks:
             for s in consul.get(f'/health/checks/{service}'):
+                if s['Node'] not in healthy_nodes:
+                    continue
                 key = service, s['Name']
                 consul_status[key] = pick_worst(s['Status'], consul_status.get(key))
 
