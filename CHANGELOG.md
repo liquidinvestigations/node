@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+### Upgrade Notes
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.15.0](https://github.com/liquidinvestigations/cluster/tree/v0.15.0)**
+
 
 ### Bug Fixes
 - Hoover: Fixed issue where mail fields wouldn't appear (From, To, text) for some mail formats.
+- Monitoring: Fixed issue with monitoring apps not working (Grafana, Prometheus).
 
 
 ---

@@ -44,7 +44,7 @@ job "monitoring" {
       driver = "docker"
       user = "root"
       config {
-        image = "prom/prometheus:v2.19.2"
+        image = "prom/prometheus:v2.36.0"
         args = [
           "--web.route-prefix=/prometheus",
           "--web.external-url=http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/prometheus",
@@ -95,7 +95,7 @@ job "monitoring" {
     task "grafana" {
       driver = "docker"
       config {
-        image = "grafana/grafana:7.0.5"
+        image = "grafana/grafana:7.5.16"
         dns_servers = ["{% raw %}${attr.unique.network.ip-address}{% endraw %}"]
         port_map {
           http = 3000
@@ -116,6 +116,9 @@ job "monitoring" {
         GF_AUTH_ANONYMOUS_ENABLED = "true"
         GF_AUTH_ANONYMOUS_ORG_NAME = "Main Org."
         GF_AUTH_ANONYMOUS_ORG_ROLE = "Admin"
+
+        GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH = "/local/dashboards/system-metrics-telegraf-prom.json"
+        GF_DASHBOARDS_MIN_REFRESH_INTERVAL = "30s"
       }
 
       template {

@@ -15,7 +15,7 @@ scrape_configs:
     - source_labels: ["__meta_consul_tags"]
       regex: "(.*)http(.*)"
       action: keep
-    scrape_interval: 33s
+    scrape_interval: 30s
     metrics_path: /v1/metrics
     params:
       format: ["prometheus"]
@@ -24,12 +24,12 @@ scrape_configs:
     consul_sd_configs:
     - server: "{{env "attr.unique.network.ip-address"}}:8500"
       services: ["hoover-rabbitmq-prom"]
-    scrape_interval: 27s
+    scrape_interval: 30s
     metrics_path: /metrics
 
   - job_name: "telegraf"
     consul_sd_configs:
     - server: "{{env "attr.unique.network.ip-address"}}:8500"
       services: ["telegraf-prom-client"]
-    scrape_interval: 27s
+    scrape_interval: 30s
     metrics_path: /metrics

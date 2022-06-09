@@ -167,6 +167,7 @@ job "system-deps" {
         port_map {
           statsd = 8125
           http = 8123
+          port = 8124
         }
         args = ["--config", "/local/telegraf.conf"]
 
