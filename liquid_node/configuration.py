@@ -44,6 +44,8 @@ class Configuration:
     }
 
     ALL_JOBS = [
+        liquid.SystemDeps(),
+        liquid.Monitoring(),
         liquid.Liquid(),
         liquid.Ingress(),
         liquid.CreateUser(),
@@ -517,6 +519,13 @@ class Configuration:
             container_count += self.snoop_translation_count
 
         return self.snoop_container_process_count * container_count
+
+    def get_dashboards(self):
+        return list(os.listdir(self.root / 'grafana-dashboards'))
+
+    def load_dashboard(self, filename):
+        with open(self.root / 'grafana-dashboards' / filename) as f:
+            return f.read()
 
 
 config = Configuration()

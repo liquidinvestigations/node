@@ -1,3 +1,4 @@
+import pprint
 from time import time, sleep
 import logging
 import urllib.error
@@ -49,6 +50,7 @@ class Nomad(JsonApi):
         try:
             self.post('jobs', {'job': spec})
         except urllib.error.HTTPError as e:
+            log.debug('spec: %s', pprint.pformat(spec))
             log.error(e.read().decode('utf-8'))
             raise e
 

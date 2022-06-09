@@ -30,3 +30,17 @@ class AuthproxyRedis(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'liquid'
     stage = 3
+
+
+class SystemDeps(jobs.Job):
+    name = 'system-deps'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'liquid'
+    stage = 0
+
+
+class Monitoring(jobs.Job):
+    name = 'monitoring'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'liquid'
+    stage = 0

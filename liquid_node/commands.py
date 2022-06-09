@@ -34,8 +34,8 @@ def check_resources():
     AVAILABLE_MEMORY_SCALE = 0.8
     SMALL_CPU_COUNT_IGNORE = 16
     EXTRA_REQ = {
-        "CPU": 2000,
-        "MemoryMB": 2000,
+        "CPU": 0,
+        "MemoryMB": 0,
         "EphemeralDiskMB": 10000,
         "cpu_count": cpu_count_req,
         'node_count': 1,
