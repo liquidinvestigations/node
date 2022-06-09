@@ -1,6 +1,8 @@
 # Liquid Investigations Change Log
 
-## Unreleased
+## v0.19.2 (2022-06-09)
+
+This is a bug-fixing release targeted at Hoover internals and Monitoring.
 
 ### Upgrade Notes
 - Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.15.0](https://github.com/liquidinvestigations/cluster/tree/v0.15.0)**
@@ -9,6 +11,7 @@
 ### Bug Fixes
 - Hoover: Fixed issue where mail fields wouldn't appear (From, To, text) for some mail formats.
 - Monitoring: Fixed issue with monitoring apps not working (Grafana, Prometheus).
+- Scheduling: Fixed bug where dead and de-activated nodes would be counted as valid in the resource checker.
 
 
 ---
