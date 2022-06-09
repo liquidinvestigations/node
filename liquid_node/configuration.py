@@ -239,7 +239,7 @@ class Configuration:
         self.snoop_nlp_fallback_language = self.ini.get('snoop', 'nlp_fallback_language', fallback="en")
         self.snoop_nlp_spacy_text_limit = self.ini.get('snoop', 'nlp_spacy_text_limit', fallback=40000)
         self.snoop_nlp_memory_limit = self.ini.getint('snoop', 'nlp_memory_limit', fallback=950)
-        self.snoop_nlp_count = self.ini.getint('snoop', 'count', fallback=1)
+        self.snoop_nlp_count = self.ini.getint('snoop', 'nlp_count', fallback=1)
         self.snoop_nlp_entity_extraction_enabled =  \
             self.ini.getboolean('snoop', 'nlp_entity_extraction_enabled', fallback=False)
         self.snoop_nlp_language_detection_enabled = \
