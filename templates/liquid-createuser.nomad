@@ -1,7 +1,7 @@
 job "liquid-createuser" {
   datacenters = ["dc1"]
   type = "batch"
-  priority = 60
+  priority = 99
 
   parameterized {
     meta_required = ["USERNAME"]

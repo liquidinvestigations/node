@@ -53,3 +53,10 @@ class Nginx(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hoover'
     stage = 3
+
+
+class Workers(jobs.Job):
+    name = 'hoover-workers'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'hoover'
+    stage = 4

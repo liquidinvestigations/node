@@ -3,7 +3,7 @@
 job "nextcloud-proxy" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 65
+  priority = 98
 
   ${- authproxy_group(
       'nextcloud',

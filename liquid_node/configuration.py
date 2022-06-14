@@ -55,6 +55,7 @@ class Configuration:
         hoover.Deps(),
         hoover.Proxy(),
         hoover.Nginx(),
+        hoover.Workers(),
         dokuwiki.Dokuwiki(),
         dokuwiki.Proxy(),
         rocketchat.Rocketchat(),

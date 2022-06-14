@@ -3,7 +3,7 @@
 job "nextcloud-periodic" {
   datacenters = ["dc1"]
   type = "batch"
-  priority = 49
+  priority = 98
   periodic {
     cron  = "@hourly"
     prohibit_overlap = true

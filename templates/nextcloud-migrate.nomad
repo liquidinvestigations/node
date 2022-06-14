@@ -3,7 +3,7 @@
 job "nextcloud-migrate" {
   datacenters = ["dc1"]
   type = "batch"
-  priority = 45
+  priority = 98
 
   group "migrate" {
     ${ group_disk() }

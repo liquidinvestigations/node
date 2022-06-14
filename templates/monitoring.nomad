@@ -1,7 +1,7 @@
 job "monitoring" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 90
+  priority = 99
 
   group "prometheus" {
     constraint {

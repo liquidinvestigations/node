@@ -3,7 +3,7 @@
 job "codimd-proxy" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 66
+  priority = 98
 
 
   ${- authproxy_group(

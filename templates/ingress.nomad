@@ -3,7 +3,7 @@
 job "ingress" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 90
+  priority = 99
 
   group "ingress" {
     ${ group_disk() }

@@ -3,7 +3,7 @@
 job "rocketchat-migrate" {
   datacenters = ["dc1"]
   type = "batch"
-  priority = 30
+  priority = 98
 
   group "init-replica-set" {
     ${ group_disk() }

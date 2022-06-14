@@ -3,7 +3,7 @@
 job "zipkin" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 25
+  priority = 98
 
   group "es" {
     ${ group_disk() }

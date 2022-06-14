@@ -3,7 +3,7 @@
 job "hoover-proxy" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 60
+  priority = 98
 
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 

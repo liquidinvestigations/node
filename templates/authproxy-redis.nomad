@@ -3,6 +3,7 @@
 job "redis" {
   datacenters = ["dc1"]
   type = "service"
+  priority = 99
 
   group "authproxy-redis" {
     ${ continuous_reschedule() }
