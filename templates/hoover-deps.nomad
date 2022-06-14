@@ -312,7 +312,7 @@ job "hoover-deps" {
           liquid_task = "hoover-tika"
         }
         # warning: config is for whole container
-        memory_hard_limit = ${2 * config.tika_memory_limit}
+        memory_hard_limit = ${3 * config.tika_memory_limit}
       }
 
       resources {
@@ -395,7 +395,7 @@ job "hoover-deps" {
         }
         command = "gotenberg"
         args = ["--api-timeout", "7200s"]
-        memory_hard_limit = ${2 * config.snoop_pdf_preview_memory_limit * (config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       resources {
@@ -411,7 +411,7 @@ job "hoover-deps" {
         TMP = "/alloc/data"
         TEMP = "/alloc/data"
         TMPDIR = "/alloc/data"
-        GOMAXPROCS = "${config.snoop_container_process_count}"
+        GOMAXPROCS = "${1 + config.snoop_container_process_count}"
       }
 
       service {
@@ -460,7 +460,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-thumbnail-generator"
         }
-        memory_hard_limit = ${2 * config.snoop_thumbnail_generator_memory_limit * (config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
         mounts = [
           {
             type = "tmpfs"
@@ -475,7 +475,7 @@ job "hoover-deps" {
         TMP = "/alloc/data"
         TEMP = "/alloc/data"
         TMPDIR = "/alloc/data"
-        WORKER_COUNT = "${config.snoop_container_process_count}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
 
       resources {
@@ -536,7 +536,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-image-classification"
         }
-        memory_hard_limit = ${2 * config.snoop_image_classification_memory_limit * (config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       env {
@@ -559,7 +559,7 @@ job "hoover-deps" {
         OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
         IMAGE_CLASSIFICATION_ENABLED = "${config.snoop_image_classification_classify_images_enabled}"
         IMAGE_CLASSIFICATION_MODEL = "${config.snoop_image_classification_classify_images_model}"
-        WORKER_COUNT = "${config.snoop_container_process_count}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
 
       # HTTP Sometimes fails under load.
@@ -607,13 +607,13 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-nlp"
         }
-        memory_hard_limit = ${2 * config.snoop_nlp_memory_limit * (config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       env {
         NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
         NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
-        WORKER_COUNT = "${config.snoop_container_process_count}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
 
       env {
@@ -781,7 +781,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "snoop-rabbitmq"
         }
-        memory_hard_limit = ${2 * config.snoop_rabbitmq_memory_limit}
+        memory_hard_limit = ${3 * config.snoop_rabbitmq_memory_limit}
       }
 
       resources {
@@ -875,6 +875,7 @@ job "hoover-deps" {
           pg = 5432
         }
         shm_size = ${int(config.snoop_postgres_memory_limit * 0.27) * 1024 * 1024}
+        memory_hard_limit = ${3 * config.snoop_postgres_memory_limit}
       }
 
       template {
@@ -1223,14 +1224,14 @@ job "hoover-deps" {
         labels {
           liquid_task = "libre-translate-batch"
         }
-        memory_hard_limit = ${2 * config.snoop_translation_memory_limit * (config.snoop_container_process_count)}
+        memory_hard_limit = ${3 * config.snoop_translation_memory_limit * (1 + config.snoop_container_process_count)}
       }
       env {
         LT_CHAR_LIMIT = "157286400"
         LT_DISABLE_WEB_UI = "false"
         OMP_NUM_THREADS = "1"
         OMP_THREAD_LIMIT = "1"
-        GUNICORN_NUM_WORKERS = "${config.snoop_container_process_count}"
+        GUNICORN_NUM_WORKERS = "${1 + config.snoop_container_process_count}"
 
         {% if config.liquid_debug %}
           LT_DEBUG = "True"
@@ -1352,7 +1353,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-snoop-blob-minio"
         }
-        memory_hard_limit = 5000
+        memory_hard_limit = 4000
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/blobs:/data",
         ]
@@ -1441,7 +1442,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-snoop-collections-minio"
         }
-        memory_hard_limit = 5000
+        memory_hard_limit = 4000
         volumes = [
           "{% raw %}${meta.liquid_collections}{% endraw %}:/data",
         ]
