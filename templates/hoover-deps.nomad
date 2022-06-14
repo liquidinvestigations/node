@@ -1229,8 +1229,8 @@ job "hoover-deps" {
       env {
         LT_CHAR_LIMIT = "157286400"
         LT_DISABLE_WEB_UI = "false"
-        OMP_NUM_THREADS = "1"
-        OMP_THREAD_LIMIT = "1"
+        OMP_NUM_THREADS = "${ config.snoop_worker_omp_thread_limit }"
+        OMP_THREAD_LIMIT = "${ config.snoop_worker_omp_thread_limit }"
         GUNICORN_NUM_WORKERS = "${1 + config.snoop_container_process_count}"
 
         {% if config.liquid_debug %}
