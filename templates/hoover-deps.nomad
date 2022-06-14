@@ -49,7 +49,7 @@
 job "hoover-deps" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 60
+  priority = 99
 
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
@@ -769,7 +769,7 @@ job "hoover-deps" {
       config {
         image = "rabbitmq:3.8.5-management-alpine"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq/3.8.5:/var/lib/rabbitmq",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/rabbitmq-v2/3.8.5:/var/lib/rabbitmq",
           "local/conf:/etc/rabbitmq/rabbitmq.conf:ro",
           "local/plugins:/etc/rabbitmq/enabled_plugins:ro",
         ]

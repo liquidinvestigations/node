@@ -3,7 +3,7 @@
 job "hoover-nginx" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 60
+  priority = 99
 
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
