@@ -68,15 +68,18 @@ class Nomad(JsonApi):
             self.wait_for_batch_job(spec, evaluation)
 
     def wait_for_batch_job(self, spec, evaluation):
+        API_COOLDOWN_S = 0.05
         INTERVAL_S = 2
         TOTAL_WAIT_H = 2
 
         def check_eval(evaluation):
             ev = self.get('evaluations?prefix=' + evaluation['EvalID'])
+            sleep(API_COOLDOWN_S)
             return ev[0]['Status'] == 'complete'
 
         def check_job(spec):
             job = self.get(f'job/{spec["ID"]}')
+            sleep(API_COOLDOWN_S)
             log.debug("job %s status is '%s'", spec['ID'], job['Status'])
             return job['Status'] == 'dead'
 
