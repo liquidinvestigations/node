@@ -100,10 +100,10 @@
 {%- endmacro %}
 
 
-{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=200, cpu_per_proc=500) %}
+{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=350, cpu_per_proc=700) %}
   group "snoop-workers-${queue}" {
     ${ group_disk() }
-    count = ${container_count}
+    count = ${proc_count * container_count}
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     task "snoop-workers-${queue}" {
@@ -132,14 +132,14 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${2 * mem_per_proc * (proc_count)}
+        memory_hard_limit = ${2 * mem_per_proc}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       resources {
-        memory = ${mem_per_proc * (proc_count)}
-        cpu = ${cpu_per_proc * proc_count}
+        memory = ${mem_per_proc}
+        cpu = ${cpu_per_proc}
       }
 
       template {
@@ -155,7 +155,7 @@
             sleep 5
             exit 1
           fi
-          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}
+          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --solo
           EOF
         env = false
         destination = "local/startup.sh"
@@ -208,7 +208,7 @@ job "hoover" {
         labels {
           liquid_task = "hoover-search"
         }
-        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${2 * config.hoover_web_memory_limit}
       }
       # This container uses "runserver" so we don't need to auto-reload
       # env { __GIT_TAGS = "${hoover_search_git}" }
@@ -345,7 +345,7 @@ job "hoover" {
         labels {
           liquid_task = "snoop-api"
         }
-        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${2 * config.hoover_web_memory_limit}
       }
       # This container uses "runserver" so we don't need to auto-reload
       # env { __GIT_TAGS = "${hoover_snoop2_git}" }
@@ -470,7 +470,7 @@ job "hoover" {
         container_count=config.snoop_default_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1000,
+        cpu_per_proc=1500,
       ) }
 
     ${ snoop_worker_group(
@@ -478,7 +478,7 @@ job "hoover" {
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=1000,
-        cpu_per_proc=2000,
+        cpu_per_proc=1200,
       ) }
 
     ${ snoop_worker_group(
@@ -486,7 +486,7 @@ job "hoover" {
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=700,
-        cpu_per_proc=2000,
+        cpu_per_proc=1500,
       ) }
 
     ${ snoop_worker_group(
@@ -494,7 +494,7 @@ job "hoover" {
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=1000,
-        cpu_per_proc=2000,
+        cpu_per_proc=1200,
       ) }
 
     # HTTP CLIENT WORKER GROUPS

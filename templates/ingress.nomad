@@ -29,7 +29,7 @@ job "ingress" {
         labels {
           liquid_task = "liquid-ingress"
         }
-        memory_hard_limit = 300
+        memory_hard_limit = 1024
       }
       template {
         data = <<-EOF
@@ -98,7 +98,7 @@ job "ingress" {
         destination = "local/traefik.toml"
       }
       resources {
-        memory = 100
+        memory = 200
         network {
           mbits = 1
           port "http" {
