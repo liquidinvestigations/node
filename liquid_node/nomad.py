@@ -68,7 +68,7 @@ class Nomad(JsonApi):
             self.wait_for_batch_job(spec, evaluation)
 
     def wait_for_batch_job(self, spec, evaluation):
-        API_COOLDOWN_S = 0.05
+        API_COOLDOWN_S = 0.15
         INTERVAL_S = 2
         TOTAL_WAIT_H = 2
 

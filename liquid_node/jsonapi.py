@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 class JsonApi:
 
-    def __init__(self, endpoint, request_cooldown_sec=0.05):
+    def __init__(self, endpoint, request_cooldown_sec=0.15):
         self.endpoint = endpoint
         self.request_cooldown_sec = request_cooldown_sec
 
