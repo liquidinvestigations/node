@@ -100,7 +100,7 @@
 {%- endmacro %}
 
 
-{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=350, cpu_per_proc=700) %}
+{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=450, cpu_per_proc=700) %}
   group "snoop-workers-${queue}" {
     ${ group_disk() }
     count = ${proc_count * container_count}
@@ -477,7 +477,7 @@ job "hoover" {
         queue="filesystem",
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=1000,
+        mem_per_proc=600,
         cpu_per_proc=1200,
       ) }
 
@@ -485,7 +485,7 @@ job "hoover" {
         queue="ocr",
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=700,
+        mem_per_proc=600,
         cpu_per_proc=1500,
       ) }
 
@@ -493,7 +493,7 @@ job "hoover" {
         queue="digests",
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=1000,
+        mem_per_proc=600,
         cpu_per_proc=1200,
       ) }
 
