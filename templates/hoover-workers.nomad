@@ -154,7 +154,7 @@ job "hoover-workers" {
         queue="default",
         container_count=config.snoop_default_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=600,
+        mem_per_proc=400,
         cpu_per_proc=1500,
       ) }
 
@@ -162,7 +162,7 @@ job "hoover-workers" {
         queue="filesystem",
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=1200,
+        mem_per_proc=800,
         cpu_per_proc=1200,
       ) }
 
@@ -170,7 +170,7 @@ job "hoover-workers" {
         queue="ocr",
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=600,
+        mem_per_proc=500,
         cpu_per_proc=1500,
       ) }
 
@@ -178,7 +178,7 @@ job "hoover-workers" {
         queue="digests",
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=1600,
+        mem_per_proc=800,
         cpu_per_proc=1200,
       ) }
 
