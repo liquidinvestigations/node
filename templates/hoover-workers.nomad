@@ -6,6 +6,7 @@
 {%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=450, cpu_per_proc=700) %}
   group "snoop-workers-${queue}" {
     ${ group_disk() }
+    ${ continuous_reschedule() }
     count = ${proc_count * container_count}
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
