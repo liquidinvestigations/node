@@ -1,10 +1,31 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+---
+## v0.19.7 (2022-06-17)
+
+This release brings performance improvements for the Hoover processing pipeline.
+
+### Upgrade Notes
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.15.3](https://github.com/liquidinvestigations/cluster/tree/v0.15.3)**
+
+### Improvements
+- Hoover: Added configuration for OCR parallelism: [configuration](https://github.com/liquidinvestigations/node/blob/1f7ac656076530543d5a0cbce85da49fbdc9463f/examples/liquid.ini#L248-L253).
+- Hoover: Added configuration for describing files to be skipped from processing: [configuration](https://github.com/liquidinvestigations/node/blob/1f7ac656076530543d5a0cbce85da49fbdc9463f/examples/liquid.ini#L245-L247).
+
+### Bug Fixes
+- Fixed problem where Hoover processing pipeline would cause server to run out of memory.
+- Fixed performance issue where processing would run much slower than normal.
+
+
+---
 ## v0.19.2 (2022-06-09)
 
 This is a bug-fixing release targeted at Hoover internals and Monitoring.
 
 ### Upgrade Notes
+
 - Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.15.0](https://github.com/liquidinvestigations/cluster/tree/v0.15.0)**
 
 
@@ -29,6 +50,7 @@ This bugfixing version brings stability improvements for multi-host deployments.
 - Hoover: Fixed issue when optional processes (OCR, NLP and Image Recognition, etc) would be turned on and then off again on an active collection.
 
 
+---
 ## v0.19.0 (2022-05-17)
 
 **Hypothesis is removed** from the project starting with this version.
@@ -51,6 +73,7 @@ This bugfixing version brings stability improvements for multi-host deployments.
 - Hoover: Fixed bug where Entity Extraction wouldn't work on some languages (Japanese, Russian, Arabic).
 
 
+---
 ## v0.18.2 (2022-04-29)
 
 ### Upgrade Notes
