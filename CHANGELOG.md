@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+
+### Improvements
+- Hoover: Collection data archive mounting can be disabled, and normal unpacking will be used instead. Config flag: `disable_archive_mounting`.
+
 ---
 ## v0.19.7 (2022-06-17)
 

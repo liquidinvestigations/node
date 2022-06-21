@@ -387,6 +387,11 @@ class Configuration:
                         'explode_table_rows',
                         fallback=False,
                     ),
+                    'disable_archive_mounting': self.ini.getboolean(
+                        key,
+                        'disable_archive_mounting',
+                        fallback=False,
+                    ),
                 })
 
             elif cls == 'job':
