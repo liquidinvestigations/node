@@ -277,7 +277,7 @@ class Configuration:
             'deploy', 'container_memory_limit_scale', fallback=1.0)
         assert 0.7 <= self.container_memory_limit_scale <= 5.0, 'invalid value'
         self.container_cpu_scale = self.ini.getfloat('deploy', 'container_cpu_scale', fallback=1.0)
-        assert 0.7 <= self.container_cpu_scale <= 5.0, 'invalid value'
+        assert 0.5 <= self.container_cpu_scale <= 5.0, 'invalid value'
         # scale heap size separately because it's not reached by the nomad MemoryMB edit function
         self.elasticsearch_heap_size = int(self.elasticsearch_heap_size * self.container_memory_limit_scale)
 

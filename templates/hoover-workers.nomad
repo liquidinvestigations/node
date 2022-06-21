@@ -7,7 +7,7 @@
   group "snoop-workers-${queue}" {
     ${ group_disk() }
     ${ continuous_reschedule() }
-    count = ${proc_count * container_count}
+    count = ${container_count}
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
     task "snoop-workers-${queue}" {
@@ -36,14 +36,14 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${2 * mem_per_proc}
+        memory_hard_limit = ${int(1.5 * mem_per_proc * proc_count)}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       resources {
-        memory = ${mem_per_proc}
-        cpu = ${cpu_per_proc}
+        memory = ${mem_per_proc * proc_count}
+        cpu = ${cpu_per_proc * proc_count}
       }
 
       template {
@@ -59,7 +59,7 @@
             sleep 5
             exit 1
           fi
-          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --solo
+          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}
           EOF
         env = false
         destination = "local/startup.sh"
