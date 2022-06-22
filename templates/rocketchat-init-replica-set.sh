@@ -13,5 +13,6 @@ var config = {
     ]
 };
 rs.initiate(config, { force: true });
+"rs.secondaryOk()" >> ~/.mongorc.js
 rs.status();
 EOF
