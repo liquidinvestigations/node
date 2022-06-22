@@ -575,13 +575,13 @@ def remove_dead_nodes():
         if member['Status'] != 'alive':
             removed = True
             log.info(f'Removing node: {member["Name"]} from nomad!')
-            nomad.post(f'agent/force-leave?node={member["Name"]}')
+            nomad.post(f'node/{member["Tags"]["id"]}/purge')
 
     for member in consul.get('agent/members'):
         if member['Status'] != 1:
             removed = True
             log.info(f'Removing node: {member["Name"]} from consul!')
-            consul.put(f'agent/force/leave/{member["Name"]}')
+            consul.put(f'agent/force/leave/{member["Name"]}?prune')
 
     if not removed:
         log.info('No dead nodes to remove!')
