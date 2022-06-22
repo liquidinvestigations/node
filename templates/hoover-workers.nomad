@@ -36,14 +36,14 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${int(1.5 * mem_per_proc * proc_count)}
+        memory_hard_limit = ${300 + int(1.9 * mem_per_proc * proc_count)}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       resources {
-        memory = ${mem_per_proc * proc_count}
-        cpu = ${cpu_per_proc * proc_count}
+        memory = ${200 + mem_per_proc * proc_count}
+        cpu = ${100 + cpu_per_proc * proc_count}
       }
 
       template {
@@ -154,31 +154,31 @@ job "hoover-workers" {
         queue="default",
         container_count=config.snoop_default_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=400,
-        cpu_per_proc=1500,
+        mem_per_proc=600,
+        cpu_per_proc=1000,
       ) }
 
     ${ snoop_worker_group(
         queue="filesystem",
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=800,
-        cpu_per_proc=1200,
+        mem_per_proc=900,
+        cpu_per_proc=1100,
       ) }
 
     ${ snoop_worker_group(
         queue="ocr",
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=500,
-        cpu_per_proc=1500,
+        mem_per_proc=600,
+        cpu_per_proc=1600,
       ) }
 
     ${ snoop_worker_group(
         queue="digests",
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=800,
+        mem_per_proc=900,
         cpu_per_proc=1200,
       ) }
 
