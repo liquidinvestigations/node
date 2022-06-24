@@ -2,8 +2,15 @@
 
 ## Unreleased
 
+---
+## v0.19.8 (2022-06-24)
+
+### Bug Fixes
+- Fixed issue where Hoover indexing would hang on very large collections.
+
 
 ### Improvements
+- Hoover: Improve processing performance by re-using network mounts.
 - Hoover: Collection data archive mounting can be disabled, and normal unpacking will be used instead. Config flag: `disable_archive_mounting`.
 
 ---
