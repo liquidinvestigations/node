@@ -7,6 +7,7 @@
 
 ### Bug Fixes
 - Fixed issue where Hoover indexing would hang on very large collections.
+- Fixed S3 mount process leak, which could crash systems under a few days of load.
 
 
 ### Improvements
