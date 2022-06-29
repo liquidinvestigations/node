@@ -29,7 +29,7 @@
         security_opt = ["apparmor=unconfined"]
 
         args = ["/local/startup.sh"]
-        entrypoint = ["/bin/bash", "-ex"]
+        entrypoint = ["/tini", "--", "/bin/bash", "-ex"]
         volumes = [
           ${hoover_snoop2_repo}
         ]
@@ -104,7 +104,7 @@ job "hoover-workers" {
 
       driver = "docker"
       config {
-        entrypoint = ["/bin/bash", "-ex"]
+        entrypoint = ["/tini", "--", "/bin/bash", "-ex"]
         image = "${config.image('hoover-snoop2')}"
         args = ["/local/startup.sh"]
         volumes = [
