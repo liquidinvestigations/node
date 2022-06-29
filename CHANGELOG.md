@@ -1,12 +1,13 @@
 # Liquid Investigations Change Log
 
-## v0.19.9 (2022-06-29)
+## v0.19.10 (2022-06-29)
 
 This version fixes bugs in Rocketchat and Hoover configuration.
 
 ### Bug Fixes
 - Fixed Rocketchat issue where new servers would fail to start.
 - Fixed Hoover processing stability issue caused by 7z mount process leak.
+- Fixed bug with Hoover `retrytasks` command and UI button.
 
 ---
 ## v0.19.8 (2022-06-24)
