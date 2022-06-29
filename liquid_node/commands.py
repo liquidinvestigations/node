@@ -566,3 +566,22 @@ def show_docker_pull_commands(prefix):
         print('    docker pull ' + image)
     print(')')
     print()
+
+
+@liquid_commands.command()
+def remove_dead_nodes():
+    removed = False
+    for member in nomad.get('nodes'):
+        if member['Status'] != 'ready':
+            removed = True
+            log.info(f'Removing node: {member["Name"]} from nomad!')
+            nomad.post(f'node/{member["ID"]}/purge')
+
+    for member in consul.get('agent/members'):
+        if member['Status'] != 1:
+            removed = True
+            log.info(f'Removing node: {member["Name"]} from consul!')
+            consul.put(f'agent/force-leave/{member["Name"]}?prune')
+
+    if not removed:
+        log.info('No dead nodes to remove!')
