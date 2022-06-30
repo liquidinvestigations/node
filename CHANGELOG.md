@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## v0.19.10 (2022-06-29)
+## v0.19.11 (2022-06-30)
 
 This version fixes bugs in Rocketchat and Hoover configuration.
 
