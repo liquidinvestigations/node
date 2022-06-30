@@ -37,7 +37,9 @@ job "rocketchat-deps" {
         cpu = 200
         network {
           mbits = 1
-          port "mongo" {}
+          port "mongo" {
+            static = 27017
+          }
         }
       }
       service {
