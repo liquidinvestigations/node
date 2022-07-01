@@ -35,7 +35,8 @@ job "redis" {
       service {
         name = "authproxy-redis"
         port = "redis"
-        tags = ["fabio-/_auth-redis strip=/_auth-redis"]
+        tags = ["fabio-:9993 proto=tcp"]
+
         check {
           name = "alive"
           initial_status = "critical"
