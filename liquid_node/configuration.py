@@ -1,4 +1,5 @@
 import sys
+import re
 import logging
 import configparser
 import os
@@ -486,16 +487,25 @@ class Configuration:
 
     @classmethod
     def _validate_collection_name(self, name):
-        if not name.islower():
+
+        # collection names are restricted by minio and elasticsearch
+        # for reference see:
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-api-path-params
+        # https://docs.abp.io/en/abp/latest/Blob-Storing-Minio#options
+
+        search_forbidden_char = re.compile(r'[^a-z0-9-]').search
+
+        if search_forbidden_char(name) or not name[0].islower():
             raise ValueError(f'''Invalid collection name "{name}"!
 
                 Collection names must start with lower case letters and must contain only
-                lower case letters and digits.
+                lower case letters, digits or hyphens ('-').
                 ''')
-        if len(name) < 3:
+        if len(name) < 3 or len(name) > 63:
             raise ValueError(f'''Invalid collection name "{name}"!
 
-                Collection name must be at least 3 characters long (Minio / S3 bucket name restriction).''')
+            Collection name must be between 3 and 63 characters long
+            (Minio / S3 bucket name restriction).''')
 
     @property
     def total_snoop_worker_count(self):
