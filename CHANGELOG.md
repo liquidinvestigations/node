@@ -1,5 +1,12 @@
 # Liquid Investigations Change Log
 
+## v0.19.12 (2022-07-06)
+
+### Bug Fixes
+- Fixed issue where synced collections (such as "uploads") would not update the index.
+- Fixed performance problem caused by recursive archive mounts.
+
+
 ## v0.19.11 (2022-06-30)
 
 This version fixes bugs in Rocketchat and Hoover configuration.
