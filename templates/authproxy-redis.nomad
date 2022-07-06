@@ -11,10 +11,17 @@ job "redis" {
   
     task "authproxy-redis" {
       ${ task_logs() }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
   
       driver = "docker"
       config {
         image = "${config.image('authproxy-redis')}"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/auth/redis/data:/data",
+        ]
         port_map {
           redis = 6379
         }
