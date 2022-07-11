@@ -1,5 +1,11 @@
 # Liquid Investigations Change Log
 
+## v0.19.13 (2022-07-11)
+
+### Bug Fixes
+- Fixed Hoover bug that would stop new Tags from being indexed.
+
+
 ## v0.19.12 (2022-07-06)
 
 ### Bug Fixes
