@@ -54,10 +54,7 @@ job "liquid" {
           LIQUID_2FA = "${config.liquid_2fa}"
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
           NOMAD_URL = "${config.nomad_url}"
-
-          {{- range service "authproxy-redis" }}
-              AUTHPROXY_REDIS_URL = "redis://{{.Address}}:{{.Port}}/"
-          {{- end }}
+          AUTHPROXY_REDIS_URL = "redis://{{ env "attr.unique.network.ip-address" }}:9993/"
         EOF
         destination = "local/docker.env"
         env = true

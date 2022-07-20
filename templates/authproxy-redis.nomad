@@ -11,10 +11,17 @@ job "redis" {
   
     task "authproxy-redis" {
       ${ task_logs() }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
   
       driver = "docker"
       config {
         image = "${config.image('authproxy-redis')}"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/auth/redis/data:/data",
+        ]
         port_map {
           redis = 6379
         }
@@ -35,7 +42,8 @@ job "redis" {
       service {
         name = "authproxy-redis"
         port = "redis"
-        tags = ["fabio-/_auth-redis strip=/_auth-redis"]
+        tags = ["fabio-:9993 proto=tcp"]
+
         check {
           name = "alive"
           initial_status = "critical"
