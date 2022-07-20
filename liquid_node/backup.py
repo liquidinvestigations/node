@@ -17,6 +17,7 @@ SNOOP_PG_ALLOC = "hoover-deps:snoop-pg"
 SNOOP_ES_ALLOC = "hoover-deps:es"
 SNOOP_API_ALLOC = "hoover:snoop"
 SNOOP_BLOBS_DATA_ALLOC = "hoover-deps:minio-blobs"
+SNOOP_ORIGINAL_DATA_ALLOC = "hoover-deps:minio-collections"
 
 
 @click.group()
@@ -28,11 +29,12 @@ def backup_commands():
 @click.option('--no-blobs', 'blobs', is_flag=True, default=True)
 @click.option('--no-es', 'es', is_flag=True, default=True)
 @click.option('--no-pg', 'pg', is_flag=True, default=True)
+@click.option('--with-original', 'original', is_flag=True, default=False)
 @click.option('--no-collections', 'backup_collections', is_flag=True, default=True)
 @click.option('--collection', 'collections', multiple=True)
 @click.option('--no-apps', 'apps', is_flag=True, default=True)
 @click.argument('dest', required=True)
-def backup(blobs, es, pg, backup_collections, collections, apps, dest):
+def backup(blobs, es, pg, original, backup_collections, collections, apps, dest):
     dest = Path(dest).resolve()
     dest.mkdir(parents=True, exist_ok=True)
 
@@ -62,33 +64,44 @@ def backup(blobs, es, pg, backup_collections, collections, apps, dest):
                           name=collection_name,
                           save_blobs=blobs,
                           save_es=es,
-                          save_pg=pg)
+                          save_pg=pg,
+                          save_original=original)
 
 
-def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True):
+def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True,
+                      save_original=False):
     assert config.is_app_enabled('hoover')
 
     if save_pg:
         backup_collection_pg(dest, name)
     else:
-        log.info("skipping saving pg")
+        log.info("skipped pg")
 
     if save_es:
         backup_es(dest, name, "/_es", SNOOP_ES_ALLOC)
     else:
-        log.info("skipping saving es")
+        log.info("skipped es")
 
     if save_blobs:
-        backup_collection_blobs(dest, name)
+        backup_collection_files(dest, name, SNOOP_BLOBS_DATA_ALLOC, '/data', "blobs.tgz")
     else:
-        log.info("skipping saving blobs")
+        log.info("skipped blobs")
+
+    if save_original:
+        backup_collection_files(dest, name, SNOOP_ORIGINAL_DATA_ALLOC, '/data', "original.tgz")
+    else:
+        log.info("skipped original")
 
 
 @backup_commands.command()
 @click.pass_context
 @click.argument('src')
 @click.argument('name')
-def restore_collection(ctx, src, name):
+@click.option('--no-blobs', 'blobs', is_flag=True, default=True)
+@click.option('--no-es', 'es', is_flag=True, default=True)
+@click.option('--no-pg', 'pg', is_flag=True, default=True)
+@click.option('--no-original', 'original', is_flag=True, default=True)
+def restore_collection(ctx, src, name, blobs, es, pg, original):
     log.info("restoring collection data from %s as %s", src, name)
     assert config.is_app_enabled('hoover')
 
@@ -100,9 +113,25 @@ def restore_collection(ctx, src, name):
     src = Path(src).resolve()
     assert src.is_dir(), 'source is not a directory'
 
-    restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
-    restore_collection_blobs(src, name)
-    restore_collection_pg(src, name)
+    if es:
+        restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
+    else:
+        log.info('skipped restore es')
+
+    if blobs:
+        restore_collection_blobs(src, name)
+    else:
+        log.info('skipped restore blobs')
+
+    if original:
+        restore_collection_original(src, name)
+    else:
+        log.info('skipped restore original')
+
+    if pg:
+        restore_collection_pg(src, name)
+    else:
+        log.info('skipped restore pg')
 
     log.info("Collection restored: " + name)
     log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
@@ -111,7 +140,11 @@ def restore_collection(ctx, src, name):
 @backup_commands.command()
 @click.pass_context
 @click.argument('backup_root')
-def restore_all_collections(ctx, backup_root):
+@click.option('--no-blobs', 'blobs', is_flag=True, default=True)
+@click.option('--no-es', 'es', is_flag=True, default=True)
+@click.option('--no-pg', 'pg', is_flag=True, default=True)
+@click.option('--no-original', 'original', is_flag=True, default=True)
+def restore_all_collections(ctx, backup_root, blobs, es, pg, original):
     assert config.is_app_enabled('hoover')
 
     all_collections = []
@@ -122,12 +155,25 @@ def restore_all_collections(ctx, backup_root):
             name = src.name[len(PREFIX):]
             config._validate_collection_name(name)
             all_collections.append((name, Path(src).resolve()))
+    log.info('restoring %s collections: %s', len(all_collections), ", ".join(a[0] for a in all_collections))
 
-    # es and blobs restores require web containers to be on
+    if not es:
+        log.info('skipped restore es')
+    if not blobs:
+        log.info('skipped restore blobs')
+    if not original:
+        log.info('skipped restore original')
+    if not pg:
+        log.info('skipped restore pg')
     for name, src in all_collections:
-        restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
-        restore_collection_blobs(src, name)
-        restore_collection_pg(src, name)
+        if es:
+            restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
+        if blobs:
+            restore_collection_blobs(src, name)
+        if original:
+            restore_collection_original(src, name)
+        if pg:
+            restore_collection_pg(src, name)
 
     log.info("Collections restored: " + ", ".join(a[0] for a in all_collections))
     log.info("Please add all collections to `./liquid.ini` and re-run `./liquid deploy`")
@@ -284,15 +330,16 @@ def restore_files(src_file, path, alloc):
     subprocess.check_call(["/bin/bash", "-c", cmd])
 
 
-def backup_collection_blobs(dest, name):
+def backup_collection_files(dest, name, alloc, in_folder, out_filename):
 
     log.info('installing tar...')
-    cmd_install_tar = f'./liquid dockerexec {SNOOP_BLOBS_DATA_ALLOC} microdnf install tar gzip'
+    cmd_install_tar = f'./liquid dockerexec {alloc} microdnf install tar gzip'
     subprocess.check_call(["/bin/bash", "-c", cmd_install_tar])
     log.info('tar installed.')
 
-    log.info(f"Dumping collection {name} blobs to {dest}")
-    backup_files(dest / "blobs.tgz", "/data/" + name, ['./tmp'], SNOOP_BLOBS_DATA_ALLOC)
+    src_folder = in_folder + "/" + name
+    log.info(f"Dumping collection {name} files from {alloc} {src_folder} to {dest}/{out_filename}")
+    backup_files(dest / out_filename, src_folder, ['./tmp'], alloc)
 
 
 def restore_collection_blobs(src, name):
@@ -308,6 +355,21 @@ def restore_collection_blobs(src, name):
 
     log.info(f"Restoring collection {name} blobs from {src_file}")
     restore_files(src / "blobs.tgz", "/data/" + name, SNOOP_BLOBS_DATA_ALLOC)
+
+
+def restore_collection_original(src, name):
+    src_file = src / "original.tgz"
+    if not src_file.is_file():
+        log.warn(f"No blobs backup at {src_file}, skipping collection original restore")
+        return
+
+    log.info('installing tar...')
+    cmd_install_tar = f'./liquid dockerexec {SNOOP_ORIGINAL_DATA_ALLOC} microdnf install tar gzip'
+    subprocess.check_call(["/bin/bash", "-c", cmd_install_tar])
+    log.info('tar installed.')
+
+    log.info(f"Restoring collection original source files {name} from {src_file}")
+    restore_files(src / "original.tgz", "/data/" + name, SNOOP_ORIGINAL_DATA_ALLOC)
 
 
 def is_index_available(es_client, name):

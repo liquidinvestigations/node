@@ -21,7 +21,9 @@ for repo in "${repos[@]}"; do
   touch $logs/$repo
   (
     echo
+    echo
     echo "[[ $repo ]]"
+    echo "   --------------------------- "
 
     if [ -d $repo ]; then (
       cd $repo

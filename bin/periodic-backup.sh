@@ -35,7 +35,7 @@ mkdir -p $exportdir/$backupdir
 
 if [ ! -z $uploads ]; then
   echo "Creating a backup of the uploads collection..."
-  ./liquid backup --no-apps --collection uploads $exportdir/$backupdir
+  ./liquid backup --no-apps --collection uploads --with-original $exportdir/$backupdir
 fi
 
 if [ ! -z $rmbackups ]; then

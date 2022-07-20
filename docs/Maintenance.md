@@ -1,5 +1,7 @@
 ## Backups
 
+**Note:** Any commands in this section can be sent the argument `--help` to print their usage, for example `./liquid backup --help`.
+
 To create a complete backup of the cluster data:
 
 ```shell
@@ -18,6 +20,7 @@ The "./liquid backup" command has optional arguments:
   --no-blobs            omit backing up collection data blobs
   --no-es               omit backing up collection elasticsearch indexes
   --no-pg               omit backing up collection databases
+  --with-original       include original collection files, by default omitted
   --no-collections      omit backing up any collection data
   --collection C        only backup data for collection C. This argument can be provided multiple times
   --no-apps             omit backing up application data
@@ -29,6 +32,17 @@ The "./liquid backup" command has optional arguments:
 To restore a collection:
 ```shell
 ./liquid restore-collection /tmp/backup-today/collection-testdata new-collection-name
+```
+
+This command, along with `restore-all-collections`, will attempt by default to
+restore all the archive types found (blobs, pg, es, original). These flags can be used
+to omit restoring a specific backup type:
+
+```
+  --no-blobs     - omit restoring collection data blobs
+  --no-es        - omit restoring collection elasticsearch indexes
+  --no-pg        - omit restoring collection databases
+  --no-original  - omit restoring original collection files
 ```
 
 ### Create periodic backups

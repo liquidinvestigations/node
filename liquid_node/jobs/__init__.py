@@ -70,11 +70,6 @@ def set_volumes_paths(substitutions={}):
             'local': os.path.join(config.liquidinvestigations_repos_path, 'core'),
             'target': '/app'
         },
-        'authproxy': {
-            'org': 'liquidinvestigations',
-            'local': os.path.join(config.liquidinvestigations_repos_path, 'authproxy'),
-            'target': '/app'
-        },
         'codimd_server': {
             'org': 'liquidinvestigations',
             'local': os.path.join(config.liquidinvestigations_repos_path, 'codimd-server'),
