@@ -1,5 +1,16 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+### Improvements
+- Hoover: Backup procedure now includes arguments to optionally backup and restore original collection data. Also, original source backup has been enabled for "uploads" in the `bin/periodic-backup.sh` script.
+
+### Bug Fixes
+- Hoover: Fixed processing of some variants of `application/mbox` MBox Email Archives which would previously fail to unpack.
+- Hoover: Removed mismatching OCR tabs from documents where a language was detected and OCR is available for it.
+- Hoover: Removed Translations made from one target language into another one.
+- Authentication: Fixed bug where user sessions would be lost after server redeployment.
+
 ## v0.19.13 (2022-07-11)
 
 ### Bug Fixes
