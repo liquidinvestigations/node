@@ -246,6 +246,12 @@ job "hoover-nginx" {
         AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
         MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
 
+        SEARCH_RETRY_DELAY = "${config.hoover_ui_search_retry_delay}"
+        ASYNC_SEARCH_POLL_INTERVAL = "${config.hoover_ui_async_search_poll_interval}"
+        ASYNC_SEARCH_MAX_FINAL_RETRIES = "${config.hoover_ui_async_search_max_final_retries}"
+        ASYNC_SEARCH_ERROR_MULTIPLIER = "${config.hoover_ui_async_search_error_multiplier}"
+        ASYNC_SEARCH_ERROR_SUMMATION = "${config.hoover_ui_async_search_error_summation}"
+
         {% if config.hoover_maps_enabled %}
           HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
         {% endif %}

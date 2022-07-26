@@ -182,6 +182,26 @@ class Configuration:
         self.hoover_ui_force_pull = self.ini.getboolean('liquid', 'hoover_ui_force_pull', fallback=False)
         self.hoover_ui_agg_split = self.ini.getint('liquid', 'hoover_ui_agg_split', fallback=1)
         self.hoover_ui_search_retry = self.ini.getint('liquid', 'hoover_ui_search_retry', fallback=1)
+
+        self.hoover_ui_search_retry_delay = self.ini.getint('liquid', 'hoover_ui_search_retry_delay',
+                                                            fallback=3000)
+        self.hoover_ui_async_search_poll_interval = (
+            self.ini.getint('liquid',
+                            'hoover_ui_async_search_poll_interval',
+                            fallback=45))
+        self.hoover_ui_async_search_max_final_retries = (
+            self.ini.getint('liquid',
+                            'hoover_ui_async_search_max_final_retries',
+                            fallback=3))
+        self.hoover_ui_async_search_error_multiplier = (
+            self.ini.getint('liquid',
+                            'hoover_ui_async_search_error_multiplier',
+                            fallback=2))
+        self.hoover_ui_async_search_error_summation = (
+            self.ini.getint('liquid',
+                            'hoover_ui_async_search_error_summation',
+                            fallback=60))
+
         self.hoover_maps_enabled = self.ini.getboolean('liquid', 'hoover_maps_enabled', fallback=False)
 
         self.hoover_search_debug_delay = self.ini.getint('liquid', 'hoover_search_debug_delay', fallback=0)
