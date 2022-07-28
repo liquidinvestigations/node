@@ -486,12 +486,12 @@ class Configuration:
             self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
 
     @classmethod
-    def _validate_collection_name(self, name):
+    def _validate_collection_name(cls, name):
 
-        # collection names are restricted by minio and elasticsearch
+        # collection names are restricted by minio (s3) and elasticsearch
         # for reference see:
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-api-path-params
-        # https://docs.abp.io/en/abp/latest/Blob-Storing-Minio#options
+        # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
 
         search_forbidden_char = re.compile(r'[^a-z0-9-]').search
 
