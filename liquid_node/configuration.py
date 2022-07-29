@@ -493,7 +493,12 @@ class Configuration:
         # https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-api-path-params
         # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
 
-        search_forbidden_char = re.compile(r'[^a-z0-9-]').search
+        # TODO Uppercase is not allowed by s3 so no new buckets with uppercase can and should not be created.
+        # But Minio accepts uppercase letters if the directories on disk exist already.
+        # We don't have a logic to solve this problem and handle these cases right now.
+        # We just allow uppercase to keep the existing collections working.
+
+        search_forbidden_char = re.compile(r'[^a-zA-Z0-9-]').search
 
         if search_forbidden_char(name) or not name[0].islower():
             raise ValueError(f'''Invalid collection name "{name}"!
