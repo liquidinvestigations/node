@@ -2,21 +2,23 @@
 apt-get install pip
 pip install requests
 set -ex
-liquid_domain="${liquid_domain}"
-echo "Deleting user {% raw %}'${NOMAD_META_USERNAME}'{% endraw %} for all enabled apps."
 
-{% if config.is_app_enabled('hoover') %}
-${exec_command('hoover:search', './manage.py', 'deleteuser', '${NOMAD_META_USERNAME}')}
-echo "Deleted Hoover user..."
-{% endif %}
+LIQUID_USER=$1
 
-{% if config.is_app_enabled('rocketchat') %}
-python local/delete_rocket_user.py {% raw %}${NOMAD_META_USERNAME}{% endraw %}
-echo "Deleted Rocketchat user..."
-{% endif %}
+echo "Deleting user '$LIQUID_USER' for all enabled apps."
 
-{% if config.is_app_enabled('codimd') %}
-# this command is an extension to the codimd manage_users function in the liquid fork of it
-${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--liquiddel=${NOMAD_META_USERNAME}')}
-echo "Deleted CodiMD user..."
-{% endif %}
+if [ "$HOOVER_ENABLED" = "True" ] ; then
+    ${exec_command('hoover:search', './manage.py', 'deleteuser', '$LIQUID_USER')}
+    echo "Deleted Hoover user..."
+fi
+
+if [ "$ROCKETCHAT_ENABLED" = "True" ] ; then
+    python local/delete_rocket_user.py $LIQUID_USER
+    echo "Deleted Rocketchat user..."
+fi
+
+if [ "$ROCKETCHAT_ENABLED" = "True" ] ; then
+    # this command is an extension to the codimd manage_users function in the liquid fork of it
+    ${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--liquiddel=$LIQUID_USER')}
+    echo "Deleted CodiMD user..."
+fi
