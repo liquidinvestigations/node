@@ -148,6 +148,7 @@ job "hoover-workers" {
         proc_count=3,
       ) }
 
+
     # CPU WORKER GROUPS
     # =================
     ${ snoop_worker_group(
@@ -231,5 +232,22 @@ job "hoover-workers" {
       ) }
     {% endif %}
 
+  {% else %}
+  group "dummy" {
+    task "dummy" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('pause')}"
+        labels {
+          liquid_task = "dummy"
+        }
+      }
+
+      }
+
+
+      }
   {% endif %}
 }
