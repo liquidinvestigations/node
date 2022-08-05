@@ -242,12 +242,9 @@ job "hoover-workers" {
         image = "${config.image('pause')}"
         labels {
           liquid_task = "dummy"
+             }
+           }
         }
-      }
-
-      }
-
-
       }
   {% endif %}
 }
