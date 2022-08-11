@@ -13,6 +13,12 @@ class Rocketchat(jobs.Job):
             'vault_path': 'liquid/rocketchat/app.oauth2',
             'callback': '/_oauth/liquid',
         },
+        {
+            'name': 'rocketchat-authproxy',
+            'subdomain': 'rocketchat',
+            'vault_path': 'liquid/rocketchat/auth.oauth2',
+            'callback': '/oauth2/callback',
+        },
     ]
     vault_secret_keys = [
     ]
@@ -37,3 +43,10 @@ class Migrate(jobs.Job):
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'rocketchat'
     stage = 2
+
+
+class Proxy(jobs.Job):
+    name = 'rocketchat-proxy'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'hoover'
+    stage = 4

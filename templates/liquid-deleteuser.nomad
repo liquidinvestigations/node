@@ -42,6 +42,8 @@ job "liquid-deleteuser" {
       }
 
       template {
+        left_delimiter = "DELIMITER_L"
+        right_delimiter = "DELIMITER_R"
         destination = "local/delete_rocket_user.py"
         perms = "755"
         data = <<-EOF
