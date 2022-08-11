@@ -1,4 +1,5 @@
 import sys
+import re
 import logging
 import configparser
 import os
@@ -507,17 +508,31 @@ class Configuration:
             self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
 
     @classmethod
-    def _validate_collection_name(self, name):
-        if not name.islower():
+    def _validate_collection_name(cls, name):
+
+        # collection names are restricted by minio (s3) and elasticsearch
+        # for reference see:
+        # https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-api-path-params
+        # https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+
+        # TODO Uppercase is not allowed by s3 so no new buckets with uppercase can and should not be created.
+        # But Minio accepts uppercase letters if the directories on disk exist already.
+        # We don't have a logic to solve this problem and handle these cases right now.
+        # We just allow uppercase to keep the existing collections working.
+
+        search_forbidden_char = re.compile(r'[^a-zA-Z0-9-]').search
+
+        if search_forbidden_char(name) or not name[0].islower():
             raise ValueError(f'''Invalid collection name "{name}"!
 
                 Collection names must start with lower case letters and must contain only
-                lower case letters and digits.
+                lower case letters, digits or hyphens ('-').
                 ''')
-        if len(name) < 3:
+        if len(name) < 3 or len(name) > 63:
             raise ValueError(f'''Invalid collection name "{name}"!
 
-                Collection name must be at least 3 characters long (Minio / S3 bucket name restriction).''')
+            Collection name must be between 3 and 63 characters long
+            (Minio / S3 bucket name restriction).''')
 
     @property
     def total_snoop_worker_count(self):
