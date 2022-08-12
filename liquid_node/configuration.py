@@ -63,7 +63,6 @@ class Configuration:
         rocketchat.Rocketchat(),
         rocketchat.Deps(),
         rocketchat.Migrate(),
-        rocketchat.Proxy(),
         nextcloud.Nextcloud(),
         nextcloud.Deps(),
         nextcloud.Migrate(),
