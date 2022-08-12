@@ -1,14 +1,12 @@
 # flake8: noqa
 import requests
 import sys
+import os
 # get rockatchat address and password
-{{- range service "rocketchat-app" }}
-url = 'http://{{.Address}}:{{.Port}}/'
-{{- end }}
-{{- with secret "liquid/rocketchat/adminuser" }}
-data = {"user": "rocketchatadmin", "password": "{{.Data.pass }}"}
-{{- end }}
-domain = "${liquid_domain}"
+url = os.getenv('ROCKETCHAT_URL')
+password = os.getenv('ROCKETCHAT_SECRET')
+data = {"user": "rocketchatadmin", "password": password}
+domain = os.getenv('LIQUID_DOMAIN')
 # login to receive a token to authenticate with the api
 response = requests.post(url + 'api/v1/login', data=data).json()
 _id = response.get('data').get('me').get('_id')

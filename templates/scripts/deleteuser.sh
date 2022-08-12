@@ -17,7 +17,7 @@ if [ "$ROCKETCHAT_ENABLED" = "True" ] ; then
     echo "Deleted Rocketchat user..."
 fi
 
-if [ "$ROCKETCHAT_ENABLED" = "True" ] ; then
+if [ "$CODIMD_ENABLED" = "True" ] ; then
     # this command is an extension to the codimd manage_users function in the liquid fork of it
     ${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--liquiddel=$LIQUID_USER')}
     echo "Deleted CodiMD user..."
