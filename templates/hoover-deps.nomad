@@ -2,7 +2,7 @@
 
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
-        image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.15"
+        image = "docker.elastic.co/elasticsearch/elasticsearch:7.13.2"
         args = ["/bin/sh", "-c", "chown 1000:1000 /usr/share/elasticsearch/data /es_repo && echo chown done && exec /usr/local/bin/docker-entrypoint.sh"]
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/es/${data_dir_name}:/usr/share/elasticsearch/data",
@@ -88,6 +88,7 @@ job "hoover-deps" {
         transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
         transport.bind_host = "0.0.0.0"
         transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+        cluster.initial_master_nodes = "master"
       }
 
       resources {
@@ -126,7 +127,7 @@ job "hoover-deps" {
         }
       }
     }
-  }
+}
 
   {% if config.elasticsearch_data_node_count %}
   group "es-data" {
@@ -170,7 +171,7 @@ job "hoover-deps" {
       }
       template {
         data = <<-EOF
-          discovery.zen.ping.unicast.hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
+          discovery.seed_hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
           EOF
         destination = "local/es-master.env"
         env = true
