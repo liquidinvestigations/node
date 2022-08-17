@@ -2,14 +2,22 @@
 
 ## Unreleased
 
+
+---
+# v0.20.0 (2022-08-17)
+
 ### New Features
 - Hoover script for batch importing of tags from a CSV file.
 - Hoover script for checking for data loss and deleting orphaned objects.
+
+### Improvement
+- Admin: feature 'delete users' also deletes them in all apps.
 
 ### Bug Fixes
 - Fixed UI bug that would display an error when searches take more than one minute.
 - Fixed ephemeral bug that would leak storage space when PDF previews are used with 2 or more OCR langauges.
 - Fixed related to recursive archive mounts.
+- Fixed homepage service deployment problem, saved 30 seconds.
 
 ---
 ## v0.19.14 (2022-07-21)
