@@ -1,4 +1,4 @@
-job "liquid-createuser" {
+job "liquid-deleteuser" {
   datacenters = ["dc1"]
   type = "batch"
   priority = 99
@@ -7,7 +7,7 @@ job "liquid-createuser" {
     meta_required = ["USERNAME"]
     }
 
-  group "createuser" {
+  group "deleteuser" {
     task "script" {
       leader = true
 
@@ -16,7 +16,7 @@ job "liquid-createuser" {
       config {
         command = "sh"
         args    = [
-                "local/createuser.sh",
+                "local/deleteuser.sh",
                 "{% raw %}${NOMAD_META_USERNAME}{% endraw %}"
                 ]
       }
@@ -44,20 +44,18 @@ job "liquid-createuser" {
       template {
         left_delimiter = "DELIMITER_L"
         right_delimiter = "DELIMITER_R"
-        destination = "local/create_rocket_user.py"
+        destination = "local/delete_rocket_user.py"
         perms = "755"
         data = <<-EOF
-{% include 'scripts/create_rocket_user.py' %}
+{% include 'scripts/delete_rocket_user.py' %}
         EOF
       }
 
       template {
-        left_delimiter = "DELIMITER_L"
-        right_delimiter = "DELIMITER_R"
-        destination = "local/createuser.sh"
+        destination = "local/deleteuser.sh"
         perms = "755"
         data = <<-EOF
-        {% include 'scripts/createuser.sh' %}
+{% include 'scripts/deleteuser.sh' %}
         EOF
       }
     }
