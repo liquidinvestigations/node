@@ -70,13 +70,11 @@ job "codimd" {
       }
       template {
         data = <<-EOF
-          {{- range service "codimd-pg" }}
-            CMD_DB_URL = "postgresql://codimd:
-            {{- with secret "liquid/codimd/codimd.postgres" -}}
-              {{.Data.secret_key }}
-            {{- end -}}
-            @{{.Address}}:{{.Port}}/codimd"
-          {{- end }}
+          CMD_DB_URL = "postgresql://codimd:
+          {{- with secret "liquid/codimd/codimd.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{ env "attr.unique.network.ip-address" }}:${config.port_codimd_pg}/codimd"
         EOF
         destination = "local/codimd-pg.env"
         env = true
@@ -90,10 +88,8 @@ job "codimd" {
         CMD_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR = "name"
         CMD_OAUTH2_USER_PROFILE_EMAIL_ATTR = "email"
 
-        {{- range service "core" }}
-          CMD_OAUTH2_TOKEN_URL = "http://{{.Address}}:{{.Port}}/o/token/"
-          CMD_OAUTH2_USER_PROFILE_URL = "http://{{.Address}}:{{.Port}}/accounts/profile"
-        {{- end }}
+        CMD_OAUTH2_TOKEN_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
+        CMD_OAUTH2_USER_PROFILE_URL =  "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile"
         {{- with secret "liquid/codimd/app.auth.oauth2" }}
           CMD_OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
           CMD_OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
@@ -111,6 +107,7 @@ job "codimd" {
       service {
         name = "codimd-app"
         port = "http"
+        tags = ["fabio-:${config.port_codimd} proto=tcp"]
         check {
           name = "tcp"
           initial_status = "critical"

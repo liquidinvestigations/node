@@ -142,6 +142,7 @@ job "zipkin" {
       service {
         name = "zipkin"
         port = "http"
+        tags = ["fabio-:${config.port_zipkin} proto=tcp"]
         check {
           name = "zipkin"
           initial_status = "critical"

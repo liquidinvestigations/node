@@ -330,6 +330,52 @@ class Configuration:
             (set(self.ini['versions']) if 'versions' in self.ini.sections() else set())
         self.images = set(self._image(c) for c in self.image_keys)
 
+        self.PORT_MAP = {
+            'lb': self.ini.getint('ports', 'lb', fallback=9990),
+            'blobs_minio': self.ini.getint('ports', 'blobs_minio', fallback=9991),
+            'collections_minio': self.ini.getint('ports', 'collections_minio', fallback=9992),
+            'authproxy_redis': self.ini.getint('ports', 'authproxy_redis', fallback=9993),
+            'drone_ci': self.ini.getint('ports', 'drone_ci', fallback=9997),
+            'snoop_pg': self.ini.getint('ports', 'snoop_pg', fallback=9981),
+            'snoop_pg_pool': self.ini.getint('ports', 'snoop_pg_pool', fallback=9982),
+            'search_pg': self.ini.getint('ports', 'search_pg', fallback=9983),
+            'snoop_rabbitmq': self.ini.getint('ports', 'snoop_rabbitmq', fallback=9984),
+            'search_rabbitmq': self.ini.getint('ports', 'search_rabbitmq', fallback=9985),
+            'rocketchat_mongo': self.ini.getint('ports', 'rocketchat_mongo', fallback=9986),
+            'nextcloud_maria': self.ini.getint('ports', 'nextcloud_maria', fallback=9987),
+            'codimd_pg': self.ini.getint('ports', 'codimd_pg', fallback=9988),
+            'codimd': self.ini.getint('ports', 'codimd', fallback=9989),
+            'nextcloud': self.ini.getint('ports', 'nextcloud', fallback=9996),
+            'hoover': self.ini.getint('ports', 'hoover', fallback=9994),
+            'dokuwiki': self.ini.getint('ports', 'dokuwiki', fallback=9995),
+            'rocketchat': self.ini.getint('ports', 'rocketchat', fallback=9980),
+            'hoover_es_master_transport': self.ini.getint('ports',
+                                                          'hoover_es_master_transport',
+                                                          fallback=9979),
+            'zipkin': self.ini.getint('ports', 'zipkin', fallback=9978),
+        }
+
+        self.port_lb = self.PORT_MAP['lb']
+        self.port_blobs_minio = self.PORT_MAP['blobs_minio']
+        self.port_collections_minio = self.PORT_MAP['collections_minio']
+        self.port_authproxy_redis = self.PORT_MAP['authproxy_redis']
+        self.port_drone_ci = self.PORT_MAP['drone_ci']
+        self.port_snoop_pg = self.PORT_MAP['snoop_pg']
+        self.port_snoop_pg_pool = self.PORT_MAP['snoop_pg_pool']
+        self.port_search_pg = self.PORT_MAP['search_pg']
+        self.port_snoop_rabbitmq = self.PORT_MAP['snoop_rabbitmq']
+        self.port_search_rabbitmq = self.PORT_MAP['search_rabbitmq']
+        self.port_rocketchat_mongo = self.PORT_MAP['rocketchat_mongo']
+        self.port_nextcloud_maria = self.PORT_MAP['nextcloud_maria']
+        self.port_codimd_pg = self.PORT_MAP['codimd_pg']
+        self.port_codimd = self.PORT_MAP['codimd']
+        self.port_nextcloud = self.PORT_MAP['nextcloud']
+        self.port_hoover = self.PORT_MAP['hoover']
+        self.port_dokuwiki = self.PORT_MAP['dokuwiki']
+        self.port_rocketchat = self.PORT_MAP['rocketchat']
+        self.port_hoover_es_master_transport = self.PORT_MAP['hoover_es_master_transport']
+        self.port_zipkin = self.PORT_MAP['zipkin']
+
         self.snoop_collections = []
 
         # load collections and extra jobs
@@ -512,6 +558,27 @@ class Configuration:
             return self.ci_enabled
         return app_name in Configuration.CORE_APPS or \
             self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
+
+    def ports_proxy_addr(self):
+        res = ''
+        for port in self.PORT_MAP.items():
+            if port[0] != 'lb':
+                res += f':{port[1]};proto=tcp,'
+            else:
+                res += f':{port[1]};proto=http,'
+        return res
+
+    def ports_resources_network(self):
+        res = ''
+        for port in self.PORT_MAP.items():
+            res += f'port "{port[0]}" {{ static =  {port[1]} }}\n'
+        return res
+
+    def port_map(self):
+        res = ''
+        for port in self.PORT_MAP.items():
+            res += f'{port[0]} = {port[1]}\n'
+        return res
 
     @classmethod
     def _validate_collection_name(cls, name):

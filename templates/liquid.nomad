@@ -54,7 +54,7 @@ job "liquid" {
           LIQUID_2FA = "${config.liquid_2fa}"
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
           NOMAD_URL = "${config.nomad_url}"
-          AUTHPROXY_REDIS_URL = "redis://{{ env "attr.unique.network.ip-address" }}:9993/"
+          AUTHPROXY_REDIS_URL = "redis://{{ env "attr.unique.network.ip-address" }}:${config.port_authproxy_redis}/"
         EOF
         destination = "local/docker.env"
         env = true
@@ -92,6 +92,7 @@ job "liquid" {
         tags = [
           "traefik.enable=true",
           "traefik.frontend.rule=Host:${liquid_domain}",
+          "fabio-/_core strip=/_core",
         ]
         check {
           name = "http"

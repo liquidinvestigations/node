@@ -45,6 +45,7 @@ job "rocketchat-deps" {
       service {
         name = "rocketchat-mongo"
         port = "mongo"
+        tags = ["fabio-:${config.port_rocketchat_mongo} proto=tcp"]
         check {
           name = "tcp"
           initial_status = "critical"

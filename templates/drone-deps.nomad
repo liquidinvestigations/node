@@ -59,7 +59,7 @@ job "drone-deps" {
       service {
         name = "drone-secret"
         port = "http"
-        tags = ["fabio-:9997 proto=tcp"]
+        tags = ["fabio-:${config.port_drone_ci} proto=tcp"]
         check {
           name = "tcp"
           initial_status = "critical"

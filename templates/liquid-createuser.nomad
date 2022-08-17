@@ -30,9 +30,7 @@ job "liquid-createuser" {
 
       template {
         data = <<-EOF
-        {{- range service "rocketchat-app" }}
-            ROCKETCHAT_URL = 'http://{{.Address}}:{{.Port}}/'
-        {{- end }}
+        ROCKETCHAT_URL = 'http://{{ env "attr.unique.network.ip-address" }}:${config.port_rocketchat}/'
         {{- with secret "liquid/rocketchat/adminuser" }}
             ROCKETCHAT_SECRET = {{.Data.pass }}
         {{- end }}

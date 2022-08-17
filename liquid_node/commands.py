@@ -495,7 +495,7 @@ def remove_last_es_data_node():
     es_node_name = 'data-' + str(config.elasticsearch_data_node_count - 1)
     data_dir = config.liquid_volumes + "/hoover/es/" + es_node_name
 
-    es = JsonApi(f'http://{nomad.get_address()}:9990/_es')
+    es = JsonApi(f'http://{nomad.get_address()}:{config.port_lb}/_es')
     es_health_url = '/_cluster/health?wait_for_status=yellow&timeout=60s&wait_for_no_relocating_shards=true&wait_for_no_initializing_shards=true&wait_for_active_shards=all'  # noqa: E501
     assert not es.get(es_health_url)['timed_out'], 'es not in a healthy state yet'
 

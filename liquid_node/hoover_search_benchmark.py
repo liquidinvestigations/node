@@ -9,6 +9,7 @@ import matplotlib.ticker as ticker
 
 from .jsonapi import JsonApi
 from .nomad import nomad
+from .configuration import config
 
 
 log = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ ALL_WORDS = None
 ALL_REQUESTS = None
 ES_COLLECTION_SIZE = None
 ES_COLLECTION_PROB = None
+HTTP_PORT = config.port_lb
 
 
 def _init_words():
@@ -53,7 +55,7 @@ def _init_collection_stats():
         return p
 
     if ES_COLLECTION_SIZE is None:
-        es = JsonApi(f'http://{nomad.get_address()}:9990/_es')
+        es = JsonApi(f'http://{nomad.get_address()}:{HTTP_PORT}/_es')
         indices = es.get('/_stats/store')['indices']
         ES_COLLECTION_SIZE = {k: indices[k]['total']['store']['size_in_bytes']
                               for k in indices if not k.startswith('.')}
@@ -73,7 +75,7 @@ def get_query():
 
 
 def do_single_search(collections, word):
-    es = JsonApi(f'http://{nomad.get_address()}:9990/_es')
+    es = JsonApi(f'http://{nomad.get_address()}:{HTTP_PORT}/_es')
     col_str = ",".join(collections)
 
     url = ('/'

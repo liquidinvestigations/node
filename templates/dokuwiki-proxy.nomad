@@ -9,7 +9,7 @@ job "dokuwiki-proxy" {
   ${- authproxy_group(
       'dokuwiki',
       host='dokuwiki.' + liquid_domain,
-      upstream='dokuwiki-php',
+      upstream_port=config.port_dokuwiki,
       group='dokuwiki',
       redis_id=2
     ) }

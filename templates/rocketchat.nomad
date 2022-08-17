@@ -28,10 +28,8 @@ job "rocketchat" {
       template {
         # WARNING: no empty lines, comments or anything else in this line. parsing and overwriting is done in script below...
         data = <<-EOF
-          {{- range service "rocketchat-mongo" }}
-            MONGO_URL=mongodb://{{.Address}}:{{.Port}}/meteor
-            MONGO_OPLOG_URL=mongodb://{{.Address}}:{{.Port}}/local?replSet=rs01
-          {{- end }}
+          MONGO_URL=mongodb://{{ env "attr.unique.network.ip-address" }}:${config.port_rocketchat_mongo}/meteor
+          MONGO_OPLOG_URL=mongodb://{{ env "attr.unique.network.ip-address" }}:${config.port_rocketchat_mongo}/local?replSet=rs01
           ROOT_URL=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
           {{- with secret "liquid/rocketchat/adminuser" }}
             ADMIN_USERNAME={{.Data.username | toJSON }}
@@ -60,10 +58,8 @@ job "rocketchat" {
           OVERWRITE_SETTING_Site_Url=${config.liquid_http_protocol}://rocketchat.${config.liquid_domain}
 
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid=true
-          {{- range service "core" }}
-            OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_path=http://{{.Address}}:{{.Port}}/o/token/
-            OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-identity_path=http://{{.Address}}:{{.Port}}/accounts/profile
-          {{- end }}
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-token_path=http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/
+          OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-identity_path=http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-authorize_path=${config.liquid_core_url}/o/authorize/
           OVERWRITE_SETTING_Accounts_OAuth_Custom-Liquid-scope=read
           {{- with secret "liquid/rocketchat/app.oauth2" }}
@@ -111,7 +107,7 @@ job "rocketchat" {
             OVERWRITE_SETTING_Push_production=false
             OVERWRITE_SETTING_Register_Server=false
             OVERWRITE_SETTING_Cloud_Service_Agree_PrivacyTerms=false
-          {% endif %}
+          {% endif %} 
           OVERWRITE_SETTING_UI_Allow_room_names_with_special_chars=true
           OVERWRITE_SETTING_UserData_EnableDownload=false
           OVERWRITE_SETTING_Document_Domain=${config.liquid_domain}
@@ -175,6 +171,7 @@ job "rocketchat" {
         tags = [
           "traefik.enable=true",
           "traefik.frontend.rule=Host:${'rocketchat.' + liquid_domain}",
+          "fabio-:${config.port_rocketchat} proto=tcp"
         ]
         check {
           name = "http"

@@ -117,6 +117,7 @@ job "hoover-deps" {
       service {
         name = "hoover-es-master-transport"
         port = "transport"
+        tags = ["fabio-:${config.port_hoover_es_master_transport} proto=tcp"]
         check {
           name = "transport"
           initial_status = "critical"
@@ -170,7 +171,7 @@ job "hoover-deps" {
       }
       template {
         data = <<-EOF
-          discovery.zen.ping.unicast.hosts = {{- range service "hoover-es-master-transport" -}}"{{.Address}}:{{.Port}}"{{- end -}}
+          discovery.zen.ping.unicast.hosts = "{{ env "attr.unique.network.ip-address" }}:${config.port_hoover_es_master_transport}"
           EOF
         destination = "local/es-master.env"
         env = true
@@ -273,6 +274,7 @@ job "hoover-deps" {
       service {
         name = "search-pg"
         port = "pg"
+        tags = ["fabio-:${config.port_search_pg} proto=tcp"]
         check {
           name = "pg_isready"
           type = "script"
@@ -726,6 +728,15 @@ job "hoover-deps" {
       service {
         name = "hoover-search-rabbitmq"
         port = "amqp"
+        tags = ["fabio-:${config.port_search_rabbitmq} proto=tcp"]
+        check {
+          name = "check-script"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "rabbitmq-diagnostics -q ping"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
 
       service {
@@ -822,6 +833,15 @@ job "hoover-deps" {
       service {
         name = "hoover-snoop-rabbitmq"
         port = "amqp"
+        tags = ["fabio-:${config.port_snoop_rabbitmq} proto=tcp"]
+        check {
+          name = "check-script"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "rabbitmq-diagnostics -q ping"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
 
       service {
@@ -960,6 +980,8 @@ job "hoover-deps" {
       service {
         name = "snoop-pg"
         port = "pg"
+        tags = ["fabio-:${config.port_snoop_pg} proto=tcp"]
+
         check {
           name = "pg_isready"
           type = "script"
@@ -1037,11 +1059,9 @@ job "hoover-deps" {
           replication_mode = false
           load_balance_mode = false
           backend_clustering_mode = 'raw'
-          {{ range service "snoop-pg" }}
-          backend_hostname0 = '{{.Address}}'
-          backend_port0 = {{.Port}}
+          backend_hostname0 = '{{ env "attr.unique.network.ip-address" }}'
+          backend_port0 = ${config.port_snoop_pg}
           backend_weight0 = 1
-          {{ end }}
         EOF
         destination = "local/pgpool.conf"
         env = false
@@ -1049,9 +1069,7 @@ job "hoover-deps" {
 
       template {
         data = <<EOF
-          {{- range service "snoop-pg" }}
-            PGPOOL_BACKEND_NODES = "0:{{.Address}}:{{.Port}}"
-          {{- end }}
+            PGPOOL_BACKEND_NODES = "0:{{ env "attr.unique-network.ip-address" }}:${config.port_snoop_pg}"
         EOF
         destination = "local/postgres-pool.env"
         env = true
@@ -1069,6 +1087,7 @@ job "hoover-deps" {
       service {
         name = "snoop-pg-pool"
         port = "pg"
+        tags = ["fabio-:${config.port_snoop_pg_pool} proto=tcp"]
 
         check {
           name = "tcp"
@@ -1393,7 +1412,7 @@ job "hoover-deps" {
       service {
         name = "hoover-minio-s3-blobs"
         port = "s3"
-        tags = ["fabio-:9991 proto=tcp"]
+        tags = ["fabio-:${config.port_blobs_minio} proto=tcp"]
 
         check {
           name = "tcp"
@@ -1482,7 +1501,7 @@ job "hoover-deps" {
       service {
         name = "hoover-minio-s3-collections"
         port = "s3"
-        tags = ["fabio-:9992 proto=tcp"]
+        tags = ["fabio-:${config.port_collections_minio} proto=tcp"]
 
         check {
           name = "tcp"

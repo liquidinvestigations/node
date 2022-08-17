@@ -61,6 +61,7 @@ job "nextcloud-deps" {
       service {
         name = "nextcloud-maria"
         port = "maria"
+        tags = ["fabio-:${config.port_nextcloud_maria} proto=tcp"]
         check {
           name = "tcp"
           initial_status = "critical"

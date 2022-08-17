@@ -69,6 +69,7 @@ job "codimd-deps" {
       service {
         name = "codimd-pg"
         port = "pg"
+        tags = ["fabio-:${config.port_codimd_pg} proto=tcp"]
         check {
           name = "pg_isready"
           type = "script"

@@ -3,42 +3,42 @@
 {%- macro snoop_dependency_envs() %}
       env {
         SNOOP_URL_PREFIX = "snoop/"
-        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
-        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_tika/"
-        SNOOP_BLOBS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9991"
-        SNOOP_COLLECTIONS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9992"
-        SNOOP_BROKEN_FILENAME_SERVICE = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_broken_filename_service"
+        SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
+        SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_tika/"
+        SNOOP_BLOBS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_blobs_minio}"
+        SNOOP_COLLECTIONS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_collections_minio}"
+        SNOOP_BROKEN_FILENAME_SERVICE = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_snoop_broken_filename_service"
 
         S3FS_LOGGING_LEVEL="DEBUG"
 
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
-          SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_nlp"
+          SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_nlp"
           SNOOP_EXTRACT_ENTITIES = "${config.snoop_nlp_entity_extraction_enabled}"
           SNOOP_DETECT_LANGUAGES = "${config.snoop_nlp_language_detection_enabled}"
         {% endif %}
 
         {% if config.snoop_translation_enabled %}
-          SNOOP_TRANSLATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/libre_translate_batch"
+          SNOOP_TRANSLATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/libre_translate_batch"
           SNOOP_TRANSLATION_TARGET_LANGUAGES = "${config.snoop_translation_target_languages}"
           SNOOP_TRANSLATION_TEXT_LENGTH_LIMIT = "${config.snoop_translation_text_length_limit}"
         {% endif %}
 
-        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_snoop_rabbit/"
+        SNOOP_RABBITMQ_HTTP_URL = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_snoop_rabbit/"
 
         {% if config.snoop_thumbnail_generator_enabled %}
-          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_thumbnail-generator/"
+          SNOOP_THUMBNAIL_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_thumbnail-generator/"
         {% endif %}
 
         {% if config.snoop_pdf_preview_enabled %}
-          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_pdf-preview/"
+          SNOOP_PDF_PREVIEW_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_pdf-preview/"
         {% endif %}
 
         {% if config.snoop_image_classification_object_detection_enabled %}
-          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/detect-objects"
+          SNOOP_OBJECT_DETECTION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_image-classification/detect-objects"
         {% endif %}
 
         {% if config.snoop_image_classification_classify_images_enabled %}
-          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_image-classification/classify-image"
+          SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_image-classification/classify-image"
         {% endif %}
 
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
@@ -57,19 +57,13 @@
         {{- if keyExists "liquid_debug" }}
           DEBUG = {{key "liquid_debug" | toJSON }}
         {{- end }}
-        {{- range service "snoop-pg-pool" }}
-          SNOOP_DB = "postgresql://snoop:
-          {{- with secret "liquid/hoover/snoop.postgres" -}}
-            {{.Data.secret_key }}
-          {{- end -}}
-          @{{.Address}}:{{.Port}}/snoop"
-        {{- end }}
-        {{- range service "hoover-snoop-rabbitmq" }}
-          SNOOP_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-        {{- end }}
-        {{ range service "zipkin" }}
-          TRACING_URL = "http://{{.Address}}:{{.Port}}"
-        {{- end }}
+        SNOOP_DB = "postgresql://snoop:
+        {{- with secret "liquid/hoover/snoop.postgres" -}}
+          {{.Data.secret_key }}
+        {{- end -}}
+        @{{env "attr.unique.network.ip-address" }}:${config.port_snoop_pg_pool}/snoop"
+        SNOOP_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_snoop_rabbitmq}"
+        TRACING_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_zipkin}"
 
 
           {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
@@ -172,9 +166,9 @@ job "hoover" {
       }
 
       env {
-        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
+        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/snoop"
+        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
       }
 
@@ -186,13 +180,11 @@ job "hoover" {
           {{- with secret "liquid/hoover/search.django" }}
             SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- range service "search-pg" }}
-            HOOVER_DB = "postgresql://search:
-            {{- with secret "liquid/hoover/search.postgres" -}}
-              {{.Data.secret_key }}
-            {{- end -}}
-            @{{.Address}}:{{.Port}}/search"
-          {{- end }}
+          HOOVER_DB = "postgresql://search:
+          {{- with secret "liquid/hoover/search.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{env "attr.unique.network.ip-address" }}:${config.port_search_pg}/search"
 
           #HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
           HOOVER_HOSTNAME = "*"
@@ -207,9 +199,7 @@ job "hoover" {
           {%- endif %}
           HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
-          {{- range service "hoover-search-rabbitmq" }}
-            SEARCH_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-          {{- end }}
+          SEARCH_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
         EOF
         destination = "local/hoover.env"
         env = true
