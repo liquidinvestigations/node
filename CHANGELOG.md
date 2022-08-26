@@ -6,8 +6,8 @@
 # v0.20.1 (2022-08-26)
 
 ### Bug Fixes
-- Fixed Hoover bug where OCR would fail. 
-- Fixed Hoover bug where some files would produce errors if they had an unusual russian encoding.
+- Fixed Hoover bug where OCR processing would sometimes fail. 
+- Fixed Hoover bug where some files would produce errors if they had an unusual Russian encoding.
 
 ---
 # v0.20.0 (2022-08-17)
