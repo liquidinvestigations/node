@@ -414,7 +414,7 @@ class Configuration:
                     'disable_archive_mounting': self.ini.getboolean(
                         key,
                         'disable_archive_mounting',
-                        fallback=False,
+                        fallback=True,
                     ),
                 })
 
