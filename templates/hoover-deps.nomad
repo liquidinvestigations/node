@@ -1029,6 +1029,7 @@ job "hoover-deps" {
           child_life_time = 186400
           client_idle_limit = 186400
           connection_life_time = 186400
+          pid_file_name = '/tmp/pgpool.pid'
 
           connection_cache = true
           listen_addresses = '*'
