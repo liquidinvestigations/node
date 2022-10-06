@@ -363,7 +363,7 @@ job "hoover-nginx" {
           {{- with secret "liquid/hoover/search.postgres" -}}
             {{.Data.secret_key }}
           {{- end -}}
-          @{{env "attr.unique.network.ip-address" }}:${config.port_snoop_pg}/search"
+          @{{env "attr.unique.network.ip-address" }}:${config.port_search_pg}/search"
 
           #HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
           HOOVER_HOSTNAME = "*"
