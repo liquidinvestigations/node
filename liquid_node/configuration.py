@@ -560,6 +560,12 @@ class Configuration:
             self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
 
     def ports_proxy_addr(self):
+        '''Creates a string from the ports for all services with the protocol.
+
+        That string is used in the "system-deps" template to specify proxy.addr env
+        for the fabio load balancer.
+        It looks like ":9990;proto=http,:9991;proto=tcp,",
+        '''
         res = ''
         for port in self.PORT_MAP.items():
             if port[0] != 'lb':
@@ -569,12 +575,28 @@ class Configuration:
         return res
 
     def ports_resources_network(self):
+        '''Creates a string from all ports for services with their names.
+
+        That string is used in the "system-deps" template to specify ports in the network stanza
+        of the fabio job.
+        It looks like this:
+        port "name" { static = 9990 }
+        port "name" { static = 9991 }
+        '''
         res = ''
         for port in self.PORT_MAP.items():
             res += f'port "{port[0]}" {{ static =  {port[1]} }}\n'
         return res
 
     def port_map(self):
+        '''Creates a string from all ports for services with their names.
+
+        That string is used in the "system-deps" template to specify the port map
+        in the config stanza of the fabio job.
+        It looks like this:
+        name = 9990
+        name = 9991
+        '''
         res = ''
         for port in self.PORT_MAP.items():
             res += f'{port[0]} = {port[1]}\n'
