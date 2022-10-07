@@ -1,11 +1,13 @@
 import sys
 from time import time, sleep
 from collections import defaultdict
+from contextlib import closing
 import click
 import os
 import logging
 import json
 import multiprocessing
+import socket
 
 from .nomad import nomad
 from .configuration import config
@@ -84,6 +86,17 @@ def check_resources():
         if req[key] > avail[key]:
             log.error('not enough %s: %s / %s', key, req[key], avail[key])
             sys.exit(1)
+
+
+def check_port(ip, port):
+    '''Checks if a given port for an IP is open.'''
+    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+        sock.settimeout(2)
+        result = sock.connect_ex((ip, port))
+        if result == 0:
+            return True
+        else:
+            return False
 
 
 @liquid_commands.command()
@@ -404,6 +417,15 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
         if stage == 0:
             if secrets:
                 populate_secrets_post(core_auth_apps)
+            ports = list(config.PORT_MAP.items())
+            # get ip from nomad url
+            ip = config.nomad_url.split('/')[2].split(':')[0]
+            log.info('Checking ports for load balancer...')
+            # check if all specified ports (in the config) are open
+            for port in ports:
+                if not check_port(ip, port[1]):
+                    log.error(f'Fabio port {port[1]} ({port[0]}) is not open! Check for possible conflicts.')
+            log.info('Check done!')
 
         if stage == 1:
             # run the set password script
