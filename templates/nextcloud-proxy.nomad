@@ -8,7 +8,7 @@ job "nextcloud-proxy" {
   ${- authproxy_group(
       'nextcloud',
       host='nextcloud.' + liquid_domain,
-      upstream='nextcloud-app',
+      upstream_port=config.port_nextcloud,
       group='nextcloud',
       redis_id=4
     ) }

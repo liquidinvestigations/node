@@ -51,6 +51,7 @@ job "dokuwiki" {
       service {
         name = "dokuwiki-php"
         port = "php"
+        tags = ["fabio-:${config.port_dokuwiki} proto=tcp"]
         check {
           name = "http"
           initial_status = "critical"

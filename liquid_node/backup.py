@@ -18,6 +18,7 @@ SNOOP_ES_ALLOC = "hoover-deps:es"
 SNOOP_API_ALLOC = "hoover:snoop"
 SNOOP_BLOBS_DATA_ALLOC = "hoover-deps:minio-blobs"
 SNOOP_ORIGINAL_DATA_ALLOC = "hoover-deps:minio-collections"
+HTTP_PORT = config.port_lb
 
 
 @click.group()
@@ -383,7 +384,7 @@ def is_index_available(es_client, name):
 def backup_es(dest, name, es_url_suffix, es_alloc_id):
     tmp_file = dest / "es.tgz.tmp"
     log.info(f"Dumping collection {name} es snapshot to {tmp_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990{es_url_suffix}")
+    es = JsonApi(f"http://{nomad.get_address()}:{HTTP_PORT}{es_url_suffix}")
 
     # wait until the index is available
     log.info(f'Waiting until shards for index "{name}" are all available.')
@@ -436,7 +437,7 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
         log.warn(f"No es backup at {src_file}, skipping es restore")
         return
     log.info(f"Restoring {name} es snapshot from {src_file}")
-    es = JsonApi(f"http://{nomad.get_address()}:9990{es_url_suffix}")
+    es = JsonApi(f"http://{nomad.get_address()}:{HTTP_PORT}{es_url_suffix}")
 
     try:
         # create snapshot repo

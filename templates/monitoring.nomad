@@ -47,7 +47,7 @@ job "monitoring" {
         image = "prom/prometheus:v2.36.0"
         args = [
           "--web.route-prefix=/prometheus",
-          "--web.external-url=http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/prometheus",
+          "--web.external-url=http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/prometheus",
           "--config.file=/etc/prometheus/prometheus.yml",
           "--storage.tsdb.retention.time=15d",
          ]
@@ -108,7 +108,7 @@ job "monitoring" {
 
         GF_SECURITY_DISABLE_GRAVATAR = "true"
 
-        GF_SERVER_ROOT_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/grafana"
+        GF_SERVER_ROOT_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/grafana"
         GF_SERVER_SERVE_FROM_SUB_PATH = "true"
         GF_SERVER_ENABLE_GZIP = "true"
 
@@ -154,7 +154,7 @@ job "monitoring" {
             "name": "Prometheus",
             "readOnly": false,
             "type": "prometheus",
-            "url": "http://{{env "attr.unique.network.ip-address"}}:9990/prometheus",
+            "url": "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}/prometheus",
             "version": 2,
             "withCredentials": false
           }
@@ -171,7 +171,7 @@ job "monitoring" {
             "readOnly": false,
             "type": "elasticsearch",
             "database": "[.monitoring-es-6-]YYYY.MM.DD",
-            "url": "http://{{env "attr.unique.network.ip-address"}}:9990/_es",
+            "url": "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}/_es",
             "version": 2,
             "withCredentials": false
           }

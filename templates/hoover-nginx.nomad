@@ -86,7 +86,7 @@ job "hoover-nginx" {
           limit_rate 66m;
 
           upstream fabio {
-            server {{env "attr.unique.network.ip-address"}}:9990;
+            server {{env "attr.unique.network.ip-address"}}:${config.port_lb};
           }
 
           server {
@@ -160,6 +160,7 @@ job "hoover-nginx" {
       service {
         name = "hoover-nginx"
         port = "http"
+        tags = ["fabio-:${config.port_hoover} proto=tcp"]
         check {
           name = "ping"
           initial_status = "critical"
@@ -236,7 +237,7 @@ job "hoover-nginx" {
 
       template {
         data = <<-EOF
-          API_URL = "http://{{env "attr.unique.network.ip-address"}}:9990/hoover-search"
+          API_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}/hoover-search"
         EOF
         env = true
         destination = "local/.env.local"
@@ -345,9 +346,9 @@ job "hoover-nginx" {
       }
 
       env {
-        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/_es"
+        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
-        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:9990/snoop"
+        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
       }
 
       template {
@@ -358,13 +359,11 @@ job "hoover-nginx" {
           {{- with secret "liquid/hoover/search.django" }}
             SECRET_KEY = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- range service "search-pg" }}
-            HOOVER_DB = "postgresql://search:
-            {{- with secret "liquid/hoover/search.postgres" -}}
-              {{.Data.secret_key }}
-            {{- end -}}
-            @{{.Address}}:{{.Port}}/search"
-          {{- end }}
+          HOOVER_DB = "postgresql://search:
+          {{- with secret "liquid/hoover/search.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{env "attr.unique.network.ip-address" }}:${config.port_search_pg}/search"
 
           #HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
           HOOVER_HOSTNAME = "*"
@@ -379,9 +378,7 @@ job "hoover-nginx" {
           {%- endif %}
           HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
-          {{- range service "hoover-search-rabbitmq" }}
-            SEARCH_AMQP_URL = "amqp://{{.Address}}:{{.Port}}"
-          {{- end }}
+          SEARCH_AMQP_URL = "amqp://{{ env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
         EOF
         destination = "local/hoover.env"
         env = true

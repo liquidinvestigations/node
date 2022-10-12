@@ -89,14 +89,7 @@ job "system-deps" {
         ]
         port_map {
           ui = 8000
-          lb = 9990
-          extra1 = 9991
-          extra2 = 9992
-          extra3 = 9993
-          extra4 = 9994
-          extra5 = 9995
-          extra6 = 9996
-          extra7 = 9997
+          ${config.port_map()}
         }
         memory_hard_limit = 3000
       }
@@ -112,7 +105,7 @@ job "system-deps" {
 
         ui.addr = :8000
         ui.color = green
-        proxy.addr = {% for i in range(1, 7)%}:999${i};proto=tcp,{% endfor %}:9990;proto=http
+        proxy.addr = ${config.ports_proxy_addr()}
         EOH
       }
 
@@ -121,14 +114,7 @@ job "system-deps" {
         memory = 256
         network {
           mbits = 10
-          port "lb" { static = 9990 }
-          port "extra1" { static = 9991 }
-          port "extra2" { static = 9992 }
-          port "extra3" { static = 9993 }
-          port "extra4" { static = 9994 }
-          port "extra5" { static = 9995 }
-          port "extra6" { static = 9996 }
-          port "extra7" { static = 9997 }
+          ${config.ports_resources_network()}
           port "ui" {}
         }
       }

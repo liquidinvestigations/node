@@ -61,9 +61,7 @@ job "nextcloud" {
         {{- with secret "liquid/nextcloud/nextcloud.admin" }}
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
-        {{- range service "nextcloud-maria" }}
-          MYSQL_HOST = "{{.Address}}:{{.Port}}"
-        {{- end }}
+        MYSQL_HOST = "{{ env "attr.unique.network.ip-address" }}:${config.port_nextcloud_maria}"
         MYSQL_DB = "nextcloud"
         MYSQL_USER = "nextcloud"
         {{- with secret "liquid/nextcloud/nextcloud.maria" }}
@@ -87,6 +85,7 @@ job "nextcloud" {
       service {
         name = "nextcloud-app"
         port = "http"
+        tags = ["fabio-:${config.port_nextcloud} proto=tcp"]
         check {
           name = "http"
           initial_status = "critical"

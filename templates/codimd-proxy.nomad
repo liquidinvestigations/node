@@ -9,7 +9,7 @@ job "codimd-proxy" {
   ${- authproxy_group(
       'codimd',
       host='codimd.' + liquid_domain,
-      upstream='codimd-app',
+      upstream_port=config.port_codimd,
       group='codimd',
       redis_id=3
     ) }

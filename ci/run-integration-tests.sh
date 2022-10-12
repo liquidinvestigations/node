@@ -49,7 +49,8 @@ function install {
 
   (
     cd $CLUSTER
-    devnull "./bin/docker.sh --rm"
+    devnull "git pull"
+    devnull "./bin/docker.sh --rm --pull"
   )
 
   echo "INSTALL DONE"
