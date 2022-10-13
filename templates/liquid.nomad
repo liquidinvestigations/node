@@ -54,6 +54,14 @@ job "liquid" {
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
           NOMAD_URL = "${config.nomad_url}"
           AUTHPROXY_REDIS_URL = "redis://{{ env "attr.unique.network.ip-address" }}:${config.port_authproxy_redis}/"
+
+          {% if config.enable_superuser_dashboards %}
+          LIQUID_ENABLE_DASHBOARDS = "true"
+          LIQUID_DASHBOARDS_PROXY_BASE_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}"
+          LIQUID_DASHBOARDS_PROXY_NOMAD_URL = "http://{{env "attr.unique.network.ip-address"}}:4646"
+          LIQUID_DASHBOARDS_PROXY_CONSUL_URL = "http://{{env "attr.unique.network.ip-address"}}:8500"
+          {% endif %}
+
         EOF
         destination = "local/docker.env"
         env = true

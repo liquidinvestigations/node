@@ -88,6 +88,8 @@ class Configuration:
             self.versions_ini.read(self.root / 'versions.ini')
 
         self.version_track = self.ini.get('liquid', 'version_track', fallback='production')
+        self.enable_superuser_dashboards = self.ini.getboolean(
+            'liquid', 'enable_superuser_dashboards', fallback=False)
         self.track_ini = configparser.ConfigParser()
         assert (self.root / (self.version_track + '-versions.ini')).is_file(), \
             'invalid version_track'
