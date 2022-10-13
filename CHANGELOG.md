@@ -2,11 +2,19 @@
 
 ## Unreleased
 
+### New Features
+- Admin: Home page optionally proxies dashboards for Grafana, Nomad, Snoop, as well as search and processing queues. Only available to Admins with SuperUser access permission. To enable, [set `[liquid] enable_superuser_dashboards = true`](https://github.com/liquidinvestigations/node/blob/master/examples/liquid.ini#L172-L174) in `liquid.ini`.
+
+### Bug Fixes
+- Fixed bug with archive mounting, where large amounts of storage would be used by logs. Disabled the archive mounting feature by default. Added warnings to switch off configuration related to archive mounting.
+- Fixed bug where long searches would sometimes fail to show aggregations.
+
+
 ---
 # v0.20.1 (2022-08-26)
 
 ### Bug Fixes
-- Fixed Hoover bug where OCR processing would sometimes fail. 
+- Fixed Hoover bug where OCR processing would sometimes fail.
 - Fixed Hoover bug where some files would produce errors if they had an unusual Russian encoding.
 
 ---
@@ -16,7 +24,7 @@
 - Hoover script for batch importing of tags from a CSV file.
 - Hoover script for checking for data loss and deleting orphaned objects.
 
-### Improvement
+### Improvements
 - Admin: feature 'delete users' also deletes them in all apps.
 
 ### Bug Fixes
