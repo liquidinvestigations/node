@@ -214,7 +214,7 @@ job "hoover-nginx" {
           liquid_task = "hoover-ui"
         }
         args = ["sh", "/local/startup.sh"]
-        memory_hard_limit = 3000
+        memory_hard_limit = 6000
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_ui_src_git}" }
@@ -263,7 +263,7 @@ job "hoover-nginx" {
       }
 
       resources {
-        memory = 900
+        memory = 2000
         network {
           mbits = 1
           port "http" {}
