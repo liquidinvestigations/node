@@ -205,7 +205,6 @@ job "hoover-nginx" {
           ${hoover_ui_src_repo}
           ${hoover_ui_pages_repo}
           ${hoover_ui_styles_repo}
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover-ui/build:/opt/hoover/ui/build",
         ]
         port_map {
           http = 8000
@@ -224,6 +223,7 @@ job "hoover-nginx" {
         #!/bin/sh
         set -ex
         cp -v /local/.env.local .
+        npm run build
 
         {% if config.liquid_debug %}
           exec npm run prod #dev
