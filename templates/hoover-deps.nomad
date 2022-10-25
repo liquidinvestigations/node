@@ -305,7 +305,8 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "apache/tika:1.28.5-full"
+        # image = "apache/tika:1.28.5-full"  # bad:  Failed to start thread "VM Thread" - pthread_create failed (EPERM)
+        image = "logicalspark/docker-tikaserver:1.28.4"
         args = ["-spawnChild", "-maxFiles", "500"]
         port_map {
           tika = 9998
