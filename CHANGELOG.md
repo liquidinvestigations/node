@@ -2,12 +2,20 @@
 
 ## Unreleased
 
+- -
+
+
+---
+## v0.20.3 (2022-10-25)
+
 ### New Features
 - Admin: Home page optionally proxies dashboards for Grafana, Nomad, Snoop, as well as search and processing queues. Only available to Admins with SuperUser access permission. To enable, [set `[liquid] enable_superuser_dashboards = true`](https://github.com/liquidinvestigations/node/blob/master/examples/liquid.ini#L172-L174) in `liquid.ini`.
 
 ### Bug Fixes
 - Fixed bug with archive mounting, where large amounts of storage would be used by logs. Disabled the archive mounting feature by default. Added warnings to switch off configuration related to archive mounting.
 - Fixed bug where long searches would sometimes fail to show aggregations.
+- Initiated reprocessing of email-related tasks, to resolve the "Invalid DateTime" bug. To upgrade, set `process = True` on all collections.
+- Fixed bug where processing queue memory would become full, and processing would completely halt. A larger number of collections can now be processed at the same time with `process = True`.
 
 
 ---
@@ -16,6 +24,7 @@
 ### Bug Fixes
 - Fixed Hoover bug where OCR processing would sometimes fail.
 - Fixed Hoover bug where some files would produce errors if they had an unusual Russian encoding.
+
 
 ---
 # v0.20.0 (2022-08-17)
@@ -33,6 +42,7 @@
 - Fixed related to recursive archive mounts.
 - Fixed homepage service deployment problem, saved 30 seconds.
 
+
 ---
 ## v0.19.14 (2022-07-21)
 
@@ -45,6 +55,7 @@
 - Hoover: Removed Translations made from one target language into another one.
 - Authentication: Fixed bug where user sessions would be lost after server redeployment.
 
+
 ---
 ## v0.19.13 (2022-07-11)
 
@@ -52,6 +63,7 @@
 - Fixed Hoover bug that would stop new Tags from being indexed.
 
 
+---
 ## v0.19.12 (2022-07-06)
 
 ### Bug Fixes
@@ -59,6 +71,7 @@
 - Fixed performance problem caused by recursive archive mounts.
 
 
+---
 ## v0.19.11 (2022-06-30)
 
 This version fixes bugs in Rocketchat and Hoover configuration.

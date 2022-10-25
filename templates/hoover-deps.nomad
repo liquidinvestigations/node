@@ -305,7 +305,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "logicalspark/docker-tikaserver:1.28.1"
+        image = "apache/tika:1.28.5-full"
         args = ["-spawnChild", "-maxFiles", "500"]
         port_map {
           tika = 9998
