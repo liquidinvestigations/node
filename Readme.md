@@ -43,6 +43,19 @@ example configuration file:
 cp examples/liquid.ini .
 ```
 
+#### Production: Performance and Security Configuration Examples
+
+The example configuration is tuned for very small, minimum-requirement
+machines; you should see low use of your CPU and RAM, as well as low processing
+speeds.
+
+To make better use of your hardware, adjust the relevant configuration
+values starting from this example file here:
+`./examples/production-example-256gb-ram.ini`.
+
+There is another example file there with security settings, to serve as a deployment
+checklist: `./examples/production-example-security-options.ini`.
+
 ### Deployment
 
 The `deploy` command pushes the configuration to the cluster. It configures
