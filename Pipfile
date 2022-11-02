@@ -8,3 +8,4 @@ colorlog = "*"
 flake8 = "*"
 Jinja2 = "*"
 click = "*"
+django-tus = {editable = true, ref = "master", git = "https://github.com/liquidinvestigations/django-tus.git"}
