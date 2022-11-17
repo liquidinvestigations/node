@@ -389,11 +389,6 @@ class Configuration:
 
             if cls == 'collection':
                 Configuration._validate_collection_name(name)
-                if not self.ini.getboolean(key, 'disable_archive_mounting', fallback=True):
-                    log.warning('Collection %s: Enabling archive mounting may cause processing errors.', name)
-                    log.warning('Collection %s: Please consider removing the configuration line:', name)
-                    log.warning('Collection %s: `disable_archive_mounting=False`.\n', name)
-
                 self.snoop_collections.append({
                     'name': name,
                     'process': self.ini.getboolean(key, 'process', fallback=False),
@@ -463,11 +458,6 @@ class Configuration:
                         key,
                         'explode_table_rows',
                         fallback=False,
-                    ),
-                    'disable_archive_mounting': self.ini.getboolean(
-                        key,
-                        'disable_archive_mounting',
-                        fallback=True,
                     ),
                 })
 
