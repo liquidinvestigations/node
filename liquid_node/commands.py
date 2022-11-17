@@ -68,6 +68,9 @@ def check_resources():
     for key, value in sorted(avail.items()):
         log.debug(f'  {key: <30}: {value:,}')
 
+    # allow 2X cpu count
+    req['cpu_count'] = int(req['cpu_count'] / 2)
+
     if avail['cpu_count'] < SMALL_CPU_COUNT_IGNORE:
         if req['cpu_count'] > avail['cpu_count']:
             req['cpu_count'] = avail['cpu_count']
