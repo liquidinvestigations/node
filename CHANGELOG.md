@@ -4,6 +4,12 @@
 
 - -
 
+---
+## v0.21.0 (2022-11-18)
+
+### Bug Fixes
+- Removed 7z-fuse archive mounting feature. This migration will remove the feature from all collections, and resets the unarchive tasks needed to re-create the archived files.
+
 
 ---
 ## v0.20.3 (2022-10-25)
