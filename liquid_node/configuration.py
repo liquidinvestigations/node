@@ -171,8 +171,10 @@ class Configuration:
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='100,13')
 
-        self.hoover_tus_upload_dir = self.ini.get('liquid', 'hoover_tus_upload_dir', fallback='/tmp/tus/uploads')
-        self.hoover_tus_files_dir = self.ini.get('liquid', 'hoover_tus_files_dir', fallback='/tmp/tus/files')
+        self.hoover_tus_upload_dir = self.ini.get('liquid', 'hoover_tus_upload_dir',
+                                                  fallback='/tmp/tus/uploads')
+        self.hoover_tus_files_dir = self.ini.get('liquid', 'hoover_tus_files_dir',
+                                                 fallback='/tmp/tus/files')
 
         self.hoover_web_memory_limit = self.ini.getint('liquid',
                                                        'hoover_web_memory_limit', fallback=400)
