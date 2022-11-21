@@ -13,7 +13,7 @@ The Liquid Investigations bundle includes Hoover ([hoover-search][],
 
 Collection data must be placed in a specific place for Hoover to pick up the files.
 
-There are three types of data ingress types supported for each collection:
+There are three types of data ingress supported for each collection:
 - `data`: Collection data
 - `ocr`: External OCR, matched by MD5, containing different "OCR Sources" (see below)
 - `gpghome`: A GPG-Home directory, populated with keys used to open content in the data folder
