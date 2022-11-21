@@ -9,6 +9,68 @@ The Liquid Investigations bundle includes Hoover ([hoover-search][],
 [hoover-ui]: https://github.com/liquidinvestigations/hoover-ui
 [Nextcloud]: ./Nextcloud.md
 
+## Data Format
+
+Collection data must be placed in a specific place for Hoover to pick up the files.
+
+There are three types of data ingress types supported for each collection:
+- `data`: Collection data
+- `ocr`: External OCR, matched by MD5, containing different "OCR Sources" (see below)
+- `gpghome`: A GPG-Home directory, populated with keys used to open content in the data folder
+
+Here is an example of a directory listing of the Collections directory with three collections called `archive`, `bug` and `testdata-6`.
+
+```
+.
+├── archive
+│   └── data
+│       └── testdata.zip
+├── bug
+│   └── data
+│       └── uploads.zip
+└── testdata-6
+    ├── data
+    │   └── some-files
+    │       └── archives
+    │           └── ...
+    ├── gpghome
+    │   ├── pubring.kbx
+    │   ├── ...
+    │   └── trustdb.gpg
+    └── ocr
+        ├── one
+        │   └── foo
+        │       └── bar
+        │           └── f
+        │               └── d
+        │                   └── fd41b8f1fe19c151517b3cda2a615fa8.pdf
+        └── two
+            └── fd41b8f1fe19c151517b3cda2a615fa8.pdf.txt
+
+```
+
+In the above example, the `testdata-6` collection has two OCR sources: `one` and `two`. Both External OCR files are shown in the page for document with `MD5 = fd41b8f1fe19c151517b3cda2a615fa8`. Adding the OCR sources is done with a `createocrsource` command, see the section below.
+
+---
+
+**Warning**: Please make sure original data is placed under a `data` directory for the collection name.
+
+```
+--------------------------------------------------------
+|   This is correct:        |   This is NOT correct:   |
+|                           |                          |
+|                           |                          |
+|   .                       |   .                      |
+|   └── collection3         |   └── collection3        |
+|       └── data            |       └── data.zip       |
+|           └── data.zip    |                          |
+|                           |                          |
+--------------------------------------------------------
+```
+
+---
+
+
 ## Example: Testdata
 Set up the `testdata` collection. First download the data:
 
