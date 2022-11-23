@@ -1,8 +1,17 @@
 # Liquid Investigations Change Log
 
 ## Unreleased
-
 - -
+
+---
+## v0.21.1 (2022-11-23)
+
+### Improvements
+- Hoover: Batch Search now has an internal queue to support very long batch search queries, and a large number of users searching in parallel.
+
+### Bug Fixes
+- Hoover: Fixed Batch Search function issue where the search would error out with "Bad Request" on large lists.
+
 
 ---
 ## v0.21.0 (2022-11-18)
