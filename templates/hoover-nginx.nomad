@@ -213,7 +213,7 @@ job "hoover-nginx" {
           liquid_task = "hoover-ui"
         }
         args = ["sh", "/local/startup.sh"]
-        memory_hard_limit = 6000
+        memory_hard_limit = 7000
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_ui_src_git}" }
@@ -263,7 +263,7 @@ job "hoover-nginx" {
       }
 
       resources {
-        memory = 2000
+        memory = 1000
         network {
           mbits = 1
           port "http" {}
@@ -321,7 +321,7 @@ job "hoover-nginx" {
       env { __GIT_TAGS = "${hoover_search_git}" }
 
       resources {
-        memory = ${config.hoover_web_memory_limit}
+        memory = ${int(config.hoover_web_memory_limit/2)}
       }
 
       template {
@@ -339,7 +339,7 @@ job "hoover-nginx" {
         /wait
 
         ./manage.py runperiodic &
-        ./manage.py searchworker
+        ./manage.py searchworker search
         EOF
         env = false
         destination = "local/startup.sh"
@@ -349,6 +349,7 @@ job "hoover-nginx" {
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
+        DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
       }
 
       template {
@@ -387,6 +388,113 @@ job "hoover-nginx" {
       service {
         check {
           name = "check-workers-script"
+          type = "script"
+          command = "/bin/sh"
+          args = ["-c", "ps -o comm,args ax | grep '^celery .* worker'"]
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "hoover-batch-workers" {
+    # this container also runs periodic tasks, so don't scale it up from here.
+    count = 1
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    ${ group_disk() }
+    ${ continuous_reschedule() }
+    task "hoover-batch-workers" {
+      ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      driver = "docker"
+
+      config {
+        image = "${config.image('hoover-search')}"
+        args = ["bash", "/local/startup.sh"]
+
+        volumes = [
+          ${hoover_search_repo}
+        ]
+
+        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
+      }
+      env { __GIT_TAGS = "${hoover_search_git}" }
+
+      resources {
+        memory = ${int(config.hoover_web_memory_limit/2)}
+      }
+
+      template {
+        data = <<-EOF
+        #!/bin/bash
+        set -ex
+        (
+        set +x
+        if [ -z "$HOOVER_DB" ]; then
+          echo "database not ready"
+          sleep 5
+          exit 1
+        fi
+        )
+        /wait
+
+        ./manage.py searchworker batch
+        EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      env {
+        HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
+        SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
+        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
+        DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
+      }
+
+      template {
+        data = <<-EOF
+          {{- if keyExists "liquid_debug" }}
+            DEBUG = {{key "liquid_debug" | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/hoover/search.django" }}
+            SECRET_KEY = {{.Data.secret_key | toJSON }}
+          {{- end }}
+          HOOVER_DB = "postgresql://search:
+          {{- with secret "liquid/hoover/search.postgres" -}}
+            {{.Data.secret_key }}
+          {{- end -}}
+          @{{env "attr.unique.network.ip-address" }}:${config.port_search_pg}/search"
+
+          #HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
+          HOOVER_HOSTNAME = "*"
+          HOOVER_TITLE = "Hoover"
+          HOOVER_LIQUID_TITLE = "${config.liquid_title}"
+          HOOVER_LIQUID_URL = "${config.liquid_core_url}"
+          HOOVER_AUTHPROXY = "true"
+          USE_X_FORWARDED_HOST = "true"
+          LIQUID_CORE_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
+          {%- if config.liquid_http_protocol == 'https' %}
+            SECURE_PROXY_SSL_HEADER = "HTTP_X_FORWARDED_PROTO"
+          {%- endif %}
+          HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
+          HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
+          SEARCH_AMQP_URL = "amqp://{{ env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
+        EOF
+        destination = "local/hoover.env"
+        env = true
+      }
+
+      service {
+        check {
+          name = "check-batch-workers"
           type = "script"
           command = "/bin/sh"
           args = ["-c", "ps -o comm,args ax | grep '^celery .* worker'"]
