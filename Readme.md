@@ -103,6 +103,17 @@ Maps take a long time to download and require 120 GB of extra storage.
 
 Instructions here: [docs/Maps.md](docs/Maps.md)
 
+## Publish site on Internet, Tor or VPN
+
+For Internet-published sites:
+- configure DNS provider with CNAME for `yourdomain.org` and `*.yourdomain.org` to your server
+- open ports `80` and `443` in server firewall
+- configure port forwarding in [`cluster.ini`](https://github.com/liquidinvestigations/cluster/blob/ed6cd245382e10bd04d1318fe84cf09ff1801c8a/examples/cluster.ini#L17), by default enabled
+- enable HTTPS configuration in `liquid.ini` with the production Let's Encrypt settings
+- deploy
+
+We also have instructions for [hosting on VPN](https://github.com/liquidinvestigations/docs/wiki/Admin-Guide:-Using-Liquid-on-VPN) and [hosting on Tor](https://github.com/liquidinvestigations/docs/wiki/Admin-Guide%3A-Using-Liquid-as-an-Onion-Service).
+
 
 ## Maintenance
 For instructions and best practices on running a liquid node, see
