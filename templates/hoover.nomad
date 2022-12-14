@@ -49,6 +49,7 @@
         OMP_THREAD_LIMIT = "${ config.snoop_worker_omp_thread_limit }"
         OMP_NUM_THREADS = "${ config.snoop_worker_omp_thread_limit }"
         SNOOP_OCR_PROCESSES_PER_DOC = "${ config.snoop_ocr_parallel_pages }"
+        SNOOP_UNARCHIVE_THREADS = "${ config.snoop_unarchive_threads }"
 
     }
 

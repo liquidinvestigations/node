@@ -292,6 +292,10 @@ class Configuration:
         self.snoop_worker_omp_thread_limit = self.ini.getint('snoop', 'snoop_worker_omp_thread_limit',
                                                              fallback=2)
         self.snoop_ocr_parallel_pages = self.ini.getint('snoop', 'snoop_ocr_parallel_pages', fallback=2)
+        # maximum number of threads is 16, so take that if value in liquid.ini is larger,
+        # minimum number is 1 so take that if number in liquid.ini is smaller
+        self.snoop_unarchive_threads = max(min(self.ini.getint('snoop', 'snoop_unarchive_threads',
+                                                               fallback=4), 16), 1)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='30s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='29s')
