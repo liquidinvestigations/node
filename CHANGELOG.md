@@ -1,7 +1,24 @@
 # Liquid Investigations Change Log
 
 ## Unreleased
-- -
+-
+
+---
+
+## v0.21.2 (2022-12-21)
+
+### Improvements
+- Dokuwiki: Added Virtual Group Plugin, which allows Access Control for all
+  Wiki Instances. Both Group Management and Access Control are managed from the
+  Dokuwiki Admin Page.
+
+### Bug Fixes
+- Hoover: Fixed issue where Tika Temporary Files folder would grow unbounded in
+  size, using up all available disk space on the `/` partition. The workaround
+  without this fix is to simply "stop" the Tika containers from Nomad UI every
+  time this happens. The data has been moved to the Nomad data folder, by
+  default `/opt/cluster/var/nomad/alloc/...`. Additionally, the Temporary
+  folder has been set-up to auto-delete files older than a few days.
 
 ---
 ## v0.21.1 (2022-11-23)
