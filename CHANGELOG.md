@@ -11,6 +11,9 @@
 - Dokuwiki: Added Virtual Group Plugin, which allows Access Control for all
   Wiki Instances. Both Group Management and Access Control are managed from the
   Dokuwiki Admin Page.
+- Hoover: Added new configuration flag `snoop_unarchive_threads` for parallel
+  unpacking of BZ2 type archives. BZ2 archives will now be unpacked with
+  greater speed. Any other archive types (zip, rar) are not affected.
 
 ### Bug Fixes
 - Hoover: Fixed issue where Tika Temporary Files folder would grow unbounded in
