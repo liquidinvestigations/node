@@ -308,6 +308,8 @@ job "hoover-deps" {
         # image = "apache/tika:1.28.5-full"  # bad:  Failed to start thread "VM Thread" - pthread_create failed (EPERM)
         image = "logicalspark/docker-tikaserver:1.28.4"
         args = ["-spawnChild", "-maxFiles", "500"]
+        #  Use relative paths to rebind paths already in the allocation dir
+        volumes = ["./tmp:/tmp"]
         port_map {
           tika = 9998
         }
@@ -330,9 +332,9 @@ job "hoover-deps" {
 
       env {
         TIKA_CONFIG = "/local/tika.xml"
-        TMP = "/alloc/data"
-        TEMP = "/alloc/data"
-        TMPDIR = "/alloc/data"
+        TMP = "/tmp"
+        TEMP = "/tmp"
+        TMPDIR = "/tmp"
       }
 
       template {
