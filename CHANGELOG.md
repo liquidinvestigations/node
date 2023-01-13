@@ -1,7 +1,17 @@
 # Liquid Investigations Change Log
 
-## Unreleased
--
+
+---
+
+## v0.22.0 (2023-01-13)
+
+### Improvements
+- Hoover: the collection configuration for very expensive operations (entity
+  extraction, translation, image classification, image detection) must now be
+  explicitly enabled for every collection.
+
+### Bug Fixes
+- Hoover: Fixed worker slowdown issue for old containers by adding restart timeout of 3-5 days for all hoover data workers.
 
 ---
 
