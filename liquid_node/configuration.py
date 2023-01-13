@@ -421,12 +421,12 @@ class Configuration:
                     'image_classification_object_detection_enabled': self.ini.getboolean(
                         key,
                         'image_classification_object_detection_enabled',
-                        fallback=self.snoop_image_classification_object_detection_enabled,
+                        fallback=False,
                     ),
                     'image_classification_classify_images_enabled': self.ini.getboolean(
                         key,
                         'image_classification_classify_images_enabled',
-                        fallback=self.snoop_image_classification_classify_images_enabled,
+                        fallback=False,
                     ),
                     'nlp_language_detection_enabled': self.ini.getboolean(
                         key,
@@ -436,12 +436,12 @@ class Configuration:
                     'nlp_entity_extraction_enabled': self.ini.getboolean(
                         key,
                         'nlp_entity_extraction_enabled',
-                        fallback=self.snoop_nlp_entity_extraction_enabled,
+                        fallback=False,
                     ),
                     'translation_enabled': self.ini.getboolean(
                         key,
                         'translation_enabled',
-                        fallback=self.snoop_translation_enabled,
+                        fallback=False,
                     ),
                     'translation_target_languages': self.ini.get(
                         key,
