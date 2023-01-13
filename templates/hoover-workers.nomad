@@ -36,7 +36,7 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${300 + int(1.9 * mem_per_proc * proc_count)}
+        memory_hard_limit = ${300 + int(3 * mem_per_proc * proc_count)}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }
@@ -59,7 +59,8 @@
             sleep 5
             exit 1
           fi
-          exec ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}
+          export TIMEOUT="$(( $RANDOM % 48 + 72 ))h"
+          exec timeout $TIMEOUT ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}
           EOF
         env = false
         destination = "local/startup.sh"
@@ -126,7 +127,8 @@ job "hoover-workers" {
             sleep 5
             exit 1
           fi
-          exec celery -A snoop.data beat -l INFO --pidfile= -s /tmp/celery-beat-db
+          export TIMEOUT="$(( $RANDOM % 48 + 72 ))h"
+          exec timeout $TIMEOUT celery -A snoop.data beat -l INFO --pidfile= -s /tmp/celery-beat-db
           EOF
         env = false
         destination = "local/startup.sh"

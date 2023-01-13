@@ -361,7 +361,8 @@ job "hoover-deps" {
              find /tmp -type f -mindepth 1 -mtime +3 -not -name '*mmap*' -not -name '*pid*' -delete
            done
           ) &
-          java -jar /tika-server-1.28.4.jar -h 0.0.0.0 -spawnChild -maxFiles 500
+          export TIMEOUT="$(( $RANDOM % 48 + 72 ))h"
+          exec timeout $TIMEOUT java -jar /tika-server-1.28.4.jar -h 0.0.0.0 -spawnChild -maxFiles 500
           EOF
         destination = "local/startup.sh"
       }
