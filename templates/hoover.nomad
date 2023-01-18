@@ -116,6 +116,11 @@ job "hoover" {
     task "search" {
       ${ task_logs() }
 
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
 
       config {
