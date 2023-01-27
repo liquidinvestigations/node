@@ -64,7 +64,10 @@
         {{- end -}}
         @{{env "attr.unique.network.ip-address" }}:${config.port_snoop_pg_pool}/snoop"
         SNOOP_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_snoop_rabbitmq}"
+
         TRACING_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_zipkin}"
+
+        UPTRACE_DSN = "http://hoover-snoop-django@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/5"
 
 
           {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
@@ -116,12 +119,11 @@ job "hoover" {
 
       config {
         image = "${config.image('hoover-search')}"
-        args = ["bash", "/local/startup.sh"]
         volumes = [
           ${hoover_search_repo}
         ]
         port_map {
-          http = 8080
+          http = 8000
         }
         labels {
           liquid_task = "hoover-search"
@@ -139,38 +141,12 @@ job "hoover" {
         }
       }
 
-      template {
-        data = <<-EOF
-        #!/bin/bash
-        set -ex
-        (
-        set +x
-        if [ -z "$HOOVER_DB" ]; then
-          echo "database not ready"
-          sleep 5
-          exit 1
-        fi
-        )
-        /wait
-        ./manage.py migrate
-        ./manage.py healthcheck
-        ./manage.py synccollections "$SNOOP_COLLECTIONS"
-
-        if [[ "$DEBUG" == "true" ]]; then
-          exec ./manage.py runserver 0.0.0.0:8080
-        else
-          exec waitress-serve --port 8080 --threads=20 hoover.site.wsgi:application
-        fi
-        EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-
       env {
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
+
       }
 
       template {
@@ -201,6 +177,8 @@ job "hoover" {
           HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
           SEARCH_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
+
+          UPTRACE_DSN = "http://hoover-search-django@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
         EOF
         destination = "local/hoover.env"
         env = true
@@ -279,11 +257,9 @@ job "hoover" {
           ./manage.py migratecollections
           ./manage.py healthcheck
           date
-          if [[ "$DEBUG" == "true" ]]; then
-            exec ./manage.py runserver 0.0.0.0:8080
-          else
-            exec /runserver
-          fi
+
+          exec /runserver
+
           EOF
         env = false
         destination = "local/startup.sh"

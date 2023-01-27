@@ -355,10 +355,15 @@ class Configuration:
             'hoover': self.ini.getint('ports', 'hoover', fallback=9994),
             'dokuwiki': self.ini.getint('ports', 'dokuwiki', fallback=9995),
             'rocketchat': self.ini.getint('ports', 'rocketchat', fallback=9980),
-            'hoover_es_master_transport': self.ini.getint('ports',
-                                                          'hoover_es_master_transport',
-                                                          fallback=9979),
+            'hoover_es_master_transport': self.ini.getint(
+                'ports',
+                'hoover_es_master_transport',
+                fallback=9979,
+            ),
             'zipkin': self.ini.getint('ports', 'zipkin', fallback=9978),
+            'clickhouse_native': self.ini.getint('ports', 'clickhouse_native', fallback=9977),
+            'uptrace_native': self.ini.getint('ports', 'uptrace_native', fallback=9976),
+            'uptrace_http': self.ini.getint('ports', 'uptrace_http', fallback=9975),
         }
 
         self.port_lb = self.PORT_MAP['lb']
@@ -381,6 +386,9 @@ class Configuration:
         self.port_rocketchat = self.PORT_MAP['rocketchat']
         self.port_hoover_es_master_transport = self.PORT_MAP['hoover_es_master_transport']
         self.port_zipkin = self.PORT_MAP['zipkin']
+        self.port_clickhouse_native = self.PORT_MAP['clickhouse_native']
+        self.port_uptrace_native = self.PORT_MAP['uptrace_native']
+        self.port_uptrace_http = self.PORT_MAP['uptrace_http']
 
         self.snoop_collections = []
 

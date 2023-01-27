@@ -1081,6 +1081,14 @@ job "hoover-deps" {
           backend_hostname0 = '{{ env "attr.unique.network.ip-address" }}'
           backend_port0 = ${config.port_snoop_pg}
           backend_weight0 = 1
+
+          log_statement = false
+          log_per_node_statement = false
+          log_client_messages = false
+          log_hostname = false
+          log_connections = false
+          log_disconnections = false
+          logging_collector = false
         EOF
         destination = "local/pgpool.conf"
         env = false

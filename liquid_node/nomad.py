@@ -25,6 +25,25 @@ def scale_cpu_and_memory(spec):
     return spec
 
 
+def add_labels(spec):
+    spec = dict(spec)
+    for group in spec.get('TaskGroups', []):
+        for task in group['Tasks'] or []:
+            if task['Driver'] != 'docker':
+                # print(spec['ID'] + '.' + group['Name'] + '.' + task['Name'])
+                continue
+            else:
+                labels = {
+                    'nomad_job': spec['ID'],
+                    'nomad_group': spec['ID'] + '.' + group['Name'],
+                    'nomad_task': spec['ID'] + '.' + group['Name'] + '.' + task['Name'],
+                }
+                if task['Config'].get('labels') and task['Config']['labels'] and task['Config']['labels'][0]:
+                    labels.update(task['Config']['labels'][0])
+                task['Config']['labels'] = [labels]
+    return spec
+
+
 class Nomad(JsonApi):
 
     def __init__(self, endpoint):
@@ -32,7 +51,8 @@ class Nomad(JsonApi):
 
     def parse(self, hcl):
         try:
-            return scale_cpu_and_memory(self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True}))
+            return add_labels(scale_cpu_and_memory(
+                self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})))
         except urllib.error.HTTPError as e:
             log.debug('hcl: %s', hcl)
             log.error(e.read().decode('utf-8'))
