@@ -17,7 +17,7 @@
         }
         ulimit {
           memlock = "-1"
-          nofile = "65536"
+          nofile = "262144"
           nproc = "8192"
         }
       }

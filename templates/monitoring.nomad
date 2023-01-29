@@ -31,6 +31,11 @@ job "monitoring" {
       driver = "docker"
       user = "root"
       config {
+        ulimit {
+          memlock = "-1"
+          nofile = "262144"
+          nproc = "8192"
+        }
         image = "bitnami/clickhouse:22.12.3"
         entrypoint = ["/bin/bash", "-ex"]
         args = ["/local/startup.sh"]

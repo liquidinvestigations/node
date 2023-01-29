@@ -22,7 +22,12 @@
 
       driver = "docker"
       config {
-        ulimit { core = "0" }
+        ulimit {
+          memlock = "-1"
+          core = "0"
+          nofile = "65536"
+          nproc = "1024"
+        }
         image = "${config.image('hoover-snoop2')}"
         cap_add = ["mknod", "sys_admin"]
         devices = [{host_path = "/dev/fuse", container_path = "/dev/fuse"}]
