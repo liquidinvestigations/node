@@ -203,7 +203,7 @@ job "hoover" {
 
         check_restart {
           limit = 7
-          grace = "495s"
+          grace = "995s"
         }
       }
     }

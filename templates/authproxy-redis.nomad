@@ -53,7 +53,7 @@ job "redis" {
         }
         check_restart {
           limit = 5
-          grace = "480s"
+          grace = "980s"
         }
       }
     }

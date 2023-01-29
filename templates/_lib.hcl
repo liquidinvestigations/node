@@ -149,7 +149,7 @@ ephemeral_disk {
         }
         check_restart {
           limit = 5
-          grace = "435s"
+          grace = "935s"
         }
       }
     }

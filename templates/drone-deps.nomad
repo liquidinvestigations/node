@@ -69,7 +69,7 @@ job "drone-deps" {
         }
         check_restart {
           limit = 5
-          grace = "290s"
+          grace = "990s"
         }
       }
     }

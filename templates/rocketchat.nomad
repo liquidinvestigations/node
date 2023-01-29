@@ -186,7 +186,7 @@ job "rocketchat" {
         }
         check_restart {
           limit = 5
-          grace = "490s"
+          grace = "990s"
         }
       }
     }

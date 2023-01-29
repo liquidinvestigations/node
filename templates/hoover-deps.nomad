@@ -381,7 +381,7 @@ job "hoover-deps" {
         }
         check_restart {
           limit = 5
-          grace = "480s"
+          grace = "980s"
         }
       }
     }
@@ -522,7 +522,7 @@ job "hoover-deps" {
         }
         check_restart {
           limit = 5
-          grace = "480s"
+          grace = "980s"
         }
       }
     }

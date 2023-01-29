@@ -117,7 +117,7 @@ job "codimd" {
         }
         check_restart {
           limit = 5
-          grace = "390s"
+          grace = "990s"
         }
       }
     }
