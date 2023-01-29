@@ -36,7 +36,7 @@
         labels {
           liquid_task = "snoop-workers-${queue}"
         }
-        memory_hard_limit = ${300 + int(3 * mem_per_proc * proc_count)}
+        memory_hard_limit = ${500 + int(3 * mem_per_proc * proc_count)}
       }
       # used to auto-restart containers when running deploy, after you make a new commit
       env { __GIT_TAGS = "${hoover_snoop2_git}" }
@@ -60,7 +60,7 @@
             exit 1
           fi
           export TIMEOUT="$(( $RANDOM % 48 + 72 ))h"
-          exec timeout $TIMEOUT ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}
+          exec timeout $TIMEOUT ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}  # --solo
           EOF
         env = false
         destination = "local/startup.sh"
@@ -147,7 +147,7 @@ job "hoover-workers" {
     ${ snoop_worker_group(
         queue="system",
         container_count=1,
-        proc_count=3,
+        proc_count=4,
       ) }
 
 

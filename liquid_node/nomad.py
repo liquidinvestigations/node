@@ -41,6 +41,7 @@ def add_labels(spec):
                 if task['Config'].get('labels') and task['Config']['labels'] and task['Config']['labels'][0]:
                     labels.update(task['Config']['labels'][0])
                 task['Config']['labels'] = [labels]
+                task['Config']['hostname'] = '${node.unique.name}'
     return spec
 
 

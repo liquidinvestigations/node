@@ -67,7 +67,7 @@
 
         TRACING_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_zipkin}"
 
-        UPTRACE_DSN = "http://hoover-snoop-django@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/5"
+        UPTRACE_DSN = "http://hoover@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
 
 
           {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
@@ -178,7 +178,7 @@ job "hoover" {
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
           SEARCH_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
 
-          UPTRACE_DSN = "http://hoover-search-django@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
+          UPTRACE_DSN = "http://hoover@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
         EOF
         destination = "local/hoover.env"
         env = true

@@ -68,14 +68,8 @@ projects:
     group_funcs_by_service: false
 
   - id: 4
-    name: Hoover Search Django
-    token: hoover-search-django
-    group_by_env: false
-    group_funcs_by_service: false
-
-  - id: 5
-    name: Hoover Snoop Django
-    token: hoover-snoop-django
+    name: Hoover
+    token: hoover
     group_by_env: false
     group_funcs_by_service: false
 
@@ -233,13 +227,11 @@ ch_schema:
   #cluster: uptrace1
 
   spans:
-    # Delete spans data after 30 days.
-    ttl_delete: 30 DAY
+    ttl_delete: 15 DAY
     storage_policy: 'default'
 
   metrics:
-    # Delete metrics data after 90 days.
-    ttl_delete: 90 DAY
+    ttl_delete: 30 DAY
     storage_policy: 'default'
 
 ##
