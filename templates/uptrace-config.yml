@@ -227,11 +227,11 @@ ch_schema:
   #cluster: uptrace1
 
   spans:
-    ttl_delete: 15 DAY
+    ttl_delete: 1 DAY
     storage_policy: 'default'
 
   metrics:
-    ttl_delete: 30 DAY
+    ttl_delete: 15 DAY
     storage_policy: 'default'
 
 ##

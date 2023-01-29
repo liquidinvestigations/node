@@ -1,5 +1,12 @@
 # Liquid Investigations Change Log
 
+## v0.23.0 (2023-01-30)
+
+### Improvements
+- Sysadmin: added new tracing system at port 9975.
+
+### Bug Fixes
+- Hoover: fixed bug causing excessive disk space usage from system logs.
 
 ---
 
