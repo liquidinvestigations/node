@@ -9,7 +9,7 @@
         SNOOP_COLLECTIONS_MINIO_ADDRESS = "{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_collections_minio}"
         SNOOP_BROKEN_FILENAME_SERVICE = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_snoop_broken_filename_service"
 
-        S3FS_LOGGING_LEVEL="DEBUG"
+        S3FS_LOGGING_LEVEL="INFO"
 
         {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
           SNOOP_NLP_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_nlp"
@@ -51,6 +51,7 @@
         SNOOP_OCR_PROCESSES_PER_DOC = "${ config.snoop_ocr_parallel_pages }"
         SNOOP_UNARCHIVE_THREADS = "${ config.snoop_unarchive_threads }"
 
+        SNOOP_TOTAL_WORKER_COUNT = "${config.total_snoop_worker_count}"
     }
 
       template {
