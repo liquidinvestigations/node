@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## v0.23.0 (2023-01-30)
+## v0.23.5 (2023-01-30)
 
 ### Improvements
 - Sysadmin: added new tracing system at port 9975.
