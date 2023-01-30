@@ -670,5 +670,9 @@ class Configuration:
         with open(self.root / 'grafana-dashboards' / filename) as f:
             return f.read()
 
+    def load_uptrace_dashboard(self, filename):
+        with open(self.root / 'uptrace-dashboards' / filename) as f:
+            return f.read()
+
 
 config = Configuration()

@@ -64,7 +64,7 @@
             sleep 5
             exit 1
           fi
-          export TIMEOUT="$(( $RANDOM % 48 + 72 ))h"
+          export TIMEOUT="$(( $RANDOM % 72 + 72 ))h"
           exec timeout $TIMEOUT ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}  # --solo
           EOF
         env = false
@@ -132,7 +132,7 @@ job "hoover-workers" {
             sleep 5
             exit 1
           fi
-          export TIMEOUT="$(( $RANDOM % 48 + 72 ))h"
+          export TIMEOUT="$(( $RANDOM % 72 + 72 ))h"
           exec timeout $TIMEOUT celery -A snoop.data beat -l INFO --pidfile= -s /tmp/celery-beat-db
           EOF
         env = false

@@ -191,7 +191,7 @@ job "monitoring" {
       driver = "docker"
       # user = "root"
       config {
-        image = "uptrace/uptrace:1.3.0"
+        image = "liquidinvestigations/uptrace:1.3.0-liquid"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/uptrace/1.3.0:/var/lib/uptrace",
           "local/uptrace.yml:/etc/uptrace/uptrace.yml:ro",
@@ -201,6 +201,8 @@ job "monitoring" {
           uptrace = 14317
         }
         memory_hard_limit = 5000
+        entrypoint = ["/bin/bash", "-ex"]
+        args = ["/local/startup.sh"]
       }
       resources {
         memory = 400
@@ -220,6 +222,35 @@ job "monitoring" {
         destination = "local/uptrace.yml"
       }
 
+      template {
+        data = <<-EOF
+          #!/bin/bash
+          set -ex
+          echo "hello from uptrace init script"
+          (
+           sleep 10
+           until ls /var/lib/uptrace/uptrace.sqlite3; do sleep 1; echo "waiting for db"; done
+           echo "found db..."
+           sleep 10
+           echo "inserting dashboards"
+           cat /local/dashboards.sql | sqlite3 /var/lib/uptrace/uptrace.sqlite3
+           echo "dashboard insertion complete"
+          ) &
+          exec /entrypoint.sh
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      template {
+        left_delimiter = "[[["
+        right_delimiter = "]]]"
+        data = <<-EOF
+          ${config.load_uptrace_dashboard('dashboards.sql')}
+          EOF
+        env = false
+        destination = "local/dashboards.sql"
+      }
 
       service {
         name = "uptrace-native"

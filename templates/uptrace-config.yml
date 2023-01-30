@@ -144,15 +144,6 @@ alerting:
       annotations:
         summary: 'Uptrace has dropped {{ $values.spans }} spans'
 
-    - name: Always firing (for fun and testing)
-      metrics:
-        - process.runtime.go.goroutines as $goroutines
-      query:
-        - $goroutines >= 0 group by host.name
-      for: 1m
-      annotations:
-        summary: '{{ $labels.host_name }} has high number of goroutines: {{ $values.goroutines }}'
-
   # Create alerts from error logs and span events.
   create_alerts_from_spans:
     enabled: true
@@ -300,7 +291,7 @@ db:
   #
   # Uptrace automatically creates SQLite database file in the current working directory.
   # Make sure the directory is writable by Uptrace process.
-  dsn: 'file:uptrace.sqlite3?_pragma=foreign_keys(1)&_pragma=busy_timeout(1000)'
+  dsn: 'file:/var/lib/uptrace/uptrace.sqlite3?_pragma=foreign_keys(1)&_pragma=busy_timeout(1000)'
 
 ##
 ## uptrace-go client configuration.
