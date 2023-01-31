@@ -913,8 +913,8 @@ job "hoover-deps" {
         port_map {
           pg = 5432
         }
-        shm_size = ${int(config.snoop_postgres_memory_limit * 0.27) * 1024 * 1024}
-        memory_hard_limit = ${3 * config.snoop_postgres_memory_limit}
+        shm_size = ${int(config.snoop_postgres_memory_limit * 0.30) * 1024 * 1024}
+        memory_hard_limit = ${1000 + 3 * config.snoop_postgres_memory_limit}
       }
 
       template {
@@ -944,16 +944,16 @@ job "hoover-deps" {
                                                   #   windows
                                                   #   mmap
 
-          effective_io_concurrency = 3            # 1-1000; 0 disables prefetching
-          max_worker_processes = 8                # (change requires restart)
+          effective_io_concurrency = 10            # 1-1000; 0 disables prefetching
+          max_worker_processes = 12                # (change requires restart)
           max_parallel_maintenance_workers = 3   # taken from max_parallel_workers
           #max_parallel_workers_per_gather = 2    # taken from max_parallel_workers
 
           wal_writer_delay = 300ms                # 1-10000 milliseconds
           wal_writer_flush_after = 4MB            # measured in pages, 0 disables
           checkpoint_timeout = 5min              # range 30s-1d
-          max_wal_size = ${max(120, int(config.snoop_postgres_memory_limit * 0.1))}MB
-          min_wal_size = 80MB
+          max_wal_size = ${max(220, int(config.snoop_postgres_memory_limit * 0.25))}MB
+          min_wal_size = 100MB
           #checkpoint_completion_target = 0.5     # checkpoint target duration, 0.0 - 1.0
           #checkpoint_flush_after = 256kB         # measured in pages, 0 disables
           checkpoint_warning = 20s               # 0 disables
