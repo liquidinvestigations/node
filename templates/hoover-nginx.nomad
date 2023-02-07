@@ -262,6 +262,10 @@ job "hoover-nginx" {
         {% if config.snoop_translation_enabled %}
           HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled}"
         {% endif %}
+
+        {% if config.hoover_uploads_enabled %}
+          HOOVER_UPLOADS_ENABLED = "${config.hoover_uploads_enabled}"
+        {% endif %}
       }
 
       resources {
