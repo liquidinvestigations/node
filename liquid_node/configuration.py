@@ -230,7 +230,8 @@ class Configuration:
         self.snoop_rabbitmq_memory_limit = self.ini.getint('snoop', 'rabbitmq_memory_limit', fallback=1500)
         self.snoop_postgres_memory_limit = self.ini.getint('snoop', 'postgres_memory_limit', fallback=2100)
         self.snoop_postgres_max_connections = self.ini.getint('snoop', 'postgres_max_connections', fallback=350)  # noqa: E501
-        self.snoop_postgres_pool_children = max(60, min(300, int(self.snoop_postgres_max_connections / 2 - 20)))
+        self.snoop_postgres_pool_children = max(
+            60, min(300, int(self.snoop_postgres_max_connections / 2 - 20)))
 
         self.snoop_max_result_window = self.ini.getint('snoop', 'max_result_window', fallback=10000)
         self.snoop_refresh_interval = self.ini.get('snoop', 'refresh_interval', fallback="1s")
