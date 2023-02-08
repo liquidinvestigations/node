@@ -207,6 +207,7 @@ class Configuration:
                             fallback=60))
 
         self.hoover_maps_enabled = self.ini.getboolean('liquid', 'hoover_maps_enabled', fallback=False)
+        self.hoover_uploads_enabled = self.ini.getboolean('liquid', 'hoover_uploads_enabled', fallback=False)
 
         self.hoover_search_debug_delay = self.ini.getint('liquid', 'hoover_search_debug_delay', fallback=0)
 

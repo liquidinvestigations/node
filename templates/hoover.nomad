@@ -116,12 +116,18 @@ job "hoover" {
     task "search" {
       ${ task_logs() }
 
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+
       driver = "docker"
 
       config {
         image = "${config.image('hoover-search')}"
         volumes = [
           ${hoover_search_repo}
+          "{% raw %}${meta.liquid_collections}{% endraw %}:/opt/hoover/collections",
         ]
         port_map {
           http = 8000

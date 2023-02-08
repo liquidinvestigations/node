@@ -114,10 +114,12 @@ job "hoover-nginx" {
             proxy_set_header Host              $host;
             proxy_set_header X-Real-IP         $remote_addr;
             proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
             proxy_set_header X-Forwarded-Host  $host;
             proxy_set_header X-Forwarded-Port  $server_port;
             proxy_pass_request_headers      on;
+
+            client_max_body_size 5M;
 
             location /_ping {
               return 200 "healthy\n";
@@ -259,6 +261,10 @@ job "hoover-nginx" {
 
         {% if config.snoop_translation_enabled %}
           HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled}"
+        {% endif %}
+
+        {% if config.hoover_uploads_enabled %}
+          HOOVER_UPLOADS_ENABLED = "${config.hoover_uploads_enabled}"
         {% endif %}
       }
 
