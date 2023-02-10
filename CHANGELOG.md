@@ -1,5 +1,11 @@
 # Liquid Investigations Change Log
 
+## v0.23.9 (2023-02-10)
+
+### Bug Fixes
+- Hoover: fixed bug causing delay while indexing new data in the uploads (NextCloud) collection.
+
+
 ## v0.23.8 (2023-01-31)
 
 ### Improvements
