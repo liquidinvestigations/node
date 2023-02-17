@@ -1,8 +1,12 @@
 # Liquid Investigations Change Log
 
-## v0.23.11 (2023-02-17)
+## v0.23.12 (2023-02-17)
+
+### Improvements
+- Dokuwiki: Added ability to create custom Sitemaps for user-made namespaces, and place them in any page.
+
 ### Bug Fixes
-- Dokuwiki: Fixed bug where users didn't have access to private wiki content allowed to them through ACL / Virtual Manager.
+- Dokuwiki: Fixed bug where Sitemap would not display private wiki content allowed from ACL / Virtual Manager.
 
 ## v0.23.9 (2023-02-10)
 
