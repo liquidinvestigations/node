@@ -228,7 +228,7 @@ job "hoover-nginx" {
         npm run build
 
         {% if config.liquid_debug %}
-          exec npm run prod #dev
+          exec npm run prod # dev
         {% else %}
           exec npm run prod
         {% endif %}
