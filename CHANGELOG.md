@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## v0.23.10 (2023-02-17)
+## v0.23.11 (2023-02-17)
 ### Bug Fixes
 - Dokuwiki: Fixed bug where users didn't have access to private wiki content allowed to them through ACL / Virtual Manager.
 
