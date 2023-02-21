@@ -1,5 +1,11 @@
 # Liquid Investigations Change Log
 
+
+## v0.23.13 (2023-02-21)
+
+### Improvements
+- Dokuwiki: Limited expansion of new Sitemap entries to one level.
+
 ## v0.23.12 (2023-02-17)
 
 ### Improvements
