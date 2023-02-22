@@ -1,5 +1,10 @@
 # Liquid Investigations Change Log
 
+## v0.23.14 (2023-02-22)
+### Bug Fixes
+- Dokuwiki: Fix issue where Sitemap would not expand entries for users with restricted access.
+- Hoover: Fixed "File Finder" issue where the root folder would be displayed as a different file.
+- Hoover: Fixed bug causing wrong collection display in the Batch Search view.
 
 ## v0.23.13 (2023-02-21)
 
