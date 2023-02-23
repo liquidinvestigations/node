@@ -26,7 +26,7 @@ job "dokuwiki" {
           liquid_task = "dokuwiki"
         }
         port_map {
-          php = 80
+          php = 8080
         }
         memory_hard_limit = 1500
       }
