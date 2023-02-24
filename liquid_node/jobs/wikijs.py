@@ -34,8 +34,8 @@ class Deps(jobs.Job):
     stage = 1
 
 
-# class Proxy(jobs.Job):
-#     name = 'wikijs-proxy'
-#     template = jobs.TEMPLATES / f'{name}.nomad'
-#     app = 'wikijs'
-#     stage = 4
+class Proxy(jobs.Job):
+    name = 'wikijs-proxy'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'wikijs'
+    stage = 4
