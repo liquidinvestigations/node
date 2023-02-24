@@ -56,6 +56,9 @@ job "wikijs" {
         name = "liquid-wikijs"
         port = "wikijs"
         tags = [
+          # "fabio-:${config.port_wikijs} proto=tcp"
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:${'wikijs.' + liquid_domain}",
           "fabio-:${config.port_wikijs} proto=tcp"
         ]
         check {

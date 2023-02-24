@@ -11,7 +11,7 @@ class Wikijs(jobs.Job):
             'name': 'wikijs-app',
             'subdomain': 'wikijs',
             'vault_path': 'liquid/wikijs/app.auth.oauth2',
-            'callback': '/auth/oauth2/callback',
+            'callback': '/login/5a3aee47-de0c-4c8a-9247-a3c879a2fbd2/callback',
         },
         {
             'name': 'wikijs-authproxy',
@@ -34,8 +34,8 @@ class Deps(jobs.Job):
     stage = 1
 
 
-class Proxy(jobs.Job):
-    name = 'wikijs-proxy'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'wikijs'
-    stage = 4
+# class Proxy(jobs.Job):
+#     name = 'wikijs-proxy'
+#     template = jobs.TEMPLATES / f'{name}.nomad'
+#     app = 'wikijs'
+#     stage = 4
