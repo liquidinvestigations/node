@@ -28,6 +28,7 @@ job "wikijs" {
         DB_PORT = ${config.port_wikijs_pg}
         DB_USER = "wikijs"
         DB_NAME = "wikijs"
+        NODE_ENV = "development"
         # DB_HOST = "10.66.60.1"
         # DB_PASS = "test"
       }
@@ -56,10 +57,10 @@ job "wikijs" {
         name = "liquid-wikijs"
         port = "wikijs"
         tags = [
-          # "fabio-:${config.port_wikijs} proto=tcp"
-          "traefik.enable=true",
-          "traefik.frontend.rule=Host:${'wikijs.' + liquid_domain}",
           "fabio-:${config.port_wikijs} proto=tcp"
+          # "traefik.enable=true",
+          # "traefik.frontend.rule=Host:${'wikijs.' + liquid_domain}",
+          # "fabio-:${config.port_wikijs} proto=tcp"
         ]
         check {
           initial_status = "critical"
