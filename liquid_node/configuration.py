@@ -11,7 +11,7 @@ from pathlib import Path
 from .util import import_string
 from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, codimd, ci
+    nextcloud, codimd, ci, wikijs
 
 
 log = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def split_lang_codes(option):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
-                'codimd',)
+                'codimd', 'wikijs',)
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -34,6 +34,7 @@ class Configuration:
         'dokuwiki': 'DokuWiki',
         'rocketchat': "Rocket.Chat",
         'codimd': "CodiMD",
+        'wikijs': "Wiki.js",
     }
 
     APP_DESCRIPTION = {
@@ -41,7 +42,8 @@ class Configuration:
         'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
         'codimd': 'is a real-time collaboration pad.',
         'nextcloud': 'has a file share system and a contact list of users.',
-        'rocketchat': 'is the chat app.'
+        'rocketchat': 'is the chat app.',
+        'wikijs': 'is a wiki system used as a knowledge base for processed information',
     }
 
     APP_REDIS_IDS = {
@@ -59,6 +61,9 @@ class Configuration:
         liquid.CreateUser(),
         liquid.DeleteUser(),
         liquid.AuthproxyRedis(),
+        wikijs.Wikijs(),
+        wikijs.Deps(),
+        wikijs.Proxy(),
         hoover.Hoover(),
         hoover.DepsDownloads(),
         hoover.Deps(),
@@ -368,6 +373,8 @@ class Configuration:
             'clickhouse_native': self.ini.getint('ports', 'clickhouse_native', fallback=9977),
             'uptrace_native': self.ini.getint('ports', 'uptrace_native', fallback=9976),
             'uptrace_http': self.ini.getint('ports', 'uptrace_http', fallback=9975),
+            'wikijs_pg': self.ini.getint('ports', 'wikijs-pg', fallback=9974),
+            'wikijs': self.ini.getint('ports', 'wikijs', fallback=9973),
         }
 
         self.port_lb = self.PORT_MAP['lb']
@@ -393,6 +400,8 @@ class Configuration:
         self.port_clickhouse_native = self.PORT_MAP['clickhouse_native']
         self.port_uptrace_native = self.PORT_MAP['uptrace_native']
         self.port_uptrace_http = self.PORT_MAP['uptrace_http']
+        self.port_wikijs_pg = self.PORT_MAP['wikijs_pg']
+        self.port_wikijs = self.PORT_MAP['wikijs']
 
         self.snoop_collections = []
         self.extra_app_configs = []
