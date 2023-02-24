@@ -56,7 +56,7 @@ class Configuration:
         liquid.AuthproxyRedis(),
         wikijs.Wikijs(),
         wikijs.Deps(),
-        wikijs.Proxy(),
+        # wikijs.Proxy(),
         hoover.Hoover(),
         hoover.DepsDownloads(),
         hoover.Deps(),
