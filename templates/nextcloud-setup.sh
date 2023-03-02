@@ -3,8 +3,6 @@
 set -ex
 set -o pipefail
 
-sleep 7
-
 if [ -z "$MYSQL_HOST" ]; then
     echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
     exit 1

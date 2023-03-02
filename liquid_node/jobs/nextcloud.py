@@ -21,20 +21,6 @@ class Nextcloud(jobs.Job):
     generate_oauth2_proxy_cookie = True
 
 
-class Migrate(jobs.Job):
-    name = 'nextcloud-migrate'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'nextcloud'
-    stage = 3
-
-
-class Periodic(jobs.Job):
-    name = 'nextcloud-periodic'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'nextcloud'
-    stage = 3
-
-
 class Proxy(jobs.Job):
     name = 'nextcloud-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
