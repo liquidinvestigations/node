@@ -5,8 +5,8 @@ from liquid_node import jobs
 
 class Nextcloud(jobs.Job):
     def __init__(self, name, job_config, config):
+        self.template = Path(__file__).parent.resolve() / 'templates/nextcloud2.nomad'
         self.name = 'nextcloud-instance-2'
-        self.template =  Path(__file__).parent.resolve() / f'templates/{self.name}.nomad'
         self.app = 'nextcloud-instance-2'
         self.stage = 2
         self.core_oauth_apps = [
@@ -22,3 +22,13 @@ class Nextcloud(jobs.Job):
             'liquid/nextcloud-instance-2/nextcloud-instance-2.maria',
         ]
         self.generate_oauth2_proxy_cookie = True
+        self.custom_homepage_config = {
+            'id': self.name,
+            'title': 'Nextcloud (Instance 2)',
+            'url': config.app_url(self.name),
+            'enabled': True,
+            'description': 'is a different zone (with different permissions) to upload files.',
+            'adminOnly': False,
+            'version': config.version('nextcloud'),
+            'redis_id': 9,
+        }

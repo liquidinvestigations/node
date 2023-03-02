@@ -34,8 +34,24 @@ ephemeral_disk {
 }
 {%- endmacro %}
 
-{%- macro authproxy_group(name, host, upstream_port=None, skip_button=True, group=None, redis_id=None) %}
+{%- macro authproxy_group(
+    name, host, upstream_port=None,
+    skip_button=True, group=None, redis_id=None,
+    needs_constraint_to_volumes=False)
+%}
   group "authproxy" {
+
+    {% if needs_constraint_to_volumes %}
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_collections}{% endraw %}"
+        operator = "is_set"
+      }
+    {% endif %}
+
     ${ group_disk() }
     spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 

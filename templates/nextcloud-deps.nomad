@@ -41,9 +41,9 @@ job "nextcloud-deps" {
         MYSQL_RANDOM_ROOT_PASSWORD = "yes"
         MYSQL_DATABASE = "nextcloud"
         MYSQL_USER = "nextcloud"
-        {{- with secret "liquid/nextcloud/nextcloud.maria" }}
+        {{ with secret "liquid/nextcloud/nextcloud.maria" }}
           MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
-        {{- end }}
+        {{ end }}
         EOF
         destination = "local/maria.env"
         env = true

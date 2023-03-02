@@ -44,6 +44,13 @@ class Configuration:
         'rocketchat': 'is the chat app.'
     }
 
+    APP_REDIS_IDS = {
+        'hoover': 1,
+        'dokuwiki': 2,
+        'codimd': 3,
+        'nextcloud': 4,
+    }
+
     ALL_JOBS = [
         liquid.SystemDeps(),
         liquid.Monitoring(),
@@ -386,7 +393,7 @@ class Configuration:
         self.port_uptrace_http = self.PORT_MAP['uptrace_http']
 
         self.snoop_collections = []
-
+        self.extra_app_configs = []
         # load collections and extra jobs
         for key in self.ini:
             if ':' not in key:
@@ -469,7 +476,10 @@ class Configuration:
                 })
 
             elif cls == 'job':
+                new_job = self.load_job(name, self.ini[key])
                 self.enabled_jobs.append(self.load_job(name, self.ini[key]))
+                if new_job.custom_homepage_config:
+                    self.extra_app_configs.append(new_job.custom_homepage_config)
 
         self.timestamp = int(time.time())
 
@@ -483,20 +493,24 @@ class Configuration:
                 'description': self.APP_DESCRIPTION[app],
                 'adminOnly': False,
                 'version': self.version(app),
+                'redis_id': self.APP_REDIS_IDS.get(app),
             })
+            if app == 'nextcloud':
+                self.liquid_apps.append({
+                    'id': "nextcloud-admin",
+                    'title': "Nextcloud Admin",
+                    'url': self.app_url('nextcloud') + "/index.php/login?autologin=admin",
+                    'enabled': self.is_app_enabled('nextcloud'),
+                    'description': "will log you in as the Nextcloud admin user. "
+                    "You may need to log out of Nextcloud first.",
+                    'adminOnly': True,
+                    'version': '',
+                })
+        for extra in self.extra_app_configs:
+            self.liquid_apps.append(extra)
         self.liquid_version = self.get_node_version()
         self.liquid_core_version = self.version('liquid-core')
 
-        self.liquid_apps.append({
-            'id': "nextcloud-admin",
-            'title': "Nextcloud Admin",
-            'url': self.app_url('nextcloud') + "/index.php/login?autologin=admin",
-            'enabled': self.is_app_enabled('nextcloud'),
-            'description': "will log you in as the Nextcloud admin user. "
-            "You may need to log out of Nextcloud first.",
-            'adminOnly': True,
-            'version': '',
-        })
 
     def get_node_version(self):
         try:
@@ -534,7 +548,21 @@ class Configuration:
 
     def image(self, name):
         """Returns the NAME@SHA1 for a docker image from the docker system."""
-        return docker.image_digest(self._image(name))
+        tag = self._image(name)
+        assert tag, (
+            'no repo/tag set for config.image(": ' + name
+            + '") - add to versions.ini')
+        image = docker.image_digest(tag)
+        if not image or image == 'None':
+            log.debug('image hash not found for service: ' + name + '  image tag: ' + tag)
+            log.info('pulling docker tag: ' + tag)
+            docker.pull(tag)
+            image = docker.image_digest(tag)
+
+        if not image or image == 'None':
+            raise RuntimeError(f'service {name}: could not find docker image hash for tag {tag}')
+
+        return image
 
     def load_job(self, name, job_config):
         if 'template' in job_config:

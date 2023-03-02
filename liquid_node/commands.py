@@ -115,7 +115,8 @@ def all_images():
     jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
     for spec in jobs:
         for image in nomad.get_images(spec):
-            total |= set([image])
+            if image is not None and image != 'None':
+                total |= set([image])
     return total
 
 
@@ -309,7 +310,7 @@ def _update_image(name):
 
     Returns: (name, changed)."""
 
-    if not name:
+    if not name or name == 'None':
         return None, None
 
     old = docker.image_digest(name)
@@ -576,7 +577,7 @@ def plot_search(search_count, max_concurrent, path):
 @liquid_commands.command()
 @click.option('--prefix', 'prefix', type=str, default='')
 def show_docker_pull_commands(prefix):
-    images = set(all_images()) | set(config.images) | set(config._image(i) for i in config.image_keys)
+    images = set(all_images())
     if None in images:
         images.remove(None)
     if 'None' in images:

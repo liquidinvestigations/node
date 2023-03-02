@@ -29,9 +29,6 @@ job "nextcloud-instance-2" {
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud-instance-2/mysql:/var/lib/mysql",
         ]
-        labels {
-          liquid_task = "nextcloud-instance-2-maria"
-        }
         port_map {
           maria = 3306
         }
@@ -55,14 +52,13 @@ job "nextcloud-instance-2" {
         network {
           mbits = 1
           port "maria" {
-            
+            static = 16667
           }
         }
       }
       service {
         name = "nextcloud-instance-2-maria"
         port = "maria"
-        tags = ["fabio-:16667 proto=tcp"]
         check {
           name = "tcp"
           initial_status = "critical"
@@ -97,7 +93,7 @@ job "nextcloud-instance-2" {
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud-instance-2/nextcloud-instance-2/data:/var/www/html/data",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud-instance-2/nextcloud-instance-2/config:/var/www/html/config",
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud-instance-2/nextcloud-instance-2/themes:/var/www/html/themes",
-          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads/data:/var/www/html/data/uploads/files",
+          "{% raw %}${meta.liquid_collections}{% endraw %}/uploads-nextcloud-2/data:/var/www/html/data/uploads/files",
         ]
         args = ["/bin/bash", "/local/start.sh"]
         port_map {
@@ -113,13 +109,16 @@ job "nextcloud-instance-2" {
         memory = 300
         network {
           mbits = 1
-          port "http" {}
+          port "http" {
+            static = 16666
+          }
         }
       }
       env {
         NEXTCLOUD_URL = "${config.liquid_http_protocol}://nextcloud-instance-2.${config.liquid_domain}"
-        LIQUID_TITLE = "${config.liquid_title}"
+        LIQUID_TITLE = "${config.liquid_title} (Nextcloud Instance 2)"
         LIQUID_CORE_URL = "${config.liquid_core_url}"
+        LIQUID_COLOR_PRIMARY = "#920909"
       }
       template {
         data = <<-EOF
@@ -188,7 +187,6 @@ job "nextcloud-instance-2" {
       service {
         name = "nextcloud-instance-2-app"
         port = "http"
-        tags = ["fabio-:16666 proto=tcp"]
         check {
           name = "http"
           initial_status = "critical"
@@ -208,7 +206,8 @@ job "nextcloud-instance-2" {
       'nextcloud-instance-2',
       host='nextcloud-instance-2.' + liquid_domain,
       upstream_port=16666,
-      group='nextcloud',
-      redis_id=9
+      group='nextcloud-instance-2',
+      redis_id=9,
+      needs_constraint_to_volumes=True,
     ) }
 }

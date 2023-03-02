@@ -140,3 +140,4 @@ class Job:
     stage = 2
     generate_oauth2_proxy_cookie = False
     extra_secret_fn = None
+    custom_homepage_config = None

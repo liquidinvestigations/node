@@ -7,6 +7,7 @@ if [ -z "$MYSQL_HOST" ]; then
     echo "Missing MYSQL_HOST - please wait for the DB to spin up before running setup"
     exit 1
 fi
+echo "MYSQL_HOST: $MYSQL_HOST"
 
 cd /var/www/html
 
@@ -20,13 +21,6 @@ INSTALLED=$( set -o pipefail; php occ status --output=json | jq '.installed' || 
 set -e
 
 echo "INSTALLED STATE: $INSTALLED"
-
-if [[ "$INSTALLED" =~ "true" || "$INSTALLED" =~ "error" ]]; then
-    echo "Trying to upgrade nextcloud"
-    php occ upgrade --no-interaction || true
-    # php occ app:update --no-interaction --all || true
-    echo "Upgrade Successful"
-fi
 
 
 if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
@@ -52,6 +46,24 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
 
     echo "Installation Successful"
 fi
+
+# check again if installation ok 
+set +e
+php occ status --output=json
+INSTALLED=$( set -o pipefail; php occ status --output=json | jq '.installed' || echo "error" )
+set -e
+if ! [[ "$INSTALLED" =~ "true"  ]]; then
+    echo "NEXTCLOUD STILL NOT INSTALLED : $INSTALLED"
+    exit 1
+fi
+
+if [[ "$INSTALLED" =~ "true" || "$INSTALLED" =~ "error" ]]; then
+    echo "Trying to upgrade nextcloud"
+    php occ upgrade --no-interaction || true
+    php occ app:update --no-interaction --all || true
+    echo "Upgrade Successful"
+fi
+
 
 echo "Configuring..."
 php occ config:system:set trusted_domains 0 --value '*'

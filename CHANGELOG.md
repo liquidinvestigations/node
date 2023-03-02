@@ -1,6 +1,17 @@
 # Liquid Investigations Change Log
 
+## Unreleased (v0.24.0-rc-1) (2023-03-03)
+
+### Improvements
+- Nextcloud: Added second Nextcloud instance, with different permission flags, that admins may enable.
+
+### Bug Fixes
+- Deployment: Fixed bug where the `./liquid deploy` command would download more images than necessary.
+
+---
+
 ## v0.23.14 (2023-02-22)
+
 ### Bug Fixes
 - Dokuwiki: Fix issue where Sitemap would not expand entries for users with restricted access.
 - Hoover: Fixed "File Finder" issue where the root folder would be displayed as a different file.
@@ -24,6 +35,7 @@
 ### Bug Fixes
 - Hoover: fixed bug causing delay while indexing new data in the uploads (NextCloud) collection.
 
+---
 
 ## v0.23.8 (2023-01-31)
 
