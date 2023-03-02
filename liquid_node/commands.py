@@ -342,12 +342,7 @@ def _update_images():
     t0 = time()
     log.info("Downloading docker images...")
 
-    override_images = set(config._image(i) for i in config.image_keys)
-    with multiprocessing.Pool(6) as p:
-        for name, new in p.imap_unordered(_update_image, override_images):
-            comment(name, new)
-
-    images = set(all_images()) | set(config.images) | override_images
+    images = set(all_images())
     with multiprocessing.Pool(6) as p:
         for name, new in p.imap_unordered(_update_image, images):
             comment(name, new)

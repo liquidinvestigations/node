@@ -331,11 +331,6 @@ class Configuration:
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
-        self.image_keys = set(self.track_ini['versions']) | \
-            (set(self.versions_ini['versions']) if 'versions' in self.versions_ini.sections() else set()) | \
-            (set(self.ini['versions']) if 'versions' in self.ini.sections() else set())
-        self.images = set(self._image(c) for c in self.image_keys)
-
         self.PORT_MAP = {
             'lb': self.ini.getint('ports', 'lb', fallback=9990),
             'blobs_minio': self.ini.getint('ports', 'blobs_minio', fallback=9991),
