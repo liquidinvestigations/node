@@ -588,7 +588,7 @@ def show_docker_pull_commands(prefix):
         images = [prefix + '/' + str(i) if str(i).count('/') <= 1 else i for i in images]
 
     echo_str = "\n".join(' echo ' + i for i in images)
-    print(f'\n( (\n{echo_str}\n) | xargs -n1 -P8 docker pull )\n')
+    print(f'\n\n( (\n{echo_str}\n) | xargs -n1 -P8 docker pull )\n')
 
 
 @liquid_commands.command()

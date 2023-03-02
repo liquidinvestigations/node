@@ -99,6 +99,8 @@ class Configuration:
         assert (self.root / (self.version_track + '-versions.ini')).is_file(), \
             'invalid version_track'
         self.track_ini.read(self.root / (self.version_track + '-versions.ini'))
+        self.default_ini = configparser.ConfigParser()
+        self.default_ini.read(self.root / ('default-versions.ini'))
 
         self.cluster_root_path = self.ini.get('cluster', 'cluster_path', fallback=None)
         self.consul_url = self.ini.get('cluster', 'consul_url', fallback='http://127.0.0.1:8500')
@@ -511,7 +513,6 @@ class Configuration:
         self.liquid_version = self.get_node_version()
         self.liquid_core_version = self.version('liquid-core')
 
-
     def get_node_version(self):
         try:
             return subprocess.check_output(['git', 'describe', '--tags'], shell=False).decode().strip()
@@ -539,7 +540,7 @@ class Configuration:
         Can be overrided in liquid.ini, same section name.
         """
 
-        for x in [self.ini, self.versions_ini, self.track_ini]:
+        for x in [self.ini, self.versions_ini, self.track_ini, self.default_ini]:
             val = x.get('versions', name, fallback=None)
             if val:
                 return val.strip()
