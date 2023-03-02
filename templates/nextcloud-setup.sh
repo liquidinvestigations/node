@@ -19,10 +19,13 @@ php occ status --output=json
 INSTALLED=$( set -o pipefail; php occ status --output=json | jq '.installed' || echo "error" )
 set -e
 
+echo "INSTALLED STATE: $INSTALLED"
+
 if [[ "$INSTALLED" =~ "true" || "$INSTALLED" =~ "error" ]]; then
     echo "Trying to upgrade nextcloud"
     php occ upgrade --no-interaction || true
-    php occ app:update --no-interaction --all || true
+    # php occ app:update --no-interaction --all || true
+    echo "Upgrade Successful"
 fi
 
 
@@ -47,8 +50,7 @@ if [[ "$INSTALLED" =~ "false" || "$INSTALLED" =~ "error" ]]; then
     php occ config:system:set trusted_domains 0 --value '*'
     )
 
-    echo "Installation successful -- now restarting (aka failing) the migrate job"
-    exit 66
+    echo "Installation Successful"
 fi
 
 echo "Configuring..."
