@@ -97,15 +97,15 @@ job "nextcloud" {
           echo chown done
 
           echo "2/4 exec setup"
-          sudo -Eu www-data bash /local/setup.sh || sleep 36000
+          sudo -Eu www-data bash /local/setup.sh
 
           echo "3/4 start periodic"
           (
             while true; do
-              # about 6h
-              sleep 7200
+              sleep 300
               echo "rescanning files..."
               sudo -Eu www-data php occ files:scan --all
+              sleep 3600
             done
           ) &
 

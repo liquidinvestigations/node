@@ -128,6 +128,3 @@ php occ user:resetpassword --password-from-env $NEXTCLOUD_ADMIN_USER
 )
 echo "uploads and admin password set
 "
-
-# scan the filesystem in case there are files initially (redeploy e.g.)
-php occ files:scan --all
