@@ -1,9 +1,11 @@
 # Liquid Investigations Change Log
 
-## Unreleased (v0.24.0-rc-1) (2023-03-03)
+---
+
+## v0.24.1 (2023-03-03)
 
 ### Improvements
-- Nextcloud: Added second Nextcloud instance, with different permission flags, that admins may enable.
+- Nextcloud: Added second Nextcloud instance, with different permission flags, that admins may enable. See [configuration section](https://github.com/liquidinvestigations/node/blob/b658626ddc1ef9ebf55b429ce00619426324a6a0/examples/liquid.ini#L407-L408C15)
 
 ### Bug Fixes
 - Deployment: Fixed bug where the `./liquid deploy` command would download more images than necessary.
