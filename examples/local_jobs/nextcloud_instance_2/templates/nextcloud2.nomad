@@ -165,7 +165,7 @@ job "nextcloud-instance-2" {
           echo chown done
 
           echo "2/4 exec setup"
-          sudo -Eu www-data bash /local/setup.sh || sleep 36000
+          sudo -Eu www-data bash /local/setup.sh
 
           echo "3/4 start periodic"
           (
