@@ -1,5 +1,13 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+### New Features
+- New App: Integrated new Wiki app, Wiki.js. This system has modern features, such as visual editing, role-based access control, and comments.
+
+### Bug Fixes
+- Hoover: Fixed bug where, on some collections, document pages would intermittently raise errors when fetching the location list.
+
 ---
 
 ## v0.24.1 (2023-03-03)

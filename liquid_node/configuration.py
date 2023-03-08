@@ -25,8 +25,8 @@ def split_lang_codes(option):
 
 
 class Configuration:
-    ALL_APPS = ('hoover', 'dokuwiki', 'rocketchat', 'nextcloud',
-                'codimd', 'wikijs',)
+    ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'rocketchat', 'nextcloud',
+                'codimd', )
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -40,10 +40,10 @@ class Configuration:
     APP_DESCRIPTION = {
         'hoover': 'is a search app.',
         'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
+        'wikijs': 'is a new wiki system with modern functionality.',
         'codimd': 'is a real-time collaboration pad.',
         'nextcloud': 'has a file share system and a contact list of users.',
         'rocketchat': 'is the chat app.',
-        'wikijs': 'is a wiki system used as a knowledge base for processed information',
     }
 
     APP_REDIS_IDS = {
