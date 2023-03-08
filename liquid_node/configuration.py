@@ -9,7 +9,7 @@ from distutils.util import strtobool
 from pathlib import Path
 
 from .util import import_string
-from .docker import docker
+# from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
     nextcloud, codimd, ci, wikijs
 
@@ -572,8 +572,7 @@ class Configuration:
 
         # if not image or image == 'None':
         #     raise RuntimeError(f'service {name}: could not find docker image hash for tag {tag}')
-
-        return image
+        # return image
 
     def load_job(self, name, job_config):
         if 'template' in job_config:
