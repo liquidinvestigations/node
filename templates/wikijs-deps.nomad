@@ -32,6 +32,7 @@ job "wikijs-deps" {
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/wikijs/wikijs-pg-11/data:/var/lib/postgresql/data",
         ]
+        # command = "bash -c \"if [ -z \\\"$(ls -A /var/lib/postgresql/data)\\\" ]; then /usr/local/bin/docker-entrypoint.sh postgres && psql -U \\$POSTGRES_USER -d \\$POSTGRES_DB -f /docker-entrypoint-initdb.d/wikijsdbdump.sql; else /usr/local/bin/docker-entrypoint.sh postgres; fi\""
         labels {
           liquid_task = "wikijs-pg"
         }
@@ -57,6 +58,11 @@ job "wikijs-deps" {
 
       ${ set_pg_password_template('wikijs') }
       ${ set_pg_drop_template('wikijs') }
+
+      # template {
+      #   source = "/opt/node/templates/wikijsdbdump.sql"
+      #   destination = "/docker-entrypoint-initdb.d/wikijsdbdump.sql"
+      #   }
 
       resources {
         memory = 1200
