@@ -1109,12 +1109,8 @@ INSERT INTO public.editors (key, "isEnabled", config) SELECT 'wysiwyg', false, '
 -- Data for Name: groups; Type: TABLE DATA; Schema: public; Owner: wikijs
 --
 
--- TODO get SQL with groups 'admin' and 'user' to map the liquid oauth groups
-
 INSERT INTO public.groups (id, name, permissions, "pageRules", "isSystem", "createdAt", "updatedAt", "redirectOnLogin") SELECT 1, 'Administrators', '["manage:system"]', '[]', true, '2023-02-27T08:53:15.208Z', '2023-02-27T08:53:15.208Z', '/' WHERE NOT EXISTS (SELECT id FROM public.groups WHERE id = 1);
 INSERT INTO public.groups (id, name, permissions, "pageRules", "isSystem", "createdAt", "updatedAt", "redirectOnLogin") SELECT 2, 'Guests', '[]', '[{"id":"guest","deny":false,"match":"START","roles":["read:pages","read:assets","read:comments"],"path":"","locales":[]}]', true, '2023-02-27T08:53:15.211Z', '2023-02-27T09:26:57.358Z', '/' WHERE NOT EXISTS (SELECT id FROM public.groups WHERE id = 2);
-INSERT INTO public.groups (id, name, permissions, "pageRules", "isSystem", "createdAt", "updatedAt", "redirectOnLogin") SELECT 3, 'admin', '["read:pages","read:assets","read:comments","write:comments","write:pages","manage:pages","delete:pages","write:styles","write:scripts","read:source","read:history","write:assets","manage:assets","manage:comments","write:users","manage:users","write:groups","manage:groups","manage:api","manage:theme","manage:navigation"]', '[{"id":"default","deny":false,"match":"START","roles":["read:pages","read:assets","read:comments","write:comments"],"path":"","locales":[]}]', false, '2023-02-28T10:12:44.970Z', '2023-02-28T10:13:03.269Z', '/' WHERE NOT EXISTS (SELECT id FROM public.groups WHERE id = 3);
-INSERT INTO public.groups (id, name, permissions, "pageRules", "isSystem", "createdAt", "updatedAt", "redirectOnLogin") SELECT 4, 'user', '["read:pages","read:assets","read:comments","write:comments"]', '[{"id":"default","deny":false,"match":"START","roles":["read:pages","read:assets","read:comments","write:comments"],"path":"","locales":[]}]', false, '2023-02-27T09:31:57.724Z', '2023-02-28T10:14:25.058Z', '/' WHERE NOT EXISTS (SELECT id FROM public.groups WHERE id = 4);
 
 --
 -- Data for Name: locales; Type: TABLE DATA; Schema: public; Owner: wikijs
@@ -1199,35 +1195,25 @@ INSERT INTO public.navigation (key, config) SELECT 'site', '[{"locale":"en","ite
 -- Data for Name: pageTags; Type: TABLE DATA; Schema: public; Owner: wikijs
 --
 
-INSERT INTO public."pageTags" (id, "pageId", "tagId") SELECT 1, 1, 1 WHERE NOT EXISTS (SELECT id FROM public."pageTags" WHERE id = 1);
 
 
 --
 -- Data for Name: pageTree; Type: TABLE DATA; Schema: public; Owner: wikijs
 --
 
-INSERT INTO public."pageTree" (id, path, depth, title, "isPrivate", "isFolder", "privateNS", parent, "pageId", "localeCode", ancestors) SELECT 1, 'home', 1, 'Home', false, false, NULL, NULL, 1, 'en', '[]' WHERE NOT EXISTS (SELECT id FROM public."pageTree" WHERE id = 1);
 
 
---
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: wikijs
---
-
--- TODO only admin user and admin secret from template
-
-INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) SELECT 2, 'guest@example.com', 'Guest', NULL, '', false, NULL, '', '', NULL, 'America/New_York', true, true, true, false, '2023-02-27T08:53:15.997Z', '2023-02-27T08:53:15.997Z', 'local', 'en', 'markdown', NULL, '', '' WHERE NOT EXISTS (SELECT id FROM public.users WHERE id = 2);
-INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) SELECT 1, 'test@1234.com', 'Administrator', NULL, '$2a$12$0/2xsgIBa/mbkN/a1vb5M.GHuE4.cxnNYu2S2CW9HCcjq1iY5yqju', false, NULL, '', '', NULL, 'America/New_York', false, true, true, false, '2023-02-27T08:53:15.422Z', '2023-02-27T08:53:15.422Z', 'local', 'en', 'markdown', '2023-02-27T09:29:07.083Z', '', '' WHERE NOT EXISTS (SELECT id FROM public.users WHERE id = 1);
 
 --
 -- Data for Name: pages; Type: TABLE DATA; Schema: public; Owner: wikijs
 --
 
--- TODO set the homepage accordingly
+-- TODO set the homepage accordingly or none at all?
 
-INSERT INTO public.pages (id, path, hash, title, description, "isPrivate", "isPublished", "privateNS", "publishStartDate", "publishEndDate", content, render, toc, "contentType", "createdAt", "updatedAt", "editorKey", "localeCode", "authorId", "creatorId", extra) SELECT 1, 'home', 'b29b5d2ce62e55412776ab98f05631e0aa96597b', 'Home', 'This is a Home Page', false, true, NULL, '', '', '# Header
-Your content here', '<h1 class="toc-header" id="header"><a href="#header" class="toc-anchor">¶</a> Header</h1>
-<p>Your content here</p>
-', '[{"title":"Header","anchor":"#header","children":[]}]', 'markdown', '2023-02-27T09:21:30.486Z', '2023-02-27T09:21:33.620Z', 'markdown', 'en', 1, 1, '{"js":"","css":""}' WHERE NOT EXISTS (SELECT id FROM public.pages WHERE id = 1);
+-- INSERT INTO public.pages (id, path, hash, title, description, "isPrivate", "isPublished", "privateNS", "publishStartDate", "publishEndDate", content, render, toc, "contentType", "createdAt", "updatedAt", "editorKey", "localeCode", "authorId", "creatorId", extra) SELECT 1, 'home', 'b29b5d2ce62e55412776ab98f05631e0aa96597b', 'Home', 'This is a Home Page', false, true, NULL, '', '', '# Header
+-- Your content here', '<h1 class="toc-header" id="header"><a href="#header" class="toc-anchor">¶</a> Header</h1>
+-- <p>Your content here</p>
+-- ', '[{"title":"Header","anchor":"#header","children":[]}]', 'markdown', '2023-02-27T09:21:30.486Z', '2023-02-27T09:21:33.620Z', 'markdown', 'en', 1, 1, '{"js":"","css":""}' WHERE NOT EXISTS (SELECT id FROM public.pages WHERE id = 1);
 
 
 --
@@ -1335,10 +1321,6 @@ INSERT INTO public.storage (key, "isEnabled", mode, config, "syncInterval", stat
 -- Data for Name: tags; Type: TABLE DATA; Schema: public; Owner: wikijs
 --
 
--- TODO which tag for homepage?
-
-INSERT INTO public.tags (id, tag, title, "createdAt", "updatedAt") SELECT 1, 'home', 'home', '2023-02-27T09:21:30.582Z', '2023-02-27T09:21:30.582Z' WHERE NOT EXISTS (SELECT id FROM public.tags WHERE id = 1);
-
 
 --
 -- Data for Name: userAvatars; Type: TABLE DATA; Schema: public; Owner: wikijs
@@ -1360,6 +1342,16 @@ INSERT INTO public."userGroups" (id, "userId", "groupId") SELECT 2, 2, 2 WHERE N
 -- Data for Name: userKeys; Type: TABLE DATA; Schema: public; Owner: wikijs
 --
 
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: wikijs
+--
+
+INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) SELECT 2, 'guest@example.com', 'Guest', NULL, '', false, NULL, '', '', NULL, 'America/New_York', true, true, true, false, '2023-02-27T08:53:15.997Z', '2023-02-27T08:53:15.997Z', 'local', 'en', 'markdown', NULL, '', '' WHERE NOT EXISTS (SELECT id FROM public.users WHERE id = 2);
+
+-- TODO test without admin user
+INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) SELECT 1, 'test@1234.com', 'Administrator', NULL, '$2a$12$0/2xsgIBa/mbkN/a1vb5M.GHuE4.cxnNYu2S2CW9HCcjq1iY5yqju', false, NULL, '', '', NULL, 'America/New_York', false, true, true, false, '2023-02-27T08:53:15.422Z', '2023-02-27T08:53:15.422Z', 'local', 'en', 'markdown', '2023-02-27T09:29:07.083Z', '', '' WHERE NOT EXISTS (SELECT id FROM public.users WHERE id = 1);
 
 
 
