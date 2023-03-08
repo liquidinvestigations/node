@@ -11,7 +11,7 @@ class Wikijs(jobs.Job):
             'name': 'wikijs-app',
             'subdomain': 'wikijs',
             'vault_path': 'liquid/wikijs/app.auth.oauth2',
-            'callback': '/login/5a3aee47-de0c-4c8a-9247-a3c879a2fbd2/callback',
+            'callback': '/login/liquid/callback',
         },
         {
             'name': 'wikijs-authproxy',
