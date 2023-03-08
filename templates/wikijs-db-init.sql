@@ -1270,15 +1270,15 @@ INSERT INTO public.settings (key, value, "updatedAt") VALUES ('logo', '{"hasLogo
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('mail', '{"senderName":"","senderEmail":"","host":"","port":465,"name":"","secure":true,"verifySSL":true,"user":"","pass":"","useDKIM":false,"dkimDomainName":"","dkimKeySelector":"","dkimPrivateKey":""}', '2023-03-08T16:22:29.356Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('sessionSecret', '{"v":"0bfa2eb4f561984795ff0b1ef66253e5442b3a7ccbd09ced430280ccdc45d644"}', '2023-03-08T16:22:29.361Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('telemetry', '{"isEnabled":false,"clientId":"2336f225-7bc2-4333-bce7-f6d187f8d9e3"}', '2023-03-08T16:22:29.363Z');
-INSERT INTO public.settings (key, value, "updatedAt") VALUES ('theming', '{"theme":"default","darkMode":false,"iconset":"mdi","injectCSS":"","injectHead":"","injectBody":""}', '2023-03-08T16:22:29.365Z');
+INSERT INTO public.settings (key, value, "updatedAt") VALUES ('theming', '{"theme":"default","darkMode":false,"iconset":"mdi","injectCSS":".nav-header-dev{visibility:hidden;}","injectHead":"","injectBody":"","tocPosition":"right"}', '2023-03-08T16:22:29.365Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('lang', '{"code":"en","autoUpdate":false,"namespacing":false,"namespaces":["en"],"rtl":false}', '2023-03-08T16:26:07.870Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('host', '{"v":"https://CHANGEME.liquid.example.org"}', '2023-03-08T16:26:59.002Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('title', '{"v":"Wiki.js"}', '2023-03-08T16:26:59.007Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('company', '{"v":"CHANGEME"}', '2023-03-08T16:26:59.012Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('contentLicense', '{"v":""}', '2023-03-08T16:26:59.015Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('footerOverride', '{"v":"CHANGEME"}', '2023-03-08T16:26:59.019Z');
-INSERT INTO public.settings (key, value, "updatedAt") VALUES ('seo', '{"description":"CHANGEME","robots":["index","follow"],"analyticsService":"","analyticsId":""}', '2023-03-08T16:26:59.024Z');
-INSERT INTO public.settings (key, value, "updatedAt") VALUES ('logoUrl', '{"v":"/logo/wikijs-butterfly.svg"}', '2023-03-08T16:26:59.027Z');
+INSERT INTO public.settings (key, value, "updatedAt") VALUES ('seo', '{"description":"wiki","robots":["index","follow"],"analyticsService":"","analyticsId":""}', '2023-03-08T16:26:59.024Z');
+INSERT INTO public.settings (key, value, "updatedAt") VALUES ('logoUrl', '{"v":"/_assets/favicons/android-chrome-192x192.png"}', '2023-03-08T16:26:59.027Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('pageExtensions', '{"v":["md","html","txt"]}', '2023-03-08T16:26:59.030Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('auth', '{"audience":"urn:wiki.js","tokenExpiration":"30m","tokenRenewal":"14d"}', '2023-03-08T16:26:59.033Z');
 INSERT INTO public.settings (key, value, "updatedAt") VALUES ('editShortcuts', '{"editFab":true,"editMenuBar":false,"editMenuBtn":true,"editMenuExternalBtn":true,"editMenuExternalName":"GitHub","editMenuExternalIcon":"mdi-github","editMenuExternalUrl":"https://github.com/org/repo/blob/main/{filename}"}', '2023-03-08T16:26:59.036Z');
@@ -1334,8 +1334,8 @@ INSERT INTO public."userGroups" (id, "userId", "groupId") VALUES (2, 2, 2);
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) VALUES (2, 'guest@example.com', 'Guest', NULL, '', false, NULL, '', '', NULL, 'America/New_York', true, true, true, false, '2023-03-08T16:22:29.872Z', '2023-03-08T16:22:29.872Z', 'local', 'en', 'markdown', NULL, '', '');
-INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) VALUES (1, 'changeme@changeme.com', 'Administrator', NULL, '$2a$12$R1NoqUXqCd/7qC/PDieatuLcoOvI5VybrvHFIREp6VX8yCb2GQBum', false, NULL, '', '', NULL, 'America/New_York', false, true, true, false, '2023-03-08T16:22:29.637Z', '2023-03-08T16:22:29.637Z', 'local', 'en', 'markdown', '2023-03-08T16:22:49.077Z', '', '');
+INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) VALUES (2, 'system-guest@wiki', 'Guest', NULL, '', false, NULL, '', '', NULL, 'America/New_York', true, true, true, false, '2023-03-08T16:22:29.872Z', '2023-03-08T16:22:29.872Z', 'local', 'en', 'markdown', NULL, '', '');
+INSERT INTO public.users (id, email, name, "providerId", password, "tfaIsActive", "tfaSecret", "jobTitle", location, "pictureUrl", timezone, "isSystem", "isActive", "isVerified", "mustChangePwd", "createdAt", "updatedAt", "providerKey", "localeCode", "defaultEditor", "lastLoginAt", "dateFormat", appearance) VALUES (1, 'system-admin@wiki', 'Administrator', NULL, '$2a$12$!00000000000000000000000000000000000000000000000000000', false, NULL, '', '', NULL, 'America/New_York', false, true, true, false, '2023-03-08T16:22:29.637Z', '2023-03-08T16:22:29.637Z', 'local', 'en', 'markdown', '2023-03-08T16:22:49.077Z', '', '');
 
 
 --

@@ -31,7 +31,12 @@ job "wikijs" {
         DB_PORT = ${config.port_wikijs_pg}
         DB_USER = "wikijs"
         DB_NAME = "wikijs"
-        NODE_ENV = "development"
+
+        {% if config.liquid_debug %}
+          NODE_ENV = "development"
+        {% else %}
+          NODE_ENV = "production"
+        {% endif %}
 
         LIQUID_CORE_URL = ${config.liquid_core_url|tojson}
         LIQUID_CORE_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
@@ -46,8 +51,11 @@ job "wikijs" {
 
       template {
         data = <<-EOF
-          {{- with secret "liquid/wikijs/wikijs.postgres" -}}
+          {{- with secret "liquid/wikijs/wikijs.postgres" }}
               DB_PASS={{.Data.secret_key | toJSON }}
+          {{- end }}
+          {{- with secret "liquid/wikijs/wikijs.session" }}
+              WIKIJS_SESSION_SECRET={{.Data.secret_key | toJSON }}
           {{- end }}
           DB_HOST = {{env "attr.unique.network.ip-address" }}
           WIKIJS_DB = "postgresql://wikijs:
@@ -136,9 +144,6 @@ job "wikijs" {
         port = "wikijs"
         tags = [
           "fabio-:${config.port_wikijs} proto=tcp"
-          # "traefik.enable=true",
-          # "traefik.frontend.rule=Host:${'wikijs.' + liquid_domain}",
-          # "fabio-:${config.port_wikijs} proto=tcp"
         ]
         check {
           initial_status = "critical"

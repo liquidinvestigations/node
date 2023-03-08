@@ -27,7 +27,8 @@ WHERE  key = 'liquid' ;
 
 UPDATE public.authentication
 SET
-    "isEnabled" = false
+    "isEnabled" = false,
+    "selfRegistration" = false
 WHERE  key != 'liquid' ;
 
 UPDATE public.settings
@@ -38,6 +39,19 @@ WHERE key = 'host';
 
 UPDATE public.settings
 SET
-    value = '{"v":"$LIQUID_TITLE"}',
+    value = '{"v":"Wiki.js | $LIQUID_TITLE"}',
     "updatedAt" = '2023-02-27T09:24:19.906Z'
 WHERE key IN ('title', 'company', 'footerOverride');
+
+
+UPDATE public.settings
+SET
+    value = '{"autoLogin":true,"enforce2FA":false,"hideLocal":true,"loginBgUrl":"","audience":"urn:wiki.js","tokenExpiration":"30m","tokenRenewal":"1d"}',
+    "updatedAt" = '2023-02-27T09:24:19.906Z'
+WHERE key = 'auth';
+
+-- UPDATE public.settings
+-- SET
+--     value = '{"v":"$WIKIJS_SESSION_SECRET"}',
+--     "updatedAt" = '2023-02-27T09:24:19.906Z'
+-- WHERE key ='sessionSecret';

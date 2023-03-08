@@ -21,7 +21,8 @@ class Wikijs(jobs.Job):
         },
     ]
     vault_secret_keys = [
-        'liquid/wikijs/wikijs.postgres'
+        'liquid/wikijs/wikijs.postgres',
+        'liquid/wikijs/wikijs.session',
     ]
     generate_oauth2_proxy_cookie = True
 
