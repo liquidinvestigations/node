@@ -23,7 +23,7 @@ job "wikijs" {
         labels {
           liquid_task = "wikijs"
         }
-        memory_hard_limit = 2000
+        memory_hard_limit = 4000
       }
 
       env {
@@ -32,6 +32,14 @@ job "wikijs" {
         DB_USER = "wikijs"
         DB_NAME = "wikijs"
         NODE_ENV = "development"
+
+        LIQUID_CORE_URL = ${config.liquid_core_url|tojson}
+        LIQUID_CORE_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
+        LIQUID_TITLE = ${config.liquid_title|tojson}
+        LIQUID_DOMAIN = ${config.liquid_domain|tojson}
+        LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol|tojson}
+
+        WIKIJS_INIT_CHECK_TABLE = "userGroups"
         # DB_HOST = "10.66.60.1"
         # DB_PASS = "test"
       }
@@ -75,9 +83,19 @@ job "wikijs" {
         left_delimiter = "DELIM_LEFT"
         right_delimiter = "DELIM_RIGHT"
         data = <<EOF
-{% include 'wikijsdbdump.sql' %}
+{% include 'wikijs-db-init.sql' %}
         EOF
-        destination = "local/wikijsdbdump.sql"
+        destination = "local/wikijs-db-init.sql"
+      }
+
+
+      template {
+        left_delimiter = "DELIM_LEFT"
+        right_delimiter = "DELIM_RIGHT"
+        data = <<EOF
+{% include 'wikijs-db-update.sql' %}
+        EOF
+        destination = "local/wikijs-db-update.sql"
       }
 
       template {
@@ -85,10 +103,19 @@ job "wikijs" {
           #!/bin/bash
           set -ex
           psql --version
-          echo 'Running database migration...'
-          ls /local
-          envsubst < /local/wikijsdbdump.sql | psql $WIKIJS_DB
-          echo 'Successfully ran database migration.'
+          if ( echo "\\d" | psql $WIKIJS_DB | grep -q $WIKIJS_INIT_CHECK_TABLE ); then
+            echo "Table $WIKIJS_INIT_CHECK_TABLE was found -- not running init script."
+          else
+            echo 'Running database initialization script...'
+            envsubst < /local/wikijs-db-init.sql | psql -v ON_ERROR_STOP=1 --single-transaction $WIKIJS_DB
+            echo 'Successfully ran database initialization script.'
+          fi
+
+          echo 'Running datbase update script...'
+          envsubst < /local/wikijs-db-update.sql | psql -v ON_ERROR_STOP=1 --single-transaction $WIKIJS_DB
+          echo 'Successfully ran database update script.'
+
+          echo 'Starting node server...'
           exec node server
         EOF
         env = false
@@ -97,7 +124,7 @@ job "wikijs" {
 
       resources {
         memory = 400
-        cpu = 290
+        cpu = 100
         network {
           mbits = 1
           port "wikijs" {}

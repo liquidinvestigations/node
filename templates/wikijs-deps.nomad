@@ -65,7 +65,8 @@ job "wikijs-deps" {
       #   }
 
       resources {
-        memory = 1200
+        memory = 400
+        cpu = 100
         network {
           mbits = 1
           port "pg" {}
