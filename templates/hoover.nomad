@@ -52,6 +52,11 @@
         SNOOP_UNARCHIVE_THREADS = "${ config.snoop_unarchive_threads }"
 
         SNOOP_TOTAL_WORKER_COUNT = "${config.total_snoop_worker_count}"
+
+        GUNICORN_WORKER_CLASS = "gthread"
+        GUNICORN_WORKERS = "3"
+        GUNICORN_THREADS = "8"
+        GUNICORN_MAX_REQUESTS = "1000"
     }
 
       template {
@@ -135,7 +140,7 @@ job "hoover" {
         labels {
           liquid_task = "hoover-search"
         }
-        memory_hard_limit = ${2 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${4 * config.hoover_web_memory_limit}
       }
       # This container uses "runserver" so we don't need to auto-reload
       # env { __GIT_TAGS = "${hoover_search_git}" }
@@ -154,6 +159,10 @@ job "hoover" {
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
 
+        GUNICORN_WORKER_CLASS = "gthread"
+        GUNICORN_WORKERS = "3"
+        GUNICORN_THREADS = "8"
+        GUNICORN_MAX_REQUESTS = "1000"
       }
 
       template {
@@ -245,7 +254,7 @@ job "hoover" {
         labels {
           liquid_task = "snoop-api"
         }
-        memory_hard_limit = ${2 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${4 * config.hoover_web_memory_limit}
       }
       # This container uses "runserver" so we don't need to auto-reload
       # env { __GIT_TAGS = "${hoover_snoop2_git}" }

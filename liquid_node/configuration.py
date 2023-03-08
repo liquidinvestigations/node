@@ -553,15 +553,16 @@ class Configuration:
         assert tag, (
             'no repo/tag set for config.image(": ' + name
             + '") - add to versions.ini')
-        image = docker.image_digest(tag)
-        if not image or image == 'None':
-            log.debug('image hash not found for service: ' + name + '  image tag: ' + tag)
-            log.info('pulling docker tag: ' + tag)
-            docker.pull(tag)
-            image = docker.image_digest(tag)
+        return tag
+        # image = docker.image_digest(tag)
+        # if not image or image == 'None':
+        #     log.debug('image hash not found for service: ' + name + '  image tag: ' + tag)
+        #     log.info('pulling docker tag: ' + tag)
+        #     docker.pull(tag)
+        #     image = docker.image_digest(tag)
 
-        if not image or image == 'None':
-            raise RuntimeError(f'service {name}: could not find docker image hash for tag {tag}')
+        # if not image or image == 'None':
+        #     raise RuntimeError(f'service {name}: could not find docker image hash for tag {tag}')
 
         return image
 
