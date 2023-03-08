@@ -81,14 +81,15 @@ job "wikijs" {
       }
 
       template {
-        data = <<EOF
-        #!/bin/bash
-        set -ex
-        apk --update add postgresql-client gettext
-        ls /local
-        envsubst < /local/wikijsdbdump.sql | psql $WIKIJS_DB
-        echo 'Ran database migration.'
-        node server
+        data = <<-EOF
+          #!/bin/bash
+          set -ex
+          psql --version
+          echo 'Running database migration...'
+          ls /local
+          envsubst < /local/wikijsdbdump.sql | psql $WIKIJS_DB
+          echo 'Successfully ran database migration.'
+          exec node server
         EOF
         env = false
         destination = "local/startup.sh"
