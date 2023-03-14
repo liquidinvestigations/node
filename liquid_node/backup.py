@@ -51,6 +51,9 @@ def backup(blobs, es, pg, original, backup_collections, collections, apps, dest)
         if config.is_app_enabled('codimd'):
             backup_pg(dest / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd-deps:postgres')
 
+        if config.is_app_enabled('wikijs'):
+            backup_pg(dest / 'wikijs.pg.sql.gz', 'wikijs', 'wikijs', 'wikijs-deps:wikijs-pg')
+
         if config.is_app_enabled('dokuwiki'):
             backup_files(dest / 'dokuwiki.tgz', '/bitnami/dokuwiki', [], 'dokuwiki:php')
 
@@ -197,6 +200,10 @@ def restore_apps(ctx, src):
     if config.is_app_enabled('codimd'):
         nomad.stop_and_wait(['codimd', 'codimd-proxy'])
         restore_pg(src / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd-deps:postgres')
+
+    if config.is_app_enabled('wikijs'):
+        nomad.stop_and_wait(['wikijs', 'wikijs-proxy'])
+        restore_pg(src / 'wikijs.pg.sql.gz', 'wikijs', 'wikijs', 'wikijs-deps:wikijs-pg')
 
     if config.is_app_enabled('dokuwiki'):
         restore_files(src / 'dokuwiki.tgz', '/bitnami/dokuwiki', 'dokuwiki:php')
