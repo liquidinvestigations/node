@@ -25,9 +25,11 @@ job "wikijs" {
         }
         memory_hard_limit = 4000
         volumes = [
-          ${wiki_js_repo}
+          ${liquidinvestigations_wiki_js_repo}
         ]
       }
+      env { __GIT_TAGS = "${liquidinvestigations_wiki_js_git}" }
+
 
       env {
         DB_TYPE = "postgres"
