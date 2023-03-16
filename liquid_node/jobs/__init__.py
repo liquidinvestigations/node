@@ -90,9 +90,11 @@ def set_volumes_paths(substitutions={}):
     for repo, repo_config in repos.items():
         key_repo = f"{repo_config['org']}_{repo}_repo"
         key_git = f"{repo_config['org']}_{repo}_git"
+        key_mounted = f"{repo_config['org']}_{repo}_mounted"
 
         substitutions[key_repo] = ''
         substitutions[key_git] = ''
+        substitutions[key_mounted] = ''
         if config.mount_local_repos:
             if Path(repo_config['local']).is_dir():
                 substitutions[key_repo] = f"\"{repo_config['local']}:{repo_config['target']}\",\n"
@@ -105,6 +107,7 @@ def set_volumes_paths(substitutions={}):
                     shell=True,
                 ).decode('utf-8').strip()
                 substitutions[key_git] = tag + md5sum
+                substitutions[key_mounted] = 'true'
             else:
                 log.warn(f'Invalid repo path "{repo_config["local"]}"')
 
