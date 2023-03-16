@@ -5,4 +5,5 @@ repos=(
         liquidinvestigations/core
         liquidinvestigations/codimd-server
         liquidinvestigations/liquid-dokuwiki
+        liquidinvestigations/wiki.js
 )

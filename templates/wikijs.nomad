@@ -24,6 +24,9 @@ job "wikijs" {
           liquid_task = "wikijs"
         }
         memory_hard_limit = 4000
+        volumes = [
+          ${wiki_js_repo}
+        ]
       }
 
       env {
