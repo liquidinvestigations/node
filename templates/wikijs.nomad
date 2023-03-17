@@ -139,9 +139,7 @@ job "wikijs" {
             yarn --frozen-lockfile --non-interactive add nodemon
             # webpack --profile --config dev/webpack/webpack.prod.js
             # webpack --config dev/webpack/webpack.dev.js &
-          fi
-
-          if [[ "$NODE_ENV" == "development" ]]; then
+            echo 'Starting Node dev....'
             exec node dev
           fi
 
