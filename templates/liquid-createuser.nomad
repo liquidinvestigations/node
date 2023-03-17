@@ -26,6 +26,7 @@ job "liquid-createuser" {
         HOOVER_ENABLED = "${ config.is_app_enabled('hoover') }"
         ROCKETCHAT_ENABLED = "${ config.is_app_enabled('rocketchat') }"
         CODIMD_ENABLED = "${ config.is_app_enabled('codimd') }"
+        WIKIJS_ENABLED = "${ config.is_app_enabled('wikijs') }"
       }
 
       template {
@@ -33,6 +34,10 @@ job "liquid-createuser" {
         ROCKETCHAT_URL = 'http://{{ env "attr.unique.network.ip-address" }}:${config.port_rocketchat}/'
         {{- with secret "liquid/rocketchat/adminuser" }}
             ROCKETCHAT_SECRET = {{.Data.pass }}
+        {{- end }}
+        WIKIJS_URL = 'http://{{ env "attr.unique.network.ip-address" }}:${config.port_wikijs}/'
+        {{- with secret "liquid/rocketchat/adminuser" }}
+            WIKIJS_API_TOKEN = {{.Data.pass }}
         {{- end }}
         EOF
         destination = "local/liquid-deleteuser.env"
@@ -46,6 +51,16 @@ job "liquid-createuser" {
         perms = "755"
         data = <<-EOF
 {% include 'scripts/create_rocket_user.py' %}
+        EOF
+      }
+
+      template {
+        left_delimiter = "DELIMITER_L"
+        right_delimiter = "DELIMITER_R"
+        destination = "local/create_wikijs_user.py"
+        perms = "755"
+        data = <<-EOF
+{% include 'scripts/create_wikijs_user.py' %}
         EOF
       }
 

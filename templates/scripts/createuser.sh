@@ -17,6 +17,11 @@ if [ "$ROCKETCHAT_ENABLED" = "True" ] ; then
     python local/create_rocket_user.py $LIQUID_USER
 fi
 
+if [ "$WIKIJS_ENABLED" = "True" ] ; then
+    echo "Creating wiki.js user..."
+    python local/create_wikijs_user.py $LIQUID_USER
+fi
+
 if [ "$CODIMD_ENABLED" = "True" ] ; then
     echo "Creating CodiMD user..."
     ${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--profileid=$LIQUID_USER', '--domain="$LIQUID_DOMAIN"')}
