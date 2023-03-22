@@ -52,7 +52,6 @@ job "wikijs" {
         LIQUID_DOMAIN = ${config.liquid_domain|tojson}
         LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol|tojson}
 
-        
         WIKIJS_INIT_CHECK_TABLE = "userGroups"
         # DB_HOST = "10.66.60.1"
         # DB_PASS = "test"
@@ -94,14 +93,6 @@ job "wikijs" {
         EOF
         destination = "local/wikijs.env"
         env = true
-      }
-
-      template {
-        data = <<EOF
-        VUE_APP_LIQUID_TITLE="${config.liquid_title|tojson}"
-        VUE_APP_LIQUID_CORE_URL="${config.liquid_core_url|tojson}"
-        EOF
-        destination = "/wiki/.env"
       }
 
       template {
