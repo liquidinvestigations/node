@@ -131,14 +131,13 @@ job "wikijs" {
           envsubst < /local/wikijs-db-update.sql | psql -v ON_ERROR_STOP=1 --single-transaction $WIKIJS_DB
           echo 'Successfully ran database update script.'
 
+          echo 'VUE_APP_LIQUID_TITLE=${config.liquid_title|tojson}' > /wiki/.env
+          echo 'VUE_APP_LIQUID_CORE_URL=${config.liquid_core_url|tojson}' >> /wiki/.env
+
+          echo 'Running yarn build...'
+          yarn build
           if [[ "$__GIT_VOLUME_MOUNTED" ]]; then
-            echo 'Re-Installing Development Dependencies...'
-            yarn --frozen-lockfile --non-interactive
-            yarn build
             cp "dev/build/config.yml" config.yml
-            yarn --frozen-lockfile --non-interactive add nodemon
-            # webpack --profile --config dev/webpack/webpack.prod.js
-            # webpack --config dev/webpack/webpack.dev.js &
             echo 'Starting Node dev....'
             exec node dev
           fi
