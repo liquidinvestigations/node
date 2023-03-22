@@ -52,6 +52,7 @@ job "wikijs" {
         LIQUID_DOMAIN = ${config.liquid_domain|tojson}
         LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol|tojson}
 
+        
         WIKIJS_INIT_CHECK_TABLE = "userGroups"
         # DB_HOST = "10.66.60.1"
         # DB_PASS = "test"
@@ -96,6 +97,14 @@ job "wikijs" {
       }
 
       template {
+        data = <<EOF
+        VUE_APP_LIQUID_TITLE="${config.liquid_title|tojson}"
+        VUE_APP_LIQUID_CORE_URL="${config.liquid_core_url|tojson}"
+        EOF
+        destination = "/wiki/.env"
+      }
+
+      template {
         left_delimiter = "DELIM_LEFT"
         right_delimiter = "DELIM_RIGHT"
         data = <<EOF
@@ -130,6 +139,9 @@ job "wikijs" {
           echo 'Running datbase update script...'
           envsubst < /local/wikijs-db-update.sql | psql -v ON_ERROR_STOP=1 --single-transaction $WIKIJS_DB
           echo 'Successfully ran database update script.'
+
+          echo "VUE_APP_LIQUID_TITLE=${config.liquid_title|tojson}" > /wiki/.env
+          echo "VUE_APP_LIQUID_CORE_URL=${config.liquid_core_url|tojson}" >> /wiki/.env
 
           if [[ "$__GIT_VOLUME_MOUNTED" ]]; then
             echo 'Re-Installing Development Dependencies...'
