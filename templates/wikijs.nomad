@@ -135,9 +135,9 @@ job "wikijs" {
           echo 'VUE_APP_LIQUID_CORE_URL=${config.liquid_core_url|tojson}' >> /wiki/.env
 
           echo 'Running yarn build...'
+          cp "dev/build/config.yml" config.yml
           yarn build
           if [[ "$__GIT_VOLUME_MOUNTED" ]]; then
-            cp "dev/build/config.yml" config.yml
             echo 'Starting Node dev....'
             exec node dev
           fi
