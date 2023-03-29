@@ -7,46 +7,67 @@ cd "$(dirname ${BASH_SOURCE[0]})/.."
 # requires bash >= 4.0 to loop through subdirectories
 shopt -s globstar
 
-mkdir -p /tmp/dokuwiki-export
+EXPORT_TMP_PATH=/tmp/liquid-export-dokuwiki-into-wikijs
+EXPORT_TMP_PATH_ZIP=/tmp/liquid-export-dokuwiki-into-wikijs.zip
+IMPORT_DOKU_ROOT=/opt/node/volumes/dokuwiki
+
+rm -rf $EXPORT_TMP_PATH
+rm -rf $EXPORT_TMP_PATH_ZIP
+
+mkdir -p $EXPORT_TMP_PATH
 (
-    cd "./volumes/dokuwiki/data/dokuwiki/data/pages"
+    cd "$IMPORT_DOKU_ROOT/data/dokuwiki/data/pages"
     echo "Copying dokuwiki content to temporary location for conversion..."
-    cp -a ./. /tmp/dokuwiki-export
+    cp -a ./. $EXPORT_TMP_PATH
 )
 
-echo "Converting all pages..."
-for d in /tmp/dokuwiki-export/**/*.txt; do
-    pandoc -o "${d}.md" -f dokuwiki -t markdown_mmd $d
+echo "Converting all pages to md..."
+for d in $EXPORT_TMP_PATH/**/*.txt; do
+    new_d="${d%.txt}.md"
+    pandoc -o "$new_d" -f dokuwiki -t markdown_mmd $d
     rm $d
-    mv "${d}.md" $d
-    rename .txt .md $d
 done
-echo "Conversion done!"
+echo "Conversion done."
 
 # disable ** wildcard again
 shopt -u globstar
 
 echo "Creating zip archive of all pages..."
 (
-    cd /tmp/dokuwiki-export
-    zip -r "../dokuwiki-export.zip"  .
+    cd $EXPORT_TMP_PATH
+    zip -r "$EXPORT_TMP_PATH_ZIP"  .
 )
-echo "Zip created!"
-
+echo "Zip created."
 
 echo "Removing temporary files..."
-rm -r /tmp/dokuwiki-export
+rm -rf $EXPORT_TMP_PATH
 
-echo "Export finished!"
+echo "Export finished."
 
-./liquid shell wikijs:wikijs bash -c 'mkdir -p /tmp/wiki'
 
-echo "Uploading the data to wikijs...!"
-cat /tmp/dokuwiki-export.zip | docker exec -i cluster ./cluster.py nomad-exec wikijs:wikijs -- bash -c "cat > /tmp/wiki/dokuwiki-export.zip"
-./liquid shell wikijs:wikijs bash -c 'unzip /tmp/wiki/dokuwiki-export.zip -d /tmp/wiki && rm /tmp/wiki/dokuwiki-export.zip'
+echo "Uploading the data to wikijs...."
+./liquid shell wikijs:wikijs bash -c 'rm -rf /tmp/wiki && mkdir -p /tmp/wiki'
 
-rm -r /tmp/dokuwiki-export.zip
+CONTAINER_TMP_PATH=/tmp/wiki-dokuwiki-export.zip
+cat $EXPORT_TMP_PATH_ZIP \
+    | docker exec -i cluster ./cluster.py nomad-exec wikijs:wikijs \
+    -- bash -c "cat > $CONTAINER_TMP_PATH"
+rm -f $EXPORT_TMP_PATH_ZIP
 
-echo "Done!"
+./liquid shell wikijs:wikijs \
+    -- bash -c "unzip $CONTAINER_TMP_PATH -d /tmp/wiki -o && rm -f $CONTAINER_TMP_PATH"
 
-echo "Go to your wiki.js admin interface and under 'Storage' enable 'Local File System' with the path /tmp/wiki. Press import everything at the bottom to import all the pages. After that you can disable the 'Local File System again'."
+
+set +x
+echo
+echo "Done."
+echo
+echo '
+- Go to your wiki.js admin interface
+- Under "Module > Storage" link "/a/storage" enable "Local File System" with the path:
+
+                /tmp/wiki
+
+- Press "Import Everything" at the bottom
+- Disable the "Local File System" again
+'
