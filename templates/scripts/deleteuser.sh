@@ -22,3 +22,8 @@ if [ "$CODIMD_ENABLED" = "True" ] ; then
     ${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--liquiddel=$LIQUID_USER')}
     echo "Deleted CodiMD user..."
 fi
+
+if [ "$WIKIJS_ENABLED" = "True" ] ; then
+    ${exec_command('wikijs:wikijs', 'node', '/wiki/delete-user.js', '$LIQUID_USER')}
+    echo "Deleted wiki.js user..."
+fi

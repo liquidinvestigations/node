@@ -21,3 +21,8 @@ if [ "$CODIMD_ENABLED" = "True" ] ; then
     echo "Creating CodiMD user..."
     ${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--profileid=$LIQUID_USER', '--domain="$LIQUID_DOMAIN"')}
 fi
+
+if [ "$WIKIJS_ENABLED" = "True" ] ; then
+    echo "Creating wiki.js user..."
+    ${exec_command('wikijs:wikijs', 'node', '/wiki/create-user.js', '${LIQUID_USER}@${LIQUID_DOMAIN}', '$LIQUID_USER',)}
+fi
