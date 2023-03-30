@@ -12,7 +12,7 @@ for u in $USERS; do
     LIQUID_USER=$(echo $u | sed -e 's/\r//')
     # $LIQUID_DOMAIN is an environment variable inside the wikijs container so we escape it here
     ./liquid shell wikijs:wikijs \
-             bash -c "node /wiki/create-users.js $LIQUID_USER@\$LIQUID_DOMAIN $LIQUID_USER"
+             bash -c "node /wiki/create-user.js $LIQUID_USER@\$LIQUID_DOMAIN $LIQUID_USER || true"
     if [[ $? -ne 0 ]]; then
         echo "Could not create user: ${LIQUID_USER}!"
     fi
