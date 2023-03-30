@@ -26,6 +26,7 @@ job "liquid-deleteuser" {
         HOOVER_ENABLED = "${ config.is_app_enabled('hoover') }"
         ROCKETCHAT_ENABLED = "${ config.is_app_enabled('rocketchat') }"
         CODIMD_ENABLED = "${ config.is_app_enabled('codimd') }"
+        WIKIJS_ENABLED = "${ config.is_app_enabled('wikijs') }"
       }
 
       template {
