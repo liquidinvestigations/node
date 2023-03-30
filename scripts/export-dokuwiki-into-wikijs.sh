@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 # code snippet comes from https://feedback.js.wiki/wiki/p/import-from-another-wiki
 
@@ -9,7 +9,24 @@ shopt -s globstar
 
 EXPORT_TMP_PATH=/tmp/liquid-export-dokuwiki-into-wikijs
 EXPORT_TMP_PATH_ZIP=/tmp/liquid-export-dokuwiki-into-wikijs.zip
-IMPORT_DOKU_ROOT=/opt/node/volumes/dokuwiki
+
+if [ -z "$IMPORT_DOKU_ROOT" ]; then
+    IMPORT_DOKU_ROOT=/opt/node/volumes/dokuwiki
+    echo "Set default env IMPORT_DOKU_ROOT=$IMPORT_DOKU_ROOT"
+    if [ ! -d "$IMPORT_DOKU_ROOT" ]; then
+	echo "ERROR: IMPORT_DOKU_ROOT env does not point to directory"
+	exit 1
+    fi
+fi
+
+if [ -z "$PANDOC" ]; then
+    PANDOC=/opt/node/volumes/dokuwiki
+    echo "Set default env PANDOC=$PANDOC"
+    if [ ! -f "$PANDOC" ]; then
+	echo "ERROR: PANDOC env does not point to file"
+	exit 1
+    fi
+fi
 
 rm -rf $EXPORT_TMP_PATH
 rm -rf $EXPORT_TMP_PATH_ZIP
@@ -21,17 +38,51 @@ mkdir -p $EXPORT_TMP_PATH
     cp -a ./. $EXPORT_TMP_PATH
 )
 
-echo "Converting all pages to md..."
+echo "" > "export-errors"
+
+ORIGINAL_COUNT="$(find $EXPORT_TMP_PATH -type f -name '*.txt' | wc -l)"
+echo "Original file count: $ORIGINAL_COUNT"
+
+echo "Converting all pages to html"
 for d in $EXPORT_TMP_PATH/**/*.txt; do
-    new_d="${d%.txt}.md"
-    pandoc -o "$new_d" -f dokuwiki -t markdown_mmd $d
-    rm $d
+    title=`basename "${d%.txt}"`
+    date="$(date -Isecond -u | cut -d'+' -f1).000Z"
+    new_d="${d%.txt}.html"
+    new_d_md="${d%.txt}.md"
+    new_d_tmp="${d%.txt}.html.tmp"
+    # Use Pandoc into temp file
+    (
+	echo "$title"
+	$PANDOC -o "$new_d_tmp" -f dokuwiki -t html "$d"
+	    # Start file with special comment for visual editor
+	    echo "<!--
+title: $title
+description: 
+published: true
+date: $date
+tags: 
+editor: ckeditor
+dateCreated: $date
+-->
+
+" > "$new_d"
+	    cat "$new_d_tmp" >> "$new_d"
+	    rm -f "$new_d_tmp"
+    ) || (
+	echo "ERROR: FAILED: $d"
+	echo "$d" >> "export-errors"
+	cp "$d" "$new_d_md"
+    )
+
+    rm -f "$d"
 done
 echo "Conversion done."
 
 # disable ** wildcard again
 shopt -u globstar
 
+FINAL_COUNT="$(find $EXPORT_TMP_PATH -type f -name '*.html' | wc -l)"
+FINAL_COUNT_md="$(find $EXPORT_TMP_PATH -type f -name '*.md' | wc -l)"
 echo "Creating zip archive of all pages..."
 (
     cd $EXPORT_TMP_PATH
@@ -61,13 +112,20 @@ rm -f $EXPORT_TMP_PATH_ZIP
 set +x
 echo
 echo "Done."
+echo "Original file count: $ORIGINAL_COUNT"
+echo "Final file count (VISUAL): $FINAL_COUNT"
+echo "Final file count (MARKDOWN FALLBACK IN CASE OF ERRORS): $FINAL_COUNT_md"
 echo
-echo '
+echo "
 - Go to your wiki.js admin interface
-- Under "Module > Storage" link "/a/storage" enable "Local File System" with the path:
+- Under 'Module > Storage' (link is '/a/storage')
+- Under 'Local File System'
+	- edit Path: '/tmp/wiki'
+	- click 'Activate' button (blue one, top right)
+	- click 'Save' button (green one, top right)
+- Wait until all $ORIGINAL_COUNT pages are loaded
+	- Go to 'Administration' > 'Dashboards'
 
-                /tmp/wiki
-
-- Press "Import Everything" at the bottom
-- Disable the "Local File System" again
-'
+- Press 'Import Everything' at the bottom
+- Disable the 'Local File System' again
+"

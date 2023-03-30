@@ -43,3 +43,7 @@ docker exec cluster ./cluster.py wait
 ./liquid deploy || ./liquid deploy
 ./liquid restore-all-collections $BACKUP/backup || ( sleep 45 && ./liquid restore-all-collections $BACKUP/backup )
 ./liquid restore-apps $BACKUP/backup || ( sleep 45 && o./liquid restore-apps $BACKUP/backup )
+
+echo "Script: Export Dokuwiki into Wiki.js"
+./scripts/export-dokuwiki-into-wikijs.sh
+
