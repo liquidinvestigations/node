@@ -20,7 +20,7 @@ if [ -z "$IMPORT_DOKU_ROOT" ]; then
 fi
 
 if [ -z "$PANDOC" ]; then
-    PANDOC=/opt/node/volumes/dokuwiki
+    PANDOC=pandoc
     echo "Set default env PANDOC=$PANDOC"
     if [ ! -f "$PANDOC" ]; then
 	echo "ERROR: PANDOC env does not point to file"
