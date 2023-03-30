@@ -1,7 +1,5 @@
 #!/bin/bash -x
 
-LIQUID_DOMAIN=$1
-
 cd "$(dirname ${BASH_SOURCE[0]})/.."
 
 USERS=$(./liquid shell liquid:core \
