@@ -20,7 +20,7 @@ if [ -z "$IMPORT_DOKU_ROOT" ]; then
 fi
 
 if [ -z "$PANDOC" ]; then
-    PANDOC=pandoc
+    PANDOC=/usr/bin/pandoc
     echo "Set default env PANDOC=$PANDOC"
     if [ ! -f "$PANDOC" ]; then
 	echo "ERROR: PANDOC env does not point to file"
@@ -38,7 +38,8 @@ mkdir -p $EXPORT_TMP_PATH
     cp -a ./. $EXPORT_TMP_PATH
 )
 
-echo "" > "export-errors"
+ERROR_FILE=/tmp/liquid-dokuwiki-wikijs-export-errors.txt
+echo "" > "$ERROR_FILE"
 
 ORIGINAL_COUNT="$(find $EXPORT_TMP_PATH -type f -name '*.txt' | wc -l)"
 echo "Original file count: $ORIGINAL_COUNT"
@@ -70,7 +71,7 @@ dateCreated: $date
 	    rm -f "$new_d_tmp"
     ) || (
 	echo "ERROR: FAILED: $d"
-	echo "$d" >> "export-errors"
+	echo "$d" >> "$ERROR_FILE"
 	cp "$d" "$new_d_md"
     )
 
@@ -114,18 +115,33 @@ echo
 echo "Done."
 echo "Original file count: $ORIGINAL_COUNT"
 echo "Final file count (VISUAL): $FINAL_COUNT"
-echo "Final file count (MARKDOWN FALLBACK IN CASE OF ERRORS): $FINAL_COUNT_md"
+echo "Error file count (MARKDOWN FALLBACK IN CASE OF ERRORS): $FINAL_COUNT_md"
+echo "Errors listed here: $ERROR_FILE"
 echo
 echo "
-- Go to your wiki.js admin interface
-- Under 'Module > Storage' (link is '/a/storage')
-- Under 'Local File System'
+
+NEXT STEPS
+==========
+
+1. Go to your wiki.js admin interface
+
+2. Under 'Modules > Storage > Local File System':
 	- edit Path: '/tmp/wiki'
 	- click 'Activate' button (blue one, top right)
-	- click 'Save' button (green one, top right)
-- Wait until all $ORIGINAL_COUNT pages are loaded
-	- Go to 'Administration' > 'Dashboards'
+	- click 'Apply' button (green one, top right)
+	- Press 'Import Everything' at the bottom
 
-- Press 'Import Everything' at the bottom
-- Disable the 'Local File System' again
+3. Wait until all $ORIGINAL_COUNT pages are loaded:
+	- Go to 'Administration' > 'Dashboards'
+	- Expect a speed of around 10-15 pages/minute
+	- Refresh page until all your pages are loaded
+
+4. Under 'Site > Locale > Multilingual Namespacing':
+	- Set 'Multilingual Namespacing' to ON
+	- Leave default as English
+	- Click 'Apply' button
+
+5. Under 'Modules > Storage > Local File System', disable the 'Local File System' again:
+	- click 'Activate' button again, turning the feature off
+	- click 'Apply' button
 "
