@@ -232,7 +232,7 @@ def check_system_config():
 
 def start_job(job, hcl):
     log.debug('Starting %s...', job)
-    spec = nomad.parse(hcl)
+    spec = nomad.parse(hcl, replace_images=True)
     nomad.run(spec)
     job_checks = {}
     for service, checks in nomad.get_health_checks(spec):

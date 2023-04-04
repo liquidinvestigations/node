@@ -6,7 +6,7 @@ import urllib.error
 from .configuration import config
 from .jsonapi import JsonApi
 from .util import first, retry
-
+from .docker import docker
 
 log = logging.getLogger(__name__)
 
@@ -45,15 +45,33 @@ def add_labels(spec):
     return spec
 
 
+def replace_images_with_hashes(spec):
+    spec = dict(spec)
+    for group in spec.get('TaskGroups', []):
+        for task in group['Tasks'] or []:
+            if task['Driver'] != 'docker':
+                # print(spec['ID'] + '.' + group['Name'] + '.' + task['Name'])
+                continue
+            else:
+                config = task['Config']
+                new_image = docker.pull(config['image'])
+                config['image'] = new_image
+    return spec
+
+
 class Nomad(JsonApi):
 
     def __init__(self, endpoint):
         super().__init__(endpoint + '/v1/')
 
-    def parse(self, hcl):
+    def parse(self, hcl, replace_images=False):
         try:
-            return add_labels(scale_cpu_and_memory(
+            result = add_labels(scale_cpu_and_memory(
                 self.post('jobs/parse', {'JobHCL': hcl, 'Canonicalize': True})))
+            if replace_images:
+                result = replace_images_with_hashes(result)
+            return result
+
         except urllib.error.HTTPError as e:
             log.debug('hcl: %s', hcl)
             log.error(e.read().decode('utf-8'))

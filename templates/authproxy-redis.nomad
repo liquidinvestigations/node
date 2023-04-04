@@ -1,4 +1,4 @@
-{% from '_lib.hcl' import continuous_reschedule, task_logs, group_disk with context -%}
+{% from '_lib.hcl' import continuous_reschedule, task_logs, group_disk, shutdown_delay with context -%}
 
 job "redis" {
   datacenters = ["dc1"]
@@ -8,14 +8,15 @@ job "redis" {
   group "authproxy-redis" {
     ${ continuous_reschedule() }
     ${ group_disk() }
-  
+
     task "authproxy-redis" {
       ${ task_logs() }
       constraint {
         attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
         operator = "is_set"
       }
-  
+      ${ shutdown_delay() }
+
       driver = "docker"
       config {
         image = "${config.image('authproxy-redis')}"
@@ -29,7 +30,7 @@ job "redis" {
           liquid_task = "authproxy-redis"
         }
       }
-  
+
       resources {
         cpu = 500
         memory = 512
@@ -38,7 +39,7 @@ job "redis" {
           mbits = 1
         }
       }
-  
+
       service {
         name = "authproxy-redis"
         port = "redis"
