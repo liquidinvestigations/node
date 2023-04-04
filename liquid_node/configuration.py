@@ -564,7 +564,6 @@ class Configuration:
             + '") - add to versions.ini')
         return tag
 
-
     def load_job(self, name, job_config):
         if 'template' in job_config:
             job = Job()
