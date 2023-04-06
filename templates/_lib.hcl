@@ -107,7 +107,7 @@ ephemeral_disk {
           #OAUTH2_PROXY_SCOPE = "openid email profile read_user"
           OAUTH2_PROXY_SCOPE = "write read"
           OAUTH2_PROXY_ALLOWED_GROUPS = "${group}"
-          OAUTH2_PROXY_OIDC_GROUPS_CLAIM = "roles"
+          OAUTH2_PROXY_OIDC_GROUPS_CLAIM = "allowed_apps"
           OAUTH2_PROXY_PASS_USER_HEADERS = true
           OAUTH2_PROXY_PASS_ACCESS_TOKEN = true
           # OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER  = true
