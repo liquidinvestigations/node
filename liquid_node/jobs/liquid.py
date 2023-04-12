@@ -32,6 +32,13 @@ class DeleteUser(jobs.Job):
     stage = 3
 
 
+class CreateGroup(jobs.Job):
+    name = 'liquid-creategroup'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'liquid'
+    stage = 3
+
+
 class AuthproxyRedis(jobs.Job):
     name = 'authproxy-redis'
     template = jobs.TEMPLATES / f'{name}.nomad'

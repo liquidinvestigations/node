@@ -60,6 +60,7 @@ class Configuration:
         liquid.Ingress(),
         liquid.CreateUser(),
         liquid.DeleteUser(),
+        liquid.CreateGroup(),
         liquid.AuthproxyRedis(),
         wikijs.Wikijs(),
         wikijs.Deps(),

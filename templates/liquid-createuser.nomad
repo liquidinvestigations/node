@@ -36,7 +36,7 @@ job "liquid-createuser" {
             ROCKETCHAT_SECRET = {{.Data.pass }}
         {{- end }}
         EOF
-        destination = "local/liquid-deleteuser.env"
+        destination = "local/liquid-createuser.env"
         env = true
       }
 
