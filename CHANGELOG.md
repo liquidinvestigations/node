@@ -2,11 +2,21 @@
 
 ## Unreleased
 
+
+---
+
+
+## v0.24.7 (2023-05-08)
+
 ### New Features
-- New App: Integrated new Wiki app, Wiki.js. This system has modern features, such as visual editing, role-based access control, and comments.
+- New App: Integrated new Wiki app, Wiki.js. This system has modern features,
+  such as visual editing, role-based access control, and comments.
 
 ### Bug Fixes
-- Hoover: Fixed bug where, on some collections, document pages would intermittently raise errors when fetching the location list.
+- Hoover: Fixed bug where, on some collections, document pages would
+  intermittently raise errors when fetching the location list.
+- Hoover: Fixed bug where Translate would fail on documents where OCR was
+  enabled but not executed.
 
 ---
 
