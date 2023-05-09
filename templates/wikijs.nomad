@@ -81,7 +81,7 @@ job "wikijs" {
           WIKIJS_OAUTH2_USER_PROFILE_ID_ATTR = "id"
           WIKIJS_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR = "name"
           WIKIJS_OAUTH2_USER_PROFILE_EMAIL_ATTR = "email"
-          WIKIJS_OAUTH2_USER_PROFILE_GROUPS_ATTR = "app_groups.wikijs"
+          WIKIJS_OAUTH2_USER_PROFILE_GROUPS_ATTR = "roles"
 
           WIKIJS_OAUTH2_TOKEN_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
           WIKIJS_OAUTH2_USER_PROFILE_URL =  "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile"
