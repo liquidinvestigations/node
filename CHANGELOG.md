@@ -6,7 +6,7 @@
 ---
 
 
-## v0.24.8 (2023-05-08)
+## v0.24.9 (2023-05-09)
 
 ### New Features
 - New App: Integrated new Wiki app, Wiki.js. This system has modern features,
