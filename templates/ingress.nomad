@@ -33,7 +33,15 @@ job "ingress" {
       }
       template {
         data = <<-EOF
-          logLevel = "INFO"
+
+          {% if config.liquid_debug %}
+            logLevel = "DEBUG"
+          {% else %}
+            logLevel = "INFO"
+          {% endif %}
+
+          sendAnonymousUsage = false
+          checkNewVersion = false
 
           debug = {{ key "liquid_debug" }}
           {%- if https_enabled %}
