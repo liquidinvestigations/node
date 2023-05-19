@@ -27,6 +27,7 @@ job "liquid-deleteuser" {
         ROCKETCHAT_ENABLED = "${ config.is_app_enabled('rocketchat') }"
         CODIMD_ENABLED = "${ config.is_app_enabled('codimd') }"
         WIKIJS_ENABLED = "${ config.is_app_enabled('wikijs') }"
+        NEXTCLOUD28_ENABLED = "${ config.is_app_enabled('nextcloud28') }"
       }
 
       template {

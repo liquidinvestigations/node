@@ -232,6 +232,7 @@ def populate_secrets_pre(vault_secret_keys, core_auth_cookies, extra_fns):
     """
 
     for path in vault_secret_keys:
+        log.debug('checking secret key: %s', path)
         vault.ensure_secret_key(path)
 
     for fn in extra_fns:
