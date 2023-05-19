@@ -722,6 +722,10 @@ job "hoover-deps" {
 
       #env { RABBITMQ_CONFIG_FILE = "/local/rabbitmq" }
 
+      env {
+          ERL_MAX_PORTS = "50000"
+      }
+
       template {
         destination = "local/conf"
         data = <<-EOF
@@ -826,6 +830,10 @@ job "hoover-deps" {
       }
 
       #env { RABBITMQ_CONFIG_FILE = "/local/rabbitmq" }
+
+      env {
+          ERL_MAX_PORTS = "50000"
+      }
 
       template {
         destination = "local/conf"
