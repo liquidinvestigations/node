@@ -13,8 +13,7 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, codimd, ci, wikijs, matrix
-
+    nextcloud, codimd, ci, wikijs, matrix, nextcloudpublic
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'rocketchat', 'nextcloud',
-                'codimd', 'matrix',)
+                'codimd', 'matrix', 'nextcloudpublic')
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -69,6 +68,7 @@ class Configuration:
         'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
         'wikijs': 'is a new wiki system with modern functionality.',
         'codimd': 'is a real-time collaboration pad.',
+        'nextcloudpublic': 'has a file share system and a contact list of users.',
         'nextcloud': 'has a file share system and a contact list of users.',
         'rocketchat': 'is the old chat app; will remove shortly.',
         'matrix': 'is the new chat app',
@@ -78,7 +78,8 @@ class Configuration:
         'hoover': 1,
         'dokuwiki': 2,
         'codimd': 3,
-        'nextcloud': 4,
+        'nextcloudpublic': 4,
+        'nextcloud': 5,
     }
 
     APP_ALLOW_ALL_USERS = {
@@ -108,9 +109,12 @@ class Configuration:
         rocketchat.Rocketchat(),
         rocketchat.Deps(),
         rocketchat.Migrate(),
+        nextcloudpublic.Nextcloud(),
+        nextcloudpublic.Deps(),
+        nextcloudpublic.Proxy(),
         nextcloud.Nextcloud(),
-        nextcloud.Deps(),
         nextcloud.Proxy(),
+        nextcloud.Deps(),
         codimd.Codimd(),
         codimd.Deps(),
         codimd.Proxy(),
@@ -216,9 +220,9 @@ class Configuration:
         self.tika_count = self.ini.getint('liquid', 'tika_count', fallback=1)
         self.tika_memory_limit = self.ini.getint('liquid', 'tika_memory_limit', fallback=2500)
 
-        self.nextcloud_memory_limit = \
+        self.nextcloudpublic_memory_limit = \
             self.ini.getint('liquid',
-                            'nextcloud_memory_limit',
+                            'nextcloudpublic_memory_limit',
                             fallback=512)
 
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='100,13')
@@ -398,6 +402,8 @@ class Configuration:
             'lb': self.ini.getint('ports', 'lb', fallback=9990),
             'blobs_minio': self.ini.getint('ports', 'blobs_minio', fallback=9991),
             'collections_minio': self.ini.getint('ports', 'collections_minio', fallback=9992),
+            'nextcloud_minio': self.ini.getint('ports', 'nextcloud_minio', fallback=9970),
+            'nextcloud_minio_ext': self.ini.getint('ports', 'nextcloud_minio_ext', fallback=9969),
             'authproxy_redis': self.ini.getint('ports', 'authproxy_redis', fallback=9993),
             'drone_ci': self.ini.getint('ports', 'drone_ci', fallback=9997),
             'snoop_pg': self.ini.getint('ports', 'snoop_pg', fallback=9981),
@@ -406,10 +412,12 @@ class Configuration:
             'snoop_rabbitmq': self.ini.getint('ports', 'snoop_rabbitmq', fallback=9984),
             'search_rabbitmq': self.ini.getint('ports', 'search_rabbitmq', fallback=9985),
             'rocketchat_mongo': self.ini.getint('ports', 'rocketchat_mongo', fallback=9986),
-            'nextcloud_maria': self.ini.getint('ports', 'nextcloud_maria', fallback=9987),
+            'nextcloudpublic_maria': self.ini.getint('ports', 'nextcloudpublic_maria', fallback=9987),
+            'nextcloud_maria': self.ini.getint('ports', 'nextcloudpublic_maria', fallback=9971),
             'codimd_pg': self.ini.getint('ports', 'codimd_pg', fallback=9988),
             'codimd': self.ini.getint('ports', 'codimd', fallback=9989),
-            'nextcloud': self.ini.getint('ports', 'nextcloud', fallback=9996),
+            'nextcloudpublic': self.ini.getint('ports', 'nextcloudpublic', fallback=9996),
+            'nextcloud': self.ini.getint('ports', 'nextcloud', fallback=9972),
             'hoover': self.ini.getint('ports', 'hoover', fallback=9994),
             'dokuwiki': self.ini.getint('ports', 'dokuwiki', fallback=9995),
             'rocketchat': self.ini.getint('ports', 'rocketchat', fallback=9980),
@@ -429,6 +437,8 @@ class Configuration:
         self.port_lb = self.PORT_MAP['lb']
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
         self.port_collections_minio = self.PORT_MAP['collections_minio']
+        self.port_nextcloud_minio = self.PORT_MAP['nextcloud_minio']
+        self.port_nextcloud_minio_ext = self.PORT_MAP['nextcloud_minio_ext']
         self.port_authproxy_redis = self.PORT_MAP['authproxy_redis']
         self.port_drone_secret = self.PORT_MAP['drone_secret']
         self.port_drone_server_http = self.PORT_MAP['drone_server_http']
@@ -438,9 +448,11 @@ class Configuration:
         self.port_snoop_rabbitmq = self.PORT_MAP['snoop_rabbitmq']
         self.port_search_rabbitmq = self.PORT_MAP['search_rabbitmq']
         self.port_rocketchat_mongo = self.PORT_MAP['rocketchat_mongo']
+        self.port_nextcloudpublic_maria = self.PORT_MAP['nextcloudpublic_maria']
         self.port_nextcloud_maria = self.PORT_MAP['nextcloud_maria']
         self.port_codimd_pg = self.PORT_MAP['codimd_pg']
         self.port_codimd = self.PORT_MAP['codimd']
+        self.port_nextcloudpublic = self.PORT_MAP['nextcloudpublic']
         self.port_nextcloud = self.PORT_MAP['nextcloud']
         self.port_hoover = self.PORT_MAP['hoover']
         self.port_dokuwiki = self.PORT_MAP['dokuwiki']
@@ -575,6 +587,10 @@ class Configuration:
                         's3_blobs_secret_key',
                         fallback='',
                     ),
+                    'nextcloud': self.ini.getboolean(
+                        key,
+                        'nextcloud',
+                        fallback=False)
                 })
 
             elif cls == 'job':
@@ -598,12 +614,12 @@ class Configuration:
                 'redis_id': self.APP_REDIS_IDS.get(app),
                 'allow_all_users': self.APP_ALLOW_ALL_USERS.get(app, False),
             })
-            if app == 'nextcloud':
+            if app == 'nextcloudpublic':
                 self.liquid_apps.append({
                     'id': "nextcloud-admin",
                     'title': "Nextcloud Admin",
-                    'url': self.app_url('nextcloud') + "/index.php/login?autologin=admin",
-                    'enabled': self.is_app_enabled('nextcloud'),
+                    'url': self.app_url('nextcloudpublic') + "/index.php/login?autologin=admin",
+                    'enabled': self.is_app_enabled('nextcloudpublic'),
                     'description': "will log you in as the Nextcloud admin user. "
                     "You may need to log out of Nextcloud first.",
                     'adminOnly': True,
@@ -630,7 +646,7 @@ class Configuration:
             ui = tag('hoover-ui')
             return f'search: {search}, snoop: {snoop}, ui: {ui}'
 
-        if name in ['dokuwiki', 'nextcloud']:
+        if name in ['dokuwiki', 'nextcloudpublic', 'nextcloud']:
             return tag('liquid-' + name)
 
         if name == 'matrix':

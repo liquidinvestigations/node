@@ -703,7 +703,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "search-rabbitmq"
         }
-        memory_hard_limit = 2000
+        memory_hard_limit = 7500
       }
 
       resources {
