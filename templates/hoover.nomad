@@ -73,6 +73,7 @@
         TMP = "/alloc/data"
         TEMP = "/alloc/data"
         TMPDIR = "/alloc/data"
+        NEXTCLOUD_ADMIN = "admin"
     }
 
       template {
@@ -101,6 +102,9 @@
             SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
 
+          {{- with secret "liquid/nextcloud/nextcloud.admin" }}
+              NEXTCLOUD_PW = {{.Data.secret_key | toJSON }}
+          {{- end }}
         EOF
         destination = "local/snoop.env"
         env = true
@@ -269,6 +273,8 @@ job "hoover" {
         data = <<-EOF
           #!/bin/bash
           set -e
+
+          mkdir -p /etc/davfs2
 
           for i in $(seq 1 10000); do
             date
