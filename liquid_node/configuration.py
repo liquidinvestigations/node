@@ -1,3 +1,4 @@
+import collections as std_collections
 import sys
 import re
 import logging
@@ -22,6 +23,30 @@ def split_lang_codes(option):
     if not option:
         return []
     return option.split(',')
+
+
+class CheckedConfigParser(configparser.ConfigParser):
+    """ConfigParser extension to check there isn't any value we're not running `get*()` on.
+
+    This is a quick hack to detect configuration typos/unused values in the ini file for the user.
+    """
+
+    def __init__(self, *a, **k):
+        super().__init__(*a, **k)
+        self.__accessed = std_collections.defaultdict(dict)
+
+    def get(self, section, key, **kw):
+        v = super().get(section, key, **kw)
+        print('GET CONFIG', section, key, ' = ', v)
+        self.__accessed[section][key] = True
+        return v
+
+    def check_unused_values(self):
+        for section in self:
+            for key in self[section]:
+                if not self.__accessed[section].get(key):
+                    value = self[section][key]
+                    raise RuntimeError(f'The configuration value "[{section}] {key} = {value}" is not recognized.')
 
 
 class Configuration:
@@ -90,7 +115,7 @@ class Configuration:
         self.root = Path(__file__).parent.parent.resolve()
         self.templates = self.root / 'templates'
 
-        self.ini = configparser.ConfigParser()
+        self.ini = CheckedConfigParser()
         self.ini.read(self.root / 'liquid.ini')
 
         self.versions_ini = configparser.ConfigParser()
@@ -454,6 +479,11 @@ class Configuration:
                         'nlp_language_detection_enabled',
                         fallback=self.snoop_nlp_language_detection_enabled,
                     ),
+                    'nlp_fallback_language': self.ini.get(
+                        key,
+                        'nlp_fallback_language',
+                        fallback=self.snoop_nlp_fallback_language,
+                    ),
                     'nlp_entity_extraction_enabled': self.ini.getboolean(
                         key,
                         'nlp_entity_extraction_enabled',
@@ -521,6 +551,7 @@ class Configuration:
             self.liquid_apps.append(extra)
         self.liquid_version = self.get_node_version()
         self.liquid_core_version = self.version('liquid-core')
+        self.ini.check_unused_values()
 
     def get_node_version(self):
         try:
