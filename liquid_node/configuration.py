@@ -37,7 +37,6 @@ class CheckedConfigParser(configparser.ConfigParser):
 
     def get(self, section, key, **kw):
         v = super().get(section, key, **kw)
-        print('GET CONFIG', section, key, ' = ', v)
         self.__accessed[section][key] = True
         return v
 
@@ -46,7 +45,9 @@ class CheckedConfigParser(configparser.ConfigParser):
             for key in self[section]:
                 if not self.__accessed[section].get(key):
                     value = self[section][key]
-                    raise RuntimeError(f'The configuration value "[{section}] {key} = {value}" is not recognized.')
+                    raise RuntimeError(
+                        f'The configuration value "[{section}] {key} = {value}" is not recognized.'
+                    )
 
 
 class Configuration:
