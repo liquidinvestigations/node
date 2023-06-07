@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+---
+
+
+## v0.24.10 (2023-06-07)
+
+### Improvements
+- Deployment: The ini file is now checked for outdated / wrong values. Run `./liquid resources` on the new version to check your configuration before deploying.
+
+
+### Bug Fixes
+- Hoover: Fixed issue where some email formats would not be correctly identified and processed.
+
 
 ---
 
