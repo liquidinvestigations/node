@@ -145,6 +145,11 @@ job "hoover-nginx" {
               proxy_pass http://fabio;
             }
 
+            location  ~ ^/openai-whisper {
+              rewrite ^/openai-whisper(.*) /openai-whisper$1 break;
+              proxy_pass http://fabio;
+            }
+
             location  ~ ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc) {
               rewrite ^/(api/v0|api/v1|viewer|admin|accounts|static|swagger|redoc)(.*) /hoover-search/$1$2 break;
               proxy_pass http://fabio;

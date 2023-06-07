@@ -336,6 +336,7 @@ class Configuration:
         # minimum number is 1 so take that if number in liquid.ini is smaller
         self.snoop_unarchive_threads = max(min(self.ini.getint('snoop', 'snoop_unarchive_threads',
                                                                fallback=4), 16), 1)
+        self.snoop_openai_whisper_enabled = self.ini.getboolean('snoop', 'openai_whisper_enabled', fallback=False)
 
         self.check_interval = self.ini.get('deploy', 'check_interval', fallback='30s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='29s')

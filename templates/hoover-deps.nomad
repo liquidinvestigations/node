@@ -1251,6 +1251,68 @@ job "hoover-deps" {
 
   {% endif %}
 
+  {% if config.snoop_openai_whisper_enabled %}
+
+  group "openai-whisper-transcription" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    count = 1
+    spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
+
+    task "openai-whisper-transcription" {
+      ${ task_logs() }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      driver = "docker"
+      config {
+        image = "${config.image('openai-whisper')}"
+        port_map {
+          http = 8000
+        }
+        labels {
+          liquid_task = "openai-whisper"
+        }
+        memory_hard_limit = 25000
+      }
+      env {
+        NUM_THREADS = 16
+        CONCURRENCY_COUNT = 1
+        AUTODELETE_AGE_H = 6
+      }
+
+      resources {
+        memory = 10000
+        cpu = 4000
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      service {
+        name = "hoover-openai-whisper"
+        port = "http"
+        tags = ["fabio-/openai-whisper"]
+
+        check {
+          name = "http-check"
+          initial_status = "critical"
+          type = "http"
+          path = "/"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+  {% endif %}
+
 
   {% if config.snoop_translation_enabled %}
 
