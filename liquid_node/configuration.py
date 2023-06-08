@@ -403,7 +403,6 @@ class Configuration:
             'blobs_minio': self.ini.getint('ports', 'blobs_minio', fallback=9991),
             'collections_minio': self.ini.getint('ports', 'collections_minio', fallback=9992),
             'nextcloud26_minio': self.ini.getint('ports', 'nextcloud26_minio', fallback=9970),
-            'nextcloud26_minio_ext': self.ini.getint('ports', 'nextcloud26_minio_ext', fallback=9969),
             'authproxy_redis': self.ini.getint('ports', 'authproxy_redis', fallback=9993),
             'drone_ci': self.ini.getint('ports', 'drone_ci', fallback=9997),
             'snoop_pg': self.ini.getint('ports', 'snoop_pg', fallback=9981),
@@ -438,7 +437,6 @@ class Configuration:
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
         self.port_collections_minio = self.PORT_MAP['collections_minio']
         self.port_nextcloud26_minio = self.PORT_MAP['nextcloud26_minio']
-        self.port_nextcloud26_minio_ext = self.PORT_MAP['nextcloud26_minio_ext']
         self.port_authproxy_redis = self.PORT_MAP['authproxy_redis']
         self.port_drone_secret = self.PORT_MAP['drone_secret']
         self.port_drone_server_http = self.PORT_MAP['drone_server_http']
