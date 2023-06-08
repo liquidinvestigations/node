@@ -318,7 +318,7 @@ job "hoover-deps" {
           liquid_task = "hoover-tika"
         }
         # warning: config is for whole container
-        memory_hard_limit = ${3 * config.tika_memory_limit}
+        memory_hard_limit = ${2000 + 3 * config.tika_memory_limit}
       }
 
       resources {
@@ -416,7 +416,7 @@ job "hoover-deps" {
         }
         command = "gotenberg"
         args = ["--api-timeout", "7200s"]
-        memory_hard_limit = ${3 * config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${1500 + 3 * config.snoop_pdf_preview_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       resources {
@@ -481,7 +481,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-thumbnail-generator"
         }
-        memory_hard_limit = ${3 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${1000 + 3 * config.snoop_thumbnail_generator_memory_limit * (1 + config.snoop_container_process_count)}
         mounts = [
           {
             type = "tmpfs"
@@ -557,7 +557,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-image-classification"
         }
-        memory_hard_limit = ${3 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${1000 + 3 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       env {
@@ -628,7 +628,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "hoover-nlp"
         }
-        memory_hard_limit = ${3 * config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
+        memory_hard_limit = ${1000 + 3 * config.snoop_nlp_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
       env {
@@ -815,7 +815,7 @@ job "hoover-deps" {
         labels {
           liquid_task = "snoop-rabbitmq"
         }
-        memory_hard_limit = ${3 * config.snoop_rabbitmq_memory_limit}
+        memory_hard_limit = ${1000 + 3 * config.snoop_rabbitmq_memory_limit}
       }
 
       resources {

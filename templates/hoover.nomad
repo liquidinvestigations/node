@@ -140,7 +140,7 @@ job "hoover" {
         labels {
           liquid_task = "hoover-search"
         }
-        memory_hard_limit = ${4 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${2000 + 4 * config.hoover_web_memory_limit}
       }
       # This container uses "runserver" so we don't need to auto-reload
       # env { __GIT_TAGS = "${hoover_search_git}" }
@@ -254,7 +254,7 @@ job "hoover" {
         labels {
           liquid_task = "snoop-api"
         }
-        memory_hard_limit = ${4 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${2000 + 4 * config.hoover_web_memory_limit}
       }
       # This container uses "runserver" so we don't need to auto-reload
       # env { __GIT_TAGS = "${hoover_snoop2_git}" }

@@ -37,7 +37,7 @@ job "nextcloud" {
         labels {
           liquid_task = "nextcloud"
         }
-        memory_hard_limit = ${3 * config.nextcloud_memory_limit}
+        memory_hard_limit = ${1500 + 3 * config.nextcloud_memory_limit}
       }
       resources {
         cpu = 200

@@ -322,7 +322,7 @@ job "hoover-nginx" {
           ${hoover_search_repo}
         ]
 
-        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${2000 + 3 * config.hoover_web_memory_limit}
       }
       env { __GIT_TAGS = "${hoover_search_git}" }
 
@@ -432,7 +432,7 @@ job "hoover-nginx" {
           ${hoover_search_repo}
         ]
 
-        memory_hard_limit = ${3 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${2000 + 3 * config.hoover_web_memory_limit}
       }
       env { __GIT_TAGS = "${hoover_search_git}" }
 
