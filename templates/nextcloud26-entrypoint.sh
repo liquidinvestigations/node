@@ -51,6 +51,7 @@ run_as 'php occ app:install calendar'
 run_as 'php occ app:install contacts'
 run_as 'php occ app:install onlyoffice'
 run_as 'php occ app:install richdocumentscode'
+run as 'php occ config:app:delete core shareapi_allow_links --value="no"'
 
 # Run the server
 exec /entrypoint.sh apache2-foreground
