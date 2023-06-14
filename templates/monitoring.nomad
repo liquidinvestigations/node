@@ -150,8 +150,7 @@ job "monitoring" {
       service {
         name = "clickhouse-http"
         port = "http"
-        tags = ["fabio-/clickhouse strip=/clickhouse"]
-        tags = ["fabio-:${config.port_clickhouse_http} proto=tcp"]
+        tags = ["fabio-:${config.port_clickhouse_http} proto=tcp", "fabio-/clickhouse strip=/clickhouse"]
         check {
           name     = "clickhouse http"
           type     = "http"
@@ -267,8 +266,7 @@ job "monitoring" {
       service {
         name = "uptrace-http"
         port = "http"
-        tags = ["fabio-/uptrace strip=/uptrace"]
-        tags = ["fabio-:${config.port_uptrace_http} proto=tcp"]
+        tags = ["fabio-:${config.port_uptrace_http} proto=tcp", "fabio-/uptrace strip=/uptrace"]
         check {
           name     = "uptrace http"
           type     = "http"

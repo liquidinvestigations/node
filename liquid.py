@@ -32,5 +32,8 @@ if __name__ == '__main__':
     try:
         cli()
     except Exception as e:
-        log.exception(e)
+        err_str = str(e)
+        if err_str:
+            err_str = '(' + err_str + ')'
+        log.error("Command Failed. %s \n", err_str)
         sys.exit(66)

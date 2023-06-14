@@ -1,6 +1,6 @@
 {% from '_lib.hcl' import continuous_reschedule, task_logs, group_disk, shutdown_delay with context -%}
 
-job "redis" {
+job "authproxy-redis" {
   datacenters = ["dc1"]
   type = "service"
   priority = 99

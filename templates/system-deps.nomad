@@ -306,7 +306,9 @@ job "system-deps" {
       resources {
         cpu    = 500 # 500 MHz
         memory = 256 # 256MB
-        network { port "api" { } }
+        network {
+          port "api" { }
+        }
       }
       # template with Vector's configuration
       template {
