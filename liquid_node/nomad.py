@@ -73,11 +73,12 @@ class Nomad(JsonApi):
             return result
 
         except urllib.error.HTTPError as e:
-            log.debug('hcl: %s', hcl)
+            hcl_with_lineno = "\n".join(f"{i+1: 4d} {line}" for i, line in enumerate(hcl.splitlines()))
+            log.debug('hcl: \n%s', hcl_with_lineno)
             log.error(e.read().decode('utf-8'))
             raise e
 
-    def run(self, spec):
+    def run(self, spec, check_batch_jobs=False):
         if spec.get('Type') != 'batch':
             if not spec.get('Update'):
                 spec['Update'] = {}
@@ -103,8 +104,9 @@ class Nomad(JsonApi):
             {'JobID': job_id, "EvalOptions": {"ForceReschedule": True}},
         )
 
-        if spec.get('Type') == 'batch':
-            self.wait_for_batch_job(spec, evaluation)
+        if check_batch_jobs:
+            if spec.get('Type') == 'batch':
+                self.wait_for_batch_job(spec, evaluation)
 
     def wait_for_batch_job(self, spec, evaluation):
         API_COOLDOWN_S = 0.15

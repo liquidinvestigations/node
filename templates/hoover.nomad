@@ -2,6 +2,8 @@
 
 {%- macro snoop_dependency_envs() %}
       env {
+        __GIT_TAGS = "${hoover_snoop2_git}"
+
         SNOOP_URL_PREFIX = "snoop/"
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_tika/"
@@ -57,6 +59,10 @@
         GUNICORN_WORKERS = "3"
         GUNICORN_THREADS = "8"
         GUNICORN_MAX_REQUESTS = "1000"
+
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
     }
 
       template {
@@ -94,12 +100,6 @@
         EOF
         destination = "local/snoop.env"
         env = true
-      }
-
-      env {
-        TMP = "/alloc/data"
-        TEMP = "/alloc/data"
-        TMPDIR = "/alloc/data"
       }
 
 {%- endmacro %}

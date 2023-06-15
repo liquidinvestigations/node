@@ -44,8 +44,23 @@ def check_resources():
     }
 
     def get_all_res():
-        jobs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
-        for spec in jobs:
+        specs = [nomad.parse(get_job(job.template)) for job in config.enabled_jobs]
+        # Check all config files have correct filenames
+        for spec, job in zip(specs, config.enabled_jobs):
+            template_filename = os.path.splitext(os.path.basename(job.template))[0]
+            nomad_job_name = spec['Name']
+            python_job_name = job.name
+
+            if template_filename != nomad_job_name \
+                    or template_filename != python_job_name \
+                    or nomad_job_name != python_job_name:
+                log.error("PROGRAMMER ERROR: job names do not match.")
+                log.error("template filename: %s", template_filename)
+                log.error("nomad job name: %s", nomad_job_name)
+                log.error("python job name: %s", python_job_name)
+                log.error("Please fix the code so all above are matching. Thank you.")
+                raise RuntimeError("mismatching job names")
+        for spec in specs:
             yield from nomad.get_resources(spec)
 
     total = defaultdict(int)
@@ -230,10 +245,10 @@ def check_system_config():
     check_resources()
 
 
-def start_job(job, hcl):
+def start_job(job, hcl, check_batch_jobs=False):
     log.debug('Starting %s...', job)
     spec = nomad.parse(hcl, replace_images=True)
-    nomad.run(spec)
+    nomad.run(spec, check_batch_jobs)
     job_checks = {}
     for service, checks in nomad.get_health_checks(spec):
         if not checks:
@@ -406,7 +421,7 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
         log.info(f'Deploy stage #{stage}, starting jobs: {[j[0] for j in stage_jobs]}')
 
         for name, template in stage_jobs:
-            job_checks = start_job(name, template)
+            job_checks = start_job(name, template, checks)
             health_checks.update(job_checks)
 
         # wait until all deps are healthy

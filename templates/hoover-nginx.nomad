@@ -217,8 +217,6 @@ job "hoover-nginx" {
         args = ["sh", "/local/startup.sh"]
         memory_hard_limit = 7000
       }
-      # used to auto-restart containers when running deploy, after you make a new commit
-      env { __GIT_TAGS = "${hoover_ui_src_git}" }
 
       template {
         data = <<-EOF
@@ -246,6 +244,8 @@ job "hoover-nginx" {
       }
 
       env {
+        __GIT_TAGS = "${hoover_ui_src_git}"
+
         AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
         MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
 
@@ -324,7 +324,6 @@ job "hoover-nginx" {
 
         memory_hard_limit = ${2000 + 3 * config.hoover_web_memory_limit}
       }
-      env { __GIT_TAGS = "${hoover_search_git}" }
 
       resources {
         memory = ${int(config.hoover_web_memory_limit/2)}
@@ -352,6 +351,8 @@ job "hoover-nginx" {
       }
 
       env {
+        __GIT_TAGS = "${hoover_search_git}"
+
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
@@ -434,7 +435,6 @@ job "hoover-nginx" {
 
         memory_hard_limit = ${2000 + 3 * config.hoover_web_memory_limit}
       }
-      env { __GIT_TAGS = "${hoover_search_git}" }
 
       resources {
         memory = ${int(config.hoover_web_memory_limit/2)}
@@ -461,6 +461,7 @@ job "hoover-nginx" {
       }
 
       env {
+        __GIT_TAGS = "${hoover_search_git}"
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"

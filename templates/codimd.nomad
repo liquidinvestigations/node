@@ -39,8 +39,6 @@ job "codimd" {
         ]
         memory_hard_limit = 2000
       }
-      # used to auto-restart containers when running deploy, after you make a new commit
-      env { __GIT_TAGS = "${liquidinvestigations_codimd_server_git}" }
 
       resources {
         cpu = 300
@@ -51,6 +49,8 @@ job "codimd" {
         }
       }
       env {
+        __GIT_TAGS = "${liquidinvestigations_codimd_server_git}"
+
         NODE_ENV = "production"
         LIQUID_URL = "${config.liquid_http_protocol}://${liquid_domain}"
         LIQUID_TITLE = "${config.liquid_title}"

@@ -5,7 +5,7 @@ from liquid_node import jobs
 
 class Nextcloud(jobs.Job):
     def __init__(self, name, job_config, config):
-        self.template = Path(__file__).parent.resolve() / 'templates/nextcloud2.nomad'
+        self.template = Path(__file__).parent.resolve() / 'templates/nextcloud-instance-2.nomad'
         self.name = 'nextcloud-instance-2'
         self.app = 'nextcloud-instance-2'
         self.stage = 2

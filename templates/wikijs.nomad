@@ -32,9 +32,6 @@ job "wikijs" {
       env {
         __GIT_TAGS = "${liquidinvestigations_wiki_js_git}"
         __GIT_VOLUME_MOUNTED = "${liquidinvestigations_wiki_js_mounted}"
-      }
-
-      env {
         DB_TYPE = "postgres"
         DB_PORT = ${config.port_wikijs_pg}
         DB_USER = "wikijs"

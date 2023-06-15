@@ -1,5 +1,29 @@
 {% from '_lib.hcl' import shutdown_delay, continuous_reschedule, set_pg_password_template, set_pg_drop_template, task_logs, group_disk with context -%}
 
+{%- macro elasticsearch_docker_config_extra_env() %}
+        "cluster.routing.allocation.disk.watermark.low" = "97%"
+        "cluster.routing.allocation.disk.watermark.high" = "98%"
+        "cluster.routing.allocation.disk.watermark.flood_stage" = "99%"
+        "cluster.info.update.interval" = "10m"
+
+        "http.max_content_length" = "1900mb"
+
+        "xpack.license.self_generated.type" = "basic"
+        "xpack.monitoring.collection.enabled" = "true"
+        "xpack.monitoring.collection.interval" = "30s"
+        "xpack.monitoring.collection.cluster.stats.timeout" = "30s"
+        "xpack.monitoring.collection.node.stats.timeout" = "30s"
+        "xpack.monitoring.collection.index.stats.timeout" = "30s"
+        "xpack.monitoring.collection.index.recovery.timeout" = "30s"
+        "xpack.monitoring.history.duration" = "32d"
+
+        "path.repo" = "/es_repo"
+
+        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UseG1GC -XX:MaxGCPauseMillis=300 -XX:G1HeapRegionSize=16m -verbose:gc"
+        LIQUID_HOOVER_ES_DATA_NODE_COUNT = "${config.elasticsearch_data_node_count}"
+{%- endmacro %}
+
+
 {%- macro elasticsearch_docker_config(data_dir_name) %}
       config {
         image = "docker.elastic.co/elasticsearch/elasticsearch:6.8.15"
@@ -20,29 +44,6 @@
           nofile = "262144"
           nproc = "8192"
         }
-      }
-
-      env {
-        cluster.routing.allocation.disk.watermark.low = "97%"
-        cluster.routing.allocation.disk.watermark.high = "98%"
-        cluster.routing.allocation.disk.watermark.flood_stage = "99%"
-        cluster.info.update.interval = "10m"
-
-        http.max_content_length = "1900mb"
-
-        xpack.license.self_generated.type = "basic"
-        xpack.monitoring.collection.enabled = "true"
-        xpack.monitoring.collection.interval = "30s"
-        xpack.monitoring.collection.cluster.stats.timeout = "30s"
-        xpack.monitoring.collection.node.stats.timeout = "30s"
-        xpack.monitoring.collection.index.stats.timeout = "30s"
-        xpack.monitoring.collection.index.recovery.timeout = "30s"
-        xpack.monitoring.history.duration = "32d"
-
-        path.repo = "/es_repo"
-
-        ES_JAVA_OPTS = "-Xms${config.elasticsearch_heap_size}m -Xmx${config.elasticsearch_heap_size}m -XX:+UseG1GC -XX:MaxGCPauseMillis=300 -XX:G1HeapRegionSize=16m -verbose:gc"
-        LIQUID_HOOVER_ES_DATA_NODE_COUNT = "${config.elasticsearch_data_node_count}"
       }
 {%- endmacro %}
 
@@ -75,19 +76,20 @@ job "hoover-deps" {
 
       ${ shutdown_delay() }
 
-      env {
-        cluster.name = "hoover"
-        node.name = "master"
+      env = {
+        ${ elasticsearch_docker_config_extra_env() }
+        "cluster.name" = "hoover"
+        "node.name" = "master"
 
-        http.port = "9200"
-        http.publish_port = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
-        http.bind_host = "0.0.0.0"
-        http.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+        "http.port" = "9200"
+        "http.publish_port" = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
+        "http.bind_host" = "0.0.0.0"
+        "http.publish_host" = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
 
-        transport.port = "9300"
-        transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
-        transport.bind_host = "0.0.0.0"
-        transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+        "transport.port" = "9300"
+        "transport.publish_port" = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
+        "transport.bind_host" = "0.0.0.0"
+        "transport.publish_host" = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
       }
 
       resources {
@@ -155,19 +157,21 @@ job "hoover-deps" {
       ${elasticsearch_docker_config('data-${NOMAD_ALLOC_INDEX}') }
 
       env {
-        node.master = "false"
-        cluster.name = "hoover"
-        node.name = "data-{% raw %}${NOMAD_ALLOC_INDEX}{% endraw %}"
+        ${ elasticsearch_docker_config_extra_env() }
 
-        http.port = "9200"
-        http.publish_port = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
-        http.bind_host = "0.0.0.0"
-        http.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+        "node.master" = "false"
+        "cluster.name" = "hoover"
+        "node.name" = "data-{% raw %}${NOMAD_ALLOC_INDEX}{% endraw %}"
 
-        transport.port = "9300"
-        transport.publish_port = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
-        transport.bind_host = "0.0.0.0"
-        transport.publish_host = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+        "http.port" = "9200"
+        "http.publish_port" = "{% raw %}${NOMAD_HOST_PORT_http}{% endraw %}"
+        "http.bind_host" = "0.0.0.0"
+        "http.publish_host" = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
+
+        "transport.port" = "9300"
+        "transport.publish_port" = "{% raw %}${NOMAD_HOST_PORT_transport}{% endraw %}"
+        "transport.bind_host" = "0.0.0.0"
+        "transport.publish_host" = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
       }
       template {
         data = <<-EOF
@@ -487,7 +491,7 @@ job "hoover-deps" {
             type = "tmpfs"
             target = "/tmp"
             readonly = false
-            tmpfs_options { }
+            tmpfs_options = { }
           }
         ]
       }
@@ -560,12 +564,6 @@ job "hoover-deps" {
         memory_hard_limit = ${1000 + 3 * config.snoop_image_classification_memory_limit * (1 + config.snoop_container_process_count)}
       }
 
-      env {
-        TMP = "/alloc/data"
-        TEMP = "/alloc/data"
-        TMPDIR = "/alloc/data"
-      }
-
       resources {
         memory = ${config.snoop_image_classification_memory_limit * (config.snoop_container_process_count)}
         cpu = ${700 * config.snoop_container_process_count}
@@ -576,6 +574,9 @@ job "hoover-deps" {
       }
 
       env {
+        TMP = "/alloc/data"
+        TEMP = "/alloc/data"
+        TMPDIR = "/alloc/data"
         OBJECT_DETECTION_ENABLED = "${config.snoop_image_classification_object_detection_enabled}"
         OBJECT_DETECTION_MODEL = "${config.snoop_image_classification_object_detection_model}"
         IMAGE_CLASSIFICATION_ENABLED = "${config.snoop_image_classification_classify_images_enabled}"
@@ -632,15 +633,12 @@ job "hoover-deps" {
       }
 
       env {
-        NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
-        NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
-        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
-      }
-
-      env {
         TMP = "/alloc/data"
         TEMP = "/alloc/data"
         TMPDIR = "/alloc/data"
+        NLP_SERVICE_FALLBACK_LANGUAGE = "${config.snoop_nlp_fallback_language}"
+        NLP_SPACY_TEXT_LIMIT = "${config.snoop_nlp_spacy_text_limit}"
+        WORKER_COUNT = "${1 + config.snoop_container_process_count}"
       }
 
       resources {
@@ -1059,13 +1057,13 @@ job "hoover-deps" {
             type = "tmpfs"
             target = "/tmp"
             readonly = false
-            tmpfs_options { }
+            tmpfs_options = { }
           },
           {
             type = "tmpfs"
             target = "/var/run/pgpool"
             readonly = false
-            tmpfs_options { }
+            tmpfs_options = { }
           }
         ]
       }
