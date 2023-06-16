@@ -1,14 +1,14 @@
 {% from '_lib.hcl' import shutdown_delay, group_disk, task_logs, continuous_reschedule with context -%}
 
-job "nextcloud26-deps" {
+job "nextcloud27-deps" {
   datacenters = ["dc1"]
   type = "service"
   priority = 98
 
-  group "nextcloud26-maria" {
+  group "nextcloud27-maria" {
     ${ group_disk() }
     ${ continuous_reschedule() }
-    task "nextcloud26-maria" {
+    task "nextcloud27-maria" {
       ${ task_logs() }
 
       constraint {
@@ -26,10 +26,10 @@ job "nextcloud26-deps" {
       config {
         image = "mariadb:10.11"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud26/mysql:/var/lib/mysql",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/mysql:/var/lib/mysql",
         ]
         labels {
-          liquid_task = "nextcloud26-maria"
+          liquid_task = "nextcloud27-maria"
         }
         port_map {
           maria = 3306
@@ -39,9 +39,9 @@ job "nextcloud26-deps" {
       template {
         data = <<-EOF
         MYSQL_RANDOM_ROOT_PASSWORD = "yes"
-        MYSQL_DATABASE = "nextcloud26"
-        MYSQL_USER = "nextcloud26"
-        {{ with secret "liquid/nextcloud26/nextcloud.maria" }}
+        MYSQL_DATABASE = "nextcloud27"
+        MYSQL_USER = "nextcloud27"
+        {{ with secret "liquid/nextcloud27/nextcloud.maria" }}
           MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
         {{ end }}
         EOF
@@ -59,9 +59,9 @@ job "nextcloud26-deps" {
         }
       }
       service {
-        name = "nextcloud26-maria"
+        name = "nextcloud27-maria"
         port = "maria"
-        tags = ["fabio-:${config.port_nextcloud26_maria} proto=tcp"]
+        tags = ["fabio-:${config.port_nextcloud27_maria} proto=tcp"]
         check {
           name = "tcp"
           initial_status = "critical"
@@ -73,11 +73,11 @@ job "nextcloud26-deps" {
     }
   }
 
-  group "minio-nextcloud26" {
+  group "minio-nextcloud27" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
-    task "minio-nextcloud26" {
+    task "minio-nextcloud27" {
       ${ task_logs() }
 
       constraint {
@@ -95,11 +95,11 @@ job "nextcloud26-deps" {
           console = 9001
         }
         labels {
-          liquid_task = "nextcloud26-minio"
+          liquid_task = "nextcloud27-minio"
         }
         memory_hard_limit = 5000
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud26/minio:/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/minio:/data",
         ]
       }
 
@@ -122,10 +122,10 @@ job "nextcloud26-deps" {
 
       template {
         data = <<EOF
-          {{- with secret "liquid/nextcloud26/minio.user" }}
+          {{- with secret "liquid/nextcloud27/minio.user" }}
               MINIO_ROOT_USER = {{.Data.secret_key | toJSON }}
           {{- end }}
-          {{- with secret "liquid/nextcloud26/minio.password" }}
+          {{- with secret "liquid/nextcloud27/minio.password" }}
               MINIO_ROOT_PASSWORD = {{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
@@ -134,9 +134,9 @@ job "nextcloud26-deps" {
       }
 
       service {
-        name = "nextcloud26-minio-s3"
+        name = "nextcloud27-minio-s3"
         port = "s3"
-        tags = ["fabio-:${config.port_nextcloud26_minio} proto=tcp"]
+        tags = ["fabio-:${config.port_nextcloud27_minio} proto=tcp"]
 
         check {
           name = "tcp"
@@ -148,9 +148,9 @@ job "nextcloud26-deps" {
       }
 
       service {
-        name = "nextcloud26-minio-console"
+        name = "nextcloud27-minio-console"
         port = "console"
-        tags = ["fabio-/nextcloud26_minio_console strip=/nextcloud26_minio_console"]
+        tags = ["fabio-/nextcloud27_minio_console strip=/nextcloud27_minio_console"]
         check {
           name = "http"
           initial_status = "critical"

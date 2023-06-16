@@ -102,7 +102,7 @@
             SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
 
-          {{- with secret "liquid/nextcloud26/nextcloud.admin" }}
+          {{- with secret "liquid/nextcloud27/nextcloud.admin" }}
               NEXTCLOUD_PW = {{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
