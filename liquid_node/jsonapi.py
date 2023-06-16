@@ -49,7 +49,7 @@ class JsonApi:
                 if content_type.startswith('application/json') and len(content):
                     return json.loads(content)
                 else:
-                    return None
+                    return content
             else:
                 log.error('HTTP request to %s failed', url)
                 raise HTTPError(url, res.status, res.msg, res.headers, res)

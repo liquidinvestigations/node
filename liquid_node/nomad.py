@@ -1,3 +1,5 @@
+from collections import defaultdict
+import base64
 import pprint
 from time import time, sleep
 import logging
@@ -79,6 +81,7 @@ class Nomad(JsonApi):
             raise e
 
     def run(self, spec, check_batch_jobs=False):
+        t0 = int(time())
         if spec.get('Type') != 'batch':
             if not spec.get('Update'):
                 spec['Update'] = {}
@@ -106,12 +109,14 @@ class Nomad(JsonApi):
 
         if check_batch_jobs:
             if spec.get('Type') == 'batch':
-                self.wait_for_batch_job(spec, evaluation)
+                self.wait_for_batch_job(spec, evaluation, t0)
 
-    def wait_for_batch_job(self, spec, evaluation):
+    def wait_for_batch_job(self, spec, evaluation, t0):
+        PRINT_EVERY_S = 120
+        next_print = time() + PRINT_EVERY_S
         API_COOLDOWN_S = 0.15
         INTERVAL_S = 2
-        TOTAL_WAIT_H = 2
+        TOTAL_WAIT_H = 3
 
         def check_eval(evaluation):
             ev = self.get('evaluations?prefix=' + evaluation['EvalID'])
@@ -121,14 +126,25 @@ class Nomad(JsonApi):
         def check_job(spec):
             job = self.get(f'job/{spec["ID"]}')
             sleep(API_COOLDOWN_S)
-            log.debug("job %s status is '%s'", spec['ID'], job['Status'])
             return job['Status'] == 'dead'
 
         log.info("Waiting for batch job %s  (max wait = %sh)", spec['ID'], TOTAL_WAIT_H)
+        printed_something = False
         for _ in range(int(TOTAL_WAIT_H * 3600 / INTERVAL_S)):
             sleep(INTERVAL_S)
             if check_eval(evaluation) and check_job(spec):
                 break
+
+            if time() > next_print:
+                PRINT_EVERY_S *= 2
+                next_print = time() + PRINT_EVERY_S
+                log.warning(
+                    "job '%s' still running after %s min; will wait for another %s min",
+                    spec['ID'], int((time() - t0) / 60), TOTAL_WAIT_H * 60 - int((time() - t0) / 60),
+                )
+
+            if not printed_something:
+                printed_something |= self.check_events_and_logs(spec['ID'], t0)
         else:
             raise RuntimeError("Batch Job {spec['ID']} Failed to finish in 2h")
 
@@ -147,7 +163,7 @@ class Nomad(JsonApi):
                     yield service['Name'], [name(check) for check in service['Checks'] or []]
 
     def get_resources(self, spec):
-        """Generates (task, count, type, resources) tuples with resource stranzas for
+        """Generates (task, count, type, resources) tuples with resource info for
         the supplied job."""
 
         for group in spec['TaskGroups'] or []:
@@ -259,6 +275,308 @@ class Nomad(JsonApi):
 
         members = [m['Addr'] for m in self.agent_members()]
         return first(members, 'members')
+
+    def check_events_and_logs(self, job_name, deployment_time=None):
+        """Prints the last logs for restarting or hanging task.
+
+        Returns True if we found bad allocs and printed out the logs for them;
+        this means we shouldn't run this function again on this job.
+        """
+
+        try:
+            return self.check_recent_restarts(job_name, deployment_time) \
+                or self.check_long_running_batch(job_name)
+        except Exception as e:
+            log.exception(e)
+            return False
+
+    def check_long_running_batch(self, job_name):
+        """Print out logs for very long-running batch jobs.
+
+        Returns True if found something.
+        """
+        MAX_RUNNING_AGE = 300
+
+        job_config = self.get(f'job/{job_name}')
+        if job_config['Type'] != 'batch':
+            return False
+
+        allocations = self.get(f'job/{job_name}/allocations')
+        if not allocations:
+            return False
+
+        printed_something = False
+        for alloc in allocations:
+            if alloc['ClientStatus'] != 'running':
+                continue
+            alloc_age = int(time() - alloc["ModifyTime"] / 1000000000.0)
+            if alloc_age > MAX_RUNNING_AGE:
+                for task_name, task_state_obj in alloc['TaskStates'].items():
+                    if task_state_obj['State'] == 'running':
+                        log.warning(
+                            'Batch Job "%s:%s" has been running for %s sec.',
+                            job_name, task_name, alloc_age,
+                        )
+                        printed_something |= self.print_logs(job_name, alloc['ID'], task_name)
+        if printed_something:
+            log.warning('The batch job "%s" is taking a long time to finish.', job_name)
+            log.warning('This is normal for large data migrations; see logs above for details.')
+        return printed_something
+
+    def check_recent_restarts(self, job_name, deployment_time=None):
+        """Prints the last logs for restarting task. Returns True if printed something.
+
+        This should pick up excessive restarts, even for running tasks.
+        It should aggregate restarts since the deployment, or 10 minutes
+        if not deploying, and trigger on 8 or more events.
+        """
+        if not deployment_time:
+            MIN_EVENT_TIME = int(time() - 600)
+        else:
+            MIN_EVENT_TIME = int(deployment_time)
+
+        # Get number of retries and failures
+        task_retry_count = defaultdict(int)
+        task_fail_count = defaultdict(int)
+        allocs_with_recent_events = defaultdict(set)
+        event_msgs = defaultdict(list)
+
+        allocations = self.get(f'job/{job_name}/allocations')
+        if not allocations:
+            return False
+
+        for allocation in allocations:
+            alloc_id = allocation['ID']
+            for task_name, task_state_obj in allocation['TaskStates'].items():
+                for event in task_state_obj['Events']:
+                    event_type = event['Type']
+                    event_msg = event.get('DisplayMessage')
+                    event_time = event['Time'] / 1000000000.0
+                    if event_time < MIN_EVENT_TIME:
+                        continue
+                    # now register this event
+                    allocs_with_recent_events[task_name].add(alloc_id)
+                    event_age = int(time() - event_time)
+                    event_msgs[task_name].append(f'[{event_age}s ago] {event_msg}')
+                    event_fails_task = event['FailsTask']
+
+                    if event_type == 'Restarting':
+                        task_retry_count[task_name] += 1
+                    if event_fails_task:
+                        task_fail_count[task_name] += 1
+
+        def _alloc_mtime(the_alloc_id):
+            for a in allocations:
+                if a['ID'] == the_alloc_id:
+                    return a['ModifyTime']
+
+        printed_something = False
+        tasks = sorted(set(task_retry_count.keys()) | set(task_fail_count.keys()))
+        for task_name in tasks:
+            if task_retry_count[task_name] >= 4 or task_fail_count[task_name] >= 1:
+                event_text = "\n".join(event_msgs[task_name])
+                log.warning(
+                    'Task "%s:%s" has restarts=%s fails=%s in the past %s sec:\n%s',
+                    job_name, task_name, task_retry_count[task_name],
+                    task_fail_count[task_name], int(time() - MIN_EVENT_TIME),
+                    event_text,
+                )
+
+                alloc_ids = allocs_with_recent_events[task_name]
+                alloc_ids = sorted(alloc_ids, key=lambda x: -_alloc_mtime(x))
+                printed_something |= self._print_all_logs(job_name, task_name, alloc_ids)
+            else:
+                log.debug(
+                    'checked: "%s:%s" has restarts=%s fails=%s in the past %s sec',
+                    job_name, task_name, task_retry_count[task_name],
+                    task_fail_count[task_name], int(time() - MIN_EVENT_TIME),
+                )
+        if printed_something:
+            log.warning("Job %s has a task in a restart loop! Logs above.", job_name)
+        return printed_something
+
+    def _print_all_logs(self, job_name, task_name, alloc_id_list):
+        """Checks all allocations if we have any logs - and prints first found if we do."""
+
+        log.debug('finding logs for "%s:%s"!', job_name, task_name)
+        found = any(self.print_logs(job_name, a, task_name) for a in alloc_id_list)
+        if not found:
+            log.warning('Could not find any logs for "%s:%s"!', job_name, task_name)
+        return found
+
+    def print_logs(self, job_name, alloc_id, task_name, offset=2000):
+        """Prints the logs for some allocation to the standard operator.
+
+        Returns true if it succeeded in fetching logs."""
+
+        def get_type(log_type):
+            def _get_content():
+                url = f'client/fs/logs/{alloc_id}?follow=false&offset={offset}&origin=end&task={task_name}&type={log_type}'  # noqa: #501
+                # print(url)
+                content = self.get(url)
+                if not content:
+                    return ''
+                content = content.get('Data')
+                if not content:
+                    return ''
+                content = base64.b64decode(content)
+                if not content:
+                    return ''
+                content = content.decode('ascii', errors='replace')
+                content = '\n|  '.join(line for line in content.splitlines()[-40:])
+                return content
+
+            try:
+                content = _get_content()
+                if not content:
+                    raise RuntimeError(f'No logs ({log_type}) for task "{job_name}:{task_name}')
+                content = f'\n|==========\n|========== [{log_type} for task "{job_name}:{task_name}"] ==================\n|==========\n|\n|  {content}\n|\n| ==========\n'  # noqa: E501
+                return content
+            except Exception as e:
+                log.debug(e)
+                return ''
+
+        content = get_type('stdout') + get_type('stderr')
+        if content:
+            log.warning('Log Outputs for "%s:%s":\n%s', job_name, task_name, content)
+            # TODO FIXME: show URLs to Nomad UI after dumping logs.
+            return True
+        log.debug('No log outputs found for task "%s:%s"', job_name, task_name)
+        return False
+
+    def wait_for_service_health_checks(self, consul, job_names, health_checks, deploy_t0, nowait=False):
+        """Waits health checks to become green for green_count times in a row.
+
+        If nowait is set to True, then instantly returns True if something fails, or False for no errors."""
+
+        if not health_checks:
+            return
+
+        def pick_worst(a, b):
+            if not a and not b:
+                return 'missing'
+            for s in ['critical', 'warning', 'passing']:
+                if s in [a, b]:
+                    return s
+            raise RuntimeError(f'Unknown status: "{a}" and "{b}"')
+
+        def get_checks():
+            """Generates a list of (service, check, status)
+            for all failing checks after checking with Consul"""
+
+            consul_status = {}
+            healthy_nodes = [n['Name'] for n in self.get('nodes')
+                             if n['Status'] == 'ready'
+                             and n['SchedulingEligibility'] == 'eligible']
+            for service in health_checks:
+                for s in consul.get(f'/health/checks/{service}'):
+                    if s['Node'] not in healthy_nodes:
+                        continue
+                    key = service, s['Name']
+                    consul_status[key] = pick_worst(s['Status'], consul_status.get(key))
+
+            for service, checks in health_checks.items():
+                for check in checks:
+                    status = consul_status.get((service, check), 'missing')
+                    yield service, check, status
+
+        t0 = time()
+        last_check_timestamps = {}
+        passing_count = defaultdict(int)
+
+        def log_checks(checks, as_error=False, print_passing=True):
+            max_service_len = max(len(s) for s in health_checks.keys())
+            max_name_len = max(max(len(name) for name in health_checks[key]) for key in health_checks)
+            now = time()
+            for service, check, status in checks:
+                last_time = last_check_timestamps.get((service, check), t0)
+                after = f'{now - last_time:+.1f}s'
+                last_check_timestamps[service, check] = now
+
+                line = f'[{time() - t0:4.1f}] {service:>{max_service_len}}: {check:<{max_name_len}} {status.upper():<8} {after:>5}'  # noqa: E501
+
+                if status == 'passing':
+                    if as_error:
+                        continue
+                    if not print_passing:
+                        continue
+                    passing_count[service, check] += 1
+                    if passing_count[service, check] > 1:
+                        line += f' #{passing_count[service, check]}'
+                    log.info(line)
+                elif as_error:
+                    log.error(line)
+                else:
+                    log.warning(line)
+
+        services = sorted(health_checks.keys())
+        log.info(f"Waiting for health checks on {len(services)} services")
+
+        greens = 0
+        timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
+        last_checks = set(get_checks())
+        log_checks(last_checks, print_passing=False)
+        printed_alloc_errors_for_job = []
+        while time() < timeout:
+
+            checks = set(get_checks())
+            log_checks(checks - last_checks)
+            last_checks = checks
+
+            if any(status != 'passing' for _, _, status in checks):
+                greens = 0
+                # print the allocation jobs, but only if we didn't already do that
+                for job in job_names:
+                    if job in printed_alloc_errors_for_job:
+                        continue
+                    if self.check_events_and_logs(job, deploy_t0):
+                        printed_alloc_errors_for_job.append(job)
+            else:
+                greens += 1
+
+            if greens >= config.wait_green_count or nowait:
+                log.info(f"Checks green for {len(services)} services after {time() - t0:.02f}s")
+                return
+
+            # No chance to get enough greens
+            no_chance_timestamp = timeout - config.wait_interval * config.wait_green_count
+            if greens == 0 and time() >= no_chance_timestamp:
+                break
+            if nowait:
+                log.error('Some service checks are not healthy.')
+                return True
+            sleep(config.wait_interval)
+
+        log_checks(checks, as_error=True)
+        msg = f'Checks are failed after {time() - t0:.02f}s.'
+        raise RuntimeError(msg)
+
+    # def print_bad_health_checks(self, job_name):
+    #     # TODO FIXME: refactor jobs to have everything on the Job class
+    #     # - template
+    #     # - rendered spec
+    #     # - health check definitions (and send to liquid-core)
+    #     # - methods to verify health checks for all jobs
+    #     # - methods to check error states & logs for all jobs
+    #     # - port all to liquid-core
+    #     pass
+
+    #     health_checks = {}
+    #     max_stage = max(j.stage for j in config.enabled_jobs)
+    #     for stage in range(max_stage + 1):
+    #         stage_jobs = [(n, t[1]) for n, t in jobs if t[0] == stage]
+    #         if not stage_jobs:
+    #             continue
+    #         log.info(f'Deploy stage #{stage}, starting jobs: {[j[0] for j in stage_jobs]}')
+
+    #         for name, template in stage_jobs:
+    #             job_checks = start_job(name, template, checks)
+    #             health_checks.update(job_checks)
+
+    #         # wait until all deps are healthy
+    #         if stage_jobs and checks:
+    #             job_names = [j[0] for j in stage_jobs]
+    #             nomad.wait_for_service_health_checks(consul, job_names, health_checks, deploy_t0)
 
 
 nomad = Nomad(config.nomad_url)

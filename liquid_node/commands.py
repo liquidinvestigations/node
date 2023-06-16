@@ -1,5 +1,6 @@
 import sys
 from time import time, sleep
+import datetime
 from collections import defaultdict
 from contextlib import closing
 import click
@@ -123,6 +124,22 @@ def resources():
     check_resources()
 
 
+@liquid_commands.command()
+def health_check():
+    """Look at all jobs for many restart events, and print the most recent error."""
+
+    printed_something = False
+    for job in config.enabled_jobs:
+        printed_something |= bool(nomad.check_events_and_logs(job.name))
+        # TODO FIXME printed_something |= bool(nomad.print_bad_health_checks(job.name))
+
+    if printed_something:
+        log.error('Problems detected; see logs above.')
+        sys.exit(1)
+    else:
+        log.info('No problems detected.')
+
+
 def all_images():
     """Get all docker images to pull for enabled docker jobs."""
 
@@ -133,102 +150,6 @@ def all_images():
             if image is not None and image != 'None':
                 total |= set([image])
     return total
-
-
-def wait_for_service_health_checks(health_checks):
-    """Waits health checks to become green for green_count times in a row. """
-
-    if not health_checks:
-        return
-
-    def pick_worst(a, b):
-        if not a and not b:
-            return 'missing'
-        for s in ['critical', 'warning', 'passing']:
-            if s in [a, b]:
-                return s
-        raise RuntimeError(f'Unknown status: "{a}" and "{b}"')
-
-    def get_checks():
-        """Generates a list of (service, check, status)
-        for all failing checks after checking with Consul"""
-
-        consul_status = {}
-        healthy_nodes = [n['Name'] for n in nomad.get('nodes')
-                         if n['Status'] == 'ready'
-                         and n['SchedulingEligibility'] == 'eligible']
-        for service in health_checks:
-            for s in consul.get(f'/health/checks/{service}'):
-                if s['Node'] not in healthy_nodes:
-                    continue
-                key = service, s['Name']
-                consul_status[key] = pick_worst(s['Status'], consul_status.get(key))
-
-        for service, checks in health_checks.items():
-            for check in checks:
-                status = consul_status.get((service, check), 'missing')
-                yield service, check, status
-
-    t0 = time()
-    last_check_timestamps = {}
-    passing_count = defaultdict(int)
-
-    def log_checks(checks, as_error=False, print_passing=True):
-        max_service_len = max(len(s) for s in health_checks.keys())
-        max_name_len = max(max(len(name) for name in health_checks[key]) for key in health_checks)
-        now = time()
-        for service, check, status in checks:
-            last_time = last_check_timestamps.get((service, check), t0)
-            after = f'{now - last_time:+.1f}s'
-            last_check_timestamps[service, check] = now
-
-            line = f'[{time() - t0:4.1f}] {service:>{max_service_len}}: {check:<{max_name_len}} {status.upper():<8} {after:>5}'  # noqa: E501
-
-            if status == 'passing':
-                if as_error:
-                    continue
-                if not print_passing:
-                    continue
-                passing_count[service, check] += 1
-                if passing_count[service, check] > 1:
-                    line += f' #{passing_count[service, check]}'
-                log.info(line)
-            elif as_error:
-                log.error(line)
-            else:
-                log.warning(line)
-
-    services = sorted(health_checks.keys())
-    log.info(f"Waiting for health checks on {len(services)} services")
-
-    greens = 0
-    timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
-    last_checks = set(get_checks())
-    log_checks(last_checks, print_passing=False)
-    while time() < timeout:
-        sleep(config.wait_interval)
-
-        checks = set(get_checks())
-        log_checks(checks - last_checks)
-        last_checks = checks
-
-        if any(status != 'passing' for _, _, status in checks):
-            greens = 0
-        else:
-            greens += 1
-
-        if greens >= config.wait_green_count:
-            log.info(f"Checks green for {len(services)} services after {time() - t0:.02f}s")
-            return
-
-        # No chance to get enough greens
-        no_chance_timestamp = timeout - config.wait_interval * config.wait_green_count
-        if greens == 0 and time() >= no_chance_timestamp:
-            break
-
-    log_checks(checks, as_error=True)
-    msg = f'Checks are failed after {time() - t0:.02f}s.'
-    raise RuntimeError(msg)
 
 
 def check_system_config():
@@ -375,6 +296,7 @@ def _update_images():
 @click.option('--new-images-only', 'new_images_only', is_flag=True, default=False)
 def deploy(update_images, secrets, checks, resource_checks, new_images_only):
     """Run all the jobs in nomad."""
+    deploy_t0 = int(time())
 
     if resource_checks:
         check_system_config()
@@ -429,7 +351,8 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
 
         # wait until all deps are healthy
         if stage_jobs and checks:
-            wait_for_service_health_checks(health_checks)
+            job_names = [j[0] for j in stage_jobs]
+            nomad.wait_for_service_health_checks(consul, job_names, health_checks, deploy_t0)
 
         if stage == 0:
             if secrets:
@@ -455,7 +378,7 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
                 if config.is_app_enabled('wikijs'):
                     retry()(docker.exec_)('wikijs-deps:wikijs-pg', 'sh', '/local/set_pg_password.sh')
 
-    log.info("Deploy done!")
+    log.info("Deploy done! Elapsed: %s", str(datetime.timedelta(int((time() - deploy_t0) / 60))))
 
 
 @liquid_commands.command()

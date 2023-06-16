@@ -4,4 +4,9 @@ set -e
 # cd to file
 cd "$(dirname ${BASH_SOURCE[0]})"
 
-pipenv run ./liquid.py "$@"
+first_arg="$1"
+logfile=".logs/$1.txt"
+mkdir -p ./.logs
+echo "" > "$logfile"
+
+( pipenv run ./liquid.py "$@" 2>&1 )  | tee "$logfile"
