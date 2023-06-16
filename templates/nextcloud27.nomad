@@ -1,38 +1,39 @@
 {% from '_lib.hcl' import shutdown_delay, authproxy_group, group_disk, task_logs, continuous_reschedule, set_pg_password_template, set_pg_drop_template with context -%}
-job "nextcloud26" {
+job "nextcloud27" {
   datacenters = ["dc1"]
   type = "service"
   priority = 98
 
-  group "nextcloud26" {
+  group "nextcloud27" {
     ${ group_disk() }
     ${ continuous_reschedule() }
 
-    task "nextcloud26" {
+    task "nextcloud27" {
       ${ task_logs() }
       driver = "docker"
 
       config {
-        image = "${config.image('liquid-nextcloud26')}"
-        args = ["/bin/bash", "/local/nextcloud26-entrypoint.sh", "/entrypoint.sh"]
+        image = "${config.image('liquid-nextcloud27')}"
+        entrypoint = ["/bin/bash", "/local/nextcloud27-entrypoint.sh"]
         port_map {
-          nextcloud26 = 80
+          nextcloud27 = 80
         }
         labels {
-          liquid_task = "nextcloud26"
+          liquid_task = "nextcloud27"
         }
         memory_hard_limit = 4000
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud26/nextcloud/data:/var/www/html",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/nextcloud/data:/var/www/html",
+          "/home/kjell/code/sociallogin/sociallogin:/var/www/html/custom_apps/sociallogin",
         ]
       }
 
       env {
-          MYSQL_DATABASE = "nextcloud26"
-          MYSQL_USER = "nextcloud26"
+          MYSQL_DATABASE = "nextcloud27"
+          MYSQL_USER = "nextcloud27"
           NEXTCLOUD_UPDATE=1
-          OBJECTSTORE_S3_BUCKET = "nextcloud26"
-          OBJECTSTORE_S3_PORT = "${config.port_nextcloud26_minio}"
+          OBJECTSTORE_S3_BUCKET = "nextcloud27"
+          OBJECTSTORE_S3_PORT = "${config.port_nextcloud27_minio}"
           OBJECTSTORE_S3_SSL = "false"
           OBJECTSTORE_S3_REGION = "optional"
           OBJECTSTORE_S3_USEPATH_STYLE = "true"
@@ -42,20 +43,20 @@ job "nextcloud26" {
 
       template {
         data = <<-EOF
-        NEXTCLOUD_TRUSTED_DOMAINS = "{{ env "attr.unique.network.ip-address" }} nextcloud26.${config.liquid_domain}"
-        MYSQL_HOST = "{{ env "attr.unique.network.ip-address" }}:${config.port_nextcloud26_maria}"
-        {{- with secret "liquid/nextcloud26/nextcloud.maria" }}
+        NEXTCLOUD_TRUSTED_DOMAINS = "{{ env "attr.unique.network.ip-address" }} nextcloud27.${config.liquid_domain}"
+        MYSQL_HOST = "{{ env "attr.unique.network.ip-address" }}:${config.port_nextcloud27_maria}"
+        {{- with secret "liquid/nextcloud27/nextcloud.maria" }}
           MYSQL_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         NEXTCLOUD_ADMIN_USER = "admin"
-        {{- with secret "liquid/nextcloud26/nextcloud.admin" }}
+        {{- with secret "liquid/nextcloud27/nextcloud.admin" }}
           NEXTCLOUD_ADMIN_PASSWORD = {{.Data.secret_key | toJSON }}
         {{- end }}
         OBJECTSTORE_S3_HOST = "{{ env "attr.unique.network.ip-address" }}"
-        {{- with secret "liquid/nextcloud26/minio.user" }}
+        {{- with secret "liquid/nextcloud27/minio.user" }}
             OBJECTSTORE_S3_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
-        {{- with secret "liquid/nextcloud26/minio.password" }}
+        {{- with secret "liquid/nextcloud27/minio.password" }}
             OBJECTSTORE_S3_SECRET = {{.Data.secret_key | toJSON }}
         {{- end }}
         OAUTH2_GROUPS_CLAIM = "roles"
@@ -69,7 +70,7 @@ job "nextcloud26" {
         OAUTH2_TOKEN_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
         OAUTH2_PROFILE_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile"
         OAUTH2_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
-        {{- with secret "liquid/nextcloud26/app.auth.oauth2" }}
+        {{- with secret "liquid/nextcloud27/app.auth.oauth2" }}
             OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
             OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
@@ -80,9 +81,9 @@ job "nextcloud26" {
 
       template {
       data = <<EOF
-{% include 'nextcloud26-entrypoint.sh' %}
+{% include 'nextcloud27-entrypoint.sh' %}
       EOF
-      destination = "local/nextcloud26-entrypoint.sh"
+      destination = "local/nextcloud27-entrypoint.sh"
       perms = "755"
       }
 
@@ -92,14 +93,14 @@ job "nextcloud26" {
         cpu = 100
         network {
           mbits = 1
-          port "nextcloud26" {}
+          port "nextcloud27" {}
         }
       }
 
       service {
-        name = "liquid-nextcloud26"
-        port = "nextcloud26"
-        tags = ["fabio-:${config.port_nextcloud26} proto=tcp"]
+        name = "liquid-nextcloud27"
+        port = "nextcloud27"
+        tags = ["fabio-:${config.port_nextcloud27} proto=tcp"]
         check {
           initial_status = "critical"
           name = "http"
@@ -108,7 +109,7 @@ job "nextcloud26" {
           timeout = "${check_timeout}"
           type = "http"
           header {
-            Host = ["nextcloud26.${liquid_domain}"]
+            Host = ["nextcloud27.${liquid_domain}"]
           }
         }
       }

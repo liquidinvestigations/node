@@ -1,7 +1,4 @@
-#!/bin/bash
-
-# Launch canonical entrypoint
-/entrypoint.sh
+echo "Running nextcloud setup."
 
 # Function from the Nextcloud's original entrypoint
 run_as() {
@@ -12,7 +9,7 @@ run_as() {
     fi
 }
 
-run_as 'php occ app:install sociallogin'
+run_as 'php occ app:enable sociallogin'
 
 OAUTH_SETTINGS=$(cat << DELIM
 '{"custom_oauth2":
@@ -42,6 +39,7 @@ DELIM
 run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTINGS"
 
 # run_as 'php occ config:app:set sociallogin auto_create_groups --value=1'
+
 run_as 'php occ config:app:set sociallogin hide_default_login --value=1'
 run_as 'php occ config:app:set sociallogin update_profile_on_login --value=1'
 run_as 'php occ config:system:set social_login_auto_redirect --value=true'
@@ -52,6 +50,3 @@ run_as 'php occ app:install contacts'
 run_as 'php occ app:install onlyoffice'
 run_as 'php occ app:install richdocumentscode'
 run as 'php occ config:app:delete core shareapi_allow_links --value="no"'
-
-# Run the server
-exec /entrypoint.sh apache2-foreground

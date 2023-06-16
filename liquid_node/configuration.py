@@ -13,7 +13,7 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, codimd, ci, wikijs, matrix, nextcloud26
+    nextcloud, codimd, ci, wikijs, matrix, nextcloud27
 
 log = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'rocketchat', 'nextcloud',
-                'codimd', 'matrix', 'nextcloud26')
+                'codimd', 'matrix', 'nextcloud27')
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -71,7 +71,7 @@ class Configuration:
         'nextcloud': 'has a file share system and a contact list of users.',
         'rocketchat': 'is the old chat app; will remove shortly.',
         'matrix': 'is the new chat app',
-        'nextcloud26': 'has a file share system and a contact list of users.',
+        'nextcloud27': 'has a file share system and a contact list of users.',
     }
 
     APP_REDIS_IDS = {
@@ -79,7 +79,7 @@ class Configuration:
         'dokuwiki': 2,
         'codimd': 3,
         'nextcloud': 4,
-        'nextcloud26': 5,
+        'nextcloud27': 5,
     }
 
     APP_ALLOW_ALL_USERS = {
@@ -112,9 +112,9 @@ class Configuration:
         nextcloud.Nextcloud(),
         nextcloud.Deps(),
         nextcloud.Proxy(),
-        nextcloud26.Nextcloud(),
-        nextcloud26.Proxy(),
-        nextcloud26.Deps(),
+        nextcloud27.Nextcloud(),
+        nextcloud27.Proxy(),
+        nextcloud27.Deps(),
         codimd.Codimd(),
         codimd.Deps(),
         codimd.Proxy(),
@@ -402,7 +402,7 @@ class Configuration:
             'lb': self.ini.getint('ports', 'lb', fallback=9990),
             'blobs_minio': self.ini.getint('ports', 'blobs_minio', fallback=9991),
             'collections_minio': self.ini.getint('ports', 'collections_minio', fallback=9992),
-            'nextcloud26_minio': self.ini.getint('ports', 'nextcloud26_minio', fallback=9970),
+            'nextcloud27_minio': self.ini.getint('ports', 'nextcloud27_minio', fallback=9970),
             'authproxy_redis': self.ini.getint('ports', 'authproxy_redis', fallback=9993),
             'drone_ci': self.ini.getint('ports', 'drone_ci', fallback=9997),
             'snoop_pg': self.ini.getint('ports', 'snoop_pg', fallback=9981),
@@ -412,11 +412,11 @@ class Configuration:
             'search_rabbitmq': self.ini.getint('ports', 'search_rabbitmq', fallback=9985),
             'rocketchat_mongo': self.ini.getint('ports', 'rocketchat_mongo', fallback=9986),
             'nextcloud_maria': self.ini.getint('ports', 'nextcloud_maria', fallback=9987),
-            'nextcloud26_maria': self.ini.getint('ports', 'nextcloud26_maria', fallback=9971),
+            'nextcloud27_maria': self.ini.getint('ports', 'nextcloud27_maria', fallback=9971),
             'codimd_pg': self.ini.getint('ports', 'codimd_pg', fallback=9988),
             'codimd': self.ini.getint('ports', 'codimd', fallback=9989),
             'nextcloud': self.ini.getint('ports', 'nextcloud', fallback=9996),
-            'nextcloud26': self.ini.getint('ports', 'nextcloud26', fallback=9972),
+            'nextcloud27': self.ini.getint('ports', 'nextcloud27', fallback=9972),
             'hoover': self.ini.getint('ports', 'hoover', fallback=9994),
             'dokuwiki': self.ini.getint('ports', 'dokuwiki', fallback=9995),
             'rocketchat': self.ini.getint('ports', 'rocketchat', fallback=9980),
@@ -436,7 +436,7 @@ class Configuration:
         self.port_lb = self.PORT_MAP['lb']
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
         self.port_collections_minio = self.PORT_MAP['collections_minio']
-        self.port_nextcloud26_minio = self.PORT_MAP['nextcloud26_minio']
+        self.port_nextcloud27_minio = self.PORT_MAP['nextcloud27_minio']
         self.port_authproxy_redis = self.PORT_MAP['authproxy_redis']
         self.port_drone_secret = self.PORT_MAP['drone_secret']
         self.port_drone_server_http = self.PORT_MAP['drone_server_http']
@@ -447,11 +447,11 @@ class Configuration:
         self.port_search_rabbitmq = self.PORT_MAP['search_rabbitmq']
         self.port_rocketchat_mongo = self.PORT_MAP['rocketchat_mongo']
         self.port_nextcloud_maria = self.PORT_MAP['nextcloud_maria']
-        self.port_nextcloud26_maria = self.PORT_MAP['nextcloud26_maria']
+        self.port_nextcloud27_maria = self.PORT_MAP['nextcloud27_maria']
         self.port_codimd_pg = self.PORT_MAP['codimd_pg']
         self.port_codimd = self.PORT_MAP['codimd']
         self.port_nextcloud = self.PORT_MAP['nextcloud']
-        self.port_nextcloud26 = self.PORT_MAP['nextcloud26']
+        self.port_nextcloud27 = self.PORT_MAP['nextcloud27']
         self.port_hoover = self.PORT_MAP['hoover']
         self.port_dokuwiki = self.PORT_MAP['dokuwiki']
         self.port_rocketchat = self.PORT_MAP['rocketchat']
@@ -644,7 +644,7 @@ class Configuration:
             ui = tag('hoover-ui')
             return f'search: {search}, snoop: {snoop}, ui: {ui}'
 
-        if name in ['dokuwiki', 'nextcloud', 'nextcloud26']:
+        if name in ['dokuwiki', 'nextcloud', 'nextcloud27']:
             return tag('liquid-' + name)
 
         if name == 'matrix':
