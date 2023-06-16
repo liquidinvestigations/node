@@ -3,7 +3,7 @@
 job "dokuwiki" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 98
+  priority = 97
 
   group "dokuwiki" {
     ${ group_disk() }

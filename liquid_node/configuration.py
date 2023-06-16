@@ -96,6 +96,7 @@ class Configuration:
         hoover.Proxy(),
         hoover.Nginx(),
         hoover.Workers(),
+        hoover.Migrate(),
         dokuwiki.Dokuwiki(),
         dokuwiki.Proxy(),
         rocketchat.Rocketchat(),
@@ -337,11 +338,11 @@ class Configuration:
         self.snoop_unarchive_threads = max(min(self.ini.getint('snoop', 'snoop_unarchive_threads',
                                                                fallback=4), 16), 1)
 
-        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='30s')
+        self.check_interval = self.ini.get('deploy', 'check_interval', fallback='35s')
         self.check_timeout = self.ini.get('deploy', 'check_timeout', fallback='29s')
         self.wait_max = self.ini.getfloat('deploy', 'wait_max_sec', fallback=600)
         self.wait_interval = self.ini.getfloat('deploy', 'wait_interval', fallback=10)
-        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=4)
+        self.wait_green_count = self.ini.getint('deploy', 'wait_green_count', fallback=1)
 
         self.container_memory_limit_scale = self.ini.getfloat(
             'deploy', 'container_memory_limit_scale', fallback=1.0)

@@ -3,7 +3,7 @@
 job "rocketchat" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 98
+  priority = 97
 
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 

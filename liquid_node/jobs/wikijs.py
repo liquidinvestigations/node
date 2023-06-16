@@ -39,4 +39,4 @@ class Proxy(jobs.Job):
     name = 'wikijs-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'wikijs'
-    stage = 4
+    stage = 5

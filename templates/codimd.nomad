@@ -3,7 +3,7 @@
 job "codimd" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 98
+  priority = 97
 
   group "codimd" {
     ${ group_disk() }

@@ -108,7 +108,7 @@
 job "hoover" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 99
+  priority = 97
 
   spread { attribute = {% raw %}"${attr.unique.hostname}"{% endraw %} }
 
@@ -142,8 +142,6 @@ job "hoover" {
         }
         memory_hard_limit = ${2000 + 4 * config.hoover_web_memory_limit}
       }
-      # This container uses "runserver" so we don't need to auto-reload
-      # env { __GIT_TAGS = "${hoover_search_git}" }
 
       resources {
         memory = ${config.hoover_web_memory_limit}
@@ -154,6 +152,7 @@ job "hoover" {
       }
 
       env {
+        __GIT_TAGS = "${hoover_search_git}" 
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
@@ -252,26 +251,16 @@ job "hoover" {
           http = 8080
         }
         labels {
-          liquid_task = "snoop-api"
+          liquid_task = "snoop-web"
         }
         memory_hard_limit = ${2000 + 4 * config.hoover_web_memory_limit}
       }
-      # This container uses "runserver" so we don't need to auto-reload
-      # env { __GIT_TAGS = "${hoover_snoop2_git}" }
 
       template {
         data = <<-EOF
           #!/bin/bash
           set -ex
-          if [ -z "$SNOOP_ES_URL" ] || [ -z "$SNOOP_DB" ]; then
-            echo "incomplete configuration!"
-            sleep 5
-            exit 1
-          fi
-          date
-          ./manage.py migrate --noinput
-          ./manage.py migratecollections
-          ./manage.py healthcheck
+
           date
 
           exec /runserver

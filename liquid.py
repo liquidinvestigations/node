@@ -3,6 +3,7 @@ import sys
 import colorlog
 import logging
 import click
+import traceback
 
 
 level = logging.DEBUG
@@ -32,8 +33,10 @@ if __name__ == '__main__':
     try:
         cli()
     except Exception as e:
+        err_tb = traceback.format_exc()
         err_str = str(e)
         if err_str:
             err_str = '(' + err_str + ')'
+        log.debug('Traceback: \n%s', err_tb)
         log.error("Command Failed. %s \n", err_str)
         sys.exit(66)

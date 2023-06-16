@@ -25,7 +25,7 @@ class Proxy(jobs.Job):
     name = 'nextcloud-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud'
-    stage = 4
+    stage = 5
 
 
 class Deps(jobs.Job):

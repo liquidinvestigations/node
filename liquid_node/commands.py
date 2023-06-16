@@ -416,8 +416,11 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
 
     # Deploy everything in stages
     health_checks = {}
-    for stage in range(5):
+    max_stage = max(j.stage for j in config.enabled_jobs)
+    for stage in range(max_stage + 1):
         stage_jobs = [(n, t[1]) for n, t in jobs if t[0] == stage]
+        if not stage_jobs:
+            continue
         log.info(f'Deploy stage #{stage}, starting jobs: {[j[0] for j in stage_jobs]}')
 
         for name, template in stage_jobs:

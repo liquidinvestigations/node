@@ -38,4 +38,4 @@ class Proxy(jobs.Job):
     name = 'codimd-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'codimd'
-    stage = 4
+    stage = 5

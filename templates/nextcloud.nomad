@@ -3,7 +3,7 @@
 job "nextcloud" {
   datacenters = ["dc1"]
   type = "service"
-  priority = 98
+  priority = 97
 
   group "nextcloud" {
     ${ group_disk() }

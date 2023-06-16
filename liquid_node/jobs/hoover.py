@@ -5,7 +5,7 @@ class Hoover(jobs.Job):
     name = 'hoover'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hoover'
-    stage = 2
+    stage = 3
     core_oauth_apps = [
         {
             'name': 'hoover',
@@ -30,7 +30,7 @@ class Proxy(jobs.Job):
     name = 'hoover-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hoover'
-    stage = 4
+    stage = 5
 
 
 class DepsDownloads(jobs.Job):
@@ -52,11 +52,17 @@ class Nginx(jobs.Job):
     name = 'hoover-nginx'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hoover'
-    stage = 3
+    stage = 4
 
 
 class Workers(jobs.Job):
     name = 'hoover-workers'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'hoover'
-    stage = 4
+    stage = 5
+
+class Migrate(jobs.Job):
+    name = 'hoover-migrate'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'hoover'
+    stage = 2

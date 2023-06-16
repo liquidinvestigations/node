@@ -22,4 +22,4 @@ class Proxy(jobs.Job):
     name = 'dokuwiki-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'dokuwiki'
-    stage = 4
+    stage = 5
