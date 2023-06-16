@@ -3,7 +3,7 @@
 {% from 'hoover.nomad' import snoop_dependency_envs with context %}
 
 
-{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=450, cpu_per_proc=700) %}
+{%- macro snoop_worker_group(queue, container_count=1, proc_count=1, mem_per_proc=400, cpu_per_proc=700) %}
   group "snoop-workers-${queue}" {
     ${ group_disk() }
     ${ continuous_reschedule() }
@@ -159,7 +159,7 @@ job "hoover-workers" {
         queue="default",
         container_count=config.snoop_default_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=600,
+        mem_per_proc=500,
         cpu_per_proc=1000,
       ) }
 
@@ -167,7 +167,7 @@ job "hoover-workers" {
         queue="filesystem",
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=900,
+        mem_per_proc=800,
         cpu_per_proc=1100,
       ) }
 
@@ -175,7 +175,7 @@ job "hoover-workers" {
         queue="ocr",
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=600,
+        mem_per_proc=500,
         cpu_per_proc=1600,
       ) }
 
@@ -183,7 +183,7 @@ job "hoover-workers" {
         queue="digests",
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
-        mem_per_proc=900,
+        mem_per_proc=800,
         cpu_per_proc=1200,
       ) }
 

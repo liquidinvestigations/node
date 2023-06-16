@@ -212,7 +212,7 @@ class Configuration:
         self.hoover_web_memory_limit = self.ini.getint('liquid',
                                                        'hoover_web_memory_limit', fallback=400)
         self.hoover_web_count = self.ini.getint('liquid',
-                                                'hoover_web_count', fallback=1)
+                                                'hoover_web_count', fallback=2)
         self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
         self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=False)  # noqa: E501
         self.rocketchat_autologout_days = self.ini.getint('liquid', 'rocketchat_autologout_days', fallback=100)  # noqa: E501

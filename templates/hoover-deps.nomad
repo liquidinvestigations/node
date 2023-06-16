@@ -1072,10 +1072,10 @@ job "hoover-deps" {
         data = <<EOF
           num_init_children = ${config.snoop_postgres_pool_children}
           max_pool = 2
-          child_max_connections = 1000
-          child_life_time = 186400
-          client_idle_limit = 186400
-          connection_life_time = 186400
+          child_max_connections = 10000
+          child_life_time = 86400
+          client_idle_limit = 86400
+          connection_life_time = 86400
           pid_file_name = '/tmp/pgpool.pid'
 
           connection_cache = true
