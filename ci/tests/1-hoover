@@ -12,6 +12,8 @@ cp ci/conf/1-with-collections.ini liquid.ini
 
 ./liquid deploy || ./liquid deploy
 
+./liquid health-check || exit 1
+
 echo "Creating users..."
 echo "$TEST_ADMIN_PASSWORD" | wc -c
 ./ci/ui/create_users.sh

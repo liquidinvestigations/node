@@ -52,6 +52,8 @@ function install {
     cd $CLUSTER
     devnull "git pull"
     devnull "./bin/docker.sh --rm --pull"
+    docker exec cluster ./cluster.py wait
+    sudo chmod a+rw /opt/cluster/var/vault-secrets.ini
   )
 
   echo "INSTALL DONE"

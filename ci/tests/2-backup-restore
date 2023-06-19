@@ -7,7 +7,7 @@ BACKUP="$(dirname $PWD)/backups"
 
 echo "Make a Backup"
 cp ci/conf/1-with-collections-stopped.ini liquid.ini
-./liquid deploy || ./liquid deploy
+./liquid deploy || ( set -ex; echo "backup test: DEPLOY 1 failed. trying again..." && ./liquid deploy )
 ./liquid backup $BACKUP/backup
 
 echo "Check backup"
@@ -41,6 +41,8 @@ sudo rm -rf /opt/cluster/var/*
 echo
 docker start cluster
 docker exec cluster ./cluster.py wait
+sudo chmod a+r /opt/cluster/var/vault-secrets.ini
+
 ./liquid deploy || ./liquid deploy
 ./liquid restore-all-collections $BACKUP/backup || ( sleep 45 && ./liquid restore-all-collections $BACKUP/backup )
 ./liquid restore-apps $BACKUP/backup || ( sleep 45 && o./liquid restore-apps $BACKUP/backup )
