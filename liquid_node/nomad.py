@@ -237,7 +237,7 @@ class Nomad(JsonApi):
     def stop(self, job):
         return self.delete(f'job/{job}')
 
-    def stop_and_wait(self, jobs):
+    def stop_and_wait(self, jobs, nowait=False):
         from liquid_node.configuration import config
 
         if not jobs:
@@ -247,6 +247,8 @@ class Nomad(JsonApi):
         for job in jobs:
             self.stop(job)
 
+        if nowait:
+            return
         jobs = list(jobs)
         log.debug('Waiting for the following jobs to die: ' + ', '.join(jobs))
         timeout = time() + config.wait_max
@@ -311,7 +313,7 @@ class Nomad(JsonApi):
                 continue
             alloc_age = int(time() - alloc["ModifyTime"] / 1000000000.0)
             if alloc_age > MAX_RUNNING_AGE:
-                for task_name, task_state_obj in alloc['TaskStates'].items():
+                for task_name, task_state_obj in (alloc['TaskStates'] or {}).items():
                     if task_state_obj['State'] == 'running':
                         log.warning(
                             'Batch Job "%s:%s" has been running for %s sec.',
@@ -347,7 +349,7 @@ class Nomad(JsonApi):
 
         for allocation in allocations:
             alloc_id = allocation['ID']
-            for task_name, task_state_obj in allocation['TaskStates'].items():
+            for task_name, task_state_obj in (allocation['TaskStates'] or {}).items():
                 for event in task_state_obj['Events']:
                     event_type = event['Type']
                     event_msg = event.get('DisplayMessage')

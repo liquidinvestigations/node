@@ -334,7 +334,7 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
     # check if there are jobs to stop
     nomad_jobs = set(job['ID'] for job in nomad.jobs())
     jobs_to_stop = nomad_jobs.intersection(set(job.name for job in config.disabled_jobs))
-    nomad.stop_and_wait(jobs_to_stop)
+    nomad.stop_and_wait(jobs_to_stop, nowait=not checks)
 
     # Deploy everything in stages
     health_checks = {}
@@ -378,7 +378,7 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
                 if config.is_app_enabled('wikijs'):
                     retry()(docker.exec_)('wikijs-deps:wikijs-pg', 'sh', '/local/set_pg_password.sh')
 
-    log.info("Deploy done! Elapsed: %s", str(datetime.timedelta(int((time() - deploy_t0) / 60))))
+    log.info("Deploy done! Elapsed: %s", str(datetime.timedelta(seconds=int((time() - deploy_t0)))))
 
 
 @liquid_commands.command()
