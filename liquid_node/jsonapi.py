@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 class JsonApi:
 
-    def __init__(self, endpoint, request_cooldown_sec=0.15):
+    def __init__(self, endpoint, request_cooldown_sec=0.0):
         self.endpoint = endpoint
         self.request_cooldown_sec = request_cooldown_sec
 
@@ -22,7 +22,8 @@ class JsonApi:
         :param data: the request body
         :type data: bytes|str
         """
-        time.sleep(self.request_cooldown_sec)
+        if self.request_cooldown_sec:
+            time.sleep(self.request_cooldown_sec)
         req_url = f'{self.endpoint}{url}'
         req_headers = dict(headers or {})
         req_body = None

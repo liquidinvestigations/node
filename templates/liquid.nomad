@@ -53,6 +53,7 @@ job "liquid" {
           LIQUID_2FA = "${config.liquid_2fa}"
           LIQUID_APPS = ${ config.liquid_apps | tojson | tojson}
           NOMAD_URL = "${config.nomad_url}"
+          CONSUL_URL = "${config.consul_url}"
           AUTHPROXY_REDIS_URL = "redis://{{ env "attr.unique.network.ip-address" }}:${config.port_authproxy_redis}/"
 
           UPTRACE_DSN = "http://liquid-core-django@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/3"
@@ -62,8 +63,8 @@ job "liquid" {
           LIQUID_DASHBOARDS_PROXY_BASE_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}"
           LIQUID_DASHBOARDS_PROXY_NOMAD_URL = "http://{{env "attr.unique.network.ip-address"}}:4646"
           LIQUID_DASHBOARDS_PROXY_CONSUL_URL = "http://{{env "attr.unique.network.ip-address"}}:8500"
+          LIQUID_HEALTHCHECK_INFO_FILE = "/local/healthcheck_info.json"
           {% endif %}
-
         EOF
         destination = "local/docker.env"
         env = true
@@ -83,6 +84,13 @@ job "liquid" {
           EOF
           perms = "755"
           destination = "local/users.py"
+      }
+
+      template {
+        data = <<-EOF
+${config.liquid_core_healthcheck_info}
+          EOF
+          destination = "local/healthcheck_info.json"
       }
 
       resources {

@@ -137,9 +137,12 @@ def get_job(hcl_path, substitutions={}):
     """
     with hcl_path.open() as job_file:
         template = job_file.read()
-
-    output = render(template, set_volumes_paths(substitutions))
-    return output
+    try:
+        return render(template, set_volumes_paths(substitutions))
+    except Exception as e:
+        log.exception(e)
+        log.error('template %s failed to parse!!!', hcl_path)
+        raise e
 
 
 class Job:

@@ -1,3 +1,5 @@
+import json
+import subprocess
 import sys
 from time import time, sleep
 import datetime
@@ -127,17 +129,45 @@ def resources():
 @liquid_commands.command()
 def health_check():
     """Look at all jobs for many restart events, and print the most recent error."""
-
     printed_something = False
+
+    job_checks = {}
+    job_names = []
     for job in config.enabled_jobs:
+        spec = nomad.parse(get_job(job.template))
         printed_something |= bool(nomad.check_events_and_logs(job.name))
-        # TODO FIXME printed_something |= bool(nomad.print_bad_health_checks(job.name))
+        for service, checks in nomad.get_health_checks_from_spec(spec):
+            if not checks:
+                log.warn(f'service {service} has no health checks')
+                continue
+            job_checks[service] = checks
+            job_names.append(job.name)
+    printed_something |= nomad.wait_for_service_health_checks(consul, job_names, job_checks, nowait=True)
 
     if printed_something:
         log.error('Problems detected; see logs above.')
         sys.exit(1)
     else:
         log.info('No problems detected.')
+
+
+@liquid_commands.command()
+def dump_healthcheck_info():
+    import json
+
+    def _get_check_entries():
+        for job in config.enabled_jobs:
+            spec = nomad.parse(get_job(job.template))
+            for service, checks in nomad.get_health_checks_from_spec(spec):
+                for check in checks:
+                    yield {
+                        "stage": job.stage,
+                        "app": job.app or '',
+                        "job": job.name,
+                        "service": service,
+                        "check": check,
+                    }
+    print(json.dumps(sorted(_get_check_entries(), key=lambda d: tuple(d.items())), indent=2))
 
 
 def all_images():
@@ -171,7 +201,7 @@ def start_job(job, hcl, check_batch_jobs=False):
     spec = nomad.parse(hcl, replace_images=True)
     nomad.run(spec, check_batch_jobs)
     job_checks = {}
-    for service, checks in nomad.get_health_checks(spec):
+    for service, checks in nomad.get_health_checks_from_spec(spec):
         if not checks:
             log.warn(f'service {service} has no health checks')
             continue
@@ -297,6 +327,11 @@ def _update_images():
 def deploy(update_images, secrets, checks, resource_checks, new_images_only):
     """Run all the jobs in nomad."""
     deploy_t0 = int(time())
+
+    # Inject the healthcheck info on the config object.
+    config.liquid_core_healthcheck_info = subprocess.check_output(
+        './liquid dump-healthcheck-info', shell=True,
+    ).decode('ascii')
 
     if resource_checks:
         check_system_config()

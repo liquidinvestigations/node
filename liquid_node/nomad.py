@@ -118,24 +118,20 @@ class Nomad(JsonApi):
     def wait_for_batch_job(self, spec, evaluation, t0):
         PRINT_EVERY_S = 120
         next_print = time() + PRINT_EVERY_S
-        API_COOLDOWN_S = 0.15
         INTERVAL_S = 2
         TOTAL_WAIT_H = 3
 
         def check_eval(evaluation):
             ev = self.get('evaluations?prefix=' + evaluation['EvalID'])
-            sleep(API_COOLDOWN_S)
             return ev[0]['Status'] == 'complete'
 
         def check_job(spec):
             job = self.get(f'job/{spec["ID"]}')
-            sleep(API_COOLDOWN_S)
             return job['Status'] == 'dead'
 
         log.info("Waiting for batch job %s  (max wait = %sh)", spec['ID'], TOTAL_WAIT_H)
         printed_something = False
         for _ in range(int(TOTAL_WAIT_H * 3600 / INTERVAL_S)):
-            sleep(INTERVAL_S)
             if check_eval(evaluation) and check_job(spec):
                 # TODO: check allocations for each taskgroup to see if we have one that succeeded.
                 # Otherwise, this passes on for failed, non-repeating tasks.
@@ -148,16 +144,17 @@ class Nomad(JsonApi):
                     "job '%s' still running after %s min; will wait for another %s min",
                     spec['ID'], int((time() - t0) / 60), TOTAL_WAIT_H * 60 - int((time() - t0) / 60),
                 )
-
             if not printed_something:
                 printed_something |= self.check_events_and_logs(spec['ID'], t0)
+
+            sleep(INTERVAL_S)
         else:
             raise RuntimeError("Batch Job {spec['ID']} Failed to finish in 2h")
 
         log.info('Batch job %s completed successfully.', spec['ID'])
 
-    def get_health_checks(self, spec):
-        """Generates (service, check_name_list) tuples for the supplied job"""
+    def get_health_checks_from_spec(self, spec):
+        """Generates (service, check_name_list) tuples for the supplied job spec"""
 
         def name(check):
             assert check['Name'], (
@@ -263,7 +260,6 @@ class Nomad(JsonApi):
         timeout = time() + config.wait_max
 
         while jobs and time() < timeout:
-            sleep(config.wait_interval / 3)
             just_removed = []
 
             nomad_jobs = {job['ID']: job for job in self.jobs() if job['ID'] in jobs}
@@ -274,6 +270,11 @@ class Nomad(JsonApi):
 
             if just_removed:
                 log.info('Jobs stopped: ' + ", ".join(just_removed))
+
+            if not jobs:
+                break
+
+            sleep(config.wait_interval / 3)
 
         if jobs:
             raise RuntimeError(f'The following jobs are still running: {jobs}')
@@ -292,7 +293,20 @@ class Nomad(JsonApi):
 
         Returns True if we found bad allocs and printed out the logs for them;
         this means we shouldn't run this function again on this job.
+
+        If the job is missing, print a DEBUG message and skip it.
+        This happens for batch tasks that have finished and are removed.
         """
+
+        # check if the job still exists; if not, skip it...
+        try:
+            job = self.get(f'job/{job_name}')
+            assert job['ID'] == job_name, 'unknown job id'
+        except urllib.error.HTTPError as e:
+            # status 404 is expected when the batch job is long dead.
+            if e.status != 404:
+                log.warning('job cannot be fetched: %s (%s)', job_name, e)
+            return False
 
         try:
             return self.check_recent_restarts(job_name, deployment_time) \
@@ -449,13 +463,16 @@ class Nomad(JsonApi):
         log.debug('No log outputs found for task "%s:%s"', job_name, task_name)
         return False
 
-    def wait_for_service_health_checks(self, consul, job_names, health_checks, deploy_t0, nowait=False):
+    def wait_for_service_health_checks(self, consul, job_names, health_checks, deploy_t0=None, nowait=False):
         """Waits health checks to become green for green_count times in a row.
 
         If nowait is set to True, then instantly returns True if something fails, or False for no errors."""
 
         if not health_checks:
             return
+
+        if not deploy_t0:
+            deploy_t0 = time()
 
         def pick_worst(a, b):
             if not a and not b:
@@ -515,7 +532,8 @@ class Nomad(JsonApi):
                     log.warning(line)
 
         services = sorted(health_checks.keys())
-        log.info(f"Waiting for health checks on {len(services)} services")
+        if not nowait:
+            log.info(f"Waiting for health checks on {len(services)} services")
 
         greens = 0
         timeout = t0 + config.wait_max + config.wait_interval * config.wait_green_count
@@ -540,8 +558,16 @@ class Nomad(JsonApi):
                 greens += 1
 
             if greens >= config.wait_green_count or nowait:
-                log.info(f"Checks green for {len(services)} services after {time() - t0:.02f}s")
-                return
+                if nowait:
+                    if greens:
+                        log.info(f"Checks green for {len(services)} services.")
+                        return False
+                    else:
+                        log.error('Some service checks are not healthy.')
+                        return True
+                else:
+                    log.info(f"Checks green for {len(services)} services after {time() - t0:.02f}s")
+                return False
 
             # No chance to get enough greens
             no_chance_timestamp = timeout - config.wait_interval * config.wait_green_count
@@ -555,33 +581,6 @@ class Nomad(JsonApi):
         log_checks(checks, as_error=True)
         msg = f'Checks are failed after {time() - t0:.02f}s.'
         raise RuntimeError(msg)
-
-    # def print_bad_health_checks(self, job_name):
-    #     # TODO FIXME: refactor jobs to have everything on the Job class
-    #     # - template
-    #     # - rendered spec
-    #     # - health check definitions (and send to liquid-core)
-    #     # - methods to verify health checks for all jobs
-    #     # - methods to check error states & logs for all jobs
-    #     # - port all to liquid-core
-    #     pass
-
-    #     health_checks = {}
-    #     max_stage = max(j.stage for j in config.enabled_jobs)
-    #     for stage in range(max_stage + 1):
-    #         stage_jobs = [(n, t[1]) for n, t in jobs if t[0] == stage]
-    #         if not stage_jobs:
-    #             continue
-    #         log.info(f'Deploy stage #{stage}, starting jobs: {[j[0] for j in stage_jobs]}')
-
-    #         for name, template in stage_jobs:
-    #             job_checks = start_job(name, template, checks)
-    #             health_checks.update(job_checks)
-
-    #         # wait until all deps are healthy
-    #         if stage_jobs and checks:
-    #             job_names = [j[0] for j in stage_jobs]
-    #             nomad.wait_for_service_health_checks(consul, job_names, health_checks, deploy_t0)
 
 
 nomad = Nomad(config.nomad_url)

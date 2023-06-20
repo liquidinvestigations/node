@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -o pipefail
 
 # cd to file
 cd "$(dirname ${BASH_SOURCE[0]})"
@@ -18,4 +19,4 @@ echo "" > "$logfile_err"
 # that use `./liquid dockerexec` will still work.
 # https://unix.stackexchange.com/questions/6430/how-to-redirect-stderr-and-stdout-to-different-files-and-also-display-in-termina/6431#6431
 
-( ( pipenv run ./liquid.py "$@"   | tee "$logfile_out" ) 3>&1 1>&2 2>&3 | tee "$logfile_err" ) 3>&1 1>&2 2>&3
+( ( ( set -x; pipenv run ./liquid.py "$@" )  | tee "$logfile_out" ) 3>&1 1>&2 2>&3 | tee "$logfile_err" ) 3>&1 1>&2 2>&3
