@@ -13,6 +13,10 @@ from .docker import docker
 log = logging.getLogger(__name__)
 
 
+def _get_nomad_ui_url_task_logs(alloc_id, task_name):
+    return f'{config.nomad_url}/ui/allocations/{alloc_id}/{task_name}/logs'
+
+
 def scale_cpu_and_memory(spec):
     spec = dict(spec)
     for group in spec.get('TaskGroups', []):
@@ -133,6 +137,8 @@ class Nomad(JsonApi):
         for _ in range(int(TOTAL_WAIT_H * 3600 / INTERVAL_S)):
             sleep(INTERVAL_S)
             if check_eval(evaluation) and check_job(spec):
+                # TODO: check allocations for each taskgroup to see if we have one that succeeded.
+                # Otherwise, this passes on for failed, non-repeating tasks.
                 break
 
             if time() > next_print:
@@ -147,6 +153,8 @@ class Nomad(JsonApi):
                 printed_something |= self.check_events_and_logs(spec['ID'], t0)
         else:
             raise RuntimeError("Batch Job {spec['ID']} Failed to finish in 2h")
+
+        log.info('Batch job %s completed successfully.', spec['ID'])
 
     def get_health_checks(self, spec):
         """Generates (service, check_name_list) tuples for the supplied job"""
@@ -211,7 +219,8 @@ class Nomad(JsonApi):
         return self.get('jobs')
 
     def job_allocations(self, job):
-        return self.get(f'job/{job}/allocations')
+        # return jobs in reverse chronological order (newest first)
+        return self.get(f'job/{job}/allocations?reverse=true')
 
     @retry()
     def restart(self, job, task):
@@ -387,12 +396,6 @@ class Nomad(JsonApi):
                 alloc_ids = allocs_with_recent_events[task_name]
                 alloc_ids = sorted(alloc_ids, key=lambda x: -_alloc_mtime(x))
                 printed_something |= self._print_all_logs(job_name, task_name, alloc_ids)
-            else:
-                log.debug(
-                    'checked: "%s:%s" has restarts=%s fails=%s in the past %s sec',
-                    job_name, task_name, task_retry_count[task_name],
-                    task_fail_count[task_name], int(time() - MIN_EVENT_TIME),
-                )
         if printed_something:
             log.warning("Job %s has a task in a restart loop! Logs above.", job_name)
         return printed_something
@@ -414,7 +417,6 @@ class Nomad(JsonApi):
         def get_type(log_type):
             def _get_content():
                 url = f'client/fs/logs/{alloc_id}?follow=false&offset={offset}&origin=end&task={task_name}&type={log_type}'  # noqa: #501
-                # print(url)
                 content = self.get(url)
                 if not content:
                     return ''
@@ -425,14 +427,14 @@ class Nomad(JsonApi):
                 if not content:
                     return ''
                 content = content.decode('ascii', errors='replace')
-                content = '\n|  '.join(line for line in content.splitlines()[-40:])
+                content = '\n|    '.join(line for line in content.splitlines()[-40:])
                 return content
 
             try:
                 content = _get_content()
                 if not content:
                     raise RuntimeError(f'No logs ({log_type}) for task "{job_name}:{task_name}')
-                content = f'\n|==========\n|========== [{log_type} for task "{job_name}:{task_name}"] ==================\n|==========\n|\n|  {content}\n|\n| ==========\n'  # noqa: E501
+                content = f'\n|---------- [{log_type} for task "{job_name}:{task_name}"] ----------\n|\n|    {content}\n|\n|----------------------\n'  # noqa: E501
                 return content
             except Exception as e:
                 log.debug(e)
@@ -441,7 +443,8 @@ class Nomad(JsonApi):
         content = get_type('stdout') + get_type('stderr')
         if content:
             log.warning('Log Outputs for "%s:%s":\n%s', job_name, task_name, content)
-            # TODO FIXME: show URLs to Nomad UI after dumping logs.
+            log.warning('See more logs for "%s:%s" on Nomad UI:', job_name, task_name)
+            log.warning('  %s', _get_nomad_ui_url_task_logs(alloc_id, task_name))
             return True
         log.debug('No log outputs found for task "%s:%s"', job_name, task_name)
         return False

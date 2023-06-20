@@ -8,7 +8,6 @@ job "hoover-migrate" {
 
   group "hoover-search-migrate" {
     ${ group_disk() }
-
     ${ continuous_reschedule() }
 
     task "hoover-search-migrate" {
@@ -110,6 +109,9 @@ job "hoover-migrate" {
   }
 
   group "hoover-snoop2-migrate" {
+    ${ group_disk() }
+    ${ continuous_reschedule() }
+
     task "hoover-snoop2-migrate" {
       leader = true
 

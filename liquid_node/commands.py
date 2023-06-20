@@ -335,6 +335,7 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
     nomad_jobs = set(job['ID'] for job in nomad.jobs())
     jobs_to_stop = nomad_jobs.intersection(set(job.name for job in config.disabled_jobs))
     nomad.stop_and_wait(jobs_to_stop, nowait=not checks)
+    nomad.gc()
 
     # Deploy everything in stages
     health_checks = {}
@@ -387,6 +388,7 @@ def halt():
 
     jobs = [j.name for j in config.all_jobs]
     nomad.stop_and_wait(jobs)
+    nomad.gc()
 
 
 @liquid_commands.command()
