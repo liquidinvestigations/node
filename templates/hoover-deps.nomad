@@ -358,7 +358,8 @@ job "hoover-deps" {
 
       template {
         data = <<-EOF
-          #!/bin/bash -ex
+          #!/bin/bash
+          set -ex
           (
            while true; do
              sleep 600

@@ -188,6 +188,9 @@ class Configuration:
             self.liquid_http_protocol = self.ini.get('liquid', 'http_protocol_override', fallback='http')
         self.liquid_core_url = f'{self.liquid_http_protocol}://{self.liquid_domain}'
 
+        # This value will be overwritten by the deploy command.
+        self.liquid_core_healthcheck_info = '{}'
+
         self.auth_staff_only = self.ini.getboolean('liquid', 'auth_staff_only', fallback=False)
 
         self.auth_auto_logout = self.ini.get('liquid', 'auth_auto_logout', fallback='2400h')

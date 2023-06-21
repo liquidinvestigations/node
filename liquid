@@ -1,7 +1,22 @@
 #!/bin/bash
 set -e
+set -o pipefail
 
 # cd to file
 cd "$(dirname ${BASH_SOURCE[0]})"
 
-pipenv run ./liquid.py "$@"
+# create and truncate logfiles for subcommand
+first_arg="$1"
+logfile_out=".logs/$1.stdout"
+logfile_err=".logs/$1.stderr"
+mkdir -p ./.logs
+echo "" > "$logfile_out"
+echo "" > "$logfile_err"
+
+# Log stdout and stderr from the command in separate files.
+# Need to swap stdin with stdout, because tee only takes stdin as input,
+# and then finally, swap it back, so our dump/restore commands
+# that use `./liquid dockerexec` will still work.
+# https://unix.stackexchange.com/questions/6430/how-to-redirect-stderr-and-stdout-to-different-files-and-also-display-in-termina/6431#6431
+
+( ( ( set -x; pipenv run ./liquid.py "$@" )  | tee "$logfile_out" ) 3>&1 1>&2 2>&3 | tee "$logfile_err" ) 3>&1 1>&2 2>&3

@@ -1,4 +1,5 @@
-#!/bin/bash -ex
+#!/bin/bash
+set -ex
 
 export PATH=/snap/bin:$PATH
 curl --version

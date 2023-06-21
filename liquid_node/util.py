@@ -68,7 +68,7 @@ def retry(count=4, wait_sec=5, exp=2):
             current_wait = wait_sec
             for i in range(count):
                 try:
-                    if i == count - 1:
+                    if i == count - 1 or i == 0:
                         return f(*args, **kwargs)
                     else:
                         with stderr_muted():

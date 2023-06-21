@@ -61,6 +61,7 @@ class Workers(jobs.Job):
     app = 'hoover'
     stage = 5
 
+
 class Migrate(jobs.Job):
     name = 'hoover-migrate'
     template = jobs.TEMPLATES / f'{name}.nomad'
