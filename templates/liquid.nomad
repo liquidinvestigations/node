@@ -39,6 +39,7 @@ job "liquid" {
 
       template {
         data = <<-EOF
+          LIQUID_HEALTHCHECK_INFO_FILE = "/local/healthcheck_info.json"
           DEBUG = {{key "liquid_debug" | toJSON }}
           {{- with secret "liquid/liquid/core.django" }}
             SECRET_KEY = {{.Data.secret_key | toJSON }}
@@ -63,7 +64,6 @@ job "liquid" {
           LIQUID_DASHBOARDS_PROXY_BASE_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}"
           LIQUID_DASHBOARDS_PROXY_NOMAD_URL = "http://{{env "attr.unique.network.ip-address"}}:4646"
           LIQUID_DASHBOARDS_PROXY_CONSUL_URL = "http://{{env "attr.unique.network.ip-address"}}:8500"
-          LIQUID_HEALTHCHECK_INFO_FILE = "/local/healthcheck_info.json"
           {% endif %}
         EOF
         destination = "local/docker.env"

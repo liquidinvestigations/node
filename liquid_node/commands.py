@@ -1,4 +1,3 @@
-import json
 import subprocess
 import sys
 from time import time, sleep
@@ -161,8 +160,8 @@ def dump_healthcheck_info():
             for service, checks in nomad.get_health_checks_from_spec(spec):
                 for check in checks:
                     yield {
-                        "stage": job.stage,
-                        "app": job.app or '',
+                        "app": job.app or 'None',
+                        "stage": str(job.stage) or 'None',
                         "job": job.name,
                         "service": service,
                         "check": check,
@@ -370,7 +369,6 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
     nomad_jobs = set(job['ID'] for job in nomad.jobs())
     jobs_to_stop = nomad_jobs.intersection(set(job.name for job in config.disabled_jobs))
     nomad.stop_and_wait(jobs_to_stop, nowait=not checks)
-    nomad.gc()
 
     # Deploy everything in stages
     health_checks = {}
@@ -414,6 +412,10 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
                 if config.is_app_enabled('wikijs'):
                     retry()(docker.exec_)('wikijs-deps:wikijs-pg', 'sh', '/local/set_pg_password.sh')
 
+    # finally, reset the liquid-core health checks
+    reset_cmd = ['./manage.py', 'resethealthchecks']
+    retry()(docker.exec_)('liquid:core', *reset_cmd)
+
     log.info("Deploy done! Elapsed: %s", str(datetime.timedelta(seconds=int((time() - deploy_t0)))))
 
 
@@ -423,7 +425,6 @@ def halt():
 
     jobs = [j.name for j in config.all_jobs]
     nomad.stop_and_wait(jobs)
-    nomad.gc()
 
 
 @liquid_commands.command()

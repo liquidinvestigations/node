@@ -733,4 +733,5 @@ class Configuration:
         with open(self.root / 'uptrace-dashboards' / filename) as f:
             return f.read()
 
+
 config = Configuration()
