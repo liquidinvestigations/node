@@ -25,6 +25,13 @@ class CreateUser(jobs.Job):
     stage = 3
 
 
+class SyncUser(jobs.Job):
+    name = 'nextcloud-sync-user'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'liquid'
+    stage = 3
+
+
 class DeleteUser(jobs.Job):
     name = 'liquid-deleteuser'
     template = jobs.TEMPLATES / f'{name}.nomad'

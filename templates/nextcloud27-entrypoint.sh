@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 chown -R www-data:www-data /var/www/html
 chmod -R 775 /var/www/html
 
@@ -8,6 +9,16 @@ sed -i 's/exec "$@"//g' /entrypoint.sh
 
 # Launch canonical entrypoint
 /entrypoint.sh apache2-foreground
+
+
+unzip /apps-to-install/master.zip
+mkdir -p /var/www/html/custom_apps/sociallogin
+mv /apps-to-install/nextcloud-social-login-master/* /var/www/html/custom_apps/sociallogin
+rm -r /apps-to-install/nextcloud-social-login-master
+rm /apps-to-install/master.zip
+
+chown -R www-data:www-data /var/www/html
+chmod -R 775 /var/www/html
 
 # Function from the Nextcloud's original entrypoint
 run_as() {

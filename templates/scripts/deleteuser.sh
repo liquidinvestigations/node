@@ -27,3 +27,13 @@ if [ "$WIKIJS_ENABLED" = "True" ] ; then
     ${exec_command('wikijs:wikijs', 'node', '/wiki/delete-user.js', '$LIQUID_USER')}
     echo "Deleted wiki.js user..."
 fi
+
+if [ "$NEXTCLOUD27_ENABLED" = "True" ] ; then
+    nextcloud_command=$(cat <<DELIM
+${exec_command('nextcloud27:nextcloud27', 'su', '-p', 'www-data', '-s', '/bin/bash', '-c', '@php occ user:delete $LIQUID_USER@')}
+DELIM
+)
+    nextcloud_command=$(echo $nextcloud_command | sed 's,@,'\'',g')
+    eval $nextcloud_command
+    echo "Deleted nextcloud27 user..."
+fi
