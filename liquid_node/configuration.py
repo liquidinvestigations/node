@@ -94,6 +94,7 @@ class Configuration:
         liquid.CreateUser(),
         liquid.DeleteUser(),
         liquid.AuthproxyRedis(),
+        liquid.SyncUser(),
         wikijs.Wikijs(),
         wikijs.Deps(),
         wikijs.Proxy(),
