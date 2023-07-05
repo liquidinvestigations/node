@@ -4,6 +4,10 @@
       env {
         __GIT_TAGS = "${hoover_snoop2_git}"
 
+        {% if config.liquid_debug %}
+          DJ_TRACKER_ENABLE = "true"
+        {% endif %}
+
         SNOOP_URL_PREFIX = "snoop/"
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_tika/"

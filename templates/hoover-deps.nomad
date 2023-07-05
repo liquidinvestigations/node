@@ -908,7 +908,7 @@ job "hoover-deps" {
       ${ shutdown_delay() }
 
       config {
-        image = "postgres:12"
+        image = "${config.image('postgres-12-contrib')}"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/snoop/pg/data:/var/lib/postgresql/data",
           "local/conf:/etc/postgresql.conf",
@@ -976,6 +976,21 @@ job "hoover-deps" {
           default_text_search_config = 'pg_catalog.english'
 
           effective_cache_size = ${int(config.snoop_postgres_memory_limit * 0.5)}MB
+
+          # pgbadger settings
+          log_min_duration_statement = 1  # log statements that take more than this number of ms
+          log_checkpoints = on
+          log_connections = on
+          log_disconnections = on
+          log_lock_waits = on
+          log_temp_files = 0
+          log_autovacuum_min_duration = 0
+          log_error_verbosity = default
+
+          # pgwatch2 settings
+          shared_preload_libraries = 'pg_stat_statements'
+          track_io_timing = on
+          log_line_prefix = '%m [%p] %q%u@%d '
           EOF
       }
 
@@ -1122,6 +1137,109 @@ job "hoover-deps" {
         name = "snoop-pg-pool"
         port = "pg"
         tags = ["fabio-:${config.port_snoop_pg_pool} proto=tcp"]
+
+        check {
+          name = "tcp"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
+      }
+    }
+  }
+
+  group "snoop-pgwatch2" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "snoop-pgwatch2" {
+      ${ task_logs() }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = 100
+      }
+      env {
+        PW2_PG_RETENTION_DAYS="14"
+        PW2_ADHOC_DBTYPE="postgres-continuous-discovery"
+
+        PW2_ADHOC_CONFIG="full"
+        PW2_ADHOC_CREATE_HELPERS="true"
+
+        GF_SERVER_ROOT_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_snoop_pgwatch2"
+        GF_SERVER_SERVE_FROM_SUB_PATH = "true"
+        GF_SERVER_ENABLE_GZIP = "true"
+      }
+
+      template {
+        data = <<-EOF
+        PW2_ADHOC_CONN_STR = "postgresql://snoop:
+        {{- with secret "liquid/hoover/snoop.postgres" -}}
+          {{.Data.secret_key }}
+        {{- end -}}
+        @{{env "attr.unique.network.ip-address" }}:${config.port_snoop_pg_pool}"
+        EOF
+        destination = "local/snoop-pgwatch2.env"
+        env = true
+      }
+
+      template {
+        data = <<-EOF
+          #!/bin/bash
+          set -ex
+
+          date
+          # TODO unzip the plugin
+          unzip my-plugin-0.2.0.zip -d /var/lib/grafana/plugins/my-plugin || true
+
+          exec "/pgwatch2/docker-launcher-postgres.sh"
+
+          EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      driver = "docker"
+
+      ${ shutdown_delay() }
+
+      config {
+        image = "${config.image('pgwatch2')}"
+        # entrypoint = ["/bin/bash", "-ex"]
+        # args = ["/local/startup.sh"]
+        labels {
+          liquid_task = "snoop-pgwatch2"
+        }
+        port_map {
+          grafana = 3000
+        }
+        memory_hard_limit = 6000
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/snoop-pgwatch2/pg:/var/lib/postgresql",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/snoop-pgwatch2/pgwatch2:/pgwatch2/persistent-config",
+          # CANNOT MOUNT GRAFANA (bad permissions)
+          # "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/snoop-pgwatch/grafana:/var/lib/grafana",
+        ]
+      }
+
+      resources {
+        cpu = 300
+        memory = 300
+        network {
+          mbits = 1
+          port "grafana" {}
+        }
+      }
+
+      service {
+        name = "snoop-pgwatch2"
+        port = "grafana"
+        tags = ["fabio-/_snoop_pgwatch2"]
 
         check {
           name = "tcp"
