@@ -433,9 +433,20 @@ class Configuration:
         self.port_wikijs_pg = self.PORT_MAP['wikijs_pg']
         self.port_wikijs = self.PORT_MAP['wikijs']
 
+        # The Sentry settings
+        self.liquid_version = self.get_node_version()
+        self.sentry_dsn_hoover_snoop = self.ini.get('sentry', 'hoover-snoop', fallback='')
+        self.sentry_dsn_hoover_search = self.ini.get('sentry', 'hoover-search', fallback='')
+        self.sentry_dsn_hoover_ui_server = self.ini.get('sentry', 'hoover-ui-server', fallback='')
+        self.sentry_dsn_hoover_ui_client = self.ini.get('sentry', 'hoover-ui-client', fallback='')
+        self.sentry_dsn_liquid_core = self.ini.get('sentry', 'liquid-core', fallback='')
+        self.sentry_proxy_to_subdomain = self.ini.get('sentry', 'proxy-to-subdomain', fallback='')
+        self.sentry_environment = self.version_track + '-' + self.liquid_domain
+        self.sentry_release = self.liquid_version
+
+        # Load collections and extra jobs
         self.snoop_collections = []
         self.extra_app_configs = []
-        # load collections and extra jobs
         for key in self.ini:
             if ':' not in key:
                 continue
@@ -554,7 +565,6 @@ class Configuration:
                 })
         for extra in self.extra_app_configs:
             self.liquid_apps.append(extra)
-        self.liquid_version = self.get_node_version()
         self.liquid_core_version = self.version('liquid-core')
         self.ini.check_unused_values()
 

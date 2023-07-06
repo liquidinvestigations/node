@@ -35,7 +35,14 @@ job "liquid" {
         memory_hard_limit = 2048
       }
       # used to auto-restart containers when running deploy, after you make a new commit
-      env { __GIT_TAGS = "${liquidinvestigations_core_git}" }
+      env {
+        __GIT_TAGS = "${liquidinvestigations_core_git}"
+        {% if config.sentry_dsn_liquid_core %}
+          SENTRY_DSN = "${config.sentry_dsn_liquid_core}"
+          SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+          SENTRY_RELEASE = "${config.sentry_release}"
+        {% endif %}
+      }
 
       template {
         data = <<-EOF
@@ -126,4 +133,159 @@ ${config.liquid_core_healthcheck_info}
 
     }
   }
+  {% if config.sentry_proxy_to_subdomain %}
+  group "sentry-proxy-nginx" {
+    ${ continuous_reschedule() }
+    ${ group_disk() }
+
+    task "sentry-proxy-nginx" {
+      ${ task_logs() }
+
+      driver = "docker"
+
+      affinity {
+        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
+        value     = "true"
+        weight    = -99
+      }
+
+      config {
+        image = "nginx:1.19"
+        args = ["bash", "/local/startup.sh"]
+        port_map {
+          http = 8080
+        }
+        labels {
+          liquid_task = "sentry-proxy-nginx"
+        }
+        memory_hard_limit = 1024
+      }
+
+      resources {
+        memory = 128
+        network {
+          mbits = 1
+          port "http" {}
+        }
+      }
+
+      template {
+        data = <<-EOF
+        #!/bin/bash
+        set -ex
+
+        cat /local/nginx.conf
+        nginx -c /local/nginx.conf
+        EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      template {
+        data = <<-EOF
+
+        daemon off;
+
+        {% if config.liquid_debug %}
+          error_log /dev/stderr debug;
+        {% else %}
+          error_log /dev/stderr info;
+        {% endif %}
+
+        worker_rlimit_nofile 8192;
+        worker_processes 4;
+        events {
+          worker_connections 4096;
+        }
+
+        http {
+          {% if config.liquid_debug %}
+            access_log  /dev/stdout;
+          {% else %}
+            access_log  off;
+          {% endif %}
+
+          tcp_nopush   on;
+          server_names_hash_bucket_size 128;
+          sendfile on;
+          sendfile_max_chunk 4m;
+          aio threads;
+          limit_rate 66m;
+
+          upstream sentry {
+            server ${config.sentry_proxy_to_subdomain};
+          }
+
+          server {
+            listen 8080 default_server;
+            listen [::]:8080 default_server;
+
+            {% if config.liquid_debug %}
+              server_name _;
+            {% else %}
+              server_name "hoover.{{key "liquid_domain"}}";
+            {% endif %}
+
+            proxy_http_version  1.1;
+            proxy_cache_bypass  $http_upgrade;
+            proxy_connect_timeout 159s;
+            proxy_send_timeout   150;
+            proxy_read_timeout   150;
+            proxy_buffer_size    64k;
+            proxy_buffers     16 32k;
+            proxy_busy_buffers_size 64k;
+            proxy_temp_file_write_size 64k;
+
+            proxy_set_header Upgrade           $http_upgrade;
+            proxy_set_header Connection        "upgrade";
+            proxy_set_header Host              $host;
+            proxy_set_header X-Real-IP         $remote_addr;
+            proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+            proxy_set_header X-Forwarded-Host  $host;
+            proxy_set_header X-Forwarded-Port  $server_port;
+            proxy_pass_request_headers      on;
+
+            client_max_body_size 5M;
+
+            location /_ping {
+              return 200 "healthy\n";
+            }
+
+            location  / {
+              proxy_pass http://sentry;
+            }
+          }
+        }
+        EOF
+        destination = "local/nginx.conf"
+      }
+
+      service {
+        name = "sentry-proxy-nginx"
+        port = "http"
+        tags = [
+          "traefik.enable=true",
+          "traefik.frontend.rule=Host:${'sentry.' + liquid_domain}",
+        ]
+        check {
+          name = "ping"
+          initial_status = "critical"
+          type = "http"
+          path = "/_ping"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+          header {
+            Host = ["sentry.${liquid_domain}"]
+          }
+        }
+        check_restart {
+          limit = 5
+          grace = "995s"
+        }
+      }
+    }
+  }
+  {% endif %}
+
 }

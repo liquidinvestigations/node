@@ -245,6 +245,12 @@ job "hoover-nginx" {
 
       env {
         __GIT_TAGS = "${hoover_ui_src_git}"
+        {% if config.sentry_dsn_hoover_ui %}
+          SENTRY_CLIENT_DSN = "${config.sentry_dsn_hoover_ui_client}"
+          SENTRY_SERVER_DSN = "${config.sentry_dsn_hoover_ui_server}"
+          SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+          SENTRY_RELEASE = "${config.sentry_release}"
+        {% endif %}
 
         AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
         MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"

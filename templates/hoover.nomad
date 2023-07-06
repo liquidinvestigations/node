@@ -8,6 +8,12 @@
           DJ_TRACKER_ENABLE = "true"
         {% endif %}
 
+        {% if config.sentry_dsn_hoover_snoop %}
+          SENTRY_DSN = "${config.sentry_dsn_hoover_snoop}"
+          SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+          SENTRY_RELEASE = "${config.sentry_release}"
+        {% endif %}
+
         SNOOP_URL_PREFIX = "snoop/"
         SNOOP_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_TIKA_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_tika/"
@@ -156,6 +162,12 @@ job "hoover" {
       }
 
       env {
+        {% if config.sentry_dsn_hoover_search %}
+          SENTRY_DSN = "${config.sentry_dsn_hoover_search}"
+          SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+          SENTRY_RELEASE = "${config.sentry_release}"
+        {% endif %}
+
         __GIT_TAGS = "${hoover_search_git}" 
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
