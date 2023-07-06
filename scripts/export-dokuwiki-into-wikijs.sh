@@ -98,7 +98,7 @@ echo "Export finished."
 
 
 echo "Uploading the data to wikijs...."
-./liquid shell wikijs:wikijs bash -c 'rm -rf /tmp/wiki && mkdir -p /tmp/wiki'
+./liquid dockerexec wikijs:wikijs bash -c 'rm -rf /tmp/wiki && mkdir -p /tmp/wiki'
 
 CONTAINER_TMP_PATH=/tmp/wiki-dokuwiki-export.zip
 cat $EXPORT_TMP_PATH_ZIP \
@@ -106,7 +106,7 @@ cat $EXPORT_TMP_PATH_ZIP \
     -- bash -c "cat > $CONTAINER_TMP_PATH"
 rm -f $EXPORT_TMP_PATH_ZIP
 
-./liquid shell wikijs:wikijs \
+./liquid dockerexec wikijs:wikijs \
     -- bash -c "unzip $CONTAINER_TMP_PATH -d /tmp/wiki -o && rm -f $CONTAINER_TMP_PATH"
 
 
