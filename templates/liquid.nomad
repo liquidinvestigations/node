@@ -40,7 +40,7 @@ job "liquid" {
         {% if config.sentry_dsn_liquid_core %}
           SENTRY_DSN = "${config.sentry_dsn_liquid_core}"
           SENTRY_ENVIRONMENT = "${config.sentry_environment}"
-          SENTRY_RELEASE = "${config.sentry_release}"
+          SENTRY_RELEASE = "${config.sentry_version_liquid_core}${config.sentry_release}"
         {% endif %}
       }
 

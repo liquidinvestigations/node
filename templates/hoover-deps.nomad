@@ -1535,6 +1535,7 @@ job "hoover-deps" {
         MINIO_UPDATE = "off"
         MINIO_API_REQUESTS_MAX = "600"
         MINIO_API_REQUESTS_DEADLINE = "2m"
+        MINIO_DRIVE_SYNC = "on"
         GOMAXPROCS = "20"
       }
 
@@ -1624,6 +1625,7 @@ job "hoover-deps" {
         MINIO_UPDATE = "off"
         MINIO_API_REQUESTS_MAX = "600"
         MINIO_API_REQUESTS_DEADLINE = "2m"
+        MINIO_DRIVE_SYNC = "on"
         GOMAXPROCS = "20"
       }
 

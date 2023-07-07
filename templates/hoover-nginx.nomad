@@ -248,8 +248,9 @@ job "hoover-nginx" {
         {% if config.sentry_dsn_hoover_ui %}
           SENTRY_CLIENT_DSN = "${config.sentry_dsn_hoover_ui_client}"
           SENTRY_SERVER_DSN = "${config.sentry_dsn_hoover_ui_server}"
+          SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"
           SENTRY_ENVIRONMENT = "${config.sentry_environment}"
-          SENTRY_RELEASE = "${config.sentry_release}"
+          SENTRY_RELEASE = "${config.sentry_version_hoover_ui}${config.sentry_release}"
         {% endif %}
 
         AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"

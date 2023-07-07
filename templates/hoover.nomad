@@ -11,7 +11,7 @@
         {% if config.sentry_dsn_hoover_snoop %}
           SENTRY_DSN = "${config.sentry_dsn_hoover_snoop}"
           SENTRY_ENVIRONMENT = "${config.sentry_environment}"
-          SENTRY_RELEASE = "${config.sentry_release}"
+          SENTRY_RELEASE = "${config.sentry_version_hoover_snoop}${config.sentry_release}"
         {% endif %}
 
         SNOOP_URL_PREFIX = "snoop/"
@@ -165,7 +165,7 @@ job "hoover" {
         {% if config.sentry_dsn_hoover_search %}
           SENTRY_DSN = "${config.sentry_dsn_hoover_search}"
           SENTRY_ENVIRONMENT = "${config.sentry_environment}"
-          SENTRY_RELEASE = "${config.sentry_release}"
+          SENTRY_RELEASE = "${config.sentry_version_hoover_search}${config.sentry_release}"
         {% endif %}
 
         __GIT_TAGS = "${hoover_search_git}" 

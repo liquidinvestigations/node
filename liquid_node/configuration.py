@@ -442,7 +442,11 @@ class Configuration:
         self.sentry_dsn_liquid_core = self.ini.get('sentry', 'liquid-core', fallback='')
         self.sentry_proxy_to_subdomain = self.ini.get('sentry', 'proxy-to-subdomain', fallback='')
         self.sentry_environment = self.version_track + '-' + self.liquid_domain
-        self.sentry_release = self.liquid_version
+        self.sentry_release = '__node-' + self.liquid_version
+        self.sentry_version_hoover_ui = self._image('hoover-ui').split(':', 1)[1]
+        self.sentry_version_hoover_snoop = self._image('hoover-snoop2').split(':', 1)[1]
+        self.sentry_version_hoover_search = self._image('hoover-search').split(':', 1)[1]
+        self.sentry_version_liquid_core = self._image('liquid-core').split(':', 1)[1]
 
         # Load collections and extra jobs
         self.snoop_collections = []
