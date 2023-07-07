@@ -223,6 +223,7 @@ job "hoover-nginx" {
         #!/bin/sh
         set -ex
         cp -v /local/.env.local .
+        env
         npm run build
 
         {% if config.liquid_debug %}
@@ -239,7 +240,7 @@ job "hoover-nginx" {
         data = <<-EOF
           __GIT_TAGS = "${hoover_ui_src_git}"
           API_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}/hoover-search"
-          {% if config.sentry_dsn_hoover_ui %}
+          {% if config.sentry_dsn_hoover_ui_client or config.sentry_dsn_hoover_ui_server %}
             SENTRY_CLIENT_DSN = "${config.sentry_dsn_hoover_ui_client}"
             SENTRY_SERVER_DSN = "${config.sentry_dsn_hoover_ui_server}"
             SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"

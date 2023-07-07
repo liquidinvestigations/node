@@ -162,12 +162,6 @@ job "hoover" {
       }
 
       env {
-        {% if config.sentry_dsn_hoover_search %}
-          SENTRY_DSN = "${config.sentry_dsn_hoover_search}"
-          SENTRY_ENVIRONMENT = "${config.sentry_environment}"
-          SENTRY_RELEASE = "${config.sentry_version_hoover_search}${config.sentry_release}"
-        {% endif %}
-
         __GIT_TAGS = "${hoover_search_git}" 
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
@@ -210,6 +204,13 @@ job "hoover" {
           SEARCH_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
 
           UPTRACE_DSN = "http://hoover@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
+
+          {% if config.sentry_dsn_hoover_search %}
+            SENTRY_DSN = "${config.sentry_dsn_hoover_search}"
+            SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+            SENTRY_RELEASE = "${config.sentry_version_hoover_search}${config.sentry_release}"
+          {% endif %}
+
         EOF
         destination = "local/hoover.env"
         env = true
