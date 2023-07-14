@@ -240,12 +240,14 @@ job "hoover-nginx" {
         data = <<-EOF
           __GIT_TAGS = "${hoover_ui_src_git}"
           API_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}/hoover-search"
+
           {% if config.sentry_dsn_hoover_ui_client or config.sentry_dsn_hoover_ui_server %}
-            SENTRY_CLIENT_DSN = "${config.sentry_dsn_hoover_ui_client}"
-            SENTRY_SERVER_DSN = "${config.sentry_dsn_hoover_ui_server}"
             SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"
             SENTRY_ENVIRONMENT = "${config.sentry_environment}"
             SENTRY_RELEASE = "${config.sentry_version_hoover_ui}${config.sentry_release}"
+            NEXT_PUBLIC_SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"
+            NEXT_PUBLIC_SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+            NEXT_PUBLIC_SENTRY_RELEASE = "${config.sentry_version_hoover_ui}${config.sentry_release}"
           {% endif %}
 
           AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"

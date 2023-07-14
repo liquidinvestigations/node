@@ -7,8 +7,31 @@ This version brings version updates for cluster infrastructure components (Nomad
 ### Upgrade Notes
 - Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.16.0](https://github.com/liquidinvestigations/cluster/tree/v0.16.0)**
 
+### New Features
+
+- Hoover UI: Added functionality for searching inside PDF documents, text files, and the Meta table.
+- Hoover Processing: Added new integration and dashboards for monitoring
+  internal stats of the processing SQL database.
+- Hoover: Added integration for the Sentry crash reporting and performance
+  monitoring toolkit. Instructions for installing and setting up this system
+  are available under [](docs/Sentry.md).
+
 ### Improvements
+
 - Deployment: The `liquid deploy` command now better shows all service error outputs in one place.
+- Hoover UI: Modified search request scheme to return results incrementally as
+  they are found in the various collections, instead of waiting for all results
+  to be found before showing list.
+- Hoover UI: collections list now displays the given title, not the collection ID.
+
+### Bug Fixes
+
+- Hoover processing: fixed problem where files would not be searchable by their duplicate
+  filename or duplicate paths. Previously, only the first instance of a
+  duplicate file would be searchable by path, path fragment and filename. Now,
+  all the possible filenames and paths are indexed and shown in the Meta table.
+- Hoover UI: Fixed functional and performance issues with the Finder component.
+- Rocketchat: Fixed deployment issues with Rocketchat on new instances.
 ---
 
 
