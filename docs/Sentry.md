@@ -5,10 +5,10 @@ Sentry, in its default configuration, requires:
 - 38 docker containers
 - around **15 GB** of Docker images to download
 - around **60 GB** of Disk Space just after installation
-- **12-20 GB RAM**
+- **32-64 GB RAM** and **8-16 CPU**
 
 These resources can either run on a dedicated box, or on the same computer as Liquid Investigations
-(not recommended without manually reserving the RAM in Cluster/Nomad configs).
+(not recommended).
 
 In the first case (dedicated box), one must connect the servers using a VPN, and access Sentry on the VPN IP. In the second case (single box), one can access Sentry on the liquid-bridge IP configured for Nomad
 (by default, 10.66.60.1). Do not use `localhost` or `0.0.0.0` to bind/access the Sentry instance.
