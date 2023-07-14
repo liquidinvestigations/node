@@ -105,6 +105,14 @@ hoover-ui-client = http://6938c63f8037454383134ba0af114f67@sentry.liquid.example
 proxy-to-subdomain = http://10.66.60.1:9000
 ```
 
+## 4. Project Rate Limits
+
+
+In each of the above Sentry projects, click "Configure" on the DSN. Set a Rate Limit of 15 events per minute.
+
+
+## 5. Liquid Investigations Deployment
+
 Finally, in `/opt/node` re-run `./liquid deploy` to use the new Sentry configuration.
 
 Your events should appear shortly in the UI.
