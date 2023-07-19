@@ -534,6 +534,21 @@ class Configuration:
                         'explode_table_rows',
                         fallback=False,
                     ),
+                    's3_blobs_address': self.ini.get(
+                        key,
+                        's3_blobs_address',
+                        fallback='',
+                    ),
+                    's3_blobs_access_key': self.ini.get(
+                        key,
+                        's3_blobs_access_key',
+                        fallback='',
+                    ),
+                    's3_blobs_secret_key': self.ini.get(
+                        key,
+                        's3_blobs_secret_key',
+                        fallback='',
+                    ),
                 })
 
             elif cls == 'job':
