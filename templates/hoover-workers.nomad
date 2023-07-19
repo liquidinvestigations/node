@@ -24,9 +24,6 @@
       config {
         ulimit {
           memlock = "-1"
-          core = "0"
-          nofile = "65536"
-          nproc = "1024"
         }
         image = "${config.image('hoover-snoop2')}"
         cap_add = ["mknod", "sys_admin"]
@@ -34,7 +31,7 @@
         security_opt = ["apparmor=unconfined"]
 
         args = ["/local/startup.sh"]
-        entrypoint = ["/tini", "--", "/bin/bash", "-ex"]
+        entrypoint = ["/bin/bash", "-ex"]
         volumes = [
           ${hoover_snoop2_repo}
         ]
@@ -108,7 +105,7 @@ job "hoover-workers" {
 
       driver = "docker"
       config {
-        entrypoint = ["/tini", "--", "/bin/bash", "-ex"]
+        entrypoint = ["/bin/bash", "-ex"]
         image = "${config.image('hoover-snoop2')}"
         args = ["/local/startup.sh"]
         volumes = [

@@ -48,6 +48,15 @@ def add_labels(spec):
                     labels.update(task['Config']['labels'][0])
                 task['Config']['labels'] = [labels]
                 task['Config']['hostname'] = '${node.unique.name}'
+                task['Config']['init'] = True
+                task['Config'].setdefault('ulimit', list())
+                if not task['Config']['ulimit']:
+                    task['Config']['ulimit'].append(dict())
+                task['Config']['ulimit'][0].setdefault('nproc', 4096)
+                task['Config']['ulimit'][0].setdefault('nofile', 262144)
+                task['Config']['ulimit'][0]['core'] = 0
+
+                # task['Config']['ulimit'][0]['memlock'] = -1
     return spec
 
 

@@ -259,7 +259,7 @@ job "hoover" {
         devices = [{host_path = "/dev/fuse", container_path = "/dev/fuse"}]
         security_opt = ["apparmor=unconfined"]
 
-        entrypoint = ["/tini", "--", "/bin/bash", "-ex"]
+        entrypoint = ["/bin/bash", "-ex"]
         args = ["/local/startup.sh"]
         volumes = [
           ${hoover_snoop2_repo}

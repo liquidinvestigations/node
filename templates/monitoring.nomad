@@ -33,8 +33,6 @@ job "monitoring" {
       config {
         ulimit {
           memlock = "-1"
-          nofile = "262144"
-          nproc = "8192"
         }
         image = "bitnami/clickhouse:22.12.3"
         entrypoint = ["/bin/bash", "-ex"]

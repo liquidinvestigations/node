@@ -41,8 +41,6 @@
         }
         ulimit {
           memlock = "-1"
-          nofile = "262144"
-          nproc = "8192"
         }
       }
 {%- endmacro %}
