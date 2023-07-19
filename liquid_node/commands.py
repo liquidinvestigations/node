@@ -33,9 +33,13 @@ def check_resources():
     enabled_app_count = len(list(c for c in config.liquid_apps if c['enabled']))
     # formula to allow running on very low cpu count while also not allowing a huge
     # CPU overscheduling; we effectively cap the load at around 1.2X cpu count.
-    cpu_count_req = int(0.83 * (enabled_app_count + config.total_snoop_worker_count))
+    CPU_REQ_SCALE = 0.83
+    cpu_count_req = int(
+        CPU_REQ_SCALE
+        * (enabled_app_count + config.total_snoop_worker_count)
+    )
 
-    AVAILABLE_MEMORY_SCALE = 0.8
+    AVAILABLE_MEMORY_SCALE = 0.95
     SMALL_CPU_COUNT_IGNORE = 16
     EXTRA_REQ = {
         "CPU": 0,
