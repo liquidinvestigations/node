@@ -146,6 +146,7 @@ class Configuration:
             secrets = configparser.ConfigParser()
             secrets.read(self.root / vault_secrets_path)
             self.vault_token = secrets.get('vault', 'root_token', fallback=None)
+            assert self.vault_token is not None, 'vault token not found'
 
         self.nomad_url = self.ini.get('cluster', 'nomad_url', fallback='http://127.0.0.1:4646')
 
