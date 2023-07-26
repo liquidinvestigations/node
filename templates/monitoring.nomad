@@ -38,7 +38,7 @@ job "monitoring" {
         entrypoint = ["/bin/bash", "-ex"]
         args = ["/local/startup.sh"]
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/clickhouse/22.12:/bitnami/clickhouse",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/clickhouse/22.12-new:/bitnami/clickhouse",
           "local/config.xml:/bitnami/clickhouse/conf/conf.d/override.xml",
           "local/users.xml:/bitnami/clickhouse/conf/users.d/override.xml",
         ]
@@ -72,11 +72,10 @@ job "monitoring" {
       }
 
       env {
-        CLICKHOUSE_DB = "uptrace"
+        CLICKHOUSE_DB = "clickhouse-monitoring"
         ALLOW_EMPTY_PASSWORD = "yes"
       }
 
-      # https://clickhouse.uptrace.dev/clickhouse/low-memory.html#configuring-clickhouse
       template {
         data = <<EOF
 <?xml version="1.0" ?>
@@ -151,122 +150,6 @@ job "monitoring" {
         tags = ["fabio-:${config.port_clickhouse_http} proto=tcp", "fabio-/clickhouse strip=/clickhouse"]
         check {
           name     = "clickhouse http"
-          type     = "http"
-          path     = "/ping"
-          interval = "34s"
-          timeout  = "32s"
-        }
-      }
-    }
-  }
-
-  group "uptrace" {
-    constraint {
-      attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-      operator = "is_set"
-    }
-
-    reschedule {
-      unlimited = true
-      attempts = 0
-      delay = "60s"
-    }
-
-    restart {
-      attempts = 4
-      interval = "48s"
-      delay = "10s"
-      mode = "fail"
-    }
-
-    ephemeral_disk {
-      size = 300
-      sticky = true
-    }
-
-    task "uptrace" {
-      driver = "docker"
-      # user = "root"
-      config {
-        image = "liquidinvestigations/uptrace:1.3.0-liquid"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/uptrace/1.3.0:/var/lib/uptrace",
-          "local/uptrace.yml:/etc/uptrace/uptrace.yml:ro",
-        ]
-        port_map {
-          http = 14318
-          uptrace = 14317
-        }
-        memory_hard_limit = 5000
-        entrypoint = ["/bin/bash", "-ex"]
-        args = ["/local/startup.sh"]
-      }
-      resources {
-        memory = 400
-        network {
-          mbits = 10
-          port "http" {}
-          port "uptrace" {}
-        }
-      }
-
-      template {
-        left_delimiter = "[[["
-        right_delimiter = "]]]"
-        data = <<EOF
-{% include 'uptrace-config.yml' %}
-        EOF
-        destination = "local/uptrace.yml"
-      }
-
-      template {
-        data = <<-EOF
-          #!/bin/bash
-          set -ex
-          echo "hello from uptrace init script"
-          (
-           sleep 10
-           until ls /var/lib/uptrace/uptrace.sqlite3; do sleep 1; echo "waiting for db"; done
-           echo "found db..."
-           sleep 10
-           echo "inserting dashboards"
-           cat /local/dashboards.sql | sqlite3 /var/lib/uptrace/uptrace.sqlite3
-           echo "dashboard insertion complete"
-          ) &
-          exec /entrypoint.sh
-          EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-
-      template {
-        left_delimiter = "[[["
-        right_delimiter = "]]]"
-        data = <<-EOF
-          ${config.load_uptrace_dashboard('dashboards.sql')}
-          EOF
-        env = false
-        destination = "local/dashboards.sql"
-      }
-
-      service {
-        name = "uptrace-native"
-        port = "uptrace"
-        tags = ["fabio-:${config.port_uptrace_native} proto=tcp"]
-        check {
-          name     = "uptrace native tcp"
-          type     = "tcp"
-          interval = "35s"
-          timeout  = "33s"
-        }
-      }
-
-      service {
-        name = "uptrace-http"
-        port = "http"
-        tags = ["fabio-:${config.port_uptrace_http} proto=tcp", "fabio-/uptrace strip=/uptrace"]
-        check {
-          name     = "uptrace http"
           type     = "http"
           path     = "/ping"
           interval = "34s"
