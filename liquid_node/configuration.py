@@ -399,8 +399,6 @@ class Configuration:
                 'hoover_es_master_transport',
                 fallback=9979,
             ),
-            'zipkin': self.ini.getint('ports', 'zipkin', fallback=9978),
-            'clickhouse_native': self.ini.getint('ports', 'clickhouse_native', fallback=9977),
             'wikijs_pg': self.ini.getint('ports', 'wikijs-pg', fallback=9974),
             'wikijs': self.ini.getint('ports', 'wikijs', fallback=9973),
         }
@@ -424,8 +422,6 @@ class Configuration:
         self.port_dokuwiki = self.PORT_MAP['dokuwiki']
         self.port_rocketchat = self.PORT_MAP['rocketchat']
         self.port_hoover_es_master_transport = self.PORT_MAP['hoover_es_master_transport']
-        self.port_zipkin = self.PORT_MAP['zipkin']
-        self.port_clickhouse_native = self.PORT_MAP['clickhouse_native']
         self.port_wikijs_pg = self.PORT_MAP['wikijs_pg']
         self.port_wikijs = self.PORT_MAP['wikijs']
 

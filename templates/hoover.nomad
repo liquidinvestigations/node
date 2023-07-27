@@ -87,8 +87,6 @@
         @{{env "attr.unique.network.ip-address" }}:${config.port_snoop_pg_pool}/snoop"
         SNOOP_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_snoop_rabbitmq}"
 
-        TRACING_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_zipkin}"
-
         {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
             SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
