@@ -64,8 +64,6 @@ job "liquid" {
           CONSUL_URL = "${config.consul_url}"
           AUTHPROXY_REDIS_URL = "redis://{{ env "attr.unique.network.ip-address" }}:${config.port_authproxy_redis}/"
 
-          UPTRACE_DSN = "http://liquid-core-django@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/3"
-
           {% if config.enable_superuser_dashboards %}
           LIQUID_ENABLE_DASHBOARDS = "true"
           LIQUID_DASHBOARDS_PROXY_BASE_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}"

@@ -87,25 +87,19 @@
         @{{env "attr.unique.network.ip-address" }}:${config.port_snoop_pg_pool}/snoop"
         SNOOP_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_snoop_rabbitmq}"
 
-        TRACING_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_zipkin}"
+        {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
+            SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+        {{- end }}
+        {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
+            SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+        {{- end }}
 
-        UPTRACE_DSN = "http://hoover@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
-
-
-          {{- with secret "liquid/hoover/snoop.minio.blobs.user" }}
-              SNOOP_BLOBS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.blobs.password" }}
-              SNOOP_BLOBS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-
-
-          {{- with secret "liquid/hoover/snoop.minio.collections.user" }}
-              SNOOP_COLLECTIONS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
-          {{- with secret "liquid/hoover/snoop.minio.collections.password" }}
-              SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
-          {{- end }}
+        {{- with secret "liquid/hoover/snoop.minio.collections.user" }}
+            SNOOP_COLLECTIONS_MINIO_ACCESS_KEY = {{.Data.secret_key | toJSON }}
+        {{- end }}
+        {{- with secret "liquid/hoover/snoop.minio.collections.password" }}
+            SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
+        {{- end }}
 
         EOF
         destination = "local/snoop.env"
@@ -202,8 +196,6 @@ job "hoover" {
           HOOVER_RATELIMIT_USER = ${config.hoover_ratelimit_user|tojson}
           HOOVER_ES_MAX_CONCURRENT_SHARD_REQUESTS = "${config.hoover_es_max_concurrent_shard_requests}"
           SEARCH_AMQP_URL = "amqp://{{env "attr.unique.network.ip-address" }}:${config.port_search_rabbitmq}"
-
-          UPTRACE_DSN = "http://hoover@{{ env "attr.unique.network.ip-address" }}:${config.port_uptrace_native}/4"
 
           {% if config.sentry_dsn_hoover_search %}
             SENTRY_DSN = "${config.sentry_dsn_hoover_search}"
