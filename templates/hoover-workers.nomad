@@ -50,7 +50,6 @@
         data = <<-EOF
           #!/bin/bash
           set -ex
-          # exec tail -f /dev/null
           if  [ -z "$SNOOP_TIKA_URL" ] \
                   || [ -z "$SNOOP_DB" ] \
                   || [ -z "$SNOOP_ES_URL" ] \
@@ -59,7 +58,11 @@
             sleep 5
             exit 1
           fi
-          export TIMEOUT="$(( $RANDOM % 72 + 72 ))h"
+          export TIMEOUT_H="$(( $RANDOM % 36 + 72 ))h"
+          export TIMEOUT_S="$(( ( $TIMEOUT + 1 ) * 3600 ))"
+          export TIMEOUT="${TIMEOUT_H}h"
+          ( sleep  $TIMEOUT_S && kill 1 ) &
+          ( sleep  $TIMEOUT_S && kill $PPID ) &
           exec timeout $TIMEOUT ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}  # --solo
           EOF
         env = false
@@ -126,7 +129,11 @@ job "hoover-workers" {
             sleep 5
             exit 1
           fi
-          export TIMEOUT="$(( $RANDOM % 72 + 72 ))h"
+          export TIMEOUT_H="$(( $RANDOM % 36 + 72 ))h"
+          export TIMEOUT_S="$(( ( $TIMEOUT + 1 ) * 3600 ))"
+          export TIMEOUT="${TIMEOUT_H}h"
+          ( sleep  $TIMEOUT_S && kill 1 ) &
+          ( sleep  $TIMEOUT_S && kill $PPID ) &
           exec timeout $TIMEOUT celery -A snoop.data beat -l INFO --pidfile= -s /tmp/celery-beat-db
           EOF
         env = false
