@@ -58,11 +58,7 @@
             sleep 5
             exit 1
           fi
-          export TIMEOUT_H="$(( $RANDOM % 36 + 72 ))h"
-          export TIMEOUT_S="$(( ( $TIMEOUT + 1 ) * 3600 ))"
-          export TIMEOUT="${TIMEOUT_H}h"
-          ( sleep  $TIMEOUT_S && kill 1 ) &
-          ( sleep  $TIMEOUT_S && kill $PPID ) &
+          export TIMEOUT="$(( $RANDOM % 24 + 72 ))h"
           exec timeout $TIMEOUT ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}  # --solo
           EOF
         env = false
@@ -129,11 +125,7 @@ job "hoover-workers" {
             sleep 5
             exit 1
           fi
-          export TIMEOUT_H="$(( $RANDOM % 36 + 72 ))h"
-          export TIMEOUT_S="$(( ( $TIMEOUT + 1 ) * 3600 ))"
-          export TIMEOUT="${TIMEOUT_H}h"
-          ( sleep  $TIMEOUT_S && kill 1 ) &
-          ( sleep  $TIMEOUT_S && kill $PPID ) &
+          export TIMEOUT="$(( $RANDOM % 24 + 72 ))h"
           exec timeout $TIMEOUT celery -A snoop.data beat -l INFO --pidfile= -s /tmp/celery-beat-db
           EOF
         env = false
@@ -156,6 +148,11 @@ job "hoover-workers" {
         proc_count=4,
       ) }
 
+    ${ snoop_worker_group(
+        queue="queues",
+        container_count=1,
+        proc_count=2,
+      ) }
 
     # CPU WORKER GROUPS
     # =================
