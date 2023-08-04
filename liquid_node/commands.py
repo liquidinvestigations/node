@@ -31,12 +31,8 @@ def liquid_commands():
 
 def check_resources():
     enabled_app_count = len(list(c for c in config.liquid_apps if c['enabled']))
-    # formula to allow running on very low cpu count while also not allowing a huge
-    # CPU overscheduling; we effectively cap the load at around 1.2X cpu count.
-    CPU_REQ_SCALE = 0.83
-    cpu_count_req = int(
-        CPU_REQ_SCALE
-        * (enabled_app_count + config.total_snoop_worker_count)
+    cpu_count_req = 3 + int(
+        (enabled_app_count + config.total_snoop_worker_count)
     )
 
     AVAILABLE_MEMORY_SCALE = 0.95
@@ -88,9 +84,6 @@ def check_resources():
     log.debug('Resource available (total): ')
     for key, value in sorted(avail.items()):
         log.debug(f'  {key: <30}: {value:,}')
-
-    # allow 2X cpu count
-    req['cpu_count'] = int(req['cpu_count'] / 2)
 
     if avail['cpu_count'] < SMALL_CPU_COUNT_IGNORE:
         if req['cpu_count'] > avail['cpu_count']:

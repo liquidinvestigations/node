@@ -842,7 +842,7 @@ job "hoover-deps" {
           listeners.tcp.default = 5672
           management.tcp.port = 15672
           loopback_users.guest = false
-          total_memory_available_override_value = ${config.snoop_rabbitmq_memory_limit * 1024 * 1024}
+          total_memory_available_override_value = ${(500 + config.snoop_rabbitmq_memory_limit) * 1024 * 1024 * 2}
           EOF
       }
 
