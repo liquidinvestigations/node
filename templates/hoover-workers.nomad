@@ -111,7 +111,7 @@ job "hoover-workers" {
         volumes = [
           ${hoover_snoop2_repo}
         ]
-        memory_hard_limit = 400
+        memory_hard_limit = 800
       }
       # used to auto-restart containers when running deploy, after you make a new commit
 
@@ -136,7 +136,7 @@ job "hoover-workers" {
       ${ snoop_dependency_envs() }
 
       resources {
-        memory = 100
+        memory = 150
       }
     }
   } // snoop-celery-beat
