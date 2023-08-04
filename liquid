@@ -2,6 +2,11 @@
 set -e
 set -o pipefail
 
+if [ "$EUID" -eq 0 ]; then
+  echo "ERROR: do NOT run script as the root user." >&2
+  exit 1
+fi
+
 # cd to file
 cd "$(dirname ${BASH_SOURCE[0]})"
 
@@ -12,6 +17,7 @@ logfile_err=".logs/$1.stderr"
 mkdir -p ./.logs
 echo "" > "$logfile_out"
 echo "" > "$logfile_err"
+
 
 # Log stdout and stderr from the command in separate files.
 # Need to swap stdin with stdout, because tee only takes stdin as input,
