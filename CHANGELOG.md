@@ -30,6 +30,7 @@ This version brings version updates for cluster infrastructure components (Nomad
   filename or duplicate paths. Previously, only the first instance of a
   duplicate file would be searchable by path, path fragment and filename. Now,
   all the possible filenames and paths are indexed and shown in the Meta table.
+- Hoover processing: fixed issue where processing would slow down after ~24h after deployment.
 - Hoover UI: Fixed functional and performance issues with the Finder component.
 - Rocketchat: Fixed deployment issues with Rocketchat on new instances.
 ---
