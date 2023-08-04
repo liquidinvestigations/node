@@ -5,7 +5,7 @@
 This version brings version updates for cluster infrastructure components (Nomad, Consul, Vault).
 
 ### Upgrade Notes
-- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.16.0](https://github.com/liquidinvestigations/cluster/tree/v0.16.0)**
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.16.1](https://github.com/liquidinvestigations/cluster/tree/v0.16.1)**
 
 ### New Features
 
