@@ -154,7 +154,7 @@ job "hoover-deps" {
 
       ${elasticsearch_docker_config('data-${NOMAD_ALLOC_INDEX}') }
 
-      env {
+      env = {
         ${ elasticsearch_docker_config_extra_env() }
 
         "node.master" = "false"
