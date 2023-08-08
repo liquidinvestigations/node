@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## Unreleased
+## v0.25.1 (2023-08-08)
 
 This version brings version updates for cluster infrastructure components (Nomad, Consul, Vault).
 
