@@ -1,11 +1,11 @@
 # Liquid Investigations Change Log
 
-## v0.25.1 (2023-08-08)
+## v0.25.3 (2023-08-08)
 
 This version brings version updates for cluster infrastructure components (Nomad, Consul, Vault).
 
 ### Upgrade Notes
-- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.16.2](https://github.com/liquidinvestigations/cluster/tree/v0.16.2)**
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.16.4](https://github.com/liquidinvestigations/cluster/tree/v0.16.4)**
 
 ### New Features
 
