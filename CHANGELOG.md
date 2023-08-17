@@ -1,5 +1,11 @@
 # Liquid Investigations Change Log
 
+## v0.25.4 (2023-08-16)
+
+### Bug Fixes
+
+- Hoover UI: fixed bug in PDF viewer where the page number, control and navigation buttons would malfunction.
+
 ## v0.25.3 (2023-08-08)
 
 This version brings version updates for cluster infrastructure components (Nomad, Consul, Vault).
