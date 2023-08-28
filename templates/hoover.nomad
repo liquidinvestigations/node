@@ -66,9 +66,9 @@
         SNOOP_TOTAL_WORKER_COUNT = "${config.total_snoop_worker_count}"
 
         GUNICORN_WORKER_CLASS = "sync"
-        GUNICORN_WORKERS = "12"
+        GUNICORN_WORKERS = "10"
         GUNICORN_THREADS = "1"
-        GUNICORN_MAX_REQUESTS = "1000"
+        GUNICORN_MAX_REQUESTS = "500"
 
         TMP = "/alloc/data"
         TEMP = "/alloc/data"
@@ -282,7 +282,7 @@ job "hoover" {
       ${ snoop_dependency_envs() }
 
       resources {
-        memory = ${config.hoover_web_memory_limit}
+        memory = ${200 + config.hoover_web_memory_limit}
         cpu = 200
         network {
           mbits = 1

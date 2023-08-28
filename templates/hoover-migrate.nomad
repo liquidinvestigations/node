@@ -94,7 +94,8 @@ job "hoover-migrate" {
           set -ex
           date
           ./manage.py checkesdiskusage
-          ./manage.py migrate
+          ./manage.py migrate --noinput
+          ./manage.py createcachetable
           ./manage.py healthcheck
           ./manage.py synccollections "$SNOOP_COLLECTIONS"
           date
@@ -145,6 +146,7 @@ job "hoover-migrate" {
           fi
           date
           ./manage.py migrate --noinput
+          ./manage.py createcachetable
           ./manage.py migratecollections
           ./manage.py healthcheck
           date
