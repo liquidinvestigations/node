@@ -66,9 +66,9 @@
         SNOOP_TOTAL_WORKER_COUNT = "${config.total_snoop_worker_count}"
 
         GUNICORN_WORKER_CLASS = "sync"
-        GUNICORN_WORKERS = "10"
+        GUNICORN_WORKERS = "8"
         GUNICORN_THREADS = "1"
-        GUNICORN_MAX_REQUESTS = "500"
+        GUNICORN_MAX_REQUESTS = "50"
 
         TMP = "/alloc/data"
         TEMP = "/alloc/data"
