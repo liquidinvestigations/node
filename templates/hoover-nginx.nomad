@@ -25,6 +25,9 @@ job "hoover-nginx" {
       config {
         image = "nginx:1.19"
         args = ["bash", "/local/startup.sh"]
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/ui-build-v0.21/out:/hoover-ui",
+        ]
         port_map {
           http = 8080
         }
@@ -77,6 +80,8 @@ job "hoover-nginx" {
           {% else %}
             access_log  off;
           {% endif %}
+          default_type  application/octet-stream;
+          include       /etc/nginx/mime.types;
 
           tcp_nopush   on;
           server_names_hash_bucket_size 128;
@@ -92,6 +97,7 @@ job "hoover-nginx" {
           server {
             listen 8080 default_server;
             listen [::]:8080 default_server;
+            root /hoover-ui;
 
             {% if config.liquid_debug %}
               server_name _;
@@ -150,9 +156,12 @@ job "hoover-nginx" {
               proxy_pass http://fabio;
             }
 
-            location  / {
-              proxy_pass http://fabio/hoover-ui;
-            }
+            # location  / {
+            #   try_files $uri @hoover_backend;
+            # }
+            # location @backend {
+            #   proxy_pass http://fabio;
+            # }
           }
         }
         EOF
@@ -181,127 +190,6 @@ job "hoover-nginx" {
       }
     }
   }
-
-  {% if not config.hoover_ui_override_server %}
-  group "hoover-ui" {
-    ${ group_disk() }
-    ${ continuous_reschedule() }
-
-    task "hoover-ui" {
-      leader = true
-
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      ${ task_logs() }
-
-      driver = "docker"
-      config {
-        image = "${config.image('hoover-ui')}"
-        {% if config.hoover_ui_force_pull %}
-          force_pull = true
-        {% endif %}
-        volumes = [
-          ${hoover_ui_src_repo}
-          ${hoover_ui_pages_repo}
-          ${hoover_ui_styles_repo}
-        ]
-        port_map {
-          http = 8000
-        }
-        labels {
-          liquid_task = "hoover-ui"
-        }
-        args = ["sh", "/local/startup.sh"]
-        memory_hard_limit = 7000
-      }
-
-      template {
-        data = <<-EOF
-        #!/bin/sh
-        set -ex
-        cp -v /local/.env.local .
-        env
-        npm run build
-
-        {% if config.liquid_debug %}
-          exec npm run prod #dev
-        {% else %}
-          exec npm run prod
-        {% endif %}
-        EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-
-      template {
-        data = <<-EOF
-          __GIT_TAGS = "${hoover_ui_src_git}"
-          API_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}/hoover-search"
-
-          {% if config.sentry_dsn_hoover_ui_client or config.sentry_dsn_hoover_ui_server %}
-            SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"
-            SENTRY_ENVIRONMENT = "${config.sentry_environment}"
-            SENTRY_RELEASE = "${config.sentry_version_hoover_ui}${config.sentry_release}"
-            NEXT_PUBLIC_SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"
-            NEXT_PUBLIC_SENTRY_ENVIRONMENT = "${config.sentry_environment}"
-            NEXT_PUBLIC_SENTRY_RELEASE = "${config.sentry_version_hoover_ui}${config.sentry_release}"
-          {% endif %}
-
-          AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
-          MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
-
-          SEARCH_RETRY_DELAY = "${config.hoover_ui_search_retry_delay}"
-          ASYNC_SEARCH_POLL_INTERVAL = "${config.hoover_ui_async_search_poll_interval}"
-          ASYNC_SEARCH_MAX_FINAL_RETRIES = "${config.hoover_ui_async_search_max_final_retries}"
-          ASYNC_SEARCH_ERROR_MULTIPLIER = "${config.hoover_ui_async_search_error_multiplier}"
-          ASYNC_SEARCH_ERROR_SUMMATION = "${config.hoover_ui_async_search_error_summation}"
-
-          {% if config.hoover_maps_enabled %}
-            HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
-          {% endif %}
-
-          {% if config.snoop_translation_enabled %}
-            HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled}"
-          {% endif %}
-
-          {% if config.hoover_uploads_enabled %}
-            HOOVER_UPLOADS_ENABLED = "${config.hoover_uploads_enabled}"
-          {% endif %}
-        EOF
-        env = true
-        destination = "local/.env.local"
-      }
-
-      resources {
-        memory = 1000
-        network {
-          mbits = 1
-          port "http" {}
-        }
-      }
-
-      service {
-        name = "hoover-ui"
-        port = "http"
-        tags = ["fabio-/hoover-ui strip=/hoover-ui"]
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-        check_restart {
-          limit = 7
-          grace = "995s"
-        }
-      }
-    }
-  }
-  {% endif %}
 
   group "hoover-search-workers" {
     # this container also runs periodic tasks, so don't scale it up from here.

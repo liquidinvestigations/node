@@ -165,4 +165,87 @@ job "hoover-migrate" {
     }
   }
 
+  group "hoover-ui-build" {
+    ${ group_disk() }
+    ${ continuous_reschedule() }
+
+    task "hoover-ui" {
+      leader = true
+
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
+      }
+
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('hoover-ui')}"
+        {% if config.hoover_ui_force_pull %}
+          force_pull = true
+        {% endif %}
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/ui-build-v0.21/out:/opt/hoover/ui/out",
+        ]
+        args = ["sh", "/local/startup.sh"]
+        memory_hard_limit = 7000
+      }
+
+      template {
+        data = <<-EOF
+        #!/bin/sh
+        set -ex
+        cp -v /local/.env.local .
+        env
+        npm run build
+        EOF
+        env = false
+        destination = "local/startup.sh"
+      }
+
+      template {
+        data = <<-EOF
+          __GIT_TAGS = "${hoover_ui_src_git}"
+          API_URL = "http://{{env "attr.unique.network.ip-address"}}:${config.port_lb}/hoover-search"
+
+          {% if config.sentry_dsn_hoover_ui_client or config.sentry_dsn_hoover_ui_server %}
+            SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"
+            SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+            SENTRY_RELEASE = "${config.sentry_version_hoover_ui}${config.sentry_release}"
+            NEXT_PUBLIC_SENTRY_DSN = "${config.sentry_dsn_hoover_ui_client}"
+            NEXT_PUBLIC_SENTRY_ENVIRONMENT = "${config.sentry_environment}"
+            NEXT_PUBLIC_SENTRY_RELEASE = "${config.sentry_version_hoover_ui}${config.sentry_release}"
+          {% endif %}
+
+          AGGREGATIONS_SPLIT = "${config.hoover_ui_agg_split}"
+          MAX_SEARCH_RETRIES = "${config.hoover_ui_search_retry}"
+
+          SEARCH_RETRY_DELAY = "${config.hoover_ui_search_retry_delay}"
+          ASYNC_SEARCH_POLL_INTERVAL = "${config.hoover_ui_async_search_poll_interval}"
+          ASYNC_SEARCH_MAX_FINAL_RETRIES = "${config.hoover_ui_async_search_max_final_retries}"
+          ASYNC_SEARCH_ERROR_MULTIPLIER = "${config.hoover_ui_async_search_error_multiplier}"
+          ASYNC_SEARCH_ERROR_SUMMATION = "${config.hoover_ui_async_search_error_summation}"
+
+          {% if config.hoover_maps_enabled %}
+            HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
+          {% endif %}
+
+          {% if config.snoop_translation_enabled %}
+            HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled}"
+          {% endif %}
+
+          {% if config.hoover_uploads_enabled %}
+            HOOVER_UPLOADS_ENABLED = "${config.hoover_uploads_enabled}"
+          {% endif %}
+        EOF
+        env = true
+        destination = "local/.env.local"
+      }
+
+      resources {
+        memory = 1000
+      }
+    }
+  }
 }
