@@ -187,6 +187,7 @@ job "hoover-migrate" {
         {% endif %}
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/ui-build-v0.21/out:/opt/hoover/ui/out",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/ui-build-v0.21/build:/opt/hoover/ui/build",
         ]
         args = ["sh", "/local/startup.sh"]
         memory_hard_limit = 7000

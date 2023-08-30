@@ -162,6 +162,8 @@ job "hoover-nginx" {
             # location @backend {
             #   proxy_pass http://fabio;
             # }
+
+            include /hoover-ui/nginx-routes.conf;
           }
         }
         EOF
