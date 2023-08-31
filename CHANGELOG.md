@@ -1,5 +1,42 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+### New Features
+- Hoover:
+  - Enabled browser-side and server-side caching of collection data and metadata.
+    - This will drastically improve the loading times of all pages, for all users,
+      for a whole week after the initial page load.
+    - Collection data documents will now be cached in the browser. This includes
+      all documents for pages you visit. To stop the collection data documents from reaching
+      your disks, either use the Tor Browser, or reconfigure your own browser to
+      not store or cache any data.
+  - Added automatic splitting for large PDFs. You can now browse and search inside all pages
+    of PDF files that consist of more than 10,000 pages and bigger than 1GB.
+  - Added search shortcut buttons from the search query. Clicking these buttons
+    will search for them in the current document.
+- Admin Guide: Added guide for using WireGuard and Tails
+
+### Improvements
+- Hoover:
+  - Simplified internal HTTP server structure. Page load times significantly improved.
+  - Disabled unpacking the internals of DOCX and PDF files by default.
+    Added config option to enable this feature per-collection.
+
+### Bug Fixes
+- Hoover UI:
+  - fixed bug where collection name would not visible in preview list of results
+  - creating tags sometimes didn't trigger refreshing aggregations and search results
+  - fixed aggregation bucket count after clicking "More" button
+  - added a way way to stop searching inside search document (clear search box button)
+  - fixed "search for emails replying to this one" button
+  - fixed automatic retry for all search/api requests
+
+
+
+---
+
+
 ## v0.25.4 (2023-08-16)
 
 ### Bug Fixes
@@ -39,6 +76,8 @@ This version brings version updates for cluster infrastructure components (Nomad
 - Hoover processing: fixed issue where processing would slow down after ~24h after deployment.
 - Hoover UI: Fixed functional and performance issues with the Finder component.
 - Rocketchat: Fixed deployment issues with Rocketchat on new instances.
+
+
 ---
 
 
