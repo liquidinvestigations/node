@@ -182,8 +182,7 @@ job "hoover" {
           {{- end -}}
           @{{env "attr.unique.network.ip-address" }}:${config.port_search_pg}/search"
 
-          #HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
-          HOOVER_HOSTNAME = "*"
+          HOOVER_HOSTNAME = "hoover.{{key "liquid_domain"}}"
           HOOVER_TITLE = "Hoover"
           HOOVER_LIQUID_TITLE = "${config.liquid_title}"
           HOOVER_LIQUID_URL = "${config.liquid_core_url}"
