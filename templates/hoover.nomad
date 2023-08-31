@@ -66,7 +66,7 @@
         SNOOP_TOTAL_WORKER_COUNT = "${config.total_snoop_worker_count}"
 
         GUNICORN_WORKER_CLASS = "sync"
-        GUNICORN_WORKERS = "6"
+        GUNICORN_WORKERS = "7"
         GUNICORN_THREADS = "1"
         GUNICORN_MAX_REQUESTS = "1"
 
@@ -144,7 +144,7 @@ job "hoover" {
         labels {
           liquid_task = "hoover-search"
         }
-        memory_hard_limit = ${2000 + 4 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${3000 + 4 * config.hoover_web_memory_limit}
       }
 
       resources {
@@ -163,7 +163,7 @@ job "hoover" {
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
 
         GUNICORN_WORKER_CLASS = "gthread"
-        GUNICORN_WORKERS = "4"
+        GUNICORN_WORKERS = "6"
         GUNICORN_THREADS = "8"
         GUNICORN_MAX_REQUESTS = "1000"
       }
@@ -235,6 +235,7 @@ job "hoover" {
 
 
   group "snoop-web" {
+    # we want lots of these because split-pdf locks per container
     count = ${config.hoover_web_count}
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -262,7 +263,7 @@ job "hoover" {
         labels {
           liquid_task = "snoop-web"
         }
-        memory_hard_limit = ${5000 + 3 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${6000 + 3 * config.hoover_web_memory_limit}
       }
 
       template {
@@ -282,7 +283,7 @@ job "hoover" {
       ${ snoop_dependency_envs() }
 
       resources {
-        memory = ${300 + config.hoover_web_memory_limit}
+        memory = ${config.hoover_web_memory_limit}
         cpu = 200
         network {
           mbits = 1

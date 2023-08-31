@@ -214,7 +214,7 @@ class Configuration:
         self.hoover_ratelimit_user = self.ini.get('liquid', 'hoover_ratelimit_user', fallback='100,13')
 
         self.hoover_web_memory_limit = self.ini.getint('liquid',
-                                                       'hoover_web_memory_limit', fallback=1000)
+                                                       'hoover_web_memory_limit', fallback=600)
         self.hoover_web_count = self.ini.getint('liquid',
                                                 'hoover_web_count', fallback=1)
         self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
