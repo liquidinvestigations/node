@@ -262,7 +262,7 @@ job "hoover" {
         labels {
           liquid_task = "snoop-web"
         }
-        memory_hard_limit = ${6000 + 3 * config.hoover_web_memory_limit}
+        memory_hard_limit = ${7000 + 4 * config.hoover_web_memory_limit}
       }
 
       template {
