@@ -63,4 +63,4 @@ EOF
 
 echo
 
-echo "MASS USER CREATION DONE -- see mass-invite-users.csv"
+echo "MASS USER CREATION DONE -- see $PWD/mass-invite-users.csv"
