@@ -13,34 +13,44 @@ USERNAME_PREFIX=anon.user
 # time from today until the end of the demo 10 weeks in minutes = 10 * 7 * 24 * 60
 EXPIRY_MIN=100800
 
-OUT_FILE=/tmp/links.txt
+TMP_FILE=/tmp/links.txt
+
+ORIG_WORD_FILE=/usr/share/dict/words
+SHUF_WORD_FILE=/tmp/words.txt
+
+OUTPUT_FILE=$PWD/mass-invite-users.csv
 
 SCRIPT1="$(cat <<EOF
 set -e
 export NUM_USERS=$NUM_USERS
 export USERNAME_PREFIX=$USERNAME_PREFIX
 export EXPIRY_MIN=$EXPIRY_MIN
-export OUT_FILE=$OUT_FILE
+export TMP_FILE=$TMP_FILE
+export ORIG_WORD_FILE=$ORIG_WORD_FILE
+export SHUF_WORD_FILE=$SHUF_WORD_FILE
+
+cat $ORIG_WORD_FILE | grep -E '^[[:lower:]]+$' | sort -R > $SHUF_WORD_FILE
 EOF
 )"
 
 
 SCRIPT2="$(cat <<'EOF'
-rm -f $OUT_FILE || true
-touch $OUT_FILE
+rm -f $TMP_FILE || true
+touch $TMP_FILE
 
 for i in $(seq 1 $NUM_USERS); do
-    RANDOM_HASH=$(cat /dev/random | head -c200 | md5sum | cut -f1 -d' ')
-    USERNAME="$USERNAME_PREFIX.$i.$RANDOM_HASH"
+    read -r RANDOM_WORD_1
+    read -r RANDOM_WORD_2
+    USERNAME="$USERNAME_PREFIX.$RANDOM_WORD_1.$RANDOM_WORD_2"
     INVITE_LINK="$(./manage.py invite --duration $EXPIRY_MIN --create $USERNAME | tail -n -1)"
-    echo "$USERNAME,$INVITE_LINK" >> $OUT_FILE
-done
+    echo "$USERNAME,$INVITE_LINK" >> $TMP_FILE
+done < $SHUF_WORD_FILE
 
-cat $OUT_FILE
+cat $TMP_FILE
 EOF
 )"
 
-./liquid dockerexec liquid:core bash -c "$SCRIPT1; $SCRIPT2" > mass-invite-users.csv
+./liquid dockerexec liquid:core bash -c "$SCRIPT1; $SCRIPT2" > $OUTPUT_FILE
 
 
 # allow all users access to all apps
@@ -63,4 +73,4 @@ EOF
 
 echo
 
-echo "MASS USER CREATION DONE -- see $PWD/mass-invite-users.csv"
+echo "MASS USER CREATION DONE -- see $OUTPUT_FILE"
