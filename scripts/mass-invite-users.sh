@@ -4,9 +4,18 @@ set -e
 # Script creates invitation links for many accounts.
 # We then enable access for all accounts into all apps.
 
+# Usage: ./$1 [-n NUM_USERS]
+
 cd "$(dirname ${BASH_SOURCE[0]})/.."
 
 NUM_USERS=100
+while getopts n: flag
+do
+    case "${flag}" in
+        n) NUM_USERS=${OPTARG};;
+    esac
+done
+
 
 USERNAME_PREFIX=anon.user
 
@@ -15,7 +24,8 @@ EXPIRY_MIN=100800
 
 TMP_FILE=/tmp/links.txt
 
-ORIG_WORD_FILE=/usr/share/dict/words
+# /usr/share/dict/words has swear words we don't want to use as identifiers
+ORIG_WORD_FILE=/google-10000-english-no-swears.txt
 SHUF_WORD_FILE=/tmp/words.txt
 
 OUTPUT_FILE=$PWD/mass-invite-users.csv
@@ -29,7 +39,7 @@ export TMP_FILE=$TMP_FILE
 export ORIG_WORD_FILE=$ORIG_WORD_FILE
 export SHUF_WORD_FILE=$SHUF_WORD_FILE
 
-cat $ORIG_WORD_FILE | grep -E '^[[:lower:]]+$' | sort -R > $SHUF_WORD_FILE
+cat $ORIG_WORD_FILE | grep -E '^[a-z]+$' | sort -R > $SHUF_WORD_FILE
 EOF
 )"
 
@@ -50,8 +60,16 @@ cat $TMP_FILE
 EOF
 )"
 
+echo
+echo "Will create $NUM_USERS users with prefix $USERNAME_PREFIX expiry $EXPIRY_MIN min."
+echo
+
 ./liquid dockerexec liquid:core bash -c "$SCRIPT1; $SCRIPT2" > $OUTPUT_FILE
 
+
+echo
+echo "Adding app access permissions to all users..."
+echo
 
 # allow all users access to all apps
 ./liquid dockerexec liquid:core ./manage.py shell <<EOF
