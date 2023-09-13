@@ -69,8 +69,15 @@ def replace_images_with_hashes(spec):
                 continue
             else:
                 config = task['Config']
-                new_image = docker.pull(config['image'])
-                config['image'] = new_image
+                try:
+                    new_image = docker.pull(config['image'], force=False)
+                    config['image'] = new_image
+                except Exception as e:
+                    log.warning(
+                        'cannot get image hash for %s: %s',
+                        config['image'],
+                        str(e),
+                    )
     return spec
 
 

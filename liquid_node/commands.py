@@ -277,7 +277,7 @@ def _update_image(name):
 
     old = docker.image_digest(name)
     for _ in range(3):
-        new = docker.pull(name)
+        new = docker.pull(name, force=True)
         if new:
             break
         time.sleep(5)

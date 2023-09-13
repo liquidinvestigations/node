@@ -1,8 +1,11 @@
 import subprocess
+import logging
 import json
 from pathlib import Path
 from .process import run, run_fg
 from .util import retry
+
+log = logging.getLogger(__name__)
 
 
 class Docker:
@@ -23,10 +26,12 @@ class Docker:
         return d[0]
 
     @retry()
-    def pull(self, name):
-        assert name is not None, 'bad name'
-        cmd = "docker pull -q " + name
-        run(cmd, shell=True, echo=False)
+    def pull(self, name, force=False):
+        assert name is not None and name != 'None', 'bad name'
+        if force or not self.image_digest(name):
+            cmd = "docker pull -q " + name
+            log.debug('+ %s', cmd)
+            run(cmd, shell=True, echo=False)
         img = self.image_digest(name)
         assert img is not None, 'failed to get digest'
         return img

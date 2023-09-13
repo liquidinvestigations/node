@@ -268,11 +268,13 @@ job "hoover" {
       template {
         data = <<-EOF
           #!/bin/bash
-          set -ex
+          set -e
 
-          date
-
-          exec /runserver
+          for i in $(seq 1 10000); do
+            date
+            echo "/runserver retry=$i"
+            /runserver || sleep 3
+          done
 
           EOF
         env = false
