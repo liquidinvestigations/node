@@ -269,7 +269,7 @@ job "hoover" {
         data = <<-EOF
           #!/bin/bash
           set -e
-
+          export ENABLE_DYNAMIC_COLLECTION_ADMINS=True
           for i in $(seq 1 10000); do
             date
             echo "/runserver retry=$i"
