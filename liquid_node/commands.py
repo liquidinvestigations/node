@@ -31,8 +31,8 @@ def liquid_commands():
 
 def check_resources():
     enabled_app_count = len(list(c for c in config.liquid_apps if c['enabled']))
-    cpu_count_req = 3 + int(
-        (enabled_app_count + config.total_snoop_worker_count)
+    cpu_count_req = 2 + int(
+        (enabled_app_count * 0.5 + config.total_snoop_worker_count * 0.8)
     )
 
     AVAILABLE_MEMORY_SCALE = 0.95
@@ -85,7 +85,7 @@ def check_resources():
     for key, value in sorted(avail.items()):
         log.debug(f'  {key: <30}: {value:,}')
 
-    if avail['cpu_count'] < SMALL_CPU_COUNT_IGNORE:
+    if avail['cpu_count'] <= SMALL_CPU_COUNT_IGNORE:
         if req['cpu_count'] > avail['cpu_count']:
             req['cpu_count'] = avail['cpu_count']
             log.debug('lowering requirements for small cluster (<%s cores) to cpu_count = %s',
