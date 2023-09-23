@@ -1,3 +1,4 @@
+import platform
 import collections as std_collections
 import sys
 import re
@@ -114,6 +115,7 @@ class Configuration:
     ]
 
     def __init__(self):
+        self.arch = platform.machine()
         self.root = Path(__file__).parent.parent.resolve()
         self.templates = self.root / 'templates'
 

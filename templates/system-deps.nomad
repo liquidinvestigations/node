@@ -83,7 +83,7 @@ job "system-deps" {
     task "fabio" {
       driver = "docker"
       config {
-        image = "fabiolb/fabio:1.6.0"
+        image = "${config.image('fabio')}"
         volumes = [
           "local/fabio.properties:/etc/fabio/fabio.properties"
         ]
@@ -147,6 +147,7 @@ job "system-deps" {
     }
   }
 
+  {% if config.arch == 'x86_64' %}
   group "telegraf" {
     restart {
       attempts = 5
@@ -271,4 +272,5 @@ job "system-deps" {
       }
     }
   }
+  {% endif %}
 }
