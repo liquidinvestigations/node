@@ -82,10 +82,10 @@ job "drone-workers" {
 
       # TODO: fix stability when drone is running on more than 1 host
       # till then: we only run workers on the machine with the volumes
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
+      # constraint {
+      #   attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+      #   operator = "is_set"
+      # }
 
       ${ worker_task_def() }
 
