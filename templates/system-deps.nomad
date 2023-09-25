@@ -147,7 +147,6 @@ job "system-deps" {
     }
   }
 
-  {% if config.arch == 'x86_64' %}
   group "telegraf" {
     restart {
       attempts = 5
@@ -160,7 +159,7 @@ job "system-deps" {
       # root for reading docker.sock
       user = "root"
       config {
-        image = "telegraf:1.22-alpine"
+        image = "${config.image('telegraf')}"
         dns_servers = ["{% raw %}${attr.unique.network.ip-address}{% endraw %}"]
         port_map {
           statsd = 8125
@@ -272,5 +271,4 @@ job "system-deps" {
       }
     }
   }
-  {% endif %}
 }
