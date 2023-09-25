@@ -15,7 +15,7 @@ job "drone-workers" {
 
       driver = "docker"
       config {
-        image = "drone/drone-runner-docker:1.6"
+        image = "drone/drone-runner-docker:1.8.3"
         memory_hard_limit = 2000
 
         volumes = [
@@ -38,7 +38,7 @@ job "drone-workers" {
       env {
         #DRONE_RUNNER_ENV_FILE = "/local/drone-worker-2.env"
         DRONE_RPC_PROTO = "http"
-        DRONE_MEMORY_LIMIT = 6442450944
+        DRONE_MEMORY_LIMIT = 5368709120
         DRONE_DEBUG=true
         DRONE_RUNNER_CAPACITY = 3
         DRONE_RUNNER_MAX_PROCS = 3

@@ -19,6 +19,7 @@ job "drone-deps" {
 
       driver = "docker"
       config {
+        # version 1.3 does not work multi-platform, see bad build on docker hub
         image = "drone/vault:1.2"
         port_map {
           http = 3000
