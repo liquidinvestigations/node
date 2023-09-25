@@ -55,8 +55,8 @@ job "drone" {
           DRONE_USER_FILTER = {{.Data.user_filter | toJSON }}
         {{- end }}
 
-        DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:10003"
-        DRONE_SECRET_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:10003"
+        DRONE_SECRET_PLUGIN_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_drone_secret}"
+        DRONE_SECRET_ENDPOINT = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_drone_secret}"
         {{- with secret "liquid/ci/drone.secret.2" }}
           DRONE_SECRET_PLUGIN_SECRET = {{.Data.secret_key | toJSON }}
           DRONE_SECRET_SECRET = {{.Data.secret_key | toJSON }}
@@ -74,7 +74,7 @@ job "drone" {
         cpu = 150
         network {
           mbits = 1
-          port "http" { static = 10002 }
+          port "http" {}
         }
       }
 
@@ -85,6 +85,7 @@ job "drone" {
           "traefik.enable=true",
           "traefik.frontend.rule=Host:jenkins.${liquid_domain}",
           "fabio-/drone-server strip=/drone-server",
+          "fabio-:${config.port_drone_server_http} proto=tcp",
         ]
         check {
           name = "http"

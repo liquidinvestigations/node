@@ -403,13 +403,16 @@ class Configuration:
             ),
             'wikijs_pg': self.ini.getint('ports', 'wikijs-pg', fallback=9974),
             'wikijs': self.ini.getint('ports', 'wikijs', fallback=9973),
+            'drone_secret': self.ini.getint('ports', 'drone-secret', fallback=9972),
+            'drone_server_http': self.ini.getint('ports', 'drone-server-http', fallback=9971),
         }
 
         self.port_lb = self.PORT_MAP['lb']
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
         self.port_collections_minio = self.PORT_MAP['collections_minio']
         self.port_authproxy_redis = self.PORT_MAP['authproxy_redis']
-        self.port_drone_ci = self.PORT_MAP['drone_ci']
+        self.port_drone_secret = self.PORT_MAP['drone_secret']
+        self.port_drone_server_http = self.PORT_MAP['drone_server_http']
         self.port_snoop_pg = self.PORT_MAP['snoop_pg']
         self.port_snoop_pg_pool = self.PORT_MAP['snoop_pg_pool']
         self.port_search_pg = self.PORT_MAP['search_pg']

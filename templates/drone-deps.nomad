@@ -52,14 +52,14 @@ job "drone-deps" {
         cpu = 150
         network {
           mbits = 1
-          port "http" { static = 10003 }
+          port "http" {}
         }
       }
 
       service {
         name = "drone-secret"
         port = "http"
-        tags = ["fabio-:${config.port_drone_ci} proto=tcp"]
+        tags = ["fabio-:${config.port_drone_secret} proto=tcp"]
         check {
           name = "tcp"
           initial_status = "critical"
