@@ -1,6 +1,16 @@
 {% from '_lib.hcl' import set_pg_password_template, task_logs, group_disk with context -%}
 
-{% macro worker_task_def() %}
+
+job "drone-workers" {
+  datacenters = ["dc1"]
+  type = "system"
+  priority = 98
+
+  group "drone-workers" {
+    ${ group_disk() }
+
+    task "drone-workers" {
+
       ${ task_logs() }
 
       driver = "docker"
@@ -28,8 +38,11 @@
       env {
         #DRONE_RUNNER_ENV_FILE = "/local/drone-worker-2.env"
         DRONE_RPC_PROTO = "http"
-        DRONE_MEMORY_LIMIT = 12624855040
+        DRONE_MEMORY_LIMIT = 6442450944
         DRONE_DEBUG=true
+        DRONE_RUNNER_CAPACITY = 3
+        DRONE_RUNNER_MAX_PROCS = 3
+        DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-default"
       }
 
       template {
@@ -66,33 +79,6 @@
           interval = "${check_interval}"
           timeout = "${check_timeout}"
         }
-      }
-
-{% endmacro %}
-
-job "drone-workers" {
-  datacenters = ["dc1"]
-  type = "system"
-  priority = 98
-
-  group "drone-workers" {
-    ${ group_disk() }
-
-    task "drone-workers" {
-
-      # TODO: fix stability when drone is running on more than 1 host
-      # till then: we only run workers on the machine with the volumes
-      # constraint {
-      #   attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-      #   operator = "is_set"
-      # }
-
-      ${ worker_task_def() }
-
-      env {
-        DRONE_RUNNER_CAPACITY = 2
-        DRONE_RUNNER_MAX_PROCS = 2
-        DRONE_RUNNER_NAME = "{% raw %}${attr.unique.hostname}{% endraw %}-default"
       }
     }
   }
