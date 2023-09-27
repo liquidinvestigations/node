@@ -120,6 +120,7 @@ class Configuration:
         self.templates = self.root / 'templates'
 
         self.ini = CheckedConfigParser()
+        assert os.path.exists(self.root / 'liquid.ini'), 'file not found: liquid.ini'
         self.ini.read(self.root / 'liquid.ini')
 
         self.versions_ini = configparser.ConfigParser()
