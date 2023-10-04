@@ -68,6 +68,8 @@ def check_resources():
     total = defaultdict(int)
     req = defaultdict(int)
     for name, count, _type, res in get_all_res():
+        if (__mb := res.get('MemoryMB', 0)) > 0 and __mb > 150:
+            log.debug('name %s count %s MB %s', name, count, __mb)
         for key in EXTRA_REQ.keys():
             if key not in res:
                 continue

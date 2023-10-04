@@ -30,6 +30,11 @@ job "hoover-deps-downloads" {
         command = "/bin/bash"
         args    = ["-c", "echo OK"]
       }
+
+      resources {
+        memory = 140
+        cpu = 140
+      }
     }
   }
 }

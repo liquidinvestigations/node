@@ -256,6 +256,10 @@ job "hoover-workers" {
           liquid_task = "dummy"
         }
       }
+      resources {
+        memory = 16
+        cpu = 16
+      }
     }
   }
   {% endif %}

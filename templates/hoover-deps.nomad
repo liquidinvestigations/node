@@ -267,7 +267,7 @@ job "hoover-deps" {
       ${ set_pg_drop_template('search') }
 
       resources {
-        memory = 1200
+        memory = 140
         network {
           mbits = 1
           port "pg" {}
@@ -320,7 +320,7 @@ job "hoover-deps" {
           liquid_task = "hoover-tika"
         }
         # warning: config is for whole container
-        memory_hard_limit = ${2000 + 3 * config.tika_memory_limit}
+        memory_hard_limit = ${4000 + 3 * config.tika_memory_limit}
       }
 
       resources {
@@ -707,7 +707,7 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 500
+        memory = 150
         cpu = 350
         network {
           mbits = 1
@@ -1146,6 +1146,7 @@ job "hoover-deps" {
     }
   }
 
+  {% if config.apps_monitoring_enabled %}
   group "snoop-pgwatch2" {
     ${ continuous_reschedule() }
     ${ group_disk() }
@@ -1248,6 +1249,7 @@ job "hoover-deps" {
       }
     }
   }
+  {% endif %}
 
 
   {% if config.hoover_maps_enabled %}
@@ -1538,8 +1540,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 1500
-        cpu = 1000
+        memory = 150
+        cpu = 150
         network {
           mbits = 1
           port "s3" { static = 9001 }
@@ -1628,8 +1630,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 1500
-        cpu = 1000
+        memory = 150
+        cpu = 150
         network {
           mbits = 1
           port "s3" { static = 9003 }
@@ -1708,8 +1710,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 200
-        cpu = 400
+        memory = 150
+        cpu = 150
         network {
           mbits = 1
           port "http" {}

@@ -33,11 +33,11 @@ job "hoover-migrate" {
         labels {
           liquid_task = "hoover-search-migrate"
         }
-        memory_hard_limit = ${2000 + 4 * config.hoover_web_memory_limit}
+        memory_hard_limit = 1000
       }
 
       resources {
-        memory = ${config.hoover_web_memory_limit}
+        memory = 100
         cpu = 200
       }
 
@@ -132,7 +132,7 @@ job "hoover-migrate" {
         labels {
           liquid_task = "snoop-migrate"
         }
-        memory_hard_limit = ${2000 + 4 * config.hoover_web_memory_limit}
+        memory_hard_limit = 1000
       }
 
       template {
@@ -159,12 +159,13 @@ job "hoover-migrate" {
       ${ snoop_dependency_envs() }
 
       resources {
-        memory = ${config.hoover_web_memory_limit}
+        memory = 100
         cpu = 200
       }
     }
   }
 
+  {% if not config.hoover_ui_disable_build %}
   group "hoover-ui-build" {
     ${ group_disk() }
     ${ continuous_reschedule() }
@@ -247,8 +248,12 @@ job "hoover-migrate" {
       }
 
       resources {
-        memory = 1000
+        memory = 100
       }
     }
   }
+
+  {% endif %}
+
+
 }

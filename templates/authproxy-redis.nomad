@@ -29,11 +29,12 @@ job "authproxy-redis" {
         labels {
           liquid_task = "authproxy-redis"
         }
+        memory_hard_limit = 1024
       }
 
       resources {
-        cpu = 500
-        memory = 512
+        cpu = 150
+        memory = 150
         network {
           port "redis" {}
           mbits = 1

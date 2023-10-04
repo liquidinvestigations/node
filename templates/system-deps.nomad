@@ -114,7 +114,7 @@ job "system-deps" {
 
       resources {
         cpu    = 200
-        memory = 256
+        memory = 64
         network {
           mbits = 10
           ${config.ports_resources_network()}
@@ -147,6 +147,7 @@ job "system-deps" {
     }
   }
 
+  {% if config.apps_monitoring_enabled %}
   group "telegraf" {
     restart {
       attempts = 5
@@ -271,4 +272,6 @@ job "system-deps" {
       }
     }
   }
+  {% endif %}
+
 }

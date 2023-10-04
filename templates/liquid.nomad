@@ -99,7 +99,7 @@ ${config.liquid_core_healthcheck_info}
       }
 
       resources {
-        memory = 200
+        memory = 100
         network {
           mbits = 1
           port "http" {
@@ -160,7 +160,7 @@ ${config.liquid_core_healthcheck_info}
       }
 
       resources {
-        memory = 128
+        memory = 64
         network {
           mbits = 1
           port "http" {}

@@ -224,6 +224,7 @@ class Configuration:
         self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=False)  # noqa: E501
         self.rocketchat_autologout_days = self.ini.getint('liquid', 'rocketchat_autologout_days', fallback=100)  # noqa: E501
 
+        self.hoover_ui_disable_build = self.ini.getboolean('liquid', 'hoover_ui_disable_build', fallback=False)
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
         self.hoover_es_max_concurrent_shard_requests = self.ini.getint(
             'liquid', 'hoover_es_max_concurrent_shard_requests', fallback=''
@@ -374,6 +375,7 @@ class Configuration:
             self.ci_target_test_admin_password = self.ini.get('ci', 'target_test_admin_password')
 
         self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
+        self.apps_monitoring_enabled = self.ini.getboolean('apps', 'monitoring_enabled', fallback=True)
         self.all_jobs = list(self.ALL_JOBS)
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]

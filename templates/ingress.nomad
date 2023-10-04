@@ -106,7 +106,7 @@ job "ingress" {
         destination = "local/traefik.toml"
       }
       resources {
-        memory = 200
+        memory = 100
         network {
           mbits = 1
           port "http" {

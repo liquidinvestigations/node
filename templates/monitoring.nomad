@@ -1,9 +1,11 @@
+{% from '_lib.hcl' import task_logs with context -%}
 job "monitoring" {
   datacenters = ["dc1"]
   type = "service"
   priority = 99
 
 
+  {% if config.apps_monitoring_enabled %}
   group "prometheus" {
     constraint {
       attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
@@ -60,10 +62,10 @@ job "monitoring" {
         port_map {
           http = 9090
         }
-        memory_hard_limit = 2000
+        memory_hard_limit = 3000
       }
       resources {
-        memory = 400
+        memory = 64
         network {
           mbits = 10
           port "http" {
@@ -192,7 +194,7 @@ job "monitoring" {
 
       resources {
         cpu    = 200
-        memory = 400
+        memory = 128
         network {
           mbits = 10
           port "http" {}
@@ -213,4 +215,25 @@ job "monitoring" {
       }
     }
   }
+
+  {% else %}
+  group "dummy" {
+    task "dummy" {
+      ${ task_logs() }
+
+      driver = "docker"
+      config {
+        image = "${config.image('pause')}"
+        labels {
+          liquid_task = "dummy"
+        }
+      }
+      resources {
+        memory = 16
+        cpu = 16
+      }
+    }
+  }
+  {% endif %}
+
 }

@@ -21,6 +21,10 @@ job "liquid-deleteuser" {
                 ]
       }
 
+      resources {
+        memory = 150
+      }
+
       env {
         LIQUID_DOMAIN = "${liquid_domain}"
         HOOVER_ENABLED = "${ config.is_app_enabled('hoover') }"

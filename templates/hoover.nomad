@@ -66,7 +66,7 @@
         SNOOP_TOTAL_WORKER_COUNT = "${config.total_snoop_worker_count}"
 
         GUNICORN_WORKER_CLASS = "sync"
-        GUNICORN_WORKERS = "7"
+        GUNICORN_WORKERS = "3"
         GUNICORN_THREADS = "1"
         GUNICORN_MAX_REQUESTS = "1"
 
@@ -163,9 +163,9 @@ job "hoover" {
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
 
         GUNICORN_WORKER_CLASS = "gthread"
-        GUNICORN_WORKERS = "6"
-        GUNICORN_THREADS = "8"
-        GUNICORN_MAX_REQUESTS = "1000"
+        GUNICORN_WORKERS = "3"
+        GUNICORN_THREADS = "2"
+        GUNICORN_MAX_REQUESTS = "500"
       }
 
       template {
