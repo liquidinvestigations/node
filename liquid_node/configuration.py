@@ -13,7 +13,7 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, codimd, ci, wikijs
+    nextcloud, codimd, ci, wikijs, tolgee
 
 
 log = logging.getLogger(__name__)
@@ -112,6 +112,7 @@ class Configuration:
         ci.Drone(),
         ci.Deps(),
         ci.DroneWorkers(),
+        tolgee.Tolgee(),
     ]
 
     def __init__(self):
@@ -372,6 +373,16 @@ class Configuration:
             self.ci_target_password = self.ini.get('ci', 'target_password')
             self.ci_target_port = self.ini.get('ci', 'target_port')
             self.ci_target_test_admin_password = self.ini.get('ci', 'target_test_admin_password')
+
+        self.tolgee_enabled = 'tolgee' in self.ini
+        if self.tolgee_enabled:
+            self.tolgee_github_enabled = self.ini.getboolean('tolgee', 'github_enabled')
+            self.tolgee_github_client_id = self.ini.get('tolgee', 'github_client_id')
+            self.tolgee_github_client_secret = self.ini.get('tolgee', 'github_client_secret')
+            self.tolgee_deepl_enabled = self.ini.getboolean('tolgee', 'deepl_enabled')
+            self.tolgee_deepl_auth_key = self.ini.get('tolgee', 'deepl_auth_key')
+            self.tolgee_google_enabled = self.ini.getboolean('tolgee', 'google_enabled')
+            self.tolgee_google_api_key = self.ini.get('tolgee', 'google_api_key')
 
         self.default_app_status = self.ini.get('apps', 'default_app_status', fallback='on')
         self.all_jobs = list(self.ALL_JOBS)
@@ -646,6 +657,8 @@ class Configuration:
     def is_app_enabled(self, app_name):
         if app_name == 'ci':
             return self.ci_enabled
+        if app_name == 'tolgee':
+            return self.tolgee_enabled
         return app_name in Configuration.CORE_APPS or \
             self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
 
