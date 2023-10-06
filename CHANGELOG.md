@@ -3,7 +3,7 @@
 ## Unreleased
 
 ### Upgrade Notes
-- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.17.1](https://github.com/liquidinvestigations/cluster/tree/v0.17.1)**
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.17.2](https://github.com/liquidinvestigations/cluster/tree/v0.17.2)**
 
 ### New Features
 - Hoover:
