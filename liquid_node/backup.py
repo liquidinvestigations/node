@@ -108,9 +108,12 @@ def backup_collection(dest, name, save_blobs=True, save_es=True, save_pg=True,
 def restore_collection(ctx, src, name, blobs, es, pg, original):
     log.info("restoring collection data from %s as %s", src, name)
     assert config.is_app_enabled('hoover')
+    restored_something = False
 
     assert (name not in (c['name'] for c in config.snoop_collections)), \
-        f"collection {name} already defined in liquid.ini, please remove it"
+        (f"Collection {name} already defined in liquid.ini. "
+         "Please remove/comment it and re-run `./liquid deploy`, "
+         "then re-run this command.")
 
     config._validate_collection_name(name)
 
@@ -118,24 +121,26 @@ def restore_collection(ctx, src, name, blobs, es, pg, original):
     assert src.is_dir(), 'source is not a directory'
 
     if es:
-        restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
+        restored_something |= restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
     else:
         log.info('skipped restore es')
 
     if blobs:
-        restore_collection_blobs(src, name)
+        restored_something |= restore_collection_blobs(src, name)
     else:
         log.info('skipped restore blobs')
 
     if original:
-        restore_collection_original(src, name)
+        restored_something |= restore_collection_original(src, name)
     else:
         log.info('skipped restore original')
 
     if pg:
-        restore_collection_pg(src, name)
+        restored_something |= restore_collection_pg(src, name)
     else:
         log.info('skipped restore pg')
+
+    assert restored_something, 'no data restored, please check args'
 
     log.info("Collection restored: " + name)
     log.info("Please add this collection to `./liquid.ini` and re-run `./liquid deploy`")
@@ -213,6 +218,7 @@ def restore_apps(ctx, src):
     ctx.invoke(halt)
     ctx.invoke(deploy)
     log.info("App data restored.")
+    return True
 
 
 @retry()
@@ -256,7 +262,7 @@ def backup_sqlite3(dest_file, dbname, alloc):
 def restore_sqlite3(src_file, dbname, alloc):
     if not src_file.is_file():
         log.warn(f"No sqlite3 backup at {src_file}, skipping sqlite .restore")
-        return
+        return False
 
     log.info(f"Restore sqlite3 from {src_file} to alloc {alloc} db {dbname}")
     cmds = (
@@ -269,13 +275,14 @@ def restore_sqlite3(src_file, dbname, alloc):
 
     for cmd in cmds:
         subprocess.check_call(["/bin/bash", "-c", cmd])
+    return True
 
 
 @retry()
 def restore_pg(src_file, username, dbname, alloc):
     if not src_file.is_file():
         log.warn(f"No pg backup at {src_file}, skipping pgrestore")
-        return
+        return False
 
     if alloc == 'hoover-deps:search-pg':
         dropdb_force = ' --force '
@@ -293,6 +300,7 @@ def restore_pg(src_file, username, dbname, alloc):
         f"< {src_file}"
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
+    return True
 
 
 def backup_collection_pg(dest, name):
@@ -354,7 +362,7 @@ def restore_collection_blobs(src, name):
     src_file = src / "blobs.tgz"
     if not src_file.is_file():
         log.warn(f"No blobs backup at {src_file}, skipping blob restore")
-        return
+        return False
 
     log.info('installing tar...')
     cmd_install_tar = f'./liquid dockerexec {SNOOP_BLOBS_DATA_ALLOC} microdnf install tar gzip'
@@ -363,13 +371,14 @@ def restore_collection_blobs(src, name):
 
     log.info(f"Restoring collection {name} blobs from {src_file}")
     restore_files(src / "blobs.tgz", "/data/" + name, SNOOP_BLOBS_DATA_ALLOC)
+    return True
 
 
 def restore_collection_original(src, name):
     src_file = src / "original.tgz"
     if not src_file.is_file():
         log.warn(f"No blobs backup at {src_file}, skipping collection original restore")
-        return
+        return False
 
     log.info('installing tar...')
     cmd_install_tar = f'./liquid dockerexec {SNOOP_ORIGINAL_DATA_ALLOC} microdnf install tar gzip'
@@ -378,6 +387,7 @@ def restore_collection_original(src, name):
 
     log.info(f"Restoring collection original source files {name} from {src_file}")
     restore_files(src / "original.tgz", "/data/" + name, SNOOP_ORIGINAL_DATA_ALLOC)
+    return True
 
 
 def is_index_available(es_client, name):
@@ -442,7 +452,7 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
     src_file = src / "es.tgz"
     if not src_file.is_file():
         log.warn(f"No es backup at {src_file}, skipping es restore")
-        return
+        return False
     log.info(f"Restoring {name} es snapshot from {src_file}")
     es = JsonApi(f"http://{nomad.get_address()}:{HTTP_PORT}{es_url_suffix}")
 
@@ -507,3 +517,4 @@ def restore_es(src, name, es_url_suffix, es_alloc_id):
             f"rm -rf /es_repo/restore-{name} "
         )
         subprocess.check_call(rm_cmd, shell=True)
+    return True
