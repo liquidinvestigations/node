@@ -110,7 +110,7 @@ def restore_collection(ctx, src, name, blobs, es, pg, original):
     assert config.is_app_enabled('hoover')
 
     assert (name not in (c['name'] for c in config.snoop_collections)), \
-        f"collection {name} already defined in liquid.ini, please remove it"
+        f"collection {name} already defined in liquid.ini, please do the following : remove it from liquid.ini, and run ./liquid deploy"
 
     config._validate_collection_name(name)
 
