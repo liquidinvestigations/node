@@ -78,7 +78,7 @@
 
         HOOVER_SEARCH_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_hoover}/api/v1/"
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
-        SNOOP_HOST = "{% raw %}${attr.unique.network.ip-address}"
+        SNOOP_HOST = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
     }
 
       template {
