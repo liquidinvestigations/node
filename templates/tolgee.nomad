@@ -20,7 +20,7 @@ job "tolgee" {
       config {
         image = "${config.image('tolgee')}"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/tolgee1:/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/tolgee4:/data",
         ]
         port_map {
           http = 8080
@@ -33,7 +33,10 @@ job "tolgee" {
       }
 
       env {
-        TOLGEE_AUTHENTICATION_INITIAL_USERNAME=tolgeeadmin
+        TOLGEE_TELEMETRY_ENABLED=false
+        TOLGEE_AUTHENTICATION_CREATE_INITIAL_USER=true
+        TOLGEE_AUTHENTICATION_ENABLED=true
+        TOLGEE_AUTHENTICATION_INITIAL_USERNAME="liquid-tolgee-admin@admin.com"
         TOLGEE_AUTHENTICATION_JWT_EXPIRATION=6048000000
         TOLGEE_AUTHENTICATION_JWT_SUPER_EXPIRATION=6048000000
 
@@ -42,10 +45,17 @@ job "tolgee" {
 
         TOLGEE_FRONT_END_URL = "${config.liquid_http_protocol}://tolgee.${config.liquid_domain}"
 
+        TOLGEE_RATE_LIMITS_ENABLED=true
+        TOLGEE_AUTHENTICATION_NEEDS_EMAIL_VERIFICATION=false
+        TOLGEE_AUTHENTICATION_REGISTRATIONS_ALLOWED=false
 
-        TOLGEE_TELEMETRY_ENABLED=false
-
-        TOLGEE_MACHINE_TRANSLATION_GOOGLE_API_KEY=my_google_api_key
+        # TODO
+        # TOLGEE_AUTHENTICATION_OAUTH2_AUTHORIZATION_URL=
+        # TOLGEE_AUTHENTICATION_OAUTH2_CLIENT_ID=
+        # TOLGEE_AUTHENTICATION_OAUTH2_CLIENT_SECRET=
+        # TOLGEE_AUTHENTICATION_OAUTH2_SCOPES=[]
+        # TOLGEE_AUTHENTICATION_OAUTH2_TOKEN_URL=
+        # TOLGEE_AUTHENTICATION_OAUTH2_USER_URL=
       }
 
       template {
