@@ -53,6 +53,7 @@
           SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_image-classification/classify-image"
         {% endif %}
 
+        SNOOP_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud27}"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
 
         SNOOP_SKIP_PROCESSING_MIME_TYPES = "${ config.snoop_skip_mime_types }"
