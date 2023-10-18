@@ -10,7 +10,7 @@ sed -i 's/exec "$@"//g' /entrypoint.sh
 # Launch canonical entrypoint
 /entrypoint.sh apache2-foreground
 
-unzip /apps-to-install/sociallogin.zip
+unzip /apps-to-install/sociallogin.zip -d /apps-to-install
 mkdir -p /var/www/html/custom_apps/sociallogin
 mv /apps-to-install/nextcloud-social-login-*/* /var/www/html/custom_apps/sociallogin
 rm -r /apps-to-install/nextcloud-social-login-*
