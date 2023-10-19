@@ -9,6 +9,23 @@ job "liquid" {
     ${ continuous_reschedule() }
     ${ group_disk() }
 
+    # network {
+    #   mode = "bridge"
+
+    #   port "core-http" {
+    #     static = 8000
+    #     to     = 8000
+    #   }
+    # }
+
+    # service {
+    #   name = "cc-core-http"
+    #   port = "core-http"
+    #   connect {
+    #     sidecar_service {}
+    #   }
+    # }
+
     task "core" {
       ${ task_logs() }
 
@@ -128,9 +145,9 @@ ${config.liquid_core_healthcheck_info}
           }
         }
       }
-
     }
   }
+
   {% if config.sentry_proxy_to_subdomain %}
   group "sentry-proxy-nginx" {
     ${ continuous_reschedule() }

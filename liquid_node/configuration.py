@@ -13,7 +13,7 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, codimd, ci, wikijs
+    nextcloud, codimd, ci, wikijs, matrix
 
 
 log = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'rocketchat', 'nextcloud',
-                'codimd', )
+                'codimd', 'matrix',)
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -70,7 +70,8 @@ class Configuration:
         'wikijs': 'is a new wiki system with modern functionality.',
         'codimd': 'is a real-time collaboration pad.',
         'nextcloud': 'has a file share system and a contact list of users.',
-        'rocketchat': 'is the chat app.',
+        'rocketchat': 'is the old chat app; will remove shortly.',
+        'matrix': 'is the new chat app',
     }
 
     APP_REDIS_IDS = {
@@ -112,6 +113,9 @@ class Configuration:
         ci.Drone(),
         ci.Deps(),
         ci.DroneWorkers(),
+        matrix.Matrix(),
+        matrix.Deps(),
+        matrix.Migrate(),
     ]
 
     def __init__(self):
@@ -178,7 +182,6 @@ class Configuration:
 
         self.https_enabled = 'https' in self.ini
         if self.https_enabled:
-            self.liquid_http_protocol = 'https'
             self.liquid_https_port = self.ini.get('https', 'https_port', fallback='443')
             self.https_acme_email = self.ini.get('https', 'acme_email')
             self.https_acme_caServer = self.ini.get(
@@ -187,8 +190,8 @@ class Configuration:
                 fallback="https://acme-staging-v02.api.letsencrypt.org/directory"
             )
 
-        else:
-            self.liquid_http_protocol = self.ini.get('liquid', 'http_protocol_override', fallback='http')
+        self._http_protocol_override = self.ini.get('liquid', 'http_protocol_override', fallback='http')  # noqa: E501
+        self.liquid_http_protocol = 'https' if self.https_enabled else self._http_protocol_override
         self.liquid_core_url = f'{self.liquid_http_protocol}://{self.liquid_domain}'
 
         # This value will be overwritten by the deploy command.
@@ -398,14 +401,17 @@ class Configuration:
             'dokuwiki': self.ini.getint('ports', 'dokuwiki', fallback=9995),
             'rocketchat': self.ini.getint('ports', 'rocketchat', fallback=9980),
             'hoover_es_master_transport': self.ini.getint(
-                'ports',
-                'hoover_es_master_transport',
-                fallback=9979,
-            ),
+                'ports', 'hoover_es_master_transport', fallback=9979,),
             'wikijs_pg': self.ini.getint('ports', 'wikijs-pg', fallback=9974),
             'wikijs': self.ini.getint('ports', 'wikijs', fallback=9973),
             'drone_secret': self.ini.getint('ports', 'drone-secret', fallback=9972),
             'drone_server_http': self.ini.getint('ports', 'drone-server-http', fallback=9971),
+
+            'matrix_pg': self.ini.getint('ports', 'matrix_pg', fallback=9950),
+            'matrix_synapse': self.ini.getint('ports', 'matrix_synapse', fallback=9951),
+            'matrix_element': self.ini.getint('ports', 'matrix_element', fallback=9952),
+            'matrix_jitsi': self.ini.getint('ports', 'matrix_jitsi', fallback=9953),
+            'liquid_core_web_https': self.ini.getint('ports', 'liquid_core_web_https', fallback=9954),
         }
 
         self.port_lb = self.PORT_MAP['lb']
@@ -430,6 +436,12 @@ class Configuration:
         self.port_hoover_es_master_transport = self.PORT_MAP['hoover_es_master_transport']
         self.port_wikijs_pg = self.PORT_MAP['wikijs_pg']
         self.port_wikijs = self.PORT_MAP['wikijs']
+
+        self.port_matrix_pg = self.PORT_MAP['matrix_pg']
+        self.port_matrix_synapse = self.PORT_MAP['matrix_synapse']
+        self.port_matrix_element = self.PORT_MAP['matrix_element']
+        self.port_matrix_jitsi = self.PORT_MAP['matrix_jitsi']
+        self.port_liquid_core_web_https = self.PORT_MAP['liquid_core_web_https']
 
         # The Sentry settings
         self.liquid_version = self.get_node_version()
@@ -599,10 +611,15 @@ class Configuration:
             search = tag('hoover-search')
             snoop = tag('hoover-snoop2')
             ui = tag('hoover-ui')
-            return f'search: {search},  snoop: {snoop}, ui: {ui}'
+            return f'search: {search}, snoop: {snoop}, ui: {ui}'
 
         if name in ['dokuwiki', 'nextcloud']:
             return tag('liquid-' + name)
+
+        if name == 'matrix':
+            synapse = tag('matrix-synapse')
+            element = tag('matrix-element')
+            return f'synapse: {synapse}, element: {element}'
 
         return tag(name)
 

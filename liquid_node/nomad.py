@@ -43,11 +43,12 @@ def add_labels(spec):
                     'nomad_job': spec['ID'],
                     'nomad_group': spec['ID'] + '.' + group['Name'],
                     'nomad_task': spec['ID'] + '.' + group['Name'] + '.' + task['Name'],
+                    'liquid_node': 'true',
                 }
                 if task['Config'].get('labels') and task['Config']['labels'] and task['Config']['labels'][0]:
                     labels.update(task['Config']['labels'][0])
                 task['Config']['labels'] = [labels]
-                task['Config']['hostname'] = '${node.unique.name}'
+                # task['Config']['hostname'] = '${node.unique.name}'
                 task['Config']['init'] = True
                 task['Config'].setdefault('ulimit', list())
                 if not task['Config']['ulimit']:
