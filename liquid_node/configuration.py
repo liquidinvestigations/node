@@ -81,6 +81,10 @@ class Configuration:
         'nextcloud': 4,
     }
 
+    APP_ALLOW_ALL_USERS = {
+        'matrix': True,
+    }
+
     ALL_JOBS = [
         liquid.SystemDeps(),
         liquid.Monitoring(),
@@ -580,6 +584,7 @@ class Configuration:
                 'adminOnly': False,
                 'version': self.version(app),
                 'redis_id': self.APP_REDIS_IDS.get(app),
+                'allow_all_users': self.APP_ALLOW_ALL_USERS.get(app, False),
             })
             if app == 'nextcloud':
                 self.liquid_apps.append({
