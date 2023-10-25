@@ -6,6 +6,12 @@
 - Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.17.2](https://github.com/liquidinvestigations/cluster/tree/v0.17.2)**
 
 ### New Features
+- Matrix:
+  - Added new system for end-to-end encrypted text messaging.
+  - Supports Web Client and Android/iOS applications (Element IM for Matrix)
+  - Requires new subdomains: `matrix.` and `matrix-ui.`
+  - Enabled by default; disable with `[apps]matrix=false`.
+  - Does not yet support Federation or Audio/Video conference.
 - Hoover:
   - Enabled browser-side and server-side caching of collection data and metadata.
     - This will drastically improve the loading times of all pages, for all users,
