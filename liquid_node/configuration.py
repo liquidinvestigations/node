@@ -231,6 +231,15 @@ class Configuration:
         self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=False)  # noqa: E501
         self.rocketchat_autologout_days = self.ini.getint('liquid', 'rocketchat_autologout_days', fallback=100)  # noqa: E501
 
+        # remove spaces from the comma separated list
+        self.matrix_federation_domains = ','.join([
+            x.strip()
+            for x in self.ini.get('matrix', 'federation_domain_whitelist', fallback='').strip().split(',')
+        ])
+        self.matrix_session_lifetime = self.ini.get('matrix', 'session_lifetime', fallback='168h')
+        self.matrix_media_lifetime = self.ini.get('matrix', 'media_lifetime', fallback='365d')
+        self.matrix_message_lifetime = self.ini.get('matrix', 'message_lifetime', fallback='365d')
+
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
         self.hoover_es_max_concurrent_shard_requests = self.ini.getint(
             'liquid', 'hoover_es_max_concurrent_shard_requests', fallback=''
@@ -415,7 +424,6 @@ class Configuration:
             'matrix_synapse': self.ini.getint('ports', 'matrix_synapse', fallback=9951),
             'matrix_element': self.ini.getint('ports', 'matrix_element', fallback=9952),
             'matrix_jitsi': self.ini.getint('ports', 'matrix_jitsi', fallback=9953),
-            'liquid_core_web_https': self.ini.getint('ports', 'liquid_core_web_https', fallback=9954),
         }
 
         self.port_lb = self.PORT_MAP['lb']
@@ -445,7 +453,6 @@ class Configuration:
         self.port_matrix_synapse = self.PORT_MAP['matrix_synapse']
         self.port_matrix_element = self.PORT_MAP['matrix_element']
         self.port_matrix_jitsi = self.PORT_MAP['matrix_jitsi']
-        self.port_liquid_core_web_https = self.PORT_MAP['liquid_core_web_https']
 
         # The Sentry settings
         self.liquid_version = self.get_node_version()

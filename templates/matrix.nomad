@@ -5,178 +5,9 @@ job "matrix" {
   type = "service"
   priority = 99
 
-  group "core-https-proxy" {
-
-    ${ continuous_reschedule() }
-    ${ group_disk() }
-
-    task "core-https-proxy" {
-      ${ task_logs() }
-
-      driver = "docker"
-
-      affinity {
-        attribute = "{% raw %}${meta.liquid_large_databases}{% endraw %}"
-        value     = "true"
-        weight    = -99
-      }
-
-      config {
-        image = "nginx:1.19"
-        args = ["bash", "/local/startup.sh"]
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/matrix/oidc-selfhosted-certificate:/data:ro",
-        ]
-        port_map {
-          https = 8080
-        }
-        labels {
-          liquid_task = "core-https-proxy"
-        }
-        memory_hard_limit = 1024
-      }
-
-      resources {
-        memory = 128
-        network {
-          mbits = 1
-          port "https" {}
-        }
-      }
-
-      template {
-        data = <<-EOF
-        #!/bin/bash
-        set -ex
-
-        cat /local/nginx.conf
-        nginx -c /local/nginx.conf
-        EOF
-        env = false
-        destination = "local/startup.sh"
-      }
-
-      template {
-        data = <<-EOF
-
-        daemon off;
-
-        {% if config.liquid_debug %}
-          error_log /dev/stderr debug;
-        {% else %}
-          error_log /dev/stderr info;
-        {% endif %}
-
-        worker_rlimit_nofile 8192;
-        worker_processes 1;
-        events {
-          worker_connections 4096;
-        }
-
-        http {
-          access_log  /dev/stdout;
-          default_type  application/octet-stream;
-          include       /etc/nginx/mime.types;
-
-          tcp_nopush   on;
-          server_names_hash_bucket_size 128;
-          sendfile on;
-          sendfile_max_chunk 4m;
-          aio threads;
-          limit_rate 66m;
-
-          upstream fabio {
-            server {{env "attr.unique.network.ip-address"}}:${config.port_lb};
-          }
-
-          server {
-            listen 8080 default_server ssl;
-            listen [::]:8080 default_server ssl;
-
-            ssl_certificate         /data/certs/nginx-selfsigned.crt;
-            ssl_certificate_key     /data/private/nginx-selfsigned.key;
-
-            server_name core-oidc.local;
-
-            proxy_http_version  1.1;
-            proxy_cache_bypass  $http_upgrade;
-            proxy_connect_timeout 159s;
-            proxy_send_timeout   150;
-            proxy_read_timeout   150;
-            proxy_buffer_size    64k;
-            proxy_buffers     16 32k;
-            proxy_busy_buffers_size 64k;
-            proxy_temp_file_write_size 64k;
-
-            proxy_set_header Upgrade           $http_upgrade;
-            proxy_set_header Connection        "upgrade";
-            proxy_set_header Host              $host;
-            proxy_set_header X-Real-IP         $remote_addr;
-            proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
-            proxy_set_header X-Forwarded-Host  $host;
-            proxy_set_header X-Forwarded-Port  $server_port;
-            proxy_pass_request_headers      on;
-
-            client_max_body_size 5M;
-
-            location  / {
-              proxy_pass http://fabio/_core;
-            }
-          }
-        }
-        EOF
-        destination = "local/nginx.conf"
-      }
-
-      service {
-        name = "core-https-proxy"
-        port = "https"
-        tags = ["fabio-:${config.port_liquid_core_web_https} proto=tcp"]
-        check {
-          name = "ping"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-        check_restart {
-          limit = 5
-          grace = "995s"
-        }
-      }
-    }
-  }
-
-
   group "synapse" {
     ${ group_disk() }
     ${ continuous_reschedule() }
-
-    # network {
-    #   mode = "bridge"
-
-    #   port "net-http" {
-    #     static = 8008
-    #     to     = 8008
-    #   }
-    # }
-
-    # service {
-    #   name = "cc-matrix-synapse-http"
-    #   port = "net-http"
-
-    #   # connect {
-    #   #   sidecar_service {
-    #   #     proxy {
-    #   #       upstreams {
-    #   #         destination_name = "cc-core-http"
-    #   #         local_bind_port  = 12345
-    #   #       }
-    #   #     }
-    #   #   }
-    #   # }
-    # }
 
     task "synapse" {
       # failed to write file
@@ -200,18 +31,10 @@ job "matrix" {
         }
         memory_hard_limit = 2000
         entrypoint = ["/bin/sh", "/local/startup.sh"]
-        extra_hosts = ["core-oidc.local:{% raw %}${attr.unique.network.ip-address}{% endraw %}"]
       }
       template {
         data = <<-EOFF
         echo "starting..."
-
-        ls -alh $SSL_CERT_FILE
-        ls -alh /core-nginx-certs
-
-        curl --version
-        until curl  https://core-oidc.local:${config.port_liquid_core_web_https}/o/.well-known/openid-configuration/ ; do sleep 5; echo waiting for upstream; done
-        echo https upstream found;
 
         for i in 1 2 3 4 5 6 7; do
           python /start.py || sleep 15
@@ -269,7 +92,7 @@ listeners:
     type: http
     x_forwarded: true
     resources:
-      - names: [client, openid]
+      - names: [client{% if config.matrix_federation_domains %}, federation{% endif %}]
         compress: false
 #   - port: 9009
 #     tls: false
@@ -298,7 +121,7 @@ form_secret: {{ with secret "liquid/matrix/form.secret" }}{{.Data.secret_key | t
 
 
 trusted_key_servers: []
-federation_domain_whitelist: []
+federation_domain_whitelist: [${config.matrix_federation_domains}]
 
 media_store_path: /data/media_store
 report_stats: false
@@ -307,6 +130,8 @@ require_auth_for_profile_requests: true
 limit_profile_requests_to_users_who_share_rooms: true
 allow_public_rooms_without_auth: false
 allow_public_rooms_over_federation: false
+allow_profile_lookup_over_federation: false
+allow_device_name_lookup_over_federation: false
 enable_registration: false
 enable_3pid_lookup: false
 
@@ -315,19 +140,19 @@ presence:
 retention:
   enabled: true
   default_policy:
-    min_lifetime: 7d
-    max_lifetime: 1y
-  allowed_lifetime_min: 7d
-  allowed_lifetime_max: 1y
+    min_lifetime: 1d
+    max_lifetime: ${config.matrix_message_lifetime}
+  allowed_lifetime_min: 1d
+  allowed_lifetime_max: ${config.matrix_message_lifetime}
   purge_jobs:
     - longest_max_lifetime: 30d
-      interval: 1d
+      interval: 4h
     - shortest_max_lifetime: 30d
       interval: 7d
 
 media_retention:
-  local_media_lifetime: 365d
-  remote_media_lifetime: 365d
+  local_media_lifetime: ${config.matrix_media_lifetime}
+  remote_media_lifetime: ${config.matrix_media_lifetime}
 
 auto_join_rooms:
   - "#welcome:matrix.${config.liquid_domain}"
@@ -336,11 +161,10 @@ auto_join_rooms:
 autocreate_auto_join_rooms: true
 autocreate_auto_join_rooms_federated: false
 autocreate_auto_join_room_preset: public_chat
-session_lifetime: 168h
-refresh_token_lifetime: 168h
-nonrefreshable_access_token_lifetime: 168h
-allow_profile_lookup_over_federation: false
-allow_device_name_lookup_over_federation: false
+
+session_lifetime: ${config.matrix_session_lifetime}
+refresh_token_lifetime: ${config.matrix_session_lifetime}
+nonrefreshable_access_token_lifetime: ${config.matrix_session_lifetime}
 
 oidc_providers:
   - idp_id: liquid_core
@@ -350,11 +174,10 @@ oidc_providers:
     pkce_method: never
     skip_verification: true
 
-    # issuer: "${config.liquid_core_url}/o/"
-    issuer: "https://core-oidc.local:${config.port_liquid_core_web_https}/o/"
-    token_endpoint: "https://core-oidc.local:${config.port_liquid_core_web_https}/o/token/"
-    userinfo_endpoint: "https://core-oidc.local:${config.port_liquid_core_web_https}/accounts/profile"
-    jwks_uri: "https://core-oidc.local:${config.port_liquid_core_web_https}/o/.well-known/jwks.json"
+    issuer: "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/"
+    token_endpoint: "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
+    userinfo_endpoint: "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile"
+    # jwks_uri: "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
 
     authorization_endpoint: "${config.liquid_core_url}/o/authorize/"
 
