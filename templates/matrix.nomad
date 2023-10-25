@@ -269,8 +269,15 @@ listeners:
     type: http
     x_forwarded: true
     resources:
-      - names: [client, federation]
+      - names: [client, openid]
         compress: false
+#   - port: 9009
+#     tls: false
+#     type: http
+#     x_forwarded: true
+#     resources:
+#       - names: [federation]
+#         compress: false
 database:
   name: psycopg2
   txn_limit: 1000
@@ -308,19 +315,36 @@ presence:
 retention:
   enabled: true
   default_policy:
-    min_lifetime: 1d
+    min_lifetime: 7d
     max_lifetime: 1y
-  allowed_lifetime_min: 1d
+  allowed_lifetime_min: 7d
   allowed_lifetime_max: 1y
   purge_jobs:
-    - longest_max_lifetime: 3d
-      interval: 12h
-    - shortest_max_lifetime: 3d
-      interval: 3d
+    - longest_max_lifetime: 30d
+      interval: 1d
+    - shortest_max_lifetime: 30d
+      interval: 7d
+
+media_retention:
+  local_media_lifetime: 365d
+  remote_media_lifetime: 365d
+
+auto_join_rooms:
+  - "#welcome:matrix.${config.liquid_domain}"
+  - "#maintenance:matrix.${config.liquid_domain}"
+  - "#feedback:matrix.${config.liquid_domain}"
+autocreate_auto_join_rooms: true
+autocreate_auto_join_rooms_federated: false
+autocreate_auto_join_room_preset: public_chat
+session_lifetime: 168h
+refresh_token_lifetime: 168h
+nonrefreshable_access_token_lifetime: 168h
+allow_profile_lookup_over_federation: false
+allow_device_name_lookup_over_federation: false
 
 oidc_providers:
   - idp_id: liquid_core
-    idp_name: "Liquid Investigations - click here"
+    idp_name: "Liquid Investigations - CLICK HERE"
     user_profile_method: "userinfo_endpoint"
     discover: false
     pkce_method: never
@@ -498,75 +522,6 @@ push:
           "traefik.enable=true",
           "traefik.frontend.rule=Host:matrix-ui.${liquid_domain}",
           "fabio-:${config.port_matrix_element} proto=tcp",
-        ]
-        check {
-          name = "http"
-          initial_status = "critical"
-          type = "http"
-          path = "/"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
-        }
-      }
-    }
-  }
-
-  group "jitsi-web" {
-    ${ group_disk() }
-    ${ continuous_reschedule() }
-
-    task "jitsi-web" {
-      constraint {
-        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-        operator = "is_set"
-      }
-
-      ${ task_logs() }
-      driver = "docker"
-      config {
-        image = "${config.image('jitsi-web')}"
-        volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/matrix/jitsi:/data",
-        ]
-        port_map {
-          http = 80
-        }
-        labels {
-          liquid_task = "matrix_jitsi"
-        }
-        memory_hard_limit = 2000
-      }
-
-      env {
-        matrix_GITHUB_SERVER = "https://github.com"
-      }
-
-      template {
-        data = <<-EOF
-
-        matrix_SECRET_SKIP_VERIFY = "true"
-
-        EOF
-        destination = "local/matrix.env"
-        env = true
-      }
-
-      resources {
-        memory = 450
-        cpu = 150
-        network {
-          mbits = 1
-          port "http" {}
-        }
-      }
-
-      service {
-        name = "matrix-jitsi"
-        port = "http"
-        tags = [
-          "traefik.enable=true",
-          "traefik.frontend.rule=Host:jitsi.${liquid_domain}",
-          "fabio-:${config.port_matrix_jitsi} proto=tcp",
         ]
         check {
           name = "http"
