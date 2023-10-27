@@ -555,6 +555,11 @@ class Configuration:
                         'explode_table_rows',
                         fallback=False,
                     ),
+                    'unpack_tables_enabled': self.ini.getboolean(
+                        key,
+                        'unpack_tables_enabled',
+                        fallback=False,
+                    ),
                     's3_blobs_address': self.ini.get(
                         key,
                         's3_blobs_address',
