@@ -168,6 +168,7 @@ job "hoover" {
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
+        HOOVER_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud27}"
         SNOOP_HOST = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
 
