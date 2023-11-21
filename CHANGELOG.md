@@ -2,8 +2,13 @@
 
 ## Unreleased
 
+
+---
+
+## v0.27.1 (2023-11-21)
+
 ### Upgrade Notes
-- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.17.2](https://github.com/liquidinvestigations/cluster/tree/v0.17.2)**
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.18.0](https://github.com/liquidinvestigations/cluster/tree/v0.18.0)**
 
 ### New Features
 - Matrix:
