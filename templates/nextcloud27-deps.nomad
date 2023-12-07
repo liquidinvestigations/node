@@ -190,6 +190,7 @@ job "nextcloud27-deps" {
       }
       env {
         aliasgroup1 = "${config.liquid_http_protocol}://nextcloud-instance-2.${config.liquid_domain}"
+        extra_params = "--o:ssl.enable=false --o:ssl.termination=true"
       }
       resources {
         cpu = 500
