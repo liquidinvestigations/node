@@ -169,43 +169,43 @@ job "nextcloud27-deps" {
       port "collabora" {
         to = 9980
       }
-      task "nextcloud27-collabora" {
-        ${ task_logs() }
+    }
+    task "nextcloud27-collabora" {
+      ${ task_logs() }
 
-        constraint {
-          attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
-          operator = "is_set"
-        }
-
-        driver = "docker"
-        ${ shutdown_delay() }
-        config {
-          image = "collabora/code:23.05.5.4.1"
-          labels {
-            liquid_task = "nextcloud27-collabora"
-          }
-          memory_hard_limit = 750
-          ports = ["collabora"]
-        }
-        env {
-          aliasgroup1 = "${config.liquid_http_protocol}://nextcloud-instance-2.${config.liquid_domain}"
-        }
-        resources {
-          cpu = 500
-          memory = 500
-        }
+      constraint {
+        attribute = "{% raw %}${meta.liquid_volumes}{% endraw %}"
+        operator = "is_set"
       }
-      service {
-        name = "nextcloud27-collabora"
-        port = "collabora"
-        tags = ["fabio-:9949 proto=tcp"]
-        check {
-          name = "tcp"
-          initial_status = "critical"
-          type = "tcp"
-          interval = "${check_interval}"
-          timeout = "${check_timeout}"
+
+      driver = "docker"
+      ${ shutdown_delay() }
+      config {
+        image = "collabora/code:23.05.5.4.1"
+        labels {
+          liquid_task = "nextcloud27-collabora"
         }
+        memory_hard_limit = 750
+        ports = ["collabora"]
+      }
+      env {
+        aliasgroup1 = "${config.liquid_http_protocol}://nextcloud-instance-2.${config.liquid_domain}"
+      }
+      resources {
+        cpu = 500
+        memory = 500
+      }
+    }
+    service {
+      name = "nextcloud27-collabora"
+      port = "collabora"
+      tags = ["fabio-:9949 proto=tcp"]
+      check {
+        name = "tcp"
+        initial_status = "critical"
+        type = "tcp"
+        interval = "${check_interval}"
+        timeout = "${check_timeout}"
       }
     }
   }
