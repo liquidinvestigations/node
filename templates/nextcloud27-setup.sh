@@ -43,6 +43,7 @@ run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTI
 run_as 'php occ config:app:set sociallogin hide_default_login --value=1'
 run_as 'php occ config:app:set sociallogin update_profile_on_login --value=1'
 run_as 'php occ config:system:set social_login_auto_redirect --value=true'
+run as 'php occ config:system:set allow_local_remote_servers --value true --type bool'
 
 
 run_as 'php occ app:install calendar'
