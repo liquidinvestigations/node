@@ -186,7 +186,7 @@ job "hoover-migrate" {
           force_pull = true
         {% endif %}
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/ui-build-v0.21/out:/opt/hoover/ui/out",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/hoover/ui-build-v0.21/out:/opt/hoover/ui/out-nginx",
           ${hoover_ui_src_repo}
           ${hoover_ui_pages_repo}
           ${hoover_ui_styles_repo}
@@ -202,6 +202,7 @@ job "hoover-migrate" {
         cp -v /local/.env.local .
         env
         npm run build
+        cp -a /opt/hoover/ui/out/. /opt/hoover/ui/out-nginx
         EOF
         env = false
         destination = "local/startup.sh"
