@@ -1,6 +1,13 @@
 # Liquid Investigations Change Log
 
-## Unreleased
+## v0.27.3 (2023-12-13)
+
+### Improvements
+- Hoover: sped up `checkdata` command and added optional parameters for recovering from S3 blob data loss.
+- Hoover: UI now keeps all the document sub-tabs loaded in the browser, resulting in quicker switching between Text, Meta and other tabs.
+
+### Bug Fixes
+- Hoover: Fixed UI bug where a red "request cancelled" error would appear immediately after searching.
 
 
 ---
