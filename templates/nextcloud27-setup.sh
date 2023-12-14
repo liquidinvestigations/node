@@ -54,7 +54,7 @@ run_as 'php occ app:install contacts'
 run_as 'php occ app:install onlyoffice'
 run_as 'php occ app:install richdocumentscode'
 run_as 'php occ app:install richdocuments'
-run_as 'php occ app:enable richdocuments'
+run_as 'php occ app:enable richdocumentscode'
 run_as 'php occ app:enable richdocuments'
 run as 'php occ config:app:delete core shareapi_allow_links --value="no"'
 
