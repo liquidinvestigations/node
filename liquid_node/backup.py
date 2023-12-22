@@ -120,23 +120,25 @@ def restore_collection(ctx, src, name, blobs, es, pg, original):
     src = Path(src).resolve()
     assert src.is_dir(), 'source is not a directory'
 
+    # ... do " or False" to avoid this err:
+    # TypeError: unsupported operand type(s) for |=: 'bool' and 'NoneType
     if es:
-        restored_something |= restore_es(src, name, '/_es', SNOOP_ES_ALLOC)
+        restored_something |= restore_es(src, name, '/_es', SNOOP_ES_ALLOC) or False
     else:
         log.info('skipped restore es')
 
     if blobs:
-        restored_something |= restore_collection_blobs(src, name)
+        restored_something |= restore_collection_blobs(src, name) or False
     else:
         log.info('skipped restore blobs')
 
     if original:
-        restored_something |= restore_collection_original(src, name)
+        restored_something |= restore_collection_original(src, name) or False
     else:
         log.info('skipped restore original')
 
     if pg:
-        restored_something |= restore_collection_pg(src, name)
+        restored_something |= restore_collection_pg(src, name) or False
     else:
         log.info('skipped restore pg')
 

@@ -1,5 +1,8 @@
 # Liquid Investigations Change Log
 
+## v0.27.4 (2023-12-22)
+- Hoover: Fixed UI bug where filenames and path would appear truncated in the result list, for collections indexed before June 2023.
+
 ## v0.27.3 (2023-12-13)
 
 ### Improvements
