@@ -68,7 +68,13 @@ run_as 'php occ app:install calendar'
 run_as 'php occ app:install contacts'
 run_as 'php occ app:install onlyoffice'
 run_as 'php occ app:install richdocumentscode'
+run_as 'php occ app:install richdocuments'
 # run_as 'php occ config:app:delete core shareapi_allow_links --value="no"'
+
+run_as 'php occ config:system:set onlyoffice DocumentServerUrl --value $ONLYOFFICE_IP'
+run_as 'php occ config:system:set onlyoffice DocumentServerInternalUrl --value $ONLYOFFICE_IP'
+run_as 'php occ config:system:set onlyoffice StorageUrl --value $NEXTCLOUD_IP'
+run_as 'php occ config:system:set onlyoffice jwt_secret --value "secret"'
 
 # Run the server
 exec apache2-foreground

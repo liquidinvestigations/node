@@ -54,13 +54,12 @@ run_as 'php occ app:install contacts'
 run_as 'php occ app:install onlyoffice'
 run_as 'php occ app:install richdocumentscode'
 run_as 'php occ app:install richdocuments'
-run_as 'php occ app:enable richdocumentscode'
-run_as 'php occ app:enable richdocuments'
-run as 'php occ config:app:delete core shareapi_allow_links --value="no"'
+
+#run as 'php occ config:app:delete core shareapi_allow_links --value="no"'
 
 
-run_as 'php occ config:app:set richdocuments disable_certificate_verification --value="yes"'
-run_as 'php occ config:app:set richdocuments wopi_allowlist  --value="0.0.0.0\/0"'
-run_as 'php occ config:app:set richdocuments wopi_url  --value="http:\/\/localhost\/custom_apps\/richdocumentscode\/proxy.php?req="'
-run_as 'php occ richdocuments:activate-config'
+#run_as 'php occ config:app:set richdocuments disable_certificate_verification --value="yes"'
+#run_as 'php occ config:app:set richdocuments wopi_allowlist  --value="0.0.0.0\/0"'
+#run_as 'php occ config:app:set richdocuments wopi_url  --value="http:\/\/localhost\/custom_apps\/richdocumentscode\/proxy.php?req="'
+#run_as 'php occ richdocuments:activate-config'
 

@@ -433,6 +433,7 @@ class Configuration:
             'matrix_synapse': self.ini.getint('ports', 'matrix_synapse', fallback=9951),
             'matrix_element': self.ini.getint('ports', 'matrix_element', fallback=9952),
             'matrix_jitsi': self.ini.getint('ports', 'matrix_jitsi', fallback=9953),
+            'onlyoffice': self.ini.getint('ports', 'nextcloud27', fallback=9948),
         }
 
         self.port_lb = self.PORT_MAP['lb']
@@ -454,6 +455,7 @@ class Configuration:
         self.port_codimd = self.PORT_MAP['codimd']
         self.port_nextcloud = self.PORT_MAP['nextcloud']
         self.port_nextcloud27 = self.PORT_MAP['nextcloud27']
+        self.port_onlyoffice = self.PORT_MAP['onlyoffice']
         self.port_hoover = self.PORT_MAP['hoover']
         self.port_dokuwiki = self.PORT_MAP['dokuwiki']
         self.port_rocketchat = self.PORT_MAP['rocketchat']

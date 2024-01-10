@@ -162,15 +162,63 @@ job "nextcloud27-deps" {
       }
     }
   }
-  group "nextcloud27-office" {
+
+   # using the built-in code server for testing for now
+
+   group "nextcloud27-office" {
+     ${ group_disk() }
+     ${ continuous_reschedule() }
+     network {
+       port "collabora" {
+         to = 9980
+       }
+     }
+     task "nextcloud27-collabora" {
+       ${ task_logs() }
+
+       driver = "docker"
+       ${ shutdown_delay() }
+       config {
+         image = "collabora/code:23.05.5.4.1"
+         labels {
+           liquid_task = "nextcloud27-collabora"
+         }
+         memory_hard_limit = 750
+         ports = ["collabora"]
+       }
+       env {
+         aliasgroup1 = "${config.liquid_http_protocol}://nextcloud-instance-2.${config.liquid_domain}"
+         extra_params = "--o:ssl.enable=false --o:ssl.termination=true"
+       }
+       resources {
+         cpu = 500
+         memory = 500
+       }
+     }
+     service {
+       name = "nextcloud27-collabora"
+       port = "collabora"
+       tags = ["fabio-:9949 proto=tcp"]
+       check {
+         name = "tcp"
+         initial_status = "critical"
+         type = "tcp"
+         interval = "${check_interval}"
+         timeout = "${check_timeout}"
+       }
+     }
+   }
+
+  group "nextcloud27-onlyoffice" {
     ${ group_disk() }
     ${ continuous_reschedule() }
     network {
-      port "collabora" {
-        to = 9980
+      port "http" {
+        to = 80
       }
     }
-    task "nextcloud27-collabora" {
+
+    task "nextcloud27-onlyoffice" {
       ${ task_logs() }
 
       constraint {
@@ -181,32 +229,40 @@ job "nextcloud27-deps" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "collabora/code:23.05.5.4.1"
+        image = "onlyoffice/documentserver:latest"
+        volumes = [
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/onlyoffice/document_data:/var/www/onlyoffice/Data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/onlyoffice/document_log:/var/log/onlyoffice",
+        ]
+        ports = [
+          "http",
+        ]
         labels {
-          liquid_task = "nextcloud27-collabora"
+          liquid_task = "nextcloud27-onlyoffice"
         }
         memory_hard_limit = 750
-        ports = ["collabora"]
       }
+
       env {
-        aliasgroup1 = "${config.liquid_http_protocol}://nextcloud-instance-2.${config.liquid_domain}"
-        extra_params = "--o:ssl.enable=false --o:ssl.termination=true"
+        JWT_SECRET = "secret"
       }
+
       resources {
         cpu = 500
         memory = 500
       }
-    }
-    service {
-      name = "nextcloud27-collabora"
-      port = "collabora"
-      tags = ["fabio-:9949 proto=tcp"]
-      check {
-        name = "tcp"
-        initial_status = "critical"
-        type = "tcp"
-        interval = "${check_interval}"
-        timeout = "${check_timeout}"
+
+      service {
+        name = "nextcloud27-onlyoffice"
+        port = "http"
+        tags = ["fabio-:${config.port_onlyoffice} proto=tcp"]
+        check {
+          name = "tcp"
+          initial_status = "critical"
+          type = "tcp"
+          interval = "${check_interval}"
+          timeout = "${check_timeout}"
+        }
       }
     }
   }
