@@ -25,7 +25,6 @@ job "nextcloud27" {
         memory_hard_limit = 4000
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/nextcloud/data:/var/www/html",
-          "/home/kjell/code/sociallogin/sociallogin:/var/www/html/custom_apps/sociallogin",
         ]
       }
 
