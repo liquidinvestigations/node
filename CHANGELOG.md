@@ -1,5 +1,10 @@
 # Liquid Investigations Change Log
 
+## v0.27.5 (2023-01-11)
+
+- Hoover: Fixed issue on servers with more than 50 collections where the search page would take 15s to load.
+
+
 ## v0.27.4 (2023-12-22)
 - Hoover: Fixed UI bug where filenames and path would appear truncated in the result list, for collections indexed before June 2023.
 

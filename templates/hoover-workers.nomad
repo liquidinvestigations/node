@@ -162,7 +162,7 @@ job "hoover-workers" {
         container_count=config.snoop_default_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=1800,
+        cpu_per_proc=1300,
       ) }
 
     ${ snoop_worker_group(
@@ -170,7 +170,7 @@ job "hoover-workers" {
         container_count=config.snoop_filesystem_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=800,
-        cpu_per_proc=1900,
+        cpu_per_proc=1300,
       ) }
 
     ${ snoop_worker_group(
@@ -178,7 +178,7 @@ job "hoover-workers" {
         container_count=config.snoop_ocr_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=500,
-        cpu_per_proc=2400,
+        cpu_per_proc=1300,
       ) }
 
     ${ snoop_worker_group(
@@ -186,7 +186,7 @@ job "hoover-workers" {
         container_count=config.snoop_digests_queue_worker_count,
         proc_count=config.snoop_container_process_count,
         mem_per_proc=800,
-        cpu_per_proc=2200,
+        cpu_per_proc=1300,
       ) }
 
     # HTTP CLIENT WORKER GROUPS
@@ -196,7 +196,7 @@ job "hoover-workers" {
         queue="tika",
         container_count=config.tika_count,
         proc_count=config.snoop_container_process_count,
-        cpu_per_proc=2000,
+        cpu_per_proc=1000,
       ) }
 
     {% if config.snoop_nlp_entity_extraction_enabled or config.snoop_nlp_language_detection_enabled %}
@@ -204,7 +204,7 @@ job "hoover-workers" {
         queue="entities",
         container_count=config.snoop_nlp_count,
         proc_count=config.snoop_container_process_count,
-        cpu_per_proc=2000,
+        cpu_per_proc=1300,
       ) }
     {% endif %}
 
@@ -213,7 +213,7 @@ job "hoover-workers" {
         queue="translate",
         container_count=config.snoop_translation_count,
         proc_count=config.snoop_container_process_count,
-        cpu_per_proc=2000,
+        cpu_per_proc=1300,
       ) }
     {% endif %}
 
@@ -222,7 +222,7 @@ job "hoover-workers" {
         queue="img-cls",
         container_count=config.snoop_image_classification_count,
         proc_count=config.snoop_container_process_count,
-        cpu_per_proc=2000,
+        cpu_per_proc=1300,
       ) }
     {% endif %}
 
@@ -231,7 +231,7 @@ job "hoover-workers" {
         queue="pdf-preview",
         container_count=config.snoop_pdf_preview_count,
         proc_count=config.snoop_container_process_count,
-        cpu_per_proc=2000,
+        cpu_per_proc=1300,
       ) }
     {% endif %}
 
@@ -240,7 +240,7 @@ job "hoover-workers" {
         queue="thumbnails",
         container_count=config.snoop_thumbnail_generator_count,
         proc_count=config.snoop_container_process_count,
-        cpu_per_proc=2000,
+        cpu_per_proc=1300,
       ) }
     {% endif %}
 
