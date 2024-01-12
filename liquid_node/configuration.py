@@ -74,6 +74,7 @@ class Configuration:
         'bbb': 'is the video conference frontend tool',
         'grist': 'is a collaborative spreadsheet / worksheet web app.',
         'prophecies': 'the app to conduct collaborative data validation and cleaning.',
+        'bbb': 'your visio app',
     }
 
     APP_REDIS_IDS = {
@@ -134,6 +135,7 @@ class Configuration:
         prophecies.Prophecies(),
         prophecies.Deps(),
         prophecies.Proxy(),
+        bbb.BBB(),
     ]
 
     def __init__(self):
@@ -456,7 +458,12 @@ class Configuration:
             'prophecies_web': self.ini.getint('ports', 'prophecies_web', fallback=9955),
             'prophecies_pg': self.ini.getint('ports', 'prophecies_pg', fallback=9956),
             'prophecies_nginx': self.ini.getint('ports', 'prophecies_nginx', fallback=9957),
+
+            'bbb_pg': self.ini.getint('ports', 'bbb_pg', fallback=9966),
+            'bbb_redis': self.ini.getint('ports', 'bbb_redis', fallback=9962),
+            'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9958),
         }
+
 
         self.port_lb = self.PORT_MAP['lb']
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
