@@ -45,8 +45,8 @@ job "nextcloud27" {
         data = <<-EOF
         HTTP_PROTO = "${config.liquid_http_protocol}"
         NEXTCLOUD_HOST = "nextcloud27.{{ key "liquid_domain" }}"
-        NEXTCLOUD_IP = "{{ env "attr.unique.network.ip-address" }}:${config.port_nextcloud27}"
-        ONLYOFFICE_IP = "{{ env "attr.unique.network.ip-address" }}:${config.port_onlyoffice}"
+        NEXTCLOUD_IP = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_nextcloud27}"
+        ONLYOFFICE_IP = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_onlyoffice}"
         ONLYOFFICE_URL = "${config.liquid_http_protocol}://onlyoffice.{{ key "liquid_domain" }}"
         NEXTCLOUD_TRUSTED_DOMAINS = "{{ env "attr.unique.network.ip-address" }} nextcloud27.${config.liquid_domain}"
         MYSQL_HOST = "{{ env "attr.unique.network.ip-address" }}:${config.port_nextcloud27_maria}"
