@@ -36,7 +36,7 @@ job "onlyoffice" {
         labels {
           liquid_task = "onlyoffice"
         }
-        memory_hard_limit = 750
+        memory_hard_limit = 16384
       }
 
       env {
@@ -45,7 +45,7 @@ job "onlyoffice" {
 
       resources {
         cpu = 500
-        memory = 500
+        memory = 4096
       }
 
       service {
