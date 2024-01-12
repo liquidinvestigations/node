@@ -13,7 +13,7 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, codimd, ci, wikijs, matrix
+    nextcloud, codimd, ci, wikijs, matrix, bbb
 
 
 log = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'rocketchat', 'nextcloud',
-                'codimd', 'matrix',)
+                'codimd', 'matrix', 'bbb',)
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -72,6 +72,7 @@ class Configuration:
         'nextcloud': 'has a file share system and a contact list of users.',
         'rocketchat': 'is the old chat app; will remove shortly.',
         'matrix': 'is the new chat app',
+        'bbb': 'your visio app',
     }
 
     APP_REDIS_IDS = {
@@ -83,6 +84,7 @@ class Configuration:
 
     APP_ALLOW_ALL_USERS = {
         'matrix': True,
+        'bbb': True,
     }
 
     ALL_JOBS = [
@@ -120,6 +122,7 @@ class Configuration:
         matrix.Matrix(),
         matrix.Deps(),
         matrix.Migrate(),
+        bbb.BBB(),
     ]
 
     def __init__(self):
@@ -239,6 +242,10 @@ class Configuration:
         self.matrix_session_lifetime = self.ini.get('matrix', 'session_lifetime', fallback='168h')
         self.matrix_media_lifetime = self.ini.get('matrix', 'media_lifetime', fallback='365d')
         self.matrix_message_lifetime = self.ini.get('matrix', 'message_lifetime', fallback='365d')
+        self.bbb_endpoint = self.ini.get('liquid', 'bbb_endpoint', fallback='')
+        self.bbb_secret = self.ini.get('liquid', 'bbb_secret', fallback='')
+        self.bbb_oidc_id = self.ini.get('liquid', 'bbb_oidc_id', fallback='')
+        self.bbb_oidc_secret = self.ini.get('liquid', 'bbb_oidc_secret', fallback='')
 
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
         self.hoover_es_max_concurrent_shard_requests = self.ini.getint(
@@ -424,7 +431,12 @@ class Configuration:
             'matrix_synapse': self.ini.getint('ports', 'matrix_synapse', fallback=9951),
             'matrix_element': self.ini.getint('ports', 'matrix_element', fallback=9952),
             'matrix_jitsi': self.ini.getint('ports', 'matrix_jitsi', fallback=9953),
+
+            'bbb_pg': self.ini.getint('ports', 'bbb_pg', fallback=9966),
+            'bbb_redis': self.ini.getint('ports', 'bbb_redis', fallback=9962),
+            'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9958),
         }
+
 
         self.port_lb = self.PORT_MAP['lb']
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
@@ -453,6 +465,11 @@ class Configuration:
         self.port_matrix_synapse = self.PORT_MAP['matrix_synapse']
         self.port_matrix_element = self.PORT_MAP['matrix_element']
         self.port_matrix_jitsi = self.PORT_MAP['matrix_jitsi']
+
+
+        self.port_bbb_pg = self.PORT_MAP['bbb_pg']
+        self.port_bbb_redis = self.PORT_MAP['bbb_redis']
+        self.port_bbb_gl = self.PORT_MAP['bbb_gl']
 
         # The Sentry settings
         self.liquid_version = self.get_node_version()
@@ -632,6 +649,11 @@ class Configuration:
 
         if name in ['dokuwiki', 'nextcloud']:
             return tag('liquid-' + name)
+
+        if name == 'bbb':
+            bbb_gl = tag('bbb-gl')
+            bbb_redis = tag('bbb-redis')
+            return f'greenlight: {bbb_gl}, redis: {bbb_redis}'
 
         if name == 'matrix':
             synapse = tag('matrix-synapse')
