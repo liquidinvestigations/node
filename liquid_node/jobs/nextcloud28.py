@@ -2,21 +2,21 @@ from liquid_node import jobs
 
 
 class Nextcloud(jobs.Job):
-    name = 'nextcloud27'
+    name = 'nextcloud28'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud'
     stage = 2
     core_oauth_apps = [
         {
-            'name': 'nextcloud27-app',
-            'subdomain': 'nextcloud27',
-            'vault_path': 'liquid/nextcloud27/app.auth.oauth2',
+            'name': 'nextcloud28-app',
+            'subdomain': 'nextcloud28',
+            'vault_path': 'liquid/nextcloud28/app.auth.oauth2',
             'callback': '/apps/sociallogin/custom_oauth2/liquid',
         },
         {
-            'name': 'nextcloud27-authproxy',
-            'subdomain': 'nextcloud27',
-            'vault_path': 'liquid/nextcloud27/auth.oauth2',
+            'name': 'nextcloud28-authproxy',
+            'subdomain': 'nextcloud28',
+            'vault_path': 'liquid/nextcloud28/auth.oauth2',
             'callback': '/oauth2/callback',
         },
         {
@@ -33,12 +33,12 @@ class Nextcloud(jobs.Job):
         },
     ]
     vault_secret_keys = [
-        'liquid/nextcloud27/nextcloud.maria',
-        'liquid/nextcloud27/nextcloud.admin',
-        'liquid/nextcloud27/minio.user',
-        'liquid/nextcloud27/minio.password',
-        'liquid/nextcloud27/minioext.user',
-        'liquid/nextcloud27/minioext.password',
+        'liquid/nextcloud28/nextcloud.maria',
+        'liquid/nextcloud28/nextcloud.admin',
+        'liquid/nextcloud28/minio.user',
+        'liquid/nextcloud28/minio.password',
+        'liquid/nextcloud28/minioext.user',
+        'liquid/nextcloud28/minioext.password',
     ]
     generate_oauth2_proxy_cookie = True
 
@@ -66,21 +66,21 @@ class Onlyoffice(jobs.Job):
 
 
 class Proxy(jobs.Job):
-    name = 'nextcloud27-proxy'
+    name = 'nextcloud28-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'nextcloud27'
+    app = 'nextcloud28'
     stage = 4
 
 
 class OfficeProxy(jobs.Job):
     name = 'onlyoffice-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'nextcloud27'
+    app = 'nextcloud28'
     stage = 5
 
 
 class Deps(jobs.Job):
-    name = 'nextcloud27-deps'
+    name = 'nextcloud28-deps'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'nextcloud27'
+    app = 'nextcloud28'
     stage = 1

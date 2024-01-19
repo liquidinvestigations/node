@@ -7,7 +7,7 @@ for u in $USERS; do
     LIQUID_USER=$(echo $u | sed -e 's/\r//')
     PW=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 32 ; echo '')
     command=$(cat <<DELIM
-${exec_command('nextcloud27:nextcloud27', 'su', '-p', 'www-data', '-s', '/bin/bash', '-c', '@export OC_PASS=$PW && php occ user:add --password-from-env --display-name=$LIQUID_USER $LIQUID_USER@')}
+${exec_command('nextcloud28:nextcloud28', 'su', '-p', 'www-data', '-s', '/bin/bash', '-c', '@export OC_PASS=$PW && php occ user:add --password-from-env --display-name=$LIQUID_USER $LIQUID_USER@')}
 DELIM
 )
     command=$(echo $command | sed 's,@,'\'',g')

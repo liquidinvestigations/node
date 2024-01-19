@@ -53,7 +53,7 @@
           SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_image-classification/classify-image"
         {% endif %}
 
-        SNOOP_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud27}"
+        SNOOP_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud28}"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
 
         SNOOP_SKIP_PROCESSING_MIME_TYPES = "${ config.snoop_skip_mime_types }"
@@ -106,7 +106,7 @@
             SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
 
-          {{- with secret "liquid/nextcloud27/nextcloud.admin" }}
+          {{- with secret "liquid/nextcloud28/nextcloud.admin" }}
               NEXTCLOUD_PW = {{.Data.secret_key | toJSON }}
           {{- end }}
         EOF
@@ -168,7 +168,7 @@ job "hoover" {
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
-        HOOVER_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud27}"
+        HOOVER_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud28}"
         SNOOP_HOST = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
 

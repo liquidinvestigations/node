@@ -27,8 +27,8 @@ job "onlyoffice" {
       config {
         image = "onlyoffice/documentserver:latest"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/onlyoffice/document_data:/var/www/onlyoffice/Data",
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud27/onlyoffice/document_log:/var/log/onlyoffice",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud28/onlyoffice/document_data:/var/www/onlyoffice/Data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud28/onlyoffice/document_log:/var/log/onlyoffice",
         ]
         ports = [
           "http",
