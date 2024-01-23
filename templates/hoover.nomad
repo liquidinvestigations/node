@@ -106,9 +106,11 @@
             SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
 
+        {% if config.is_app_enabled('nextcloud28') %}
           {{- with secret "liquid/nextcloud28/nextcloud.admin" }}
               NEXTCLOUD_PW = {{.Data.secret_key | toJSON }}
           {{- end }}
+        {% endif %}
         EOF
         destination = "local/snoop.env"
         env = true
