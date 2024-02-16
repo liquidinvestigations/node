@@ -153,17 +153,19 @@ job "bbb" {
       template {
         data = <<-EOF
         {{- with secret "liquid/bbb/bbb.postgres" }}
-          DATABASE_URL = "postgres://greenlight:{{.Data.secret_key | toJSON }}@{{env "attr.unique.network.ip-address"}}:${config.port_bbb_pg}/greenlight_production"
+        DATABASE_URL = "postgres://greenlight:{{.Data.secret_key | toJSON }}@{{env "attr.unique.network.ip-address"}}:${config.port_bbb_pg}/greenlight_production"
         {{- end }}
         REDIS_URL = "redis://{{ env "attr.unique.network.ip-address"}}:${config.port_bbb_redis}"
         BIGBLUEBUTTON_ENDPOINT = "${config.bbb_endpoint}"
         BIGBLUEBUTTON_SECRET = "${config.bbb_secret}"
         {{- with secret "liquid/bbb/bbb.secret_key_base" }}
-          SECRET_KEY_BASE = {{.Data.secret_key | toJSON }}
+        SECRET_KEY_BASE = {{.Data.secret_key | toJSON }}
         {{- end }}
         RELATIVE_URL_ROOT = "/"
-        OPENID_CONNECT_CLIENT_ID="${config.bbb_oidc_id}"
-        OPENID_CONNECT_CLIENT_SECRET="${config.bbb_oidc_secret}"
+        {{- with secret "liquid/bbb/auth.oauth2" }}
+        OPENID_CONNECT_CLIENT_ID = {{.Data.client_id | toJSON }}
+        OPENID_CONNECT_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
+        {{- end }}
         OPENID_CONNECT_ISSUER="https://${liquid_domain}"
         OPENID_CONNECT_REDIRECT="https://bbb.${liquid_domain}/"
         EOF

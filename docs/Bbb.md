@@ -67,7 +67,7 @@ To do that, after having followed the liquid-node installation instructions, ple
 liquid-core = liquidinvestigations/core:tmp-admin-show-oauth2
 ```
 Then run `liquid deploy` again.
-That version will match criteria for the BBB frontend OIDC + it will allow to have a new section "oauth2 provider" with manual access to add new oauth2 app.
+That version will match criteria for the BBB frontend OIDC.
 
 Now, to deploy liquid with the BBB frontend, you should get the credentials from your BBB server, to do so, connect to the BBB server and use the bbb-conf tool like this :
 `/usr/bin/bbb-conf --secret`
@@ -75,22 +75,6 @@ that will give you the BBB URL and SECRET to fill in the liquid.ini file, copy-p
 ```
 bbb_endpoint = YOUR_BBB_API_URL
 bbb_secret = YOUR_BBB_API_TOKEN
-```
-
-Then, you have to create a connect agent on the liquid admin interface, it's located at :
-`https://YOUR_LIQUID_FQDN/admin/oauth2_provider/application/`
-The info to fill in is as follows :
-```
-client type : 'confidential'
-authorization grant type : 'anthorization code'
-redirect URIs : https://bbb.LIQUID_DOMAIN/auth/openid_connect/callback
-algo HMAC with sha2-256
-```
-
-Creation of that agent will give you the two last info to fill in the liquid.ini, that's :
-```
-bbb_oidc_id = COPY_PASTE_FROM_LIQUID_ADMIN_INTERFACE
-bbb_oidc_secret = COPY_PASTE_FROM_LIQUID_ADMIN_INTERFACE
 ```
 
 **IMPORTANT**

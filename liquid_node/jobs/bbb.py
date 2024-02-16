@@ -10,4 +10,14 @@ class BBB(jobs.Job):
         "liquid/bbb/bbb.postgres",
         "liquid/bbb/bbb.secret_key_base",
     ]
+    core_oauth_apps = [
+        {
+            'name': 'bbb',
+            'subdomain': 'bbb',
+            'vault_path': 'liquid/bbb/auth.oauth2',
+            'callback': '/auth/openid_connect/callback',
+            'algo': 'HS256',
+            'noskip': True,
+        },
+    ]
 

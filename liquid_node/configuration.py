@@ -242,10 +242,8 @@ class Configuration:
         self.matrix_session_lifetime = self.ini.get('matrix', 'session_lifetime', fallback='168h')
         self.matrix_media_lifetime = self.ini.get('matrix', 'media_lifetime', fallback='365d')
         self.matrix_message_lifetime = self.ini.get('matrix', 'message_lifetime', fallback='365d')
-        self.bbb_endpoint = self.ini.get('bbb', 'bbb_endpoint', fallback='')
-        self.bbb_secret = self.ini.get('bbb', 'bbb_secret', fallback='')
-        self.bbb_oidc_id = self.ini.get('bbb', 'bbb_oidc_id', fallback='')
-        self.bbb_oidc_secret = self.ini.get('bbb', 'bbb_oidc_secret', fallback='')
+        self.bbb_endpoint = self.ini.get('liquid', 'bbb_endpoint', fallback='')
+        self.bbb_secret = self.ini.get('liquid', 'bbb_secret', fallback='')
 
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
         self.hoover_es_max_concurrent_shard_requests = self.ini.getint(
