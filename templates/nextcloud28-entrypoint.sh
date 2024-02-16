@@ -59,15 +59,43 @@ run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTI
 
 run_as 'php occ config:app:set sociallogin hide_default_login --value=1'
 run_as 'php occ config:app:set sociallogin update_profile_on_login --value=1'
-run_as 'php occ config:system:set social_login_auto_redirect --value=true'
 
+run_as 'php occ config:app:set settings profile_enabled_by_default --value=0'
+
+run_as 'php occ config:app:set dav generateBirthdayCalendar --value "no"'
+run_as 'php occ config:app:set dav sendEventReminders --value "no"'
+run_as 'php occ config:app:set dav sendReminders --value "no"'
+run_as 'php occ config:app:set dav sendInvitations --value "no"'
+
+run_as 'php occ config:app:set contacts allowSocialSync --value "no"'
+
+run_as 'php occ config:app:set core shareapi_allow_links --value="no"'
+run_as 'php occ config:app:set core shareapi_allow_resharing --value="no"'
+run_as 'php occ config:app:set core shareapi_allow_share_dialog_user_enumeration --value="no"'
+run_as 'php occ config:app:set core shareapi_restrict_user_enumeration_full_match --value="no"'
+
+run_as 'php occ config:app:set files_sharing incoming_server2server_share_enabled --value="no"'
+run_as 'php occ config:app:set files_sharing lookupServerEnabled --value="no"'
+run_as 'php occ config:app:set files_sharing lookupServerUploadEnabled --value="no"'
+run_as 'php occ config:app:set files_sharing outgoing_server2server_share_enabled --value="no"'
+
+run_as 'php occ config:system:set social_login_auto_redirect --value=true'
+run_as 'php occ config:system:set skeletondirectory'
 
 run_as 'php occ app:install calendar'
+run_as 'php occ app:install polls'
 run_as 'php occ app:install contacts'
 run_as 'php occ app:install onlyoffice'
 run_as 'php occ app:install richdocumentscode'
 run_as 'php occ app:install richdocuments'
-# run_as 'php occ config:app:delete core shareapi_allow_links --value="no"'
+
+run_as 'php occ app:disable dashboard'
+run_as 'php occ app:disable nextcloud_announcements'
+run_as 'php occ app:disable firstrunwizard'
+run_as 'php occ app:disable weather_status'
+run_as 'php occ app:disable sharebymail'
+run_as 'php occ app:disable federation'
+run_as 'php occ app:disable updatenotification'
 
 run_as 'php occ config:system:set onlyoffice DocumentServerUrl --value $ONLYOFFICE_URL'
 run_as 'php occ config:system:set onlyoffice DocumentServerInternalUrl --value $ONLYOFFICE_IP'

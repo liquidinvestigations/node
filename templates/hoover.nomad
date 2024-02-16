@@ -211,6 +211,27 @@ job "hoover" {
             SENTRY_ENVIRONMENT = "${config.sentry_environment}"
             SENTRY_RELEASE = "${config.sentry_version_hoover_search}${config.sentry_release}"
           {% endif %}
+          {% if config.snoop_translation_enabled %}
+            TRANSLATION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_nlp_entity_extraction_enabled %}
+            NLP_ENTITY_EXTRACTION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_nlp_language_detection_enabled %}
+            NLP_LANGUAGE_DETECTION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_image_classification_object_detection_enabled %}
+            OBJECT_DETECTION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_image_classification_classify_images_enabled %}
+            IMAGE_CLASSIFICATION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_thumbnail_generator_enabled %}
+            THUMBNAIL_GENERATOR_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_pdf_preview_enabled %}
+            PDF_PREVIEW_ENABLED = "true"
+          {% endif %}
 
         EOF
         destination = "local/hoover.env"
