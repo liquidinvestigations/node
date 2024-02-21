@@ -4,7 +4,7 @@ from liquid_node import jobs
 class Nextcloud(jobs.Job):
     name = 'nextcloud28'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'nextcloud'
+    app = 'nextcloud28'
     stage = 2
     core_oauth_apps = [
         {

@@ -7,6 +7,21 @@ chmod -R 775 /var/www/html
 # Let /entrypoint.sh not run apache
 sed -i 's/exec "$@"//g' /entrypoint.sh
 
+# create file to override config
+cat > /var/www/html/config/liquid.override.config.php << 'DELIM'
+<?php
+$CONFIG = array (
+  'dbhost' =>  getenv('MYSQL_HOST'),
+  'trusted_domains' => [
+                    "localhost",
+                    getenv('NEXTCLOUD_HOST'),
+                    getenv('LIQUID_BASE_IP')
+],
+  'dbname' => getenv('MYSQL_DATABASE'),
+  'dbpassword' => getenv('MYSQL_PASSWORD'),
+);
+DELIM
+
 # Launch canonical entrypoint
 /entrypoint.sh apache2-foreground
 
@@ -28,6 +43,7 @@ run_as() {
     fi
 }
 
+run_as 'php occ config:system:set dbhost --value $MYSQL_HOST'
 run_as 'php occ app:enable sociallogin'
 
 OAUTH_SETTINGS=$(cat << DELIM
@@ -55,6 +71,7 @@ DELIM
 
 run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTINGS"
 
+
 # run_as 'php occ config:app:set sociallogin auto_create_groups --value=1'
 
 run_as 'php occ config:app:set sociallogin hide_default_login --value=1'
@@ -81,6 +98,7 @@ run_as 'php occ config:app:set files_sharing outgoing_server2server_share_enable
 
 run_as 'php occ config:system:set social_login_auto_redirect --value=true'
 run_as 'php occ config:system:set skeletondirectory'
+run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTINGS"
 
 run_as 'php occ app:install calendar'
 run_as 'php occ app:install polls'
@@ -97,10 +115,10 @@ run_as 'php occ app:disable sharebymail'
 run_as 'php occ app:disable federation'
 run_as 'php occ app:disable updatenotification'
 
-run_as 'php occ config:system:set onlyoffice DocumentServerUrl --value $ONLYOFFICE_URL'
-run_as 'php occ config:system:set onlyoffice DocumentServerInternalUrl --value $ONLYOFFICE_IP'
-run_as 'php occ config:system:set onlyoffice StorageUrl --value $NEXTCLOUD_IP'
-run_as 'php occ config:system:set onlyoffice jwt_secret --value "secret"'
+run_as 'php occ config:app:set onlyoffice DocumentServerUrl --value $ONLYOFFICE_URL'
+run_as 'php occ config:app:set onlyoffice DocumentServerInternalUrl --value $ONLYOFFICE_IP'
+run_as 'php occ config:app:set onlyoffice StorageUrl --value $NEXTCLOUD_IP'
+run_as 'php occ config:app:set onlyoffice jwt_secret --value "secret"'
 
 # Run the server
 exec apache2-foreground
