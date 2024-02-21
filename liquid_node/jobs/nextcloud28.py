@@ -19,18 +19,6 @@ class Nextcloud(jobs.Job):
             'vault_path': 'liquid/nextcloud28/auth.oauth2',
             'callback': '/oauth2/callback',
         },
-        {
-            'name': 'onlyoffice-app',
-            'subdomain': 'onlyoffice',
-            'vault_path': 'liquid/onlyoffice/app.auth.oauth2',
-            'callback': '/login/liquid/callback',
-        },
-        {
-            'name': 'onlyoffice-authproxy',
-            'subdomain': 'onlyoffice',
-            'vault_path': 'liquid/onlyoffice/auth.oauth2',
-            'callback': '/oauth2/callback',
-        },
     ]
     vault_secret_keys = [
         'liquid/nextcloud28/nextcloud.maria',
@@ -43,40 +31,11 @@ class Nextcloud(jobs.Job):
     generate_oauth2_proxy_cookie = True
 
 
-class Onlyoffice(jobs.Job):
-    name = 'onlyoffice'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'onlyoffice'
-    stage = 2
-    core_oauth_apps = [
-        {
-            'name': 'onlyoffice-app',
-            'subdomain': 'onlyoffice',
-            'vault_path': 'liquid/onlyoffice/app.auth.oauth2',
-            'callback': '/login/liquid/callback',
-        },
-        {
-            'name': 'onlyoffice-authproxy',
-            'subdomain': 'onlyoffice',
-            'vault_path': 'liquid/onlyoffice/auth.oauth2',
-            'callback': '/oauth2/callback',
-        },
-    ]
-    generate_oauth2_proxy_cookie = True
-
-
 class Proxy(jobs.Job):
     name = 'nextcloud28-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud28'
     stage = 4
-
-
-class OfficeProxy(jobs.Job):
-    name = 'onlyoffice-proxy'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'nextcloud28'
-    stage = 5
 
 
 class Deps(jobs.Job):

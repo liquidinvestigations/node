@@ -103,7 +103,6 @@ run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTI
 run_as 'php occ app:install calendar'
 run_as 'php occ app:install polls'
 run_as 'php occ app:install contacts'
-run_as 'php occ app:install onlyoffice'
 run_as 'php occ app:install richdocumentscode'
 run_as 'php occ app:install richdocuments'
 
@@ -114,11 +113,6 @@ run_as 'php occ app:disable weather_status'
 run_as 'php occ app:disable sharebymail'
 run_as 'php occ app:disable federation'
 run_as 'php occ app:disable updatenotification'
-
-run_as 'php occ config:app:set onlyoffice DocumentServerUrl --value $ONLYOFFICE_URL'
-run_as 'php occ config:app:set onlyoffice DocumentServerInternalUrl --value $ONLYOFFICE_IP'
-run_as 'php occ config:app:set onlyoffice StorageUrl --value $NEXTCLOUD_IP'
-run_as 'php occ config:app:set onlyoffice jwt_secret --value "secret"'
 
 # Run the server
 exec apache2-foreground
