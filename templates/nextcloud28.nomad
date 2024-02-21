@@ -21,6 +21,9 @@ job "nextcloud28" {
         labels {
           liquid_task = "nextcloud28"
         }
+        extra_hosts = [
+          "nextcloud28.${config.liquid_domain}:127.0.0.1"
+        ]
         memory_hard_limit = 4000
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud28/nextcloud/data:/var/www/html",
