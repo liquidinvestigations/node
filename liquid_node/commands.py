@@ -211,7 +211,7 @@ def create_oauth2_app(app):
     cb = config.app_url(subdomain) + app['callback']
     cmd = ['./manage.py', 'createoauth2app', app['name'], cb]
     if 'noskip' in app:
-        cmd.append(f'--noskip={app["noskip"]}')
+        cmd.append(f'--noskip')
     if 'algo' in app:
         cmd.append(f'--algo={app["algo"]}')
 
