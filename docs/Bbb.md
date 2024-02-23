@@ -54,7 +54,3 @@ that will give you the BBB URL and SECRET to fill in the liquid.ini file, copy-p
 bbb_endpoint = YOUR_BBB_API_URL
 bbb_secret = YOUR_BBB_API_TOKEN
 ```
-
-**IMPORTANT**
-You can now connect to the 'greenlight' (the BBB frontend) interface with your liquid users ! But the users HAVE to have a first name and surname with at least 2 characters. Otherwise, you will get an error.
-That issue is adressed and we're looking into fixing it

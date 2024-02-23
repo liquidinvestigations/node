@@ -649,9 +649,7 @@ class Configuration:
             return tag('liquid-' + name)
 
         if name == 'bbb':
-            bbb_gl = tag('bbb-gl')
-            bbb_redis = tag('bbb-redis')
-            return f'greenlight: {bbb_gl}, redis: {bbb_redis}'
+            return tag('bbb-gl')
 
         if name == 'matrix':
             synapse = tag('matrix-synapse')

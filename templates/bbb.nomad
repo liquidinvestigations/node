@@ -166,8 +166,8 @@ job "bbb" {
         OPENID_CONNECT_CLIENT_ID = {{.Data.client_id | toJSON }}
         OPENID_CONNECT_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
-        OPENID_CONNECT_ISSUER="https://${liquid_domain}"
-        OPENID_CONNECT_REDIRECT="https://bbb.${liquid_domain}/"
+        OPENID_CONNECT_ISSUER="${config.liquid_http_protocol}://${liquid_domain}"
+        OPENID_CONNECT_REDIRECT="${config.liquid_http_protocol}://bbb.${liquid_domain}/"
         EOF
         destination = "local/greenlight.env"
         env = true

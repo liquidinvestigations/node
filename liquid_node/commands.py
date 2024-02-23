@@ -210,6 +210,11 @@ def create_oauth2_app(app):
     subdomain = app.get('subdomain', app.get('name'))
     cb = config.app_url(subdomain) + app['callback']
     cmd = ['./manage.py', 'createoauth2app', app['name'], cb]
+    if 'noskip' in app:
+        cmd.append(f'--noskip={app["noskip"]}')
+    if 'algo' in app:
+        cmd.append(f'--algo={app["algo"]}')
+
     output = retry()(docker.exec_)('liquid:core', *cmd)
     tokens = json.loads(output)
     vault.set(app['vault_path'], tokens)
