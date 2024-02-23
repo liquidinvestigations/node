@@ -72,7 +72,7 @@ class Configuration:
         'nextcloud': 'has a file share system and a contact list of users.',
         'rocketchat': 'is the old chat app; will remove shortly.',
         'matrix': 'is the new chat app',
-        'bbb': 'your visio app',
+        'bbb': 'is the video conference frontend tool',
     }
 
     APP_REDIS_IDS = {
