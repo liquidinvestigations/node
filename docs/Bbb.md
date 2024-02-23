@@ -23,20 +23,7 @@ Regarding networking, the server has to have :
 **This documentation will assume your BBB server has a unique public IP**, but you SHOULD protect your BBB server the same way your Liquid instance is, so if all traffic to Liquid is tunneled via a VPN, your traffic to BBB should do the same ; also, BBB software will try and detect itself its public IP, so the server is better with only one IP.
 If you move apart from that assumption (server with unique public IP) in any way, please refer to official BBB documentation, otherwise functional BBB server is not guaranteed.
 
-Install latest docker on your server :
-```bash
-apt-get update
-apt-get install ca-certificates curl
-install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-chmod a+r /etc/apt/keyrings/docker.asc
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update
-apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
+Install latest docker on your server using `curl https://get.docker.com/ | sudo bash`
 as per the docker doc recommands, you can try and assure Docker is well installed by running :
 `docker run hello-world`
 
@@ -60,15 +47,6 @@ If this is not the case, please refer to official BBB documentation.
 
 ### Deploy liquid with the BBB frontend (Greenlight)
 
-As of now, we have to rely on a specific branch from liquid-core to deploy liquid-node with BBB enabled.
-To do that, after having followed the liquid-node installation instructions, please create a versions.ini file at the root of liquid-node, with following content :
-```
-[versions]    
-liquid-core = liquidinvestigations/core:tmp-admin-show-oauth2
-```
-Then run `liquid deploy` again.
-That version will match criteria for the BBB frontend OIDC.
-
 Now, to deploy liquid with the BBB frontend, you should get the credentials from your BBB server, to do so, connect to the BBB server and use the bbb-conf tool like this :
 `/usr/bin/bbb-conf --secret`
 that will give you the BBB URL and SECRET to fill in the liquid.ini file, copy-paste them as follows :
@@ -79,3 +57,4 @@ bbb_secret = YOUR_BBB_API_TOKEN
 
 **IMPORTANT**
 You can now connect to the 'greenlight' (the BBB frontend) interface with your liquid users ! But the users HAVE to have a first name and surname with at least 2 characters. Otherwise, you will get an error.
+That issue is adressed and we're looking into fixing it
