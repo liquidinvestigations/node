@@ -74,7 +74,7 @@ class Configuration:
         'bbb': 'is the video conference frontend tool',
         'grist': 'is a collaborative spreadsheet / worksheet web app.',
         'prophecies': 'the app to conduct collaborative data validation and cleaning.',
-        'bbb': 'your visio app',
+        'bbb': 'is the video conference frontend tool',
     }
 
     APP_REDIS_IDS = {
