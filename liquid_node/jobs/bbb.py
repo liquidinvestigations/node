@@ -13,11 +13,23 @@ class BBB(jobs.Job):
     core_oauth_apps = [
         {
             'name': 'bbb',
-            'subdomain': 'bbb',
             'vault_path': 'liquid/bbb/auth.oauth2',
+            'callback': '/oauth2/callback',
+        },
+        {
+            'name': 'bbb-internal',
+            'subdomain': 'bbb',
+            'vault_path': 'liquid/bbb/openid.oauth2',
             'callback': '/auth/openid_connect/callback',
             'algo': 'HS256',
             'noskip': True,
         },
     ]
+    generate_oauth2_proxy_cookie = True
 
+
+class Proxy(jobs.Job):
+    name = 'bbb-proxy'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'bbb'
+    stage = 5

@@ -123,6 +123,7 @@ class Configuration:
         matrix.Deps(),
         matrix.Migrate(),
         bbb.BBB(),
+        bbb.Proxy(),
     ]
 
     def __init__(self):

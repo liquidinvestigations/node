@@ -162,7 +162,7 @@ job "bbb" {
         SECRET_KEY_BASE = {{.Data.secret_key | toJSON }}
         {{- end }}
         RELATIVE_URL_ROOT = "/"
-        {{- with secret "liquid/bbb/auth.oauth2" }}
+        {{- with secret "liquid/bbb/openid.oauth2" }}
         OPENID_CONNECT_CLIENT_ID = {{.Data.client_id | toJSON }}
         OPENID_CONNECT_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
@@ -199,11 +199,7 @@ job "bbb" {
       service {
         name = "bbb-gl"
         port = "bbb-gl"
-        tags = [
-        "traefik.enable=true",
-        "traefik.frontend.rule=Host:bbb.${liquid_domain}",
-        "fabio-:${config.port_bbb_gl} proto=tcp"
-        ]
+        tags = ["fabio-:${config.port_bbb_gl} proto=tcp"]
         check {
           name = "bbb-gl"
           initial_status = "critical"
