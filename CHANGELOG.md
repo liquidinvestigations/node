@@ -1,5 +1,9 @@
 # Liquid Investigations Change Log
 
+## v0.27.6 (2023-01-12)
+
+- Hoover: Fixed issue where the search page URL would be corrupted after selecting a result and refreshing.
+
 ## v0.27.5 (2023-01-11)
 
 - Hoover: Fixed issue on servers with more than 50 collections where the search page would take 15s to load.
