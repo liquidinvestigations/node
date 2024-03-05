@@ -33,7 +33,8 @@ Options used :
 `-s` is the name your BBB server will be configured with
 `-v` is the BBB software version you're querying
 ```
-wget -qO- https://raw.githubusercontent.com/bigbluebutton/bbb-install/v2.7.x-release/bbb-install.sh | bash -s -- -v focal-270 -s YOUR_SERVER_HOSTNAME -e email_for_letsencrypt_certbot@your_domain.org
+wget -q https://raw.githubusercontent.com/bigbluebutton/bbb-install/v2.7.x-release/bbb-install.sh
+bash ./bbb-install.sh -v focal-270 -s YOUR_SERVER_HOSTNAME -e email_for_letsencrypt_certbot@your_domain.org
 echo 'disableRecordingDefault=true' >>  /etc/bigbluebutton/bbb-web.properties
 echo 'breakoutRoomsRecord=false' >> /etc/bigbluebutton/bbb-web.properties
 /usr/bin/bbb-conf --restart
