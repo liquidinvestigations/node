@@ -108,6 +108,11 @@ run_as 'php occ app:enable richdocumentscode'
 run_as 'php occ app:install richdocuments'
 run_as 'php occ app:enable richdocuments'
 
+run_as 'php occ config:app:set richdocuments disable_certificate_verification --value="yes"'
+# http://nextcloud28.joseph.alt-f4.ro/custom_apps/richdocumentscode/proxy.php?req=/hosting/discovery
+run_as 'php occ config:app:set richdocuments public_wopi_url --value=http://nextcloud28.liquid.example.org/custom_apps/richdocumentscode/proxy.php?req='
+run_as 'php occ config:app:set richdocuments wopi_url --value=http://nextcloud28.liquid.example.org/custom_apps/richdocumentscode/proxy.php?req='
+
 run_as 'php occ app:disable dashboard'
 run_as 'php occ app:disable nextcloud_announcements'
 run_as 'php occ app:disable firstrunwizard'

@@ -117,6 +117,8 @@ class Configuration:
         nextcloud28.Nextcloud(),
         nextcloud28.Proxy(),
         nextcloud28.Deps(),
+        nextcloud28.Collabora(),
+        nextcloud28.CollaboraProxy(),
         codimd.Codimd(),
         codimd.Deps(),
         codimd.Proxy(),
@@ -419,6 +421,7 @@ class Configuration:
             'codimd': self.ini.getint('ports', 'codimd', fallback=9989),
             'nextcloud': self.ini.getint('ports', 'nextcloud', fallback=9996),
             'nextcloud28': self.ini.getint('ports', 'nextcloud28', fallback=9968),
+            'collabora': self.ini.getint('ports', 'collabora', fallback=9948),
             'hoover': self.ini.getint('ports', 'hoover', fallback=9994),
             'dokuwiki': self.ini.getint('ports', 'dokuwiki', fallback=9995),
             'rocketchat': self.ini.getint('ports', 'rocketchat', fallback=9980),
@@ -454,6 +457,7 @@ class Configuration:
         self.port_codimd = self.PORT_MAP['codimd']
         self.port_nextcloud = self.PORT_MAP['nextcloud']
         self.port_nextcloud28 = self.PORT_MAP['nextcloud28']
+        self.port_collabora = self.PORT_MAP['collabora']
         self.port_hoover = self.PORT_MAP['hoover']
         self.port_dokuwiki = self.PORT_MAP['dokuwiki']
         self.port_rocketchat = self.PORT_MAP['rocketchat']

@@ -31,11 +31,40 @@ class Nextcloud(jobs.Job):
     generate_oauth2_proxy_cookie = True
 
 
+class Collabora(jobs.Job):
+    name = 'collabora'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'collabora'
+    stage = 2
+    core_oauth_apps = [
+        {
+            'name': 'collabora-app',
+            'subdomain': 'collabora',
+            'vault_path': 'liquid/collabora/app.auth.oauth2',
+            'callback': '/login/liquid/callback',
+        },
+        {
+            'name': 'collabora-authproxy',
+            'subdomain': 'collabora',
+            'vault_path': 'liquid/collabora/auth.oauth2',
+            'callback': '/oauth2/callback',
+        },
+    ]
+    generate_oauth2_proxy_cookie = True
+
+
 class Proxy(jobs.Job):
     name = 'nextcloud28-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud28'
     stage = 4
+
+
+class CollaboraProxy(jobs.Job):
+    name = 'collabora-proxy'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'nextcloud28'
+    stage = 5
 
 
 class Deps(jobs.Job):
