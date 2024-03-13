@@ -13,8 +13,7 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
-    nextcloud, codimd, ci, wikijs, matrix, bbb
-
+    nextcloud, codimd, ci, wikijs, matrix, bbb, grist, prophecies
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +52,7 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'rocketchat', 'nextcloud',
-                'codimd', 'matrix', 'bbb',)
+                'codimd', 'matrix', 'bbb', 'grist', 'prophecies')
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
@@ -73,6 +72,8 @@ class Configuration:
         'rocketchat': 'is the old chat app; will remove shortly.',
         'matrix': 'is the new chat app',
         'bbb': 'is the video conference frontend tool',
+        'grist': 'is a collaborative spreadsheet / worksheet web app.',
+        'prophecies': 'the app to conduct collaborative data validation and cleaning.',
     }
 
     APP_REDIS_IDS = {
@@ -80,6 +81,8 @@ class Configuration:
         'dokuwiki': 2,
         'codimd': 3,
         'nextcloud': 4,
+        'grist': 11,
+        'prophecies': 12,
     }
 
     APP_ALLOW_ALL_USERS = {
@@ -124,6 +127,13 @@ class Configuration:
         matrix.Migrate(),
         bbb.BBB(),
         bbb.Migrate(),
+        grist.Grist(),
+        grist.Deps(),
+        grist.Proxy(),
+        grist.Migrate(),
+        prophecies.Prophecies(),
+        prophecies.Deps(),
+        prophecies.Proxy(),
     ]
 
     def __init__(self):
@@ -234,7 +244,6 @@ class Configuration:
         self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
         self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=False)  # noqa: E501
         self.rocketchat_autologout_days = self.ini.getint('liquid', 'rocketchat_autologout_days', fallback=100)  # noqa: E501
-
         # remove spaces from the comma separated list
         self.matrix_federation_domains = ','.join([
             x.strip()
@@ -400,6 +409,10 @@ class Configuration:
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
+        self.grist_initial_admin = self.ini.get('liquid', 'grist_initial_admin', fallback='')
+        if self.is_app_enabled('grist') and self.grist_initial_admin == '':
+            raise RuntimeError('App "grist" requires config `[liquid] grist_initial_admin` to be set!')
+
         self.PORT_MAP = {
             'lb': self.ini.getint('ports', 'lb', fallback=9990),
             'blobs_minio': self.ini.getint('ports', 'blobs_minio', fallback=9991),
@@ -434,6 +447,15 @@ class Configuration:
             'bbb_pg': self.ini.getint('ports', 'bbb_pg', fallback=9966),
             'bbb_redis': self.ini.getint('ports', 'bbb_redis', fallback=9962),
             'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9958),
+
+            'grist_web': self.ini.getint('ports', 'grist_web', fallback=9954),
+            'grist_pg': self.ini.getint('ports', 'grist_pg', fallback=9958),
+            'grist_redis': self.ini.getint('ports', 'grist_redis', fallback=9959),
+            'grist_s3': self.ini.getint('ports', 'grist_s3', fallback=9960),
+
+            'prophecies_web': self.ini.getint('ports', 'prophecies_web', fallback=9955),
+            'prophecies_pg': self.ini.getint('ports', 'prophecies_pg', fallback=9956),
+            'prophecies_nginx': self.ini.getint('ports', 'prophecies_nginx', fallback=9957),
         }
 
         self.port_lb = self.PORT_MAP['lb']
@@ -458,11 +480,17 @@ class Configuration:
         self.port_hoover_es_master_transport = self.PORT_MAP['hoover_es_master_transport']
         self.port_wikijs_pg = self.PORT_MAP['wikijs_pg']
         self.port_wikijs = self.PORT_MAP['wikijs']
-
         self.port_matrix_pg = self.PORT_MAP['matrix_pg']
         self.port_matrix_synapse = self.PORT_MAP['matrix_synapse']
         self.port_matrix_element = self.PORT_MAP['matrix_element']
         self.port_matrix_jitsi = self.PORT_MAP['matrix_jitsi']
+        self.port_grist_web = self.PORT_MAP['grist_web']
+        self.port_grist_s3 = self.PORT_MAP['grist_s3']
+        self.port_grist_redis = self.PORT_MAP['grist_redis']
+        self.port_grist_pg = self.PORT_MAP['grist_pg']
+        self.port_prophecies_web = self.PORT_MAP['prophecies_web']
+        self.port_prophecies_pg = self.PORT_MAP['prophecies_pg']
+        self.port_prophecies_nginx = self.PORT_MAP['prophecies_nginx']
 
         self.port_bbb_pg = self.PORT_MAP['bbb_pg']
         self.port_bbb_redis = self.PORT_MAP['bbb_redis']
@@ -697,8 +725,16 @@ class Configuration:
     def is_app_enabled(self, app_name):
         if app_name == 'ci':
             return self.ci_enabled
+        default_overrides = {'grist': False, 'prophecies': False}
         return app_name in Configuration.CORE_APPS or \
-            self.ini.getboolean('apps', app_name, fallback=strtobool(self.default_app_status))
+            self.ini.getboolean(
+                'apps',
+                app_name,
+                fallback=default_overrides.get(
+                    app_name,
+                    strtobool(self.default_app_status),
+                )
+            )
 
     def ports_proxy_addr(self):
         '''Creates a string from the ports for all services with the protocol.
