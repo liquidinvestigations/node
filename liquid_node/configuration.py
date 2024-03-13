@@ -80,6 +80,7 @@ class Configuration:
         'codimd': 3,
         'nextcloud': 4,
         'nextcloud28': 5,
+        'collabora': 7
     }
 
     APP_ALLOW_ALL_USERS = {

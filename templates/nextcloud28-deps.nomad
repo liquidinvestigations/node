@@ -115,8 +115,8 @@ job "nextcloud28-deps" {
         cpu = 1000
         network {
           mbits = 1
-          port "s3" { static = 9005 }
-          port "console" { static = 9006 }
+          port "s3" {}
+          port "console" {}
         }
       }
 
@@ -150,7 +150,6 @@ job "nextcloud28-deps" {
       service {
         name = "nextcloud28-minio-console"
         port = "console"
-        tags = ["fabio-/nextcloud28_minio_console strip=/nextcloud28_minio_console"]
         check {
           name = "http"
           initial_status = "critical"

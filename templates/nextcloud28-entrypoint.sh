@@ -25,15 +25,6 @@ DELIM
 # Launch canonical entrypoint
 /entrypoint.sh apache2-foreground
 
-unzip /apps-to-install/sociallogin.zip -d /apps-to-install
-mkdir -p /var/www/html/custom_apps/sociallogin
-mv /apps-to-install/nextcloud-social-login-*/* /var/www/html/custom_apps/sociallogin
-rm -r /apps-to-install/nextcloud-social-login-*
-rm /apps-to-install/*.zip
-
-chown -R www-data:www-data /var/www/html
-chmod -R 775 /var/www/html
-
 # Function from the Nextcloud's original entrypoint
 run_as() {
     if [ "$(id -u)" = 0 ]; then
@@ -43,8 +34,23 @@ run_as() {
     fi
 }
 
-run_as 'php occ config:system:set dbhost --value $MYSQL_HOST'
-run_as 'php occ app:enable sociallogin'
+run_as 'php occ app:getpath sociallogin'
+
+exit_code=$?
+if [ $exit_code -eq 0 ]; then
+    echo "Sociallogin already installed."
+else
+    echo "Installing sociallogin"
+    mkdir -p /var/www/html/custom_apps/sociallogin
+    mv /apps-to-install/nextcloud-social-login-*/* /var/www/html/custom_apps/sociallogin
+    run_as 'php occ app:enable sociallogin'
+fi
+
+chown -R www-data:www-data /var/www/html
+chmod -R 775 /var/www/html
+
+
+run_as "php occ config:system:set dbhost --value $MYSQL_HOST"
 
 OAUTH_SETTINGS=$(cat << DELIM
 '{"custom_oauth2":
@@ -72,7 +78,7 @@ DELIM
 run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTINGS"
 
 
-# run_as 'php occ config:app:set sociallogin auto_create_groups --value=1'
+run_as 'php occ config:app:set sociallogin auto_create_groups --value=0'
 
 run_as 'php occ config:app:set sociallogin hide_default_login --value=1'
 run_as 'php occ config:app:set sociallogin update_profile_on_login --value=1'
@@ -108,10 +114,11 @@ run_as 'php occ app:enable richdocumentscode'
 run_as 'php occ app:install richdocuments'
 run_as 'php occ app:enable richdocuments'
 
+run_as 'php occ app:remove onlyoffice'
+
 run_as 'php occ config:app:set richdocuments disable_certificate_verification --value="yes"'
-# http://nextcloud28.joseph.alt-f4.ro/custom_apps/richdocumentscode/proxy.php?req=/hosting/discovery
-run_as 'php occ config:app:set richdocuments public_wopi_url --value=http://nextcloud28.liquid.example.org/custom_apps/richdocumentscode/proxy.php?req='
-run_as 'php occ config:app:set richdocuments wopi_url --value=http://nextcloud28.liquid.example.org/custom_apps/richdocumentscode/proxy.php?req='
+
+run_as "php occ rich:setup -w $COLLABORA_IP -c $NEXTCLOUD_IP"
 
 run_as 'php occ app:disable dashboard'
 run_as 'php occ app:disable nextcloud_announcements'

@@ -34,7 +34,7 @@ class Nextcloud(jobs.Job):
 class Collabora(jobs.Job):
     name = 'collabora'
     template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'collabora'
+    app = 'nextcloud28'
     stage = 2
     core_oauth_apps = [
         {

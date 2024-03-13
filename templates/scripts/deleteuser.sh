@@ -28,7 +28,7 @@ if [ "$WIKIJS_ENABLED" = "True" ] ; then
     echo "Deleted wiki.js user..."
 fi
 
-if [ "$NEXTCLOUD27_ENABLED" = "True" ] ; then
+if [ "$NEXTCLOUD28_ENABLED" = "True" ] ; then
     nextcloud_command=$(cat <<DELIM
 ${exec_command('nextcloud28:nextcloud28', 'su', '-p', 'www-data', '-s', '/bin/bash', '-c', '@php occ user:delete $LIQUID_USER@')}
 DELIM

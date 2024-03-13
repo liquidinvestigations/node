@@ -9,7 +9,7 @@ job "collabora-proxy" {
     'collabora',
     host='collabora.' + liquid_domain,
     upstream_port=config.port_collabora,
-    group='collabora',
+    group='nextcloud28',
     redis_id=7
     ) }
 }

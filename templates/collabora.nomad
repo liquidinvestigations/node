@@ -8,11 +8,6 @@ job "collabora" {
   group "collabora" {
     ${ group_disk() }
     ${ continuous_reschedule() }
-    network {
-      port "http" {
-        to = 9980
-      }
-    }
 
     task "collabora" {
       ${ task_logs() }
@@ -27,9 +22,9 @@ job "collabora" {
       config {
         image = "collabora/code:latest"
         entrypoint = ["/bin/bash", "/local/collabora-entrypoint.sh"]
-        ports = [
-          "http",
-        ]
+        port_map {
+          http = 9980
+        }
         labels {
           liquid_task = "collabora"
         }
@@ -38,10 +33,8 @@ job "collabora" {
 
 
       env {
-        server_name = "collabora.liquid.example.org"
+        server_name = "collabora.${config.liquid_domain}"
         extra_params = "--o:ssl.enable=false --o:ssl.termination=false"
-        #aliasgroup1 = "http://nextcloud28.liquid.example.org,http://10.66.60.1:22777"
-        #aliasgroup2= "http://192.168.178.144:5555"
       }
 
       template {
@@ -63,6 +56,10 @@ job "collabora" {
       resources {
         cpu = 500
         memory = 4096
+        network {
+          mbits = 1
+          port "http" {}
+        }
       }
 
       service {
