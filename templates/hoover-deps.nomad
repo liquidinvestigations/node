@@ -1514,7 +1514,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "${config.image('minio')}"
+        image = "${config.image('minio2022')}"
         args = ["server", "--console-address", ":9001", "/data"]
         port_map {
           s3 = 9000
@@ -1604,7 +1604,7 @@ job "hoover-deps" {
 
       driver = "docker"
       config {
-        image = "${config.image('minio')}"
+        image = "${config.image('minio2022')}"
         args = ["server", "--console-address", ":9001", "/data"]
         port_map {
           s3 = 9000
