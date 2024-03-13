@@ -19,6 +19,7 @@ $CONFIG = array (
 ],
   'dbname' => getenv('MYSQL_DATABASE'),
   'dbpassword' => getenv('MYSQL_PASSWORD'),
+  'allow_local_remote_servers' => true,
 );
 DELIM
 
@@ -74,6 +75,8 @@ OAUTH_SETTINGS=$(cat << DELIM
 ]}'
 DELIM
 )
+
+run_as "php occ config:system:set allow_local_remote_servers --value 1"
 
 run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTINGS"
 
