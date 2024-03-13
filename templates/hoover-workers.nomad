@@ -60,6 +60,8 @@
             exit 1
           fi
           export TIMEOUT="$(( $RANDOM % 24 + 72 ))h"
+          mkdir -p /etc/davfs2
+          mkdir -p /mnt/snoop-webdav-mounts
           exec timeout $TIMEOUT ./manage.py runworkers --queue ${queue} --mem ${mem_per_proc} --count ${proc_count}  # --solo
           EOF
         env = false

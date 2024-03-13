@@ -254,6 +254,7 @@ job "hoover-nginx" {
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
+        HOOVER_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud28}"
       }
 
       template {
@@ -362,6 +363,7 @@ job "hoover-nginx" {
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
+        HOOVER_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud28}"
       }
 
       template {

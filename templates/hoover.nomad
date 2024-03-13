@@ -53,6 +53,7 @@
           SNOOP_IMAGE_CLASSIFICATION_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_image-classification/classify-image"
         {% endif %}
 
+        SNOOP_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud28}"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
 
         SNOOP_SKIP_PROCESSING_MIME_TYPES = "${ config.snoop_skip_mime_types }"
@@ -73,6 +74,10 @@
         TMP = "/alloc/data"
         TEMP = "/alloc/data"
         TMPDIR = "/alloc/data"
+        NEXTCLOUD_ADMIN = "admin"
+
+        HOOVER_SEARCH_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_hoover}/api/v1/"
+        SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
     }
 
       template {
@@ -101,6 +106,11 @@
             SNOOP_COLLECTIONS_MINIO_SECRET_KEY = {{.Data.secret_key | toJSON }}
         {{- end }}
 
+        {% if config.is_app_enabled('nextcloud28') %}
+          {{- with secret "liquid/nextcloud28/nextcloud.admin" }}
+              NEXTCLOUD_PW = {{.Data.secret_key | toJSON }}
+          {{- end }}
+        {% endif %}
         EOF
         destination = "local/snoop.env"
         env = true
@@ -160,6 +170,8 @@ job "hoover" {
         HOOVER_ES_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/_es"
         SNOOP_COLLECTIONS = ${ config.snoop_collections | tojson | tojson }
         SNOOP_BASE_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_lb}/snoop"
+        HOOVER_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud28}"
+        SNOOP_HOST = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
 
         GUNICORN_WORKER_CLASS = "gthread"
@@ -200,6 +212,27 @@ job "hoover" {
             SENTRY_DSN = "${config.sentry_dsn_hoover_search}"
             SENTRY_ENVIRONMENT = "${config.sentry_environment}"
             SENTRY_RELEASE = "${config.sentry_version_hoover_search}${config.sentry_release}"
+          {% endif %}
+          {% if config.snoop_translation_enabled %}
+            TRANSLATION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_nlp_entity_extraction_enabled %}
+            NLP_ENTITY_EXTRACTION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_nlp_language_detection_enabled %}
+            NLP_LANGUAGE_DETECTION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_image_classification_object_detection_enabled %}
+            OBJECT_DETECTION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_image_classification_classify_images_enabled %}
+            IMAGE_CLASSIFICATION_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_thumbnail_generator_enabled %}
+            THUMBNAIL_GENERATOR_ENABLED = "true"
+          {% endif %}
+          {% if config.snoop_pdf_preview_enabled %}
+            PDF_PREVIEW_ENABLED = "true"
           {% endif %}
 
         EOF
@@ -269,6 +302,8 @@ job "hoover" {
         data = <<-EOF
           #!/bin/bash
           set -e
+
+          mkdir -p /etc/davfs2
 
           for i in $(seq 1 10000); do
             date
