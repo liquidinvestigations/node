@@ -10,7 +10,7 @@ job "bbb" {
     ${ continuous_reschedule() }
 
 
-    task "postgres" {
+    task "bbb-pg" {
       ${ task_logs() }
       leader = false
 
