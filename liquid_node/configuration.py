@@ -465,7 +465,6 @@ class Configuration:
             'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9958),
         }
 
-
         self.port_lb = self.PORT_MAP['lb']
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
         self.port_collections_minio = self.PORT_MAP['collections_minio']
