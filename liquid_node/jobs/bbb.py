@@ -21,3 +21,9 @@ class BBB(jobs.Job):
         },
     ]
 
+
+class Migrate(jobs.Job):
+    name = 'bbb-migrate'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'bbb'
+    stage = 2

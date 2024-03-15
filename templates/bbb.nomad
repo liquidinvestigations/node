@@ -132,7 +132,7 @@ job "bbb" {
       }
     }
 
-    task "greenlight" {
+    task "bbb-gl" {
       ${ task_logs() }
       leader = false
 
