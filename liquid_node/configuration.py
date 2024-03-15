@@ -436,7 +436,6 @@ class Configuration:
             'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9958),
         }
 
-
         self.port_lb = self.PORT_MAP['lb']
         self.port_blobs_minio = self.PORT_MAP['blobs_minio']
         self.port_collections_minio = self.PORT_MAP['collections_minio']
@@ -464,7 +463,6 @@ class Configuration:
         self.port_matrix_synapse = self.PORT_MAP['matrix_synapse']
         self.port_matrix_element = self.PORT_MAP['matrix_element']
         self.port_matrix_jitsi = self.PORT_MAP['matrix_jitsi']
-
 
         self.port_bbb_pg = self.PORT_MAP['bbb_pg']
         self.port_bbb_redis = self.PORT_MAP['bbb_redis']
