@@ -136,6 +136,7 @@ class Configuration:
         prophecies.Deps(),
         prophecies.Proxy(),
         bbb.BBB(),
+        bbb.Migrate(),
     ]
 
     def __init__(self):
