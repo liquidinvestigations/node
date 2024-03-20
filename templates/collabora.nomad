@@ -20,7 +20,7 @@ job "collabora" {
       driver = "docker"
       ${ shutdown_delay() }
       config {
-        image = "collabora/code:latest"
+        image = "collabora/code:23.05.8.2.1"
         entrypoint = ["/bin/bash", "/local/collabora-entrypoint.sh"]
         port_map {
           http = 9980
@@ -34,6 +34,7 @@ job "collabora" {
 
       env {
         server_name = "collabora.${config.liquid_domain}"
+        # server_name = "10.66.60.1:${config.port_collabora}"
         extra_params = "--o:ssl.enable=false --o:ssl.termination=false"
       }
 
