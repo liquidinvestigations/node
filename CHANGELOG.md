@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## v0.28.1 (2024-03-12)
+## v0.28.2 (2024-03-12)
 
 Added optional integrations for new applications that can be hosted:
 
