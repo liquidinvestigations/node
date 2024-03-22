@@ -23,7 +23,7 @@ job "wikijs" {
         labels {
           liquid_task = "wikijs"
         }
-        memory_hard_limit = 4000
+        memory_hard_limit = 8000
         volumes = [
           ${liquidinvestigations_wiki_js_repo}
         ]
