@@ -34,17 +34,7 @@ job "collabora" {
 
       env {
         server_name = "collabora.${config.liquid_domain}"
-        # server_name = "10.66.60.1:${config.port_collabora}"
-      }
-
-      template {
-        data = <<-EOF
-        {% if not config.https_enabled %}
-            extra_params = "--o:ssl.enable=false --o:ssl.termination=false"
-        {% endif %}
-        EOF
-        destination = "local/snoop.env"
-        env = true
+        extra_params = "--o:ssl.enable=false --o:ssl.termination=false"
       }
 
       template {
