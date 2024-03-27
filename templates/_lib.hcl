@@ -69,6 +69,7 @@ ephemeral_disk {
       driver = "docker"
       config {
         image = "${config.image('liquid-authproxy')}"
+        entrypoint = ["/bin/oauth2-proxy", "--alpha-config", "/local/config.yaml"]
         volumes = [
           ${liquidinvestigations_authproxy_repo}
         ]
@@ -84,33 +85,16 @@ ephemeral_disk {
 
       template {
         data = <<-EOF
-          {{- with secret "liquid/${name}/auth.oauth2" }}
-            OAUTH2_PROXY_CLIENT_ID = {{.Data.client_id | toJSON }}
-            OAUTH2_PROXY_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
-          {{- end }}
           OAUTH2_PROXY_EMAIL_DOMAINS = *
-          OAUTH2_PROXY_HTTP_ADDRESS = "0.0.0.0:5000"
-          OAUTH2_PROXY_PROVIDER = "liquid"
-          OAUTH2_PROXY_REDEEM_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
           OAUTH2_PROXY_PROFILE_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile"
           OAUTH2_PROXY_REDIRECT_URL = "${config.app_url(name)}/oauth2/callback"
 
-          OAUTH2_PROXY_UPSTREAMS="http://{{ env "attr.unique.network.ip-address" }}:${upstream_port}"
-
           OAUTH2_PROXY_REVERSE_PROXY = true
           OAUTH2_PROXY_SKIP_AUTH_REGEX = "/favicon\\.ico"
-          OAUTH2_PROXY_SKIP_AUTH_STRIP_HEADERS = true
           {% if skip_button %}
             OAUTH2_PROXY_SKIP_PROVIDER_BUTTON = true
           {% endif %}
-          OAUTH2_PROXY_SET_XAUTHREQUEST = true
-          #OAUTH2_PROXY_SCOPE = "openid email profile read_user"
-          OAUTH2_PROXY_SCOPE = "write read"
-          OAUTH2_PROXY_ALLOWED_GROUPS = "${group}"
           OAUTH2_PROXY_OIDC_GROUPS_CLAIM = "roles"
-          OAUTH2_PROXY_PASS_USER_HEADERS = true
-          OAUTH2_PROXY_PASS_ACCESS_TOKEN = true
-          # OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER  = true
 
           OAUTH2_PROXY_COOKIE_NAME = "_oauth2_proxy_${name}"
           OAUTH2_PROXY_COOKIE_SAMESITE = "lax"
@@ -133,13 +117,53 @@ ephemeral_disk {
           OAUTH2_PROXY_REDIS_CONNECTION_URL = "redis://{{ env "attr.unique.network.ip-address" }}:${config.port_authproxy_redis}/${redis_id}"
           OAUTH2_PROXY_REQUEST_LOGGING = false
 
-
           LIQUID_DOMAIN = ${config.liquid_domain}
           LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
           EOF
         destination = "local/docker.env"
         env = true
       }
+
+      template {
+        data = <<-EOF
+server:
+  BindAddress: 0.0.0.0:5000
+upstreamConfig:
+  proxyRawPath: true
+  upstreams:
+     - id: ${name}
+       uri: http://{{ env "attr.unique.network.ip-address" }}:${upstream_port}
+       path: /
+providers:
+   - provider: liquid
+     id: liquid
+          {{- with secret "liquid/${name}/auth.oauth2" }}
+     clientID: {{.Data.client_id | toJSON }}
+     clientSecret: {{.Data.client_secret | toJSON }}
+          {{- end }}
+     allowedGroups:
+        - ${group}
+     scope: write read
+     redeemURL: http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/
+     profileURL: http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile
+injectRequestHeaders:
+   - name: X-Forwarded-User
+     values:
+     -  claim: user
+   - name: X-Forwarded-Groups
+     values:
+     - claim: groups
+   - name: X-Forwarded-Email
+     values:
+     - claim: email
+   - name: X-Forwarded-Preferred-Username
+     values:
+     - claim: preferred_username
+          EOF
+        destination = "local/config.yaml"
+        env = false
+      }
+
       resources {
         network {
           mbits = 1
