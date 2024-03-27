@@ -14,13 +14,25 @@ class BBB(jobs.Job):
         {
             'name': 'bbb',
             'subdomain': 'bbb',
-            'vault_path': 'liquid/bbb/auth.oauth2',
+            'vault_path': 'liquid/bbb/gloauth.oauth2',
             'callback': '/auth/openid_connect/callback',
             'algo': 'HS256',
             'noskip': True,
         },
+        {
+            'name': 'bbb-authproxy',
+            'subdomain': 'bbb',
+            'vault_path': 'liquid/bbb/auth.oauth2',
+            'callback': '/oauth2/callback',
+        }
     ]
+    generate_oauth2_proxy_cookie = True
 
+class Proxy(jobs.Job):
+    name = 'bbb-proxy'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'bbb'
+    stage = 4
 
 class Migrate(jobs.Job):
     name = 'bbb-migrate'

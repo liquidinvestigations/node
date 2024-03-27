@@ -136,6 +136,7 @@ class Configuration:
         prophecies.Deps(),
         prophecies.Proxy(),
         bbb.BBB(),
+        bbb.Proxy(),
         bbb.Migrate(),
     ]
 
@@ -447,10 +448,6 @@ class Configuration:
             'matrix_element': self.ini.getint('ports', 'matrix_element', fallback=9952),
             'matrix_jitsi': self.ini.getint('ports', 'matrix_jitsi', fallback=9953),
 
-            'bbb_pg': self.ini.getint('ports', 'bbb_pg', fallback=9966),
-            'bbb_redis': self.ini.getint('ports', 'bbb_redis', fallback=9962),
-            'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9958),
-
             'grist_web': self.ini.getint('ports', 'grist_web', fallback=9954),
             'grist_pg': self.ini.getint('ports', 'grist_pg', fallback=9958),
             'grist_redis': self.ini.getint('ports', 'grist_redis', fallback=9959),
@@ -460,9 +457,9 @@ class Configuration:
             'prophecies_pg': self.ini.getint('ports', 'prophecies_pg', fallback=9956),
             'prophecies_nginx': self.ini.getint('ports', 'prophecies_nginx', fallback=9957),
 
-            'bbb_pg': self.ini.getint('ports', 'bbb_pg', fallback=9966),
+            'bbb_pg': self.ini.getint('ports', 'bbb_pg', fallback=9961),
             'bbb_redis': self.ini.getint('ports', 'bbb_redis', fallback=9962),
-            'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9958),
+            'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9963),
         }
 
         self.port_lb = self.PORT_MAP['lb']
