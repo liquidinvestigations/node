@@ -10,7 +10,7 @@ job "bbb-proxy" {
       'bbb',
       host='bbb.' + liquid_domain,
       upstream_port=config.port_bbb_gl,
-      group='bbb',
+      group='user',
       redis_id=6,
     ) }
 }
