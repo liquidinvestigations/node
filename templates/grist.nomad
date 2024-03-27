@@ -27,6 +27,7 @@ job "grist" {
       driver = "docker"
       config {
         image = "${config.image('grist')}"
+        cap_add = ["SYS_PTRACE"]
         port_map {
           http = 8484
         }
