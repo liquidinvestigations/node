@@ -28,11 +28,13 @@ class BBB(jobs.Job):
     ]
     generate_oauth2_proxy_cookie = True
 
+
 class Proxy(jobs.Job):
     name = 'bbb-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'bbb'
     stage = 4
+
 
 class Migrate(jobs.Job):
     name = 'bbb-migrate'
