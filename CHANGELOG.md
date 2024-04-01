@@ -1,5 +1,16 @@
 # Liquid Investigations Change Log
 
+## Unreleased
+
+### Upgrade Notes
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.18.1](https://github.com/liquidinvestigations/cluster/tree/v0.18.1)**
+
+### Bug Fixes
+
+- Fixed issue where Grist sandbox would not work on RHEL-based distros
+- Fixed issue where Prophecies permission checkbox would not appear in home page admin site
+
+
 ## v0.28.2 (2024-03-12)
 
 Added optional integrations for new applications that can be hosted:
