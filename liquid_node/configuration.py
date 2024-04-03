@@ -134,6 +134,7 @@ class Configuration:
         prophecies.Deps(),
         prophecies.Proxy(),
         bbb.BBB(),
+        bbb.Deps(),
         bbb.Proxy(),
         bbb.Migrate(),
     ]

@@ -1,11 +1,18 @@
 from liquid_node import jobs
 
 
+class Deps(jobs.Job):
+    name = 'bbb-deps'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'bbb'
+    stage = 1
+
+
 class BBB(jobs.Job):
     name = 'bbb'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'bbb'
-    stage = 1
+    stage = 2
     vault_secret_keys = [
         "liquid/bbb/bbb.postgres",
         "liquid/bbb/bbb.secret_key_base",
@@ -29,15 +36,15 @@ class BBB(jobs.Job):
     generate_oauth2_proxy_cookie = True
 
 
+class Migrate(jobs.Job):
+    name = 'bbb-migrate'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'bbb'
+    stage = 3
+
+
 class Proxy(jobs.Job):
     name = 'bbb-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'bbb'
     stage = 4
-
-
-class Migrate(jobs.Job):
-    name = 'bbb-migrate'
-    template = jobs.TEMPLATES / f'{name}.nomad'
-    app = 'bbb'
-    stage = 2
