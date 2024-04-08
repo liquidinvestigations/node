@@ -57,7 +57,7 @@ class Proxy(jobs.Job):
     name = 'nextcloud28-proxy'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'nextcloud28'
-    stage = 4
+    stage = 5
 
 
 class CollaboraProxy(jobs.Job):
