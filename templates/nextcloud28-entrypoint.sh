@@ -83,7 +83,7 @@ class ContentSecurityPolicy extends EmptyContentSecurityPolicy {
 		'\'self\'',
 	];
 	/** @var array Domains from which object elements can be loaded */
-	protected $allowedObjectDomains = [];
+	protected \$allowedObjectDomains = [];
 	/** @var array Domains from which iframes can be loaded */
 	protected \$allowedFrameDomains = [
     '$LIQUID_HOST',
@@ -102,7 +102,7 @@ class ContentSecurityPolicy extends EmptyContentSecurityPolicy {
 	];
 
 	/** @var array Domains from which web-workers can be loaded */
-	protected $allowedWorkerSrcDomains = [];
+	protected \$allowedWorkerSrcDomains = [];
 
 	/** @var array Domains which can be used as target for forms */
 	protected \$allowedFormActionDomains = [
@@ -111,7 +111,7 @@ class ContentSecurityPolicy extends EmptyContentSecurityPolicy {
 	];
 
 	/** @var array Locations to report violations to */
-	protected $reportTo = [];
+	protected \$reportTo = [];
 }
 DELIM
 
