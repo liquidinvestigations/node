@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## Unreleased
+## v0.29 (2024-04-09)
 
 ### Upgrade Notes
 - Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.18.2](https://github.com/liquidinvestigations/cluster/tree/v0.18.2)**
@@ -10,7 +10,7 @@
 - Removed the "rocketchat" integration. Desired chat logs should be exported
   manually from the application prior to upgrading.
 - Deprecating the old "nextcloud" integration, it is superseded by
-  "nextcloud28". Details below. Please export any Nextcloud-related data; this
+  nextcloud28". Details below. Please export any Nextcloud-related data; this
   integration will be removed next release.
 - Hoover UI: Removed the "print view" button on documents, as it malfunctioned,
   feature is to be reworked in the future.

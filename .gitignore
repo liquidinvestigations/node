@@ -1,5 +1,6 @@
 /ci/.vagrant
 /liquid.ini
+/*.liquid.ini
 /volumes
 /collections
 /venv
