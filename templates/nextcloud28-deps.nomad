@@ -26,7 +26,7 @@ job "nextcloud28-deps" {
       config {
         image = "mariadb:10.11"
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud28/mysql:/var/lib/mysql",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud28/maria10:/var/lib/mysql",
         ]
         labels {
           liquid_task = "nextcloud28-maria"
@@ -87,7 +87,7 @@ job "nextcloud28-deps" {
 
       driver = "docker"
       config {
-        image = "${config.image('minio')}"
+        image = "${config.image('minio2024')}"
         entrypoint = ["/bin/sh", "-c"]
         args = ["mkdir -p /data/nextcloud && /usr/bin/docker-entrypoint.sh minio server --console-address :9001 /data"]
         port_map {
@@ -99,7 +99,7 @@ job "nextcloud28-deps" {
         }
         memory_hard_limit = 5000
         volumes = [
-          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud28/minio:/data",
+          "{% raw %}${meta.liquid_volumes}{% endraw %}/nextcloud28/minio2024:/data",
         ]
       }
 

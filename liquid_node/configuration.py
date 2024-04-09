@@ -12,7 +12,7 @@ from pathlib import Path
 
 from .util import import_string
 # from .docker import docker
-from liquid_node.jobs import Job, liquid, hoover, dokuwiki, rocketchat, \
+from liquid_node.jobs import Job, liquid, hoover, dokuwiki, \
     nextcloud, codimd, ci, wikijs, matrix, grist, prophecies, nextcloud28
 
 log = logging.getLogger(__name__)
@@ -51,14 +51,13 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 
 class Configuration:
-    ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'rocketchat', 'nextcloud',
+    ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'nextcloud',
                 'codimd', 'matrix', 'grist', 'prophecies', 'nextcloud28')
     # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
     APP_TITLE = {
         'dokuwiki': 'DokuWiki',
-        'rocketchat': "Rocket.Chat",
         'codimd': "CodiMD",
         'wikijs': "Wiki.js",
     }
@@ -69,7 +68,6 @@ class Configuration:
         'wikijs': 'is a new wiki system with modern functionality.',
         'codimd': 'is a real-time collaboration pad.',
         'nextcloud': 'has a file share system and a contact list of users.',
-        'rocketchat': 'is the old chat app; will remove shortly.',
         'matrix': 'is the new chat app',
         'grist': 'is a collaborative spreadsheet / worksheet web app.',
         'prophecies': 'the app to conduct collaborative data validation and cleaning.',
@@ -82,7 +80,7 @@ class Configuration:
         'codimd': 3,
         'nextcloud': 4,
         'nextcloud28': 5,
-        'collabora': 7
+        'collabora': 7,
         'grist': 11,
         'prophecies': 12,
     }
@@ -113,9 +111,6 @@ class Configuration:
         hoover.Migrate(),
         dokuwiki.Dokuwiki(),
         dokuwiki.Proxy(),
-        rocketchat.Rocketchat(),
-        rocketchat.Deps(),
-        rocketchat.Migrate(),
         nextcloud.Nextcloud(),
         nextcloud.Deps(),
         nextcloud.Proxy(),
@@ -247,9 +242,6 @@ class Configuration:
                                                        'hoover_web_memory_limit', fallback=600)
         self.hoover_web_count = self.ini.getint('liquid',
                                                 'hoover_web_count', fallback=1)
-        self.rocketchat_show_login_form = self.ini.getboolean('liquid', 'rocketchat_show_login_form', fallback=True)  # noqa: E501
-        self.rocketchat_enable_push = self.ini.getboolean('liquid', 'rocketchat_enable_push', fallback=False)  # noqa: E501
-        self.rocketchat_autologout_days = self.ini.getint('liquid', 'rocketchat_autologout_days', fallback=100)  # noqa: E501
         # remove spaces from the comma separated list
         self.matrix_federation_domains = ','.join([
             x.strip()
@@ -429,7 +421,6 @@ class Configuration:
             'search_pg': self.ini.getint('ports', 'search_pg', fallback=9983),
             'snoop_rabbitmq': self.ini.getint('ports', 'snoop_rabbitmq', fallback=9984),
             'search_rabbitmq': self.ini.getint('ports', 'search_rabbitmq', fallback=9985),
-            'rocketchat_mongo': self.ini.getint('ports', 'rocketchat_mongo', fallback=9986),
             'nextcloud_maria': self.ini.getint('ports', 'nextcloud_maria', fallback=9987),
             'nextcloud28_maria': self.ini.getint('ports', 'nextcloud28_maria', fallback=9969),
             'codimd_pg': self.ini.getint('ports', 'codimd_pg', fallback=9988),
@@ -439,7 +430,6 @@ class Configuration:
             'collabora': self.ini.getint('ports', 'collabora', fallback=9948),
             'hoover': self.ini.getint('ports', 'hoover', fallback=9994),
             'dokuwiki': self.ini.getint('ports', 'dokuwiki', fallback=9995),
-            'rocketchat': self.ini.getint('ports', 'rocketchat', fallback=9980),
             'hoover_es_master_transport': self.ini.getint(
                 'ports', 'hoover_es_master_transport', fallback=9979,),
             'wikijs_pg': self.ini.getint('ports', 'wikijs-pg', fallback=9974),
@@ -474,7 +464,6 @@ class Configuration:
         self.port_search_pg = self.PORT_MAP['search_pg']
         self.port_snoop_rabbitmq = self.PORT_MAP['snoop_rabbitmq']
         self.port_search_rabbitmq = self.PORT_MAP['search_rabbitmq']
-        self.port_rocketchat_mongo = self.PORT_MAP['rocketchat_mongo']
         self.port_nextcloud_maria = self.PORT_MAP['nextcloud_maria']
         self.port_nextcloud28_maria = self.PORT_MAP['nextcloud28_maria']
         self.port_codimd_pg = self.PORT_MAP['codimd_pg']
@@ -484,7 +473,6 @@ class Configuration:
         self.port_collabora = self.PORT_MAP['collabora']
         self.port_hoover = self.PORT_MAP['hoover']
         self.port_dokuwiki = self.PORT_MAP['dokuwiki']
-        self.port_rocketchat = self.PORT_MAP['rocketchat']
         self.port_hoover_es_master_transport = self.PORT_MAP['hoover_es_master_transport']
         self.port_wikijs_pg = self.PORT_MAP['wikijs_pg']
         self.port_wikijs = self.PORT_MAP['wikijs']

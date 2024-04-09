@@ -12,11 +12,6 @@ if [ "$HOOVER_ENABLED" = "True" ] ; then
     ${exec_command('hoover:search', './manage.py', 'createuser', '$LIQUID_USER')}
 fi
 
-if [ "$ROCKETCHAT_ENABLED" = "True" ] ; then
-    echo "Creating Rocketchat user..."
-    python local/create_rocket_user.py $LIQUID_USER
-fi
-
 if [ "$CODIMD_ENABLED" = "True" ] ; then
     echo "Creating CodiMD user..."
     ${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--profileid=$LIQUID_USER', '--domain="$LIQUID_DOMAIN"')}

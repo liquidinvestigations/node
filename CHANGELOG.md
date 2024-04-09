@@ -3,12 +3,37 @@
 ## Unreleased
 
 ### Upgrade Notes
-- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.18.1](https://github.com/liquidinvestigations/cluster/tree/v0.18.1)**
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.18.2](https://github.com/liquidinvestigations/cluster/tree/v0.18.2)**
+
+### Breaking Changes and Deprecation Notice
+
+- Removed the "rocketchat" integration. Desired chat logs should be exported
+  manually from the application prior to upgrading.
+- Deprecating the old "nextcloud" integration, it is superseded by
+  "nextcloud28". Details below. Please export any Nextcloud-related data; this
+  integration will be removed next release.
+- Hoover UI: Removed the "print view" button on documents, as it malfunctioned,
+  feature is to be reworked in the future.
+
+
+### New Features
+
+- Nextcloud v28:
+  - Integrated latest version of Nextcloud software.
+  - Access Control: All Nextcloud v28 user & access control settings are available.
+  - Integrated Collabora real-time office solution with Nextcloud.
+  - Hoover Web Integration: Individual Nextcloud folders can now be imported into Hoover from the web page admin. Functionality can be enabled by generating a Nextcloud "app password" / "api key" and pasting it in the Hoover admin for your own user.
+
 
 ### Bug Fixes
 
-- Fixed issue where Grist sandbox would not work on RHEL-based distros
-- Fixed issue where Prophecies permission checkbox would not appear in home page admin site
+- Hoover UI:
+  - Fixed bug where some PDF documents would fail to load.
+  - Fixed display errors in the "table view" of search results.
+- Grist integration: Fixed issue where Grist sandbox would not work on some
+  systems.
+- Prophecies integration: Fixed issue where Prophecies permission checkbox
+  would not appear in home page admin site.
 
 
 ## v0.28.2 (2024-03-12)
