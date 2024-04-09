@@ -49,6 +49,7 @@ job "nextcloud28" {
         HTTP_PROTO = "${config.liquid_http_protocol}"
         NEXTCLOUD_HOST = "nextcloud28.{{ key "liquid_domain" }}"
         COLLABORA_HOST = "collabora.{{ key "liquid_domain" }}"
+        COLLABORA_URL = "${config.liquid_http_protocol}://collabora.{{ key "liquid_domain" }}"
         LIQUID_HOST = "${config.liquid_domain}"
         NEXTCLOUD_IP = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_nextcloud28}"
         COLLABORA_IP = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_collabora}"
