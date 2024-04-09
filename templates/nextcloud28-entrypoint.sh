@@ -199,7 +199,9 @@ p($theme->getTitle());
             }
         ?>
 				</a>
-
+				<a style="margin-left:20px;margin-right:20px;" href="<?php echo getenv('LIQUID_URL') ?>">
+					<h1 style="color: #fff; font-size:166%">&#8594; <?php echo getenv('LIQUID_TITLE'); ?></h1>
+				</a>
 				<nav id="header-left__appmenu"></nav>
 			</div>
 
