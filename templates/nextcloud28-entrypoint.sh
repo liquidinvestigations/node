@@ -4,8 +4,8 @@
 chown -R www-data:www-data /var/www/html
 chmod -R 775 /var/www/html
 
-# Let /entrypoint.sh not run apache
-sed -i 's/exec "$@"//g' /entrypoint.sh
+# Launch canonical entrypoint and avoid running apache
+/entrypoint.sh apache2-foreground -v
 
 # create file to override config
 cat > /var/www/html/config/liquid.override.config.php << 'DELIM'
@@ -237,8 +237,6 @@ p($theme->getTitle());
 </html>
 DELIM
 
-# Launch canonical entrypoint
-/entrypoint.sh apache2-foreground
 
 # Function from the Nextcloud's original entrypoint
 run_as() {
@@ -345,5 +343,5 @@ run_as 'php occ app:disable sharebymail'
 run_as 'php occ app:disable federation'
 run_as 'php occ app:disable updatenotification'
 
-# Run the server
-exec apache2-foreground
+# Launch canonical entrypoint running apache
+exec /entrypoint.sh apache2-foreground
