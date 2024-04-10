@@ -416,6 +416,8 @@ class Configuration:
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
+        if self.is_app_enabled('bbb') and (self.bbb_endpoint == '' or self.bbb_secret == ''):
+            raise RuntimeError('App "bbb" requires config `[bbb] bbb_endpoint and bbb_secret` to be set!')
         self.grist_initial_admin = self.ini.get('liquid', 'grist_initial_admin', fallback='')
         if self.is_app_enabled('grist') and self.grist_initial_admin == '':
             raise RuntimeError('App "grist" requires config `[liquid] grist_initial_admin` to be set!')
@@ -740,7 +742,7 @@ class Configuration:
     def is_app_enabled(self, app_name):
         if app_name == 'ci':
             return self.ci_enabled
-        default_overrides = {'grist': False, 'prophecies': False}
+        default_overrides = {'grist': False, 'prophecies': False, 'bbb': False}
         return app_name in Configuration.CORE_APPS or \
             self.ini.getboolean(
                 'apps',

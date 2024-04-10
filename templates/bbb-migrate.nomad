@@ -22,7 +22,7 @@ job "bbb-migrate" {
 
       driver = "docker"
       config {
-        image = "postgres:15"
+        image = "${config.image('bbb-pg-15')}"
         args = ["/bin/sh", "/local/run.sh"]
         volumes = [
         ]
@@ -31,9 +31,30 @@ job "bbb-migrate" {
         // DATABASE_URL = "postgres://greenlight:{{.Data.secret_key | toJSON }}@{{env "attr.unique.network.ip-address"}}:${config.port_bbb_pg}/greenlight_production"
       template {
         data = <<-EOF
+        export BLOCK_RECORD=$(cat <<-END
+            update rooms_configurations
+            set value=false
+            from meeting_options
+            where meeting_options.id=rooms_configurations.meeting_option_id
+            and meeting_options.name='record';
+END
+)
+        export FORCE_LOGGED_IN_USERS=$(cat <<-END
+            update rooms_configurations
+            set value=true
+            from meeting_options
+            where meeting_options.id=rooms_configurations.meeting_option_id
+            and meeting_options.name='glRequireAuthentication';
+END
+)
         {{- with secret "liquid/bbb/bbb.postgres" }}
-        PGPASSWORD={{.Data.secret_key | toJSON }} psql -p ${config.port_bbb_pg} -h {{env "attr.unique.network.ip-address"}} -U greenlight greenlight_production -c "update rooms_configurations set value=false from meeting_options where meeting_options.id=rooms_configurations.meeting_option_id and meeting_options.name='record';"
-        PGPASSWORD={{.Data.secret_key | toJSON }} psql -p ${config.port_bbb_pg} -h {{env "attr.unique.network.ip-address"}} -U greenlight greenlight_production -c "update rooms_configurations set value=true from meeting_options where meeting_options.id=rooms_configurations.meeting_option_id and meeting_options.name='glRequireAuthentication';"
+        export PGPASSWORD={{.Data.secret_key | toJSON }}
+        psql -p ${config.port_bbb_pg} \
+          -h {{env "attr.unique.network.ip-address"}} \
+          -U greenlight greenlight_production <<-END
+            $BLOCK_RECORD
+            $FORCE_LOGGED_IN_USERS
+END
         {{- end }}
         EOF
         destination = "local/run.sh"

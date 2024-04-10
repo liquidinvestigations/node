@@ -28,7 +28,7 @@ job "bbb-deps" {
       ${ shutdown_delay() }
 
       config {
-        image = "postgres:15"
+        image = "${config.image('bbb-pg-15')}"
         volumes = [
           "{% raw %}${meta.liquid_volumes}{% endraw %}/bbb/postgres/${config.liquid_domain}-pg-15:/var/lib/postgresql/data",
         ]
