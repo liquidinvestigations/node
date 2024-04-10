@@ -243,7 +243,7 @@
             <alias_groups desc="default mode is 'first' it allows only the first host when groups are not defined. set mode to 'groups' and define group to allow multiple host and its aliases" mode="groups">
 			<group>
 				<host desc="hostname to allow or deny." allow="true">${config.liquid_http_protocol}://nextcloud28.${config.liquid_domain}</host>
-				<alias desc="regex pattern of aliasname">${config.liquid_http_protocol}://{{env "attr.unique.network.ip-address" }}:${config.port_collabora}</alias>
+				<alias desc="regex pattern of aliasname">http://{{env "attr.unique.network.ip-address" }}:${config.port_collabora}</alias>
 			</group>
             <!-- If you need to use multiple wopi hosts, please change the mode to "groups" and
                     add the hosts below.  If one host is accessible under multiple ip addresses
