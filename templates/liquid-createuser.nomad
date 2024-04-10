@@ -24,30 +24,8 @@ job "liquid-createuser" {
       env {
         LIQUID_DOMAIN = "${liquid_domain}"
         HOOVER_ENABLED = "${ config.is_app_enabled('hoover') }"
-        ROCKETCHAT_ENABLED = "${ config.is_app_enabled('rocketchat') }"
         CODIMD_ENABLED = "${ config.is_app_enabled('codimd') }"
         WIKIJS_ENABLED = "${ config.is_app_enabled('wikijs') }"
-      }
-
-      template {
-        data = <<-EOF
-        ROCKETCHAT_URL = 'http://{{ env "attr.unique.network.ip-address" }}:${config.port_rocketchat}/'
-        {{- with secret "liquid/rocketchat/adminuser" }}
-            ROCKETCHAT_SECRET = {{.Data.pass }}
-        {{- end }}
-        EOF
-        destination = "local/liquid-deleteuser.env"
-        env = true
-      }
-
-      template {
-        left_delimiter = "DELIMITER_L"
-        right_delimiter = "DELIMITER_R"
-        destination = "local/create_rocket_user.py"
-        perms = "755"
-        data = <<-EOF
-{% include 'scripts/create_rocket_user.py' %}
-        EOF
       }
 
       template {

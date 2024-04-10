@@ -12,11 +12,6 @@ if [ "$HOOVER_ENABLED" = "True" ] ; then
     echo "Deleted Hoover user..."
 fi
 
-if [ "$ROCKETCHAT_ENABLED" = "True" ] ; then
-    python local/delete_rocket_user.py $LIQUID_USER
-    echo "Deleted Rocketchat user..."
-fi
-
 if [ "$CODIMD_ENABLED" = "True" ] ; then
     # this command is an extension to the codimd manage_users function in the liquid fork of it
     ${exec_command('codimd:codimd', '/codimd/bin/manage_users', '--liquiddel=$LIQUID_USER')}
@@ -26,4 +21,14 @@ fi
 if [ "$WIKIJS_ENABLED" = "True" ] ; then
     ${exec_command('wikijs:wikijs', 'node', '/wiki/delete-user.js', '$LIQUID_USER')}
     echo "Deleted wiki.js user..."
+fi
+
+if [ "$NEXTCLOUD28_ENABLED" = "True" ] ; then
+    nextcloud_command=$(cat <<DELIM
+${exec_command('nextcloud28:nextcloud28', 'su', '-p', 'www-data', '-s', '/bin/bash', '-c', '@php occ user:delete $LIQUID_USER@')}
+DELIM
+)
+    nextcloud_command=$(echo $nextcloud_command | sed 's,@,'\'',g')
+    eval $nextcloud_command
+    echo "Deleted nextcloud28 user..."
 fi
