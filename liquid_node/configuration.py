@@ -13,7 +13,8 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, \
-    nextcloud, codimd, ci, wikijs, matrix, grist, prophecies, nextcloud28
+    nextcloud, codimd, ci, wikijs, matrix, bbb, grist, prophecies, nextcloud28
+
 
 log = logging.getLogger(__name__)
 
@@ -52,8 +53,9 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'nextcloud',
-                'codimd', 'matrix', 'grist', 'prophecies', 'nextcloud28')
-    # The core apps can't be turned off.
+                'codimd', 'matrix', 'bbb', 'grist', 'prophecies', 'nextcloud28')
+
+# The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
 
     APP_TITLE = {
@@ -71,6 +73,7 @@ class Configuration:
         'matrix': 'is the new chat app',
         'grist': 'is a collaborative spreadsheet / worksheet web app.',
         'prophecies': 'the app to conduct collaborative data validation and cleaning.',
+        'bbb': 'is the video conference frontend tool',
         'nextcloud28': 'has a file share system and a contact list of users.',
     }
 
@@ -79,6 +82,7 @@ class Configuration:
         'dokuwiki': 2,
         'codimd': 3,
         'nextcloud': 4,
+        'bbb': 6,
         'nextcloud28': 5,
         'collabora': 7,
         'grist': 11,
@@ -87,6 +91,7 @@ class Configuration:
 
     APP_ALLOW_ALL_USERS = {
         'matrix': True,
+        'bbb': True,
     }
 
     ALL_JOBS = [
@@ -135,6 +140,10 @@ class Configuration:
         prophecies.Prophecies(),
         prophecies.Deps(),
         prophecies.Proxy(),
+        bbb.BBB(),
+        bbb.Deps(),
+        bbb.Proxy(),
+        bbb.Migrate(),
     ]
 
     def __init__(self):
@@ -250,6 +259,8 @@ class Configuration:
         self.matrix_session_lifetime = self.ini.get('matrix', 'session_lifetime', fallback='168h')
         self.matrix_media_lifetime = self.ini.get('matrix', 'media_lifetime', fallback='365d')
         self.matrix_message_lifetime = self.ini.get('matrix', 'message_lifetime', fallback='365d')
+        self.bbb_endpoint = self.ini.get('bbb', 'bbb_endpoint', fallback='')
+        self.bbb_secret = self.ini.get('bbb', 'bbb_secret', fallback='')
 
         self.hoover_ui_override_server = self.ini.get('liquid', 'hoover_ui_override_server', fallback='')
         self.hoover_es_max_concurrent_shard_requests = self.ini.getint(
@@ -405,6 +416,8 @@ class Configuration:
         self.enabled_jobs = [job for job in self.all_jobs if self.is_app_enabled(job.app)]
         self.disabled_jobs = [job for job in self.all_jobs if not self.is_app_enabled(job.app)]
 
+        if self.is_app_enabled('bbb') and (self.bbb_endpoint == '' or self.bbb_secret == ''):
+            raise RuntimeError('App "bbb" requires config `[bbb] bbb_endpoint and bbb_secret` to be set!')
         self.grist_initial_admin = self.ini.get('liquid', 'grist_initial_admin', fallback='')
         if self.is_app_enabled('grist') and self.grist_initial_admin == '':
             raise RuntimeError('App "grist" requires config `[liquid] grist_initial_admin` to be set!')
@@ -450,6 +463,10 @@ class Configuration:
             'prophecies_web': self.ini.getint('ports', 'prophecies_web', fallback=9955),
             'prophecies_pg': self.ini.getint('ports', 'prophecies_pg', fallback=9956),
             'prophecies_nginx': self.ini.getint('ports', 'prophecies_nginx', fallback=9957),
+
+            'bbb_pg': self.ini.getint('ports', 'bbb_pg', fallback=9961),
+            'bbb_redis': self.ini.getint('ports', 'bbb_redis', fallback=9962),
+            'bbb_gl': self.ini.getint('ports', 'bbb_gl', fallback=9963),
         }
 
         self.port_lb = self.PORT_MAP['lb']
@@ -487,6 +504,10 @@ class Configuration:
         self.port_prophecies_web = self.PORT_MAP['prophecies_web']
         self.port_prophecies_pg = self.PORT_MAP['prophecies_pg']
         self.port_prophecies_nginx = self.PORT_MAP['prophecies_nginx']
+
+        self.port_bbb_pg = self.PORT_MAP['bbb_pg']
+        self.port_bbb_redis = self.PORT_MAP['bbb_redis']
+        self.port_bbb_gl = self.PORT_MAP['bbb_gl']
 
         # The Sentry settings
         self.liquid_version = self.get_node_version()
@@ -671,6 +692,9 @@ class Configuration:
         if name in ['dokuwiki', 'nextcloud', 'nextcloud28']:
             return tag('liquid-' + name)
 
+        if name == 'bbb':
+            return tag('bbb-gl')
+
         if name == 'matrix':
             synapse = tag('matrix-synapse')
             element = tag('matrix-element')
@@ -718,7 +742,7 @@ class Configuration:
     def is_app_enabled(self, app_name):
         if app_name == 'ci':
             return self.ci_enabled
-        default_overrides = {'grist': False, 'prophecies': False}
+        default_overrides = {'grist': False, 'prophecies': False, 'bbb': False}
         return app_name in Configuration.CORE_APPS or \
             self.ini.getboolean(
                 'apps',
