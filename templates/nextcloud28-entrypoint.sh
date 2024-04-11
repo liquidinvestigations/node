@@ -288,6 +288,8 @@ OAUTH_SETTINGS=$(cat << DELIM
 DELIM
 )
 
+run as "php occ config:system:set overwrite.cli.url --value $NEXTCLOUD_IP"
+
 run_as "php occ config:system:set allow_local_remote_servers --value 1"
 
 run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTINGS"
