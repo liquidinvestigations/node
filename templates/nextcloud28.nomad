@@ -40,7 +40,7 @@ job "nextcloud28" {
           OBJECTSTORE_S3_REGION = "optional"
           OBJECTSTORE_S3_USEPATH_STYLE = "true"
           OBJECTSTORE_S3_AUTOCREATE = "true"
-          # OVERWRITEPROTOCOL = "${config.liquid_http_protocol}"
+          OVERWRITEPROTOCOL = "${config.liquid_http_protocol}"
       }
 
       template {
