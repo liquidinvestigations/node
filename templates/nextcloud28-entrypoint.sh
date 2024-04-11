@@ -19,6 +19,9 @@ $CONFIG = array (
                     getenv('COLLABORA_HOST'),
                     getenv('LIQUID_HOST'),
 ],
+  'trusted_proxies' => [
+                    getenv('LIQUID_BASE_IP'),
+],
   'dbname' => getenv('MYSQL_DATABASE'),
   'dbpassword' => getenv('MYSQL_PASSWORD'),
   'allow_local_remote_servers' => true,
