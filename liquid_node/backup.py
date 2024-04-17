@@ -19,6 +19,18 @@ SNOOP_API_ALLOC = "hoover:snoop"
 SNOOP_BLOBS_DATA_ALLOC = "hoover-deps:minio-blobs"
 SNOOP_ORIGINAL_DATA_ALLOC = "hoover-deps:minio-collections"
 HTTP_PORT = config.port_lb
+# list of postgres databases that should not be backed up.
+# the format should be <schema>.<table name>
+DATABASES_TO_IGNORE = [
+    'public.common_data_collectiondocumenthit',
+]
+
+
+def databases_to_ignore_str():
+    res = []
+    for db in DATABASES_TO_IGNORE:
+        res.append(f'-T {db}*')
+    return ' '.join(res)
 
 
 @click.group()
@@ -228,9 +240,9 @@ def backup_pg(dest_file, username, dbname, alloc):
     tmp_file = Path(str(dest_file) + '.tmp')
     log.info(f"Dumping postgres from alloc {alloc} user {username} db {dbname} to {tmp_file}")
     cmd = (
-        f"set -exo pipefail; ./liquid dockerexec {alloc} "
-        f"pg_dump -U {username} {dbname} -Ox "
-        f"| gzip -1 > {tmp_file}"
+        f'set -exo pipefail; ./liquid dockerexec {alloc} '
+        f'pg_dump {databases_to_ignore_str()} -U {username} {dbname} -Ox '
+        f'| gzip -1 > {tmp_file}'
     )
     subprocess.check_call(["/bin/bash", "-c", cmd])
 
