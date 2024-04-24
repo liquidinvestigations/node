@@ -324,6 +324,8 @@ run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTI
 run_as 'php occ app:install calendar'
 run_as 'php occ app:install polls'
 run_as 'php occ app:install contacts'
+run_as 'php occ app:install groupfolders'
+run_as 'php occ app:enable groupfolders'
 run_as 'php occ app:install richdocumentscode'
 run_as 'php occ app:enable richdocumentscode'
 run_as 'php occ app:install richdocuments'
