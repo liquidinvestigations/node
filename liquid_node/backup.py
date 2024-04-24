@@ -19,6 +19,18 @@ SNOOP_API_ALLOC = "hoover:snoop"
 SNOOP_BLOBS_DATA_ALLOC = "hoover-deps:minio-blobs"
 SNOOP_ORIGINAL_DATA_ALLOC = "hoover-deps:minio-collections"
 HTTP_PORT = config.port_lb
+# list of postgres databases that should not be backed up.
+# the format should be <schema>.<table name>
+SNOOP_PG_TABLES_TO_IGNORE = [
+    'public.common_data_collectiondocumenthit',
+]
+
+
+def pg_tables_to_ignore_str(ignore_list):
+    res = []
+    for table in ignore_list:
+        res.append(f'-T {table}*')
+    return ' '.join(res)
 
 
 @click.group()
@@ -46,7 +58,8 @@ def backup(blobs, es, pg, original, backup_collections, collections, apps, dest)
 
         if config.is_app_enabled('hoover'):
             backup_pg(dest / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
-            backup_pg(dest / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg')
+            backup_pg(dest / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg',
+                      ignore_list=SNOOP_PG_TABLES_TO_IGNORE)
 
         if config.is_app_enabled('codimd'):
             backup_pg(dest / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd-deps:postgres')
@@ -224,14 +237,21 @@ def restore_apps(ctx, src):
 
 
 @retry()
-def backup_pg(dest_file, username, dbname, alloc):
+def backup_pg(dest_file, username, dbname, alloc, ignore_list=[]):
     tmp_file = Path(str(dest_file) + '.tmp')
     log.info(f"Dumping postgres from alloc {alloc} user {username} db {dbname} to {tmp_file}")
-    cmd = (
-        f"set -exo pipefail; ./liquid dockerexec {alloc} "
-        f"pg_dump -U {username} {dbname} -Ox "
-        f"| gzip -1 > {tmp_file}"
-    )
+    if ignore_list:
+        cmd = (
+            f'set -exo pipefail; ./liquid dockerexec {alloc} '
+            f'pg_dump {pg_tables_to_ignore_str(ignore_list)} -U {username} {dbname} -Ox '
+            f'| gzip -1 > {tmp_file}'
+        )
+    else:
+        cmd = (
+            f'set -exo pipefail; ./liquid dockerexec {alloc} '
+            f'pg_dump -U {username} {dbname} -Ox '
+            f'| gzip -1 > {tmp_file}'
+        )
     subprocess.check_call(["/bin/bash", "-c", cmd])
 
     log.info(f"Verify {tmp_file} by printing contents to /dev/null")
