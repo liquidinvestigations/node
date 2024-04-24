@@ -58,7 +58,8 @@ def backup(blobs, es, pg, original, backup_collections, collections, apps, dest)
 
         if config.is_app_enabled('hoover'):
             backup_pg(dest / 'hoover-search.pg.sql.gz', 'search', 'search', 'hoover-deps:search-pg')
-            backup_pg(dest / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg', ignore_list=SNOOP_PG_TABLES_TO_IGNORE)
+            backup_pg(dest / 'hoover-snoop.pg.sql.gz', 'snoop', 'snoop', 'hoover-deps:snoop-pg',
+                      ignore_list=SNOOP_PG_TABLES_TO_IGNORE)
 
         if config.is_app_enabled('codimd'):
             backup_pg(dest / 'codimd.pg.sql.gz', 'codimd', 'codimd', 'codimd-deps:postgres')
