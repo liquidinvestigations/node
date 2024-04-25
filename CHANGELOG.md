@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## v0.29 (2024-04-09)
+## v0.29.1 (2024-04-09)
 
 ### Upgrade Notes
 - Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.18.2](https://github.com/liquidinvestigations/cluster/tree/v0.18.2)**
