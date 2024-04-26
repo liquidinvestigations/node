@@ -419,6 +419,7 @@ class Configuration:
         if self.is_app_enabled('bbb') and (self.bbb_endpoint == '' or self.bbb_secret == ''):
             raise RuntimeError('App "bbb" requires config `[bbb] bbb_endpoint and bbb_secret` to be set!')
         self.grist_initial_admin = self.ini.get('liquid', 'grist_initial_admin', fallback='')
+        self.grist_sandbox_enabled = self.ini.getboolean('liquid', 'grist_sandbox_enabled', fallback=True)
         if self.is_app_enabled('grist') and self.grist_initial_admin == '':
             raise RuntimeError('App "grist" requires config `[liquid] grist_initial_admin` to be set!')
 

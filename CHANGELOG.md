@@ -1,5 +1,12 @@
 # Liquid Investigations Change Log
 
+## v0.29.2 (2024-04-26)
+
+### New Features
+
+- Nextcloud: added integration with the "group folders" extension; this is now the only folder source for syncing collections with Hoover.
+- Grist: added configuriation switch for setting sandbox on or off.
+
 ## v0.29.1 (2024-04-09)
 
 ### Upgrade Notes

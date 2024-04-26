@@ -26,6 +26,7 @@ job "grist" {
       leader = true
       driver = "docker"
       config {
+        privileged = true
         image = "${config.image('grist')}"
         cap_add = ["SYS_PTRACE"]
         port_map {
@@ -52,13 +53,18 @@ job "grist" {
       env {
 
         GRIST_SUPPORT_ANON= false
-        GRIST_SANDBOX_FLAVOR = "gvisor"
-        # GRIST_SANDBOX_FLAVOR = "unsandboxed"
 
         APP_HOME_URL ="${config.liquid_http_protocol}://grist.${liquid_domain}"
         APP_DOC_URL ="${config.liquid_http_protocol}://grist.${liquid_domain}"
         APP_HOME_INTERNAL_URL="http://localhost:8484"
         APP_DOC_INTERNAL_URL="http://localhost:8484"
+
+        {% if config.grist_sandbox_enabled %}
+          GRIST_SANDBOX_FLAVOR = "gvisor"
+          GVISOR_FLAGS = "-unprivileged -ignore-cgroups --debug --debug-log=/persist/gvisor-debug.log"
+        {% else %}
+          GRIST_SANDBOX_FLAVOR = "unsandboxed"
+        {% endif %}
 
 
         # https://github.com/gristlabs/grist-core/issues/733#issuecomment-1822223083
