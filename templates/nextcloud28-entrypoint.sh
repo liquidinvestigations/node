@@ -294,6 +294,7 @@ run_as "php occ config:app:set sociallogin custom_providers --value=$OAUTH_SETTI
 
 
 run_as 'php occ config:app:set sociallogin auto_create_groups --value=0'
+run_as 'php occ config:app:set sociallogin no_prune_user_groups --value=1'
 
 run_as 'php occ config:app:set sociallogin hide_default_login --value=1'
 run_as 'php occ config:app:set sociallogin update_profile_on_login --value=1'
