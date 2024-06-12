@@ -293,6 +293,7 @@ class Configuration:
         self.hoover_uploads_enabled = self.ini.getboolean('liquid', 'hoover_uploads_enabled', fallback=False)
 
         self.hoover_search_debug_delay = self.ini.getint('liquid', 'hoover_search_debug_delay', fallback=0)
+        self.hoover_demo_mode = self.ini.getboolean('liquid', 'hoover_demo_mode', fallback=False)
 
         self.snoop_workers_enabled = self.ini.getboolean('snoop', 'enable_workers', fallback=True)
         if (self.ini.get('snoop', 'min_workers_per_node', fallback='')

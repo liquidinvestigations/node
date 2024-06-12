@@ -115,7 +115,7 @@ ephemeral_disk {
           OAUTH2_PROXY_SILENCE_PING_LOGGING = true
           OAUTH2_PROXY_SESSION_STORE_TYPE = "redis"
           OAUTH2_PROXY_REDIS_CONNECTION_URL = "redis://{{ env "attr.unique.network.ip-address" }}:${config.port_authproxy_redis}/${redis_id}"
-          OAUTH2_PROXY_REQUEST_LOGGING = false
+          OAUTH2_PROXY_REQUEST_LOGGING = true
 
           LIQUID_DOMAIN = ${config.liquid_domain}
           LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
