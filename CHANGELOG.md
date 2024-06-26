@@ -1,5 +1,40 @@
 # Liquid Investigations Change Log
 
+## v0.30.0 (2024-06-26)
+
+### Upgrade Procedure
+
+- Hoover: version downgrade in specific Minio containers requires removing the
+  directories at `collections/.minio.sys` and `volumes/snoop/blobs/.minio.sys`.
+  Since these directories will contain a very high number of files, it's
+  recommended to first rename them into `.minio.sys.old` (or, if possible, move
+  them to a parent directory) and then delete the renamed directory while the
+  system is online.
+- Follow ["clean reset" procedure](https://github.com/liquidinvestigations/docs/wiki/Maintenance#clean-reset) with **[cluster version 0.18.2](https://github.com/liquidinvestigations/cluster/tree/v0.18.2)**
+
+
+Recommended upgrade procedure manual intervention:
+
+```sh
+
+./liquid halt
+sudo mv  /opt/node/collections/.minio.sys           /opt/node/collections/.minio.sys.old
+sudo mv  /opt/node/volumes/snoop/blobs/.minio.sys   /opt/node/volumes/snoop/blobs/.minio.sys.old
+
+time sudo rm -rfv /opt/node/collections/.minio.sys.old /opt/node/volumes/snoop/blobs/.minio.sys.old
+
+[... in another console, continue with normal deployment ...]
+
+```
+
+
+### Bug Fixes
+
+- Nextcloud: Fixed issue where users would lose access to shared folders after logging out and back in again.
+- Hoover: Fixed issue where processing data from Minio S3 would return the error "File Not Found" after iterating through a couple of directory levels.
+
+
+
 ## v0.29.2 (2024-04-26)
 
 ### New Features
