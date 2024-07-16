@@ -1,6 +1,6 @@
 # Liquid Investigations Change Log
 
-## v0.30.0 (2024-07-16)
+## v0.30.2 (2024-07-16)
 
 ### Bug Fixes
 
