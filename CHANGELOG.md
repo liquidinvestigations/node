@@ -1,5 +1,12 @@
 # Liquid Investigations Change Log
 
+## v0.30.0 (2024-07-16)
+
+### Bug Fixes
+
+- Hoover: Fixed issue with indexing Nextcloud28-linked folders that contain
+  special characters.
+
 ## v0.30.0 (2024-06-26)
 
 ### Upgrade Procedure
