@@ -1,11 +1,13 @@
 # Liquid Investigations Change Log
 
-## v0.30.2 (2024-07-16)
+## v0.30.3 (2024-07-16)
 
 ### Bug Fixes
 
 - Hoover: Fixed issue with indexing Nextcloud28-linked folders that contain
   special characters.
+- Hoover: Fixed issue with displaying "Filter Chilps" in search interface.
+
 
 ## v0.30.0 (2024-06-26)
 
