@@ -80,6 +80,7 @@ job "liquid" {
           NOMAD_URL = "${config.nomad_url}"
           CONSUL_URL = "${config.consul_url}"
           AUTHPROXY_REDIS_URL = "redis://{{ env "attr.unique.network.ip-address" }}:${config.port_authproxy_redis}/"
+          HOOVER_DEMO_MODE = "${config.hoover_demo_mode}"
 
           {% if config.enable_superuser_dashboards %}
           LIQUID_ENABLE_DASHBOARDS = "true"

@@ -346,5 +346,27 @@ run_as 'php occ app:disable sharebymail'
 run_as 'php occ app:disable federation'
 run_as 'php occ app:disable updatenotification'
 
+if [ -n "$DEMO_MODE" ]; then
+    run_as "php occ group:add demo"
+    password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 20)
+    run_as "export OC_PASS=$password && php occ user:add demo --password-from-env"
+    run_as "php occ group:adduser demo demo"
+    run_as "php occ group:list"
+
+    if $(run_as "php occ groupfolders:list" | grep -q "demo"); then
+        echo "Demo group exists!"
+    else
+        echo "Creating demo group..."
+        run_as "php occ groupfolders:create demo"
+        echo "Created demo group with shown id."
+    fi
+    # get group id
+    group_id=$(run_as "php occ groupfolders:list | awk -F'|' '/demo/ {print \$2; exit}'" | tr -d ' ')
+    run_as "php occ groupfolders:group $group_id demo read write"
+    echo "Configured groupfolders."
+    run_as "php occ groupfolders:list"
+fi
+
+
 # Launch canonical entrypoint running apache
 exec /entrypoint.sh apache2-foreground

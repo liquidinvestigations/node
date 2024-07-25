@@ -116,6 +116,45 @@ def check_port(ip, port):
             return False
 
 
+def add_cron_job(cron_command):
+    result = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
+    if result.stdout and 'purge-volumes.sh' not in result.stdout:
+        cron_jobs = result.stdout.strip() + '\n' + cron_command + '\n'
+    elif not result.stdout:
+        cron_jobs = cron_command + '\n'
+    else:
+        log.info('Cronjob already exists. No new cronjob added.')
+        return
+    try:
+        subprocess.run(['crontab', '-'], input=cron_jobs, text=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        log.error(f'Could not add cronjob: {e}')
+        return
+    log.info('Added cronjob for demo mode.')
+
+
+def remove_cron_job(script_name):
+    # Step 1: Retrieve current list of cron jobs
+    process = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
+    cron_jobs_to_keep = []
+    if not process.stdout:
+        log.error('Could not find any cronjobs in crontab.')
+        return
+    for line in process.stdout.splitlines():
+        if script_name in line:
+            continue
+        else:
+            cron_jobs_to_keep.append(line)
+
+    new_cron_content = '\n'.join(cron_jobs_to_keep)
+    new_cron_content = new_cron_content + '\n'
+    try:
+        process = subprocess.run(['crontab', '-'], input=new_cron_content, text=True, capture_output=True)
+    except subprocess.CalledProcessError as e:
+        log.error(f'Could write new crontab: {e}')
+        return
+
+
 @liquid_commands.command()
 def resources():
     """Get memory and CPU usage for the deployment"""
@@ -428,6 +467,42 @@ def halt():
 
     jobs = [j.name for j in config.all_jobs]
     nomad.stop_and_wait(jobs)
+
+
+@liquid_commands.command()
+def initialize_demo():
+    """Initialize crontab for demo mode."""
+    if not config.hoover_demo_mode:
+        log.error('Demo mode disabled in liquid.ini. Exiting.')
+        return
+    hours = config.hoover_demo_mode_interval // 60
+    try:
+        open(f'{config.root}/.demo_mode', 'x')
+    except FileExistsError:
+        log.error('The .demo_mode file exists. Is demo mode already enabled? If not delete the file and try again.')
+        return
+    if not config.liquid_volumes:
+        log.error('Volume path not specified in liquid.ini. Please set it before initializing demo mode.')
+        return
+    add_cron_job(f'0 */{hours} * * * {config.root}/scripts/purge-volumes.sh {config.liquid_volumes}')
+    log.info('Initialized demo. Added cronjob and hidden .demo_mode file.')
+
+
+@liquid_commands.command()
+def stop_demo():
+    """Stop demo mode and remove crontab and hidden file."""
+    if config.hoover_demo_mode:
+        log.error('Demo mode enabled in liquid.ini. Exiting.')
+        return
+    hidden_file_path = f'{config.root}/.demo_mode'
+    if os.path.exists(hidden_file_path):
+        os.remove(hidden_file_path)
+        log.warning('Removed hidden .demo_mode file.')
+    else:
+        log.warning('Hidden .demo_mode file not found.')
+    remove_cron_job('purge-volumes.sh')
+    log.info('Removed cronjob.')
+    log.info('Stopped demo successfully.')
 
 
 @liquid_commands.command()
