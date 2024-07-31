@@ -119,16 +119,16 @@ def check_port(ip, port):
 def add_cron_job(cron_command):
     try:
         result = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
+        if result.stdout and 'purge-volumes.sh' not in result.stdout:
+            cron_jobs = result.stdout.strip() + '\n' + cron_command + '\n'
+        elif not result.stdout:
+            cron_jobs = cron_command + '\n'
+        else:
+            log.info('Cronjob already exists. No new cronjob added.')
+            return
     except subprocess.CalledProcessError as e:
         log.warning(f'Listing crontab exited with a non-zero exit code: {e}. Trying to install new crontab.')
         cron_jobs = cron_command + '\n'
-    if result.stdout and 'purge-volumes.sh' not in result.stdout:
-        cron_jobs = result.stdout.strip() + '\n' + cron_command + '\n'
-    elif not result.stdout:
-        cron_jobs = cron_command + '\n'
-    else:
-        log.info('Cronjob already exists. No new cronjob added.')
-        return
     try:
         subprocess.run(['crontab', '-'], input=cron_jobs, text=True, capture_output=True)
     except subprocess.CalledProcessError as e:
