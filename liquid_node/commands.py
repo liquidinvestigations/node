@@ -493,6 +493,9 @@ def initialize_demo():
         subprocess.run([f'{config.root}/scripts/purge-volumes.sh', f'{config.liquid_volumes}'], check=True)
     except subprocess.CalledProcessError as e:
         log.error(f'Error initializing demo mode: {e}')
+        hidden_file_path = f'{config.root}/.demo_mode'
+        if os.path.exists(hidden_file_path):
+            os.remove(hidden_file_path)
         return
     log.info('Initialized demo. Added cronjob and hidden .demo_mode file.')
 
