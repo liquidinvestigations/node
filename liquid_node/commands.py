@@ -480,11 +480,6 @@ def initialize_demo():
         log.error('Demo mode disabled in liquid.ini. Exiting.')
         return
     hours = config.hoover_demo_mode_interval // 60
-    try:
-        open(f'{config.root}/.demo_mode', 'x')
-    except FileExistsError:
-        log.error('The .demo_mode file exists. Is demo mode already enabled? If not delete the file and try again.')
-        return
     if not config.liquid_volumes:
         log.error('Volume path not specified in liquid.ini. Please set it before initializing demo mode.')
         return
@@ -494,7 +489,12 @@ def initialize_demo():
         subprocess.run([f'{config.root}/scripts/purge-volumes.sh'], shell=True)
     except subprocess.CalledProcessError as e:
         log.error(f'Error initializing demo mode: {e}')
-
+        return
+    try:
+        open(f'{config.root}/.demo_mode', 'x')
+    except FileExistsError:
+        log.error('The .demo_mode file exists. Is demo mode already enabled? If not delete the file and try again.')
+        return
 
 @liquid_commands.command()
 def stop_demo():
