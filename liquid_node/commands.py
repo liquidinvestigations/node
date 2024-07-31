@@ -484,9 +484,8 @@ def initialize_demo():
         log.error('Volume path not specified in liquid.ini. Please set it before initializing demo mode.')
         return
     add_cron_job(f'0 */{hours} * * * {config.root}/scripts/purge-volumes.sh {config.liquid_volumes}')
-    log.info('Initialized demo. Added cronjob and hidden .demo_mode file.')
     try:
-        subprocess.run([f'{config.root}/scripts/purge-volumes.sh', f'{config.liquid_volumes}'], shell=True)
+        subprocess.run([f'{config.root}/scripts/purge-volumes.sh', f'{config.liquid_volumes}'], check=True)
     except subprocess.CalledProcessError as e:
         log.error(f'Error initializing demo mode: {e}')
         return
@@ -495,6 +494,8 @@ def initialize_demo():
     except FileExistsError:
         log.error('The .demo_mode file exists. Is demo mode already enabled? If not delete the file and try again.')
         return
+    log.info('Initialized demo. Added cronjob and hidden .demo_mode file.')
+
 
 @liquid_commands.command()
 def stop_demo():
