@@ -18,7 +18,7 @@ fi
 
 nextcloud_container_id () {
     # ./liquid docker exec throws an error so we connect this way
-    container_id=$(docker ps | grep liquid-nextcloud | awk '{print $1}')
+    container_id=$(docker ps | grep liquid-nextcloud | grep nextcloud28 | awk '{print $1}')
 
     if [ -z "$container_id" ]; then
         echo "Error: Nextcloud container not found. Make sure the container is running."
