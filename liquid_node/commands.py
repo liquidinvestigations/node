@@ -117,7 +117,11 @@ def check_port(ip, port):
 
 
 def add_cron_job(cron_command):
-    result = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
+    try:
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        log.warning(f'Listing crontab exited with a non-zero exit code: {e}. Trying to install new crontab.')
+        cron_jobs = cron_command + '\n'
     if result.stdout and 'purge-volumes.sh' not in result.stdout:
         cron_jobs = result.stdout.strip() + '\n' + cron_command + '\n'
     elif not result.stdout:
@@ -486,6 +490,10 @@ def initialize_demo():
         return
     add_cron_job(f'0 */{hours} * * * {config.root}/scripts/purge-volumes.sh {config.liquid_volumes}')
     log.info('Initialized demo. Added cronjob and hidden .demo_mode file.')
+    try:
+        subprocess.run([f'{config.root}/scripts/purge-volumes.sh'], shell=True)
+    except subprocess.CalledProcessError as e:
+        log.error(f'Error initializing demo mode: {e}')
 
 
 @liquid_commands.command()
