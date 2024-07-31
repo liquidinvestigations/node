@@ -486,7 +486,7 @@ def initialize_demo():
     add_cron_job(f'0 */{hours} * * * {config.root}/scripts/purge-volumes.sh {config.liquid_volumes}')
     log.info('Initialized demo. Added cronjob and hidden .demo_mode file.')
     try:
-        subprocess.run([f'{config.root}/scripts/purge-volumes.sh'], shell=True)
+        subprocess.run([f'{config.root}/scripts/purge-volumes.sh', {config.liquid.volumes}], shell=True)
     except subprocess.CalledProcessError as e:
         log.error(f'Error initializing demo mode: {e}')
         return
