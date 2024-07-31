@@ -129,6 +129,8 @@ def add_cron_job(cron_command):
     except subprocess.CalledProcessError as e:
         log.warning(f'Listing crontab exited with a non-zero exit code: {e}. Trying to install new crontab.')
         cron_jobs = cron_command + '\n'
+    if 'PATH' not in cron_jobs:
+        cron_jobs = f'PATH={os.environ.get("PATH")}' + '\n' + cron_jobs
     try:
         subprocess.run(['crontab', '-'], input=cron_jobs, text=True, capture_output=True)
     except subprocess.CalledProcessError as e:
@@ -145,7 +147,7 @@ def remove_cron_job(script_name):
         log.error('Could not find any cronjobs in crontab.')
         return
     for line in process.stdout.splitlines():
-        if script_name in line:
+        if script_name in line or 'PATH' in line:
             continue
         else:
             cron_jobs_to_keep.append(line)
@@ -483,11 +485,11 @@ def initialize_demo():
     if not config.liquid_volumes:
         log.error('Volume path not specified in liquid.ini. Please set it before initializing demo mode.')
         return
-    add_cron_job(f'0 */{hours} * * * {config.root}/scripts/purge-volumes.sh {config.liquid_volumes}')
+    add_cron_job(f'0 */{hours} * * * {config.root}/scripts/purge-volumes.sh {config.liquid_volumes} > {config.root}/demo_purge.log 2>&1')  # noqa: E501
     try:
         open(f'{config.root}/.demo_mode', 'x')
     except FileExistsError:
-        log.error('The .demo_mode file exists. Is demo mode already enabled? If not delete the file and try again.')
+        log.error('The .demo_mode file exists. Is demo mode already enabled? If not delete the file and try again.')  # noqa: E501
         return
     try:
         subprocess.run([f'{config.root}/scripts/purge-volumes.sh', f'{config.liquid_volumes}'], check=True)
