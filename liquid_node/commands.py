@@ -140,7 +140,6 @@ def add_cron_job(cron_command):
 
 
 def remove_cron_job(script_name):
-    # Step 1: Retrieve current list of cron jobs
     process = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
     cron_jobs_to_keep = []
     if not process.stdout:

@@ -53,6 +53,5 @@ echo ${container_id}
 app_password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 20)
 
 docker exec -u www-data $container_id /bin/bash -c "export OC_PASS=$app_password && php occ user:resetpassword --password-from-env demo"
-# app_password=$(echo $app_password | awk '{print $3}' | tr -d '[:blank:]')
 
 ./liquid dockerexec hoover:search ./manage.py setupdemo $app_password
