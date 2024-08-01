@@ -1,5 +1,6 @@
 import logging
 import subprocess
+import time
 
 
 log = logging.getLogger(__name__)
@@ -11,7 +12,10 @@ def run(cmd, echo=True, **kwargs):
     if echo:
         log.debug("+ %s", cmd)
     kwargs.setdefault('shell', False)
-    return subprocess.check_output(cmd, **kwargs).decode('latin1')
+    time.sleep(0.1)
+    output = subprocess.check_output(cmd, **kwargs).decode('latin1')
+    time.sleep(0.1)
+    return output
 
 
 def run_fg(cmd, echo=True, **kwargs):

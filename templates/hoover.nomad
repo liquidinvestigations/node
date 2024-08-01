@@ -173,6 +173,7 @@ job "hoover" {
         HOOVER_NEXTCLOUD_URL = "http://{% raw %}${attr.unique.network.ip-address}{% endraw %}:${config.port_nextcloud28}"
         SNOOP_HOST = "{% raw %}${attr.unique.network.ip-address}{% endraw %}"
         DEBUG_WAIT_PER_COLLECTION = ${config.hoover_search_debug_delay}
+        HOOVER_DEMO_MODE = "${config.hoover_demo_mode}"
 
         GUNICORN_WORKER_CLASS = "gthread"
         GUNICORN_WORKERS = "6"
