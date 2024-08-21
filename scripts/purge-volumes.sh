@@ -11,10 +11,22 @@ else
     echo "Volume path: ${volumes_dir}"
 fi
 
-if [ ! -f ./.demo_mode ]; then
-    echo "Error: Demo mode not active. Exiting"
+if [ -z "$2" ]; then
+    echo "No path for backup location given."
     exit 1
+else
+    backup_path=$2
+    echo "Backup path: ${backup_path}"
 fi
+
+if [ -z "$3" ]; then
+    echo "No collection name given (for restored collection)."
+    exit 1
+else
+    collection_name=$3
+    echo "Collection name: ${collection_name}"
+fi
+
 
 nextcloud_container_id () {
     # ./liquid docker exec throws an error so we connect this way
@@ -34,16 +46,22 @@ if ! nextcloud_container_id ; then
     exit 1
 fi
 
-./liquid halt
+./liquid dockerexec liquid:core ./manage.py maintenance --on
+./liquid halt --purge-demo-mode
 echo "Stopped liquid. Removing volumes."
 
 echo "Removing ${volumes_dir}..."
-sudo rm -rf ${volumes_dir}
+sudo rm -rf ${volumes_dir}/snoop
+sudo rm -rf ${volumes_dir}/nextcloud28
+sudo rm -rf ${volumes_dir}/hoover
 
 echo "Removed volumes. Starting liquid again."
 
-./liquid deploy
+./liquid deploy --purge-demo-mode
 echo "Liquid deployed successfully."
+
+./liquid restore-collection ${backup_path} ${collection_name}
+echo "${collection_name} restored successfully."
 
 
 # ./liquid docker exec throws an error so we connect this way
@@ -55,3 +73,4 @@ app_password=$(tr -dc 'A-Za-z0-9!?%=' < /dev/urandom | head -c 20)
 docker exec -u www-data $container_id /bin/bash -c "export OC_PASS=$app_password && php occ user:resetpassword --password-from-env demo"
 
 ./liquid dockerexec hoover:search ./manage.py setupdemo $app_password
+./liquid dockerexec liquid:core ./manage.py maintenance --off

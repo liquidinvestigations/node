@@ -23,6 +23,20 @@ from .jsonapi import JsonApi
 
 log = logging.getLogger(__name__)
 
+PURGE_DEMO_JOBS = ['nextcloud28',
+                   'nextcloud28-proxy',
+                   'nextcloud28-deps',
+                   'collabora',
+                   'collabora-proxy',
+                   'hoover',
+                   'hoover-proxy',
+                   'hoover-deps',
+                   'hoover-nginx',
+                   'hoover-workers',
+                   'hoover-migrate',
+                   'hoover-deps-downloads',
+                   ]
+
 
 @click.group()
 def liquid_commands():
@@ -116,10 +130,11 @@ def check_port(ip, port):
             return False
 
 
-def add_cron_job(cron_command):
+def add_cron_job(cron_command, script_name):
+    """Adds a crontab entry."""
     try:
         result = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
-        if result.stdout and 'purge-volumes.sh' not in result.stdout:
+        if result.stdout and f'{script_name}' not in result.stdout:
             cron_jobs = result.stdout.strip() + '\n' + cron_command + '\n'
         elif not result.stdout:
             cron_jobs = cron_command + '\n'
@@ -140,6 +155,7 @@ def add_cron_job(cron_command):
 
 
 def remove_cron_job(script_name):
+    """Removes the specified crontab entry."""
     process = subprocess.run(['crontab', '-l'], capture_output=True, text=True, check=True)
     cron_jobs_to_keep = []
     if not process.stdout:
@@ -370,7 +386,8 @@ def _update_images():
 @click.option('--no-checks', 'checks', is_flag=True, default=True)
 @click.option('--no-resource-checks', 'resource_checks', is_flag=True, default=True)
 @click.option('--new-images-only', 'new_images_only', is_flag=True, default=False)
-def deploy(update_images, secrets, checks, resource_checks, new_images_only):
+@click.option('--purge-demo-mode', 'purge_demo_mode', is_flag=True, default=False)
+def deploy(update_images, secrets, checks, resource_checks, new_images_only, purge_demo_mode):
     """Run all the jobs in nomad."""
     deploy_t0 = int(time())
 
@@ -409,8 +426,12 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
 
     if secrets:
         populate_secrets_pre(vault_secret_keys, core_auth_cookies, extra_secret_fns)
-
-    jobs = [(job.name, (job.stage, get_job(job.template))) for job in config.enabled_jobs]
+    if purge_demo_mode:
+        log.info([job.name for job in config.enabled_jobs if job.name in PURGE_DEMO_JOBS])
+        jobs = [(job.name, (job.stage, get_job(job.template))) for job in config.enabled_jobs
+                if job.name in PURGE_DEMO_JOBS]
+    else:
+        jobs = [(job.name, (job.stage, get_job(job.template))) for job in config.enabled_jobs]
 
     # check if there are jobs to stop
     nomad_jobs = set(job['ID'] for job in nomad.jobs())
@@ -467,10 +488,22 @@ def deploy(update_images, secrets, checks, resource_checks, new_images_only):
 
 
 @liquid_commands.command()
-def halt():
+@click.option('--purge-demo-mode', 'purge_demo_mode', is_flag=True, default=False)
+def halt(purge_demo_mode):
     """Stop all the jobs in nomad."""
-
-    jobs = [j.name for j in config.all_jobs]
+    if purge_demo_mode:
+        jobs = ['nextcloud28',
+                'nextcloud28-deps',
+                'collabora',
+                'hoover',
+                'hoover-deps',
+                'hoover-nginx',
+                'hoover-workers',
+                'hoover-migrate',
+                'hoover-deps-downloads'
+                ]
+    else:
+        jobs = [j.name for j in config.all_jobs]
     nomad.stop_and_wait(jobs)
 
 
@@ -484,38 +517,58 @@ def initialize_demo():
     if not config.liquid_volumes:
         log.error('Volume path not specified in liquid.ini. Please set it before initializing demo mode.')
         return
-    add_cron_job(f'0 */{hours} * * * {config.root}/scripts/purge-volumes.sh {config.liquid_volumes} > {config.root}/demo_purge.log 2>&1')  # noqa: E501
+    add_cron_job(f'0 */{hours} * * * {config.root}/liquid reset-demo > {config.root}/demo_purge.log 2>&1', 'reset-demo')  # noqa: E501
     try:
-        open(f'{config.root}/.demo_mode', 'x')
-    except FileExistsError:
-        log.error('The .demo_mode file exists. Is demo mode already enabled? If not delete the file and try again.')  # noqa: E501
-        return
-    try:
-        subprocess.run([f'{config.root}/scripts/purge-volumes.sh', f'{config.liquid_volumes}'], check=True)
+        subprocess.run([f'{config.root}/scripts/purge-volumes.sh',
+                        f'{config.liquid_volumes}',
+                        f'{config.demo_collection_backup_path}',
+                        f'{config.demo_collection_name}'],
+                       check=True)
     except subprocess.CalledProcessError as e:
         log.error(f'Error initializing demo mode: {e}')
-        hidden_file_path = f'{config.root}/.demo_mode'
-        if os.path.exists(hidden_file_path):
-            os.remove(hidden_file_path)
         return
-    log.info('Initialized demo. Added cronjob and hidden .demo_mode file.')
+    log.info('Initialized demo. Added cronjob to the crontab to periodically reset the volumes.')
 
 
 @liquid_commands.command()
 def stop_demo():
-    """Stop demo mode and remove crontab and hidden file."""
+    """Stop demo mode and remove cronjob from contab."""
     if config.hoover_demo_mode:
         log.error('Demo mode enabled in liquid.ini. Exiting.')
         return
-    hidden_file_path = f'{config.root}/.demo_mode'
-    if os.path.exists(hidden_file_path):
-        os.remove(hidden_file_path)
-        log.warning('Removed hidden .demo_mode file.')
-    else:
-        log.warning('Hidden .demo_mode file not found.')
     remove_cron_job('purge-volumes.sh')
     log.info('Removed cronjob.')
     log.info('Stopped demo successfully.')
+
+
+@liquid_commands.command()
+def reset_demo():
+    """Reset the demo server and remove the volumes."""
+    log.info('Starting demo mode reset.')
+    if not config.hoover_demo_mode:
+        log.warning('Demo mode is not enabled. Aborting.')
+        return
+    last_login_raw = retry()(docker.exec_)('liquid:core', './manage.py', 'lastdemologin').strip()
+    last_login = datetime.datetime.fromisoformat(last_login_raw)
+    log.warning(last_login)
+    current_time = datetime.datetime.now(last_login.tzinfo)
+    log.warning(current_time)
+    time_delta = current_time - last_login
+    log.warning(time_delta)
+    minutes_passed = time_delta.total_seconds()
+    log.warning(minutes_passed)
+    if minutes_passed > 60:
+        log.info('No login in the past hour. No reset necessary.')
+        return
+    try:
+        subprocess.run([f'{config.root}/scripts/purge-volumes.sh',
+                        f'{config.liquid_volumes}',
+                        f'{config.demo_collection_backup_path}',
+                        f'{config.demo_collection_name}'],
+                       check=True)
+    except subprocess.CalledProcessError as e:
+        log.error(f'Error resetting demo mode: {e}')
+    log.info('Successfully reset demo mode.')
 
 
 @liquid_commands.command()
