@@ -555,7 +555,7 @@ def reset_demo():
     log.warning(current_time)
     time_delta = current_time - last_login
     log.warning(time_delta)
-    minutes_passed = time_delta.total_seconds()
+    minutes_passed = time_delta.total_seconds() / 60
     log.warning(minutes_passed)
     if minutes_passed > 60:
         log.info('No login in the past hour. No reset necessary.')
