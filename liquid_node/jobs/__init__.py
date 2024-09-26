@@ -55,11 +55,11 @@ def set_volumes_paths(substitutions={}):
             'local': os.path.join(config.liquidinvestigations_repos_path, 'hoover-ui/src'),
             'target': '/opt/hoover/ui/src'
         },
-        'ui_pages': {
-            'org': 'hoover',
-            'local': os.path.join(config.liquidinvestigations_repos_path, 'hoover-ui/pages'),
-            'target': '/opt/hoover/ui/pages'
-        },
+        # 'ui_pages': {
+        #     'org': 'hoover',
+        #     'local': os.path.join(config.liquidinvestigations_repos_path, 'hoover-ui/pages'),
+        #     'target': '/opt/hoover/ui/pages'
+        # },
         'ui_styles': {
             'org': 'hoover',
             'local': os.path.join(config.liquidinvestigations_repos_path, 'hoover-ui/styles'),

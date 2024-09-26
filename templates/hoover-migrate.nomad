@@ -202,6 +202,7 @@ job "hoover-migrate" {
         cp -v /local/.env.local .
         env
         npm run build
+        node generate-env.js
         cp -a /opt/hoover/ui/out/. /opt/hoover/ui/out-nginx
         EOF
         env = false
