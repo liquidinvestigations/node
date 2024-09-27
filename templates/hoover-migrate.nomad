@@ -231,18 +231,14 @@ job "hoover-migrate" {
           ASYNC_SEARCH_MAX_FINAL_RETRIES = "${config.hoover_ui_async_search_max_final_retries}"
           ASYNC_SEARCH_ERROR_MULTIPLIER = "${config.hoover_ui_async_search_error_multiplier}"
           ASYNC_SEARCH_ERROR_SUMMATION = "${config.hoover_ui_async_search_error_summation}"
+          ASYNC_SEARCH_POLL_SIZE = "6"
+          API_RETRY_DELAY_MIN = "800"
+          API_RETRY_DELAY_MAX =  "8000"
+          API_RETRY_COUNT = "3"
 
-          {% if config.hoover_maps_enabled %}
-            HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled}"
-          {% endif %}
-
-          {% if config.snoop_translation_enabled %}
-            HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled}"
-          {% endif %}
-
-          {% if config.hoover_uploads_enabled %}
-            HOOVER_UPLOADS_ENABLED = "${config.hoover_uploads_enabled}"
-          {% endif %}
+          HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled | tojson}"
+          HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled | tojson}"
+          HOOVER_UPLOADS_ENABLED = "${config.hoover_uploads_enabled | tojson}"
         EOF
         env = true
         destination = "local/.env.local"
