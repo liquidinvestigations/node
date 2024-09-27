@@ -86,17 +86,18 @@ job "nextcloud28" {
             OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
             OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
+        DEMO_MODE = "${config.hoover_demo_mode}"
         EOF
         destination = "local/nextcloud.env"
         env = true
       }
 
       template {
-      data = <<EOF
+        data = <<EOF
 {% include 'nextcloud28-entrypoint.sh' %}
       EOF
-      destination = "local/nextcloud28-entrypoint.sh"
-      perms = "755"
+        destination = "local/nextcloud28-entrypoint.sh"
+        perms = "755"
       }
 
 
