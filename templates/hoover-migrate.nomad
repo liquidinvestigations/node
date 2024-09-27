@@ -236,9 +236,9 @@ job "hoover-migrate" {
           API_RETRY_DELAY_MAX =  "8000"
           API_RETRY_COUNT = "3"
 
-          HOOVER_MAPS_ENABLED = "${config.hoover_maps_enabled | tojson}"
-          HOOVER_TRANSLATION_ENABLED = "${config.snoop_translation_enabled | tojson}"
-          HOOVER_UPLOADS_ENABLED = "${config.hoover_uploads_enabled | tojson}"
+          HOOVER_MAPS_ENABLED = "'${config.hoover_maps_enabled | tojson}'"
+          HOOVER_TRANSLATION_ENABLED = "'${config.snoop_translation_enabled | tojson}'"
+          HOOVER_UPLOADS_ENABLED = "'${config.hoover_uploads_enabled | tojson}'"
         EOF
         env = true
         destination = "local/.env.local"
