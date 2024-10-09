@@ -13,7 +13,8 @@ from pathlib import Path
 from .util import import_string
 # from .docker import docker
 from liquid_node.jobs import Job, liquid, hoover, dokuwiki, \
-    nextcloud, codimd, ci, wikijs, matrix, bbb, grist, prophecies, nextcloud28
+    nextcloud, codimd, ci, wikijs, matrix, bbb, grist, prophecies, nextcloud28, \
+    xwiki
 
 
 log = logging.getLogger(__name__)
@@ -53,7 +54,7 @@ class CheckedConfigParser(configparser.ConfigParser):
 
 class Configuration:
     ALL_APPS = ('hoover', 'dokuwiki', 'wikijs', 'nextcloud',
-                'codimd', 'matrix', 'bbb', 'grist', 'prophecies', 'nextcloud28')
+                'codimd', 'matrix', 'bbb', 'grist', 'prophecies', 'nextcloud28', 'xwiki')
 
 # The core apps can't be turned off.
     CORE_APPS = ('liquid', 'ingress',)
@@ -75,6 +76,7 @@ class Configuration:
         'prophecies': 'the app to conduct collaborative data validation and cleaning.',
         'bbb': 'is the video conference frontend tool',
         'nextcloud28': 'has a file share system and a contact list of users.',
+        'xwiki': 'just another wiki',
     }
 
     APP_REDIS_IDS = {
@@ -87,6 +89,7 @@ class Configuration:
         'collabora': 7,
         'grist': 11,
         'prophecies': 12,
+        'xwiki': 13,
     }
 
     APP_ALLOW_ALL_USERS = {
@@ -107,6 +110,9 @@ class Configuration:
         wikijs.Wikijs(),
         wikijs.Deps(),
         wikijs.Proxy(),
+        xwiki.Xwiki(),
+        xwiki.Deps(),
+        xwiki.Proxy(),
         hoover.Hoover(),
         hoover.DepsDownloads(),
         hoover.Deps(),
@@ -453,6 +459,8 @@ class Configuration:
                 'ports', 'hoover_es_master_transport', fallback=9979,),
             'wikijs_pg': self.ini.getint('ports', 'wikijs-pg', fallback=9974),
             'wikijs': self.ini.getint('ports', 'wikijs', fallback=9973),
+            'xwiki_pg': self.ini.getint('ports', 'xwiki-pg', fallback=9947),
+            'xwiki': self.ini.getint('ports', 'xwiki', fallback=9946),
             'drone_secret': self.ini.getint('ports', 'drone-secret', fallback=9972),
             'drone_server_http': self.ini.getint('ports', 'drone-server-http', fallback=9971),
 
@@ -499,6 +507,8 @@ class Configuration:
         self.port_hoover_es_master_transport = self.PORT_MAP['hoover_es_master_transport']
         self.port_wikijs_pg = self.PORT_MAP['wikijs_pg']
         self.port_wikijs = self.PORT_MAP['wikijs']
+        self.port_xwiki_pg = self.PORT_MAP['xwiki_pg']
+        self.port_xwiki = self.PORT_MAP['xwiki']
         self.port_matrix_pg = self.PORT_MAP['matrix_pg']
         self.port_matrix_synapse = self.PORT_MAP['matrix_synapse']
         self.port_matrix_element = self.PORT_MAP['matrix_element']
