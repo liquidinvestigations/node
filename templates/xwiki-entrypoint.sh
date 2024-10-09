@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Copy config file!"
-cat > /usr/local/xwiki/data/hibernate.cfg.xml << DELIM
+cat > /usr/local/tomcat/webapps/ROOT/WEB-INF/hibernate.cfg.xml << DELIM
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
