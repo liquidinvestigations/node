@@ -94,7 +94,7 @@ cat > /usr/local/tomcat/webapps/ROOT/WEB-INF/hibernate.cfg.xml << DELIM
     -->
     <property name="connection.url">jdbc:postgresql://$XWIKI_DB_URL/xwiki</property>
     <property name="connection.username">xwiki</property>
-    <property name="connection.password">fa5c299873c6b6da2a71c4e77807b292dfdde6c7ec7aa9c36cf1b13ccabb53ec</property>
+    <property name="connection.password">$DB_PASSWORD</property>
     <property name="connection.driver_class">org.postgresql.Driver</property>
     <property name="jdbc.use_streams_for_binary">false</property>
     <property name="xwiki.virtual_mode">schema</property>
