@@ -11,7 +11,7 @@ class Xwiki(jobs.Job):
             'name': 'xwiki-app',
             'subdomain': 'xwiki',
             'vault_path': 'liquid/xwiki/app.auth.oauth2',
-            'callback': '/oauth2/callback',
+            'callback': '/oidc/authenticator/callback',
         },
         {
             'name': 'xwiki-authproxy',
