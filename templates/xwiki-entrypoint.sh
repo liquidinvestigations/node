@@ -459,7 +459,7 @@ xwiki.authentication.logoutpage=(/|/[^/]+/|/wiki/[^/]+/)logout/*
 # xwiki.authentication.groupclass=com.xpn.xwiki.user.impl.xwiki.XWikiGroupServiceImpl
 
 #-# The authentication management class.
-xwiki.authentication.authclass=org.xwiki.contrib.oidc.provider.OIDCBridgeAuth
+xwiki.authentication.authclass=org.xwiki.contrib.oidc.provider.OIDCAuthServiceImpl
 
 #-# (Deprecated) The authorization management class.
 #-# [Since 5.0M2] The default right service is now org.xwiki.security.authorization.internal.XWikiCachingRightService
@@ -650,6 +650,29 @@ xwiki.stats.default=0
 #-# Can be overwritten with URL parameter "?attachment_jrcs=false"
 #-# The default is:
 # xwiki.action.export.xar.attachment.jrcs=1
+DELIM
+
+
+cat >> /usr/local/tomcat/webapps/ROOT/WEB-INF/xwiki.properties << DELIM
+oidc.endpoint.authorization=$OAUTH2_AUTHORIZE_URL
+oidc.endpoint.token=$OAUTH2_TOKEN_URL
+oidc.endpoint.userinfo=$OAUTH2_PROFILE_URL
+oidc.scope=openid,profile,email,address
+oidc.endpoint.userinfo.method=GET
+oidc.user.nameFormater={% raw %}\${oidc.user.preferredUsername._clean._lowerCase}{% endraw %}
+oidc.user.subjectFormater={% raw %}\${oidc.user.subject}{% endraw %}
+oidc.groups.claim=$OAUTH2_GROUPS_CLAIM
+# oidc.groups.mapping=MyXWikiGroup=my-oidc-group
+# oidc.groups.mapping=MyXWikiGroup2=my-oidc-group2
+# oidc.groups.mapping=MyXWikiGroup2=my-oidc-group3
+# oidc.groups.allowed=
+# oidc.groups.forbidden=
+oidc.userinfoclaims=xwiki_user_accessibility,xwiki_user_company,xwiki_user_displayHiddenDocuments,xwiki_user_editor,xwiki_user_usertype
+# oidc.userinforefreshrate=600000
+oidc.clientid=$OAUTH2_CLIENT_ID
+oidc.secret=$OAUTH2_CLIENT_SECRET
+oidc.endpoint.token.auth_method=client_secret_basic
+oidc.skipped=false
 DELIM
 
 echo "Starting original entrypoint!"

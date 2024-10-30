@@ -37,6 +37,21 @@ job "xwiki" {
               DB_PASSWORD={{.Data.secret_key | toJSON }}
           {{- end }}
           XWIKI_DB_URL = "{{ env "attr.unique.network.ip-address" }}:${config.port_xwiki_pg}"
+        {{- with secret "liquid/xwiki/app.auth.oauth2" }}
+            OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
+            OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
+        {{- end }}
+        OAUTH2_GROUPS_CLAIM = "roles"
+        OAUTH2_PROFILE_FIELDS = "name"
+        OAUTH2_NAME_FIELD = "name"
+        OAUTH2_ADMIN_GROUP = "admin"
+        OAUTH2_PROVIDER_NAME = "liquid"
+        OAUTH2_PROVIDER_TITLE = "Liquid"
+        OAUTH2_BASE_URL = "${config.liquid_core_url}"
+        OAUTH2_AUTHORIZE_URL = "${config.liquid_core_url}/o/authorize/"
+        OAUTH2_TOKEN_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
+        OAUTH2_PROFILE_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/accounts/profile"
+        OAUTH2_LOGOUT_URL = "${config.liquid_core_url}/accounts/logout/?next=/"
         EOF
         destination = "local/xwiki.env"
         env = true
