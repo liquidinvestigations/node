@@ -707,7 +707,8 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 1024
+        # oversubscribe RAM for burst use
+        memory = 512
         cpu = 350
         network {
           mbits = 1
@@ -733,7 +734,7 @@ job "hoover-deps" {
           listeners.tcp.default = 5672
           management.tcp.port = 15672
           loopback_users.guest = false
-          total_memory_available_override_value = 1024MB
+          total_memory_available_override_value = 4096MB
           EOF
       }
 
