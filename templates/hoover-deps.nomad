@@ -707,7 +707,7 @@ job "hoover-deps" {
       }
 
       resources {
-        memory = 500
+        memory = 1024
         cpu = 350
         network {
           mbits = 1
@@ -733,7 +733,7 @@ job "hoover-deps" {
           listeners.tcp.default = 5672
           management.tcp.port = 15672
           loopback_users.guest = false
-          total_memory_available_override_value = 500MB
+          total_memory_available_override_value = 1024MB
           EOF
       }
 
