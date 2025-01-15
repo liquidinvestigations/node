@@ -10,11 +10,10 @@ while [ $retries -lt $max_retries ]; do
     echo "Xwiki is ready. Searching for allocation..."
     echo $NOMAD_URL
 
-    # unfortunatley parsing the json doesn't work since jq is not available instead we 
-    # get the first allocation id which should be the running one. 
-    # However this will also return an ID if it is not running, but this was checked before anyway 
-    # so it should be fine.
-    allocationId=$(curl -s $NOMAD_URL/v1/job/xwiki/allocations | grep -o '"ID": *"[^"]*' | head -n 1| sed 's/"ID":"//')
+    # unfortunatley parsing the json doesn't work since jq is not available instead we split the json objets
+    # into seperate lines and grep the running one and get the id from it
+    # beginning of the line looks like this: {"ID":"b7ca39fa-a962-5900-41b7-ae14728f6c70",...
+    allocationId=$(curl -s $NOMAD_URL/v1/job/xwiki/allocations | sed 's/},{/}\n{/g' | grep '"ClientStatus":"running"' | awk -F'"' '{print $4}')
     if [ -n "$allocationId" ]; then
       echo "Found running allocation: $allocationId"
       break
