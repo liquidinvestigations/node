@@ -29,24 +29,35 @@ job "xwiki" {
 
       env {
         DB_USER = "xwiki"
+        XWIKI_CONFIGURATION = "false"
       }
 
       template {
         data = <<-EOF
-          {{- with secret "liquid/xwiki/xwiki.postgres" }}
-              DB_PASSWORD={{.Data.secret_key | toJSON }}
-          {{- end }}
+        {{- with secret "liquid/xwiki/xwiki.postgres" }}
+            DB_PASSWORD={{.Data.secret_key | toJSON }}
+        {{- end }}
           XWIKI_DB_URL = "{{ env "attr.unique.network.ip-address" }}:${config.port_xwiki_pg}"
         {{- with secret "liquid/xwiki/app.auth.oauth2" }}
             OAUTH2_CLIENT_ID = {{.Data.client_id | toJSON }}
             OAUTH2_CLIENT_SECRET = {{.Data.client_secret | toJSON }}
         {{- end }}
+        {{- with secret "liquid/xwiki/xwiki.superadmin" }}
+            SUPERADMIN_PASSWORD={{.Data.secret_key | toJSON }}
+        {{- end }}
+        XWIKI_DB = "postgresql://xwiki:
+        {{- with secret "liquid/xwiki/xwiki.postgres" -}}
+          {{.Data.secret_key }}
+        {{- end -}}
+        @{{env "attr.unique.network.ip-address" }}:${config.port_xwiki_pg}/xwiki"
+        XWIKI_INIT_CHECK_TABLE = "xwikidoc"
         OAUTH2_GROUPS_CLAIM = "roles"
         OAUTH2_PROFILE_FIELDS = "name"
         OAUTH2_NAME_FIELD = "name"
         OAUTH2_ADMIN_GROUP = "admin"
         OAUTH2_PROVIDER_NAME = "liquid"
         OAUTH2_PROVIDER_TITLE = "Liquid"
+        LIQUID_URL = "${config.liquid_http_protocol}://{{ key "liquid_domain" }}"
         OAUTH2_BASE_URL = "${config.liquid_core_url}"
         OAUTH2_AUTHORIZE_URL = "${config.liquid_core_url}/o/authorize/"
         OAUTH2_TOKEN_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
@@ -65,6 +76,7 @@ job "xwiki" {
         perms = "755"
       }
 
+
       resources {
         memory = 400
         cpu = 100
@@ -73,6 +85,7 @@ job "xwiki" {
           port "xwiki" {}
         }
       }
+
 
       service {
         name = "liquid-xwiki"

@@ -22,6 +22,7 @@ class Xwiki(jobs.Job):
     ]
     vault_secret_keys = [
         'liquid/xwiki/xwiki.postgres',
+        'liquid/xwiki/xwiki.superadmin'
     ]
     generate_oauth2_proxy_cookie = True
 
@@ -36,6 +37,13 @@ class Deps(jobs.Job):
 
 class Proxy(jobs.Job):
     name = 'xwiki-proxy'
+    template = jobs.TEMPLATES / f'{name}.nomad'
+    app = 'xwiki'
+    stage = 5
+
+
+class Setup(jobs.Job):
+    name = 'xwiki-setup'
     template = jobs.TEMPLATES / f'{name}.nomad'
     app = 'xwiki'
     stage = 5

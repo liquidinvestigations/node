@@ -113,6 +113,7 @@ class Configuration:
         xwiki.Xwiki(),
         xwiki.Deps(),
         xwiki.Proxy(),
+        xwiki.Setup(),
         hoover.Hoover(),
         hoover.DepsDownloads(),
         hoover.Deps(),

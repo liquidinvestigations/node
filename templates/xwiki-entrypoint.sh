@@ -1,5 +1,20 @@
 #!/bin/bash
 
+psql --version
+if ( echo "\\d" | psql $XWIKI_DB | grep -q $XWIKI_INIT_CHECK_TABLE ); then
+  echo "Table $XWIKI_INIT_CHECK_TABLE was found -- not running init script."
+elif [ "$XWIKI_CONFIGURATION" = "false" ]; then
+  echo 'Running database initialization script...'
+  cat /tmp/xwikidump | psql -v ON_ERROR_STOP=1 --single-transaction $XWIKI_DB
+  echo $LIQUID_URL
+  psql -c "UPDATE \"xwikidoc\" SET \"xwd_content\" = '* [[Liquid Home>>$LIQUID_URL]]' WHERE \"xwd_content\" LIKE '%LIQUID_URL%';" $XWIKI_DB
+  echo 'Successfully ran database initialization script.'
+fi
+
+echo "Moving repository from image to correct location."
+mkdir -p /usr/local/xwiki/data/extension
+mv /tmp/repository /usr/local/xwiki/data/extension
+
 echo "Copy hibernate.cfg.xml config file!"
 cat > /usr/local/tomcat/webapps/ROOT/WEB-INF/hibernate.cfg.xml << DELIM
 <?xml version="1.0" encoding="UTF-8"?>
@@ -414,7 +429,7 @@ xwiki.inactiveuser.allowedpages=
 #-# Enable to allow superadmin. It is disabled by default as this could be a
 #-# security breach if it were set and you forgot about it. Should only be enabled
 #-# for recovering the Wiki when the rights are completely messed.
-# xwiki.superadminpassword=system
+xwiki.superadminpassword=$SUPERADMIN_PASSWORD
 
 #-# Authentication type. You can use 'basic' to always use basic authentication.
 # xwiki.authentication=form
@@ -662,7 +677,7 @@ oidc.endpoint.userinfo.method=GET
 oidc.user.nameFormater={% raw %}\${oidc.user.id._clean._lowerCase}{% endraw %}
 oidc.user.subjectFormater={% raw %}\${oidc.user.id}{% endraw %}
 oidc.groups.claim=$OAUTH2_GROUPS_CLAIM
-# oidc.groups.mapping=MyXWikiGroup=my-oidc-group
+oidc.groups.mapping=XWikiAdminGroup=admin
 # oidc.groups.mapping=MyXWikiGroup2=my-oidc-group2
 # oidc.groups.mapping=MyXWikiGroup2=my-oidc-group3
 # oidc.groups.allowed=
@@ -673,6 +688,11 @@ oidc.clientid=$OAUTH2_CLIENT_ID
 oidc.secret=$OAUTH2_CLIENT_SECRET
 oidc.endpoint.token.auth_method=client_secret_post
 oidc.skipped=false
+
+distribution.defaultUI=org.xwiki.platform:xwiki-platform-distribution-flavor-mainwiki
+distribution.defaultWikiUI=org.xwiki.platform:xwiki-platform-distribution-flavor-wiki
+distribution.job.interactive=false
+distribution.job.interactive.wiki=false
 DELIM
 
 echo "Starting original entrypoint!"
