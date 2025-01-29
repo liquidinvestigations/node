@@ -11,6 +11,6 @@ job "xwiki-proxy" {
       host='wiki-v3.' + liquid_domain,
       upstream_port=config.port_xwiki,
       group='xwiki',
-      redis_id=13
+      redis_id=13,
     ) }
 }

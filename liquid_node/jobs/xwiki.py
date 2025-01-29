@@ -8,14 +8,14 @@ class Xwiki(jobs.Job):
     stage = 2
     core_oauth_apps = [
         {
-            'name': 'xwiki-app',
+            'name': 'xwiki',
             'subdomain': 'wiki-v3',
             'vault_path': 'liquid/xwiki/app.auth.oauth2',
             'callback': '/oidc/authenticator/callback',
         },
         {
             'name': 'xwiki-authproxy',
-            'subdomain': 'xwiki',
+            'subdomain': 'wiki-v3',
             'vault_path': 'liquid/xwiki/auth.oauth2',
             'callback': '/oauth2/callback',
         },

@@ -69,6 +69,10 @@ class Configuration:
         'xwiki': 'wiki-v3'
     }
 
+    APP_COOKIE_NAME = {
+        'xwiki': 'wiki-v3'
+    }
+
     APP_DESCRIPTION = {
         'hoover': 'is a search app.',
         'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
@@ -768,6 +772,8 @@ class Configuration:
         subdomain = self.APP_URL_SUBDOMAIN.get(name) or name
         return f'{self.liquid_http_protocol}://{subdomain}.{self.liquid_domain}'
 
+    def cookie_name(self, name):
+        return self.APP_COOKIE_NAME.get(name) or name
 
     def is_app_enabled(self, app_name):
         if app_name == 'ci':

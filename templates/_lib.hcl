@@ -96,7 +96,7 @@ ephemeral_disk {
           {% endif %}
           OAUTH2_PROXY_OIDC_GROUPS_CLAIM = "roles"
 
-          OAUTH2_PROXY_COOKIE_NAME = "_oauth2_proxy_${name}"
+          OAUTH2_PROXY_COOKIE_NAME = "_oauth2_proxy_${config.cookie_name(name)}"
           OAUTH2_PROXY_COOKIE_SAMESITE = "lax"
           OAUTH2_PROXY_COOKIE_SECURE = {% if config.https_enabled %}true{% else %}false{% endif %}
           OAUTH2_PROXY_COOKIE_EXPIRE = "${config.auth_auto_logout}"
