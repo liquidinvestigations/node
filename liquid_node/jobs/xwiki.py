@@ -9,13 +9,14 @@ class Xwiki(jobs.Job):
     core_oauth_apps = [
         {
             'name': 'xwiki',
-            'subdomain': 'wiki-v3',
+            'subdomain': 'wiki3',
             'vault_path': 'liquid/xwiki/app.auth.oauth2',
             'callback': '/oidc/authenticator/callback',
+            'algo': 'HS256'
         },
         {
             'name': 'xwiki-authproxy',
-            'subdomain': 'wiki-v3',
+            'subdomain': 'wiki3',
             'vault_path': 'liquid/xwiki/auth.oauth2',
             'callback': '/oauth2/callback',
         },

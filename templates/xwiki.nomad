@@ -101,7 +101,7 @@ job "xwiki" {
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
-            Host = ["wiki-v3.${liquid_domain}"]
+            Host = ["wiki3.${liquid_domain}"]
           }
         }
       }

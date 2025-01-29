@@ -66,11 +66,11 @@ class Configuration:
     }
 
     APP_URL_SUBDOMAIN = {
-        'xwiki': 'wiki-v3'
+        'xwiki': 'wiki3'
     }
 
     APP_COOKIE_NAME = {
-        'xwiki': 'wiki-v3'
+        'xwiki': 'wiki3'
     }
 
     APP_DESCRIPTION = {

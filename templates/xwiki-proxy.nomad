@@ -8,7 +8,7 @@ job "xwiki-proxy" {
 
   ${- authproxy_group(
       'xwiki',
-      host='wiki-v3.' + liquid_domain,
+      host='wiki3.' + liquid_domain,
       upstream_port=config.port_xwiki,
       group='xwiki',
       redis_id=13,
