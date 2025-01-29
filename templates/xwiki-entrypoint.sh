@@ -375,7 +375,7 @@ xwiki.store.migration=1
 #-#   * during client request for the current wiki: the protocol from the URL used by the client
 #-#   * for a different wiki or during background tasks (mails, etc.): information come from the wiki descriptor (also fallback on main wiki)
 #-# For example:
-#-# xwiki.url.protocol=https
+xwiki.url.protocol=$LIQUID_HTTP_PROTOCOL
 # xwiki.url.protocol=
 #-# The name of the webapp to use in the generated URLs. If not specified, the value is extracted from the request URL
 #-# and thus it's generally not required to set it. However if you're deploying XWiki as ROOT in your Servlet Container

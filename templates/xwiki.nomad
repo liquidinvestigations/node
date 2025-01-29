@@ -59,6 +59,7 @@ job "xwiki" {
         OAUTH2_PROVIDER_TITLE = "Liquid"
         XWIKI_COOKIE_LIFETIME = "${config.xwiki_cookie_lifetime}"
         LIQUID_URL = "${config.liquid_http_protocol}://{{ key "liquid_domain" }}"
+        LIQUID_HTTP_PROTOCOL = ${config.liquid_http_protocol}
         OAUTH2_BASE_URL = "${config.liquid_core_url}"
         OAUTH2_AUTHORIZE_URL = "${config.liquid_core_url}/o/authorize/"
         OAUTH2_TOKEN_URL = "http://{{ env "attr.unique.network.ip-address" }}:${config.port_lb}/_core/o/token/"
