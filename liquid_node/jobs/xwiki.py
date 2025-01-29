@@ -9,7 +9,7 @@ class Xwiki(jobs.Job):
     core_oauth_apps = [
         {
             'name': 'xwiki-app',
-            'subdomain': 'xwiki',
+            'subdomain': 'wiki-v3',
             'vault_path': 'liquid/xwiki/app.auth.oauth2',
             'callback': '/oidc/authenticator/callback',
         },
