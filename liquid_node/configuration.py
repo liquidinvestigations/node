@@ -65,6 +65,10 @@ class Configuration:
         'wikijs': "Wiki.js",
     }
 
+    APP_URL_SUBDOMAIN = {
+        'xwiki': 'wiki-v3'
+    }
+
     APP_DESCRIPTION = {
         'hoover': 'is a search app.',
         'dokuwiki': 'is a wiki system used as a knowledge base for processed information.',
@@ -541,6 +545,8 @@ class Configuration:
         self.sentry_version_hoover_search = self._image('hoover-search').split('/', 1)[1]
         self.sentry_version_liquid_core = self._image('liquid-core').split('/', 1)[1]
 
+        self.xwiki_cookie_lifetime = self.ini.getint('xwiki', 'cookie_lifetime', fallback=14)
+
         # Load collections and extra jobs
         self.snoop_collections = []
         self.extra_app_configs = []
@@ -759,7 +765,9 @@ class Configuration:
         raise RuntimeError("A job needs `template` or `loader`")
 
     def app_url(self, name):
-        return f'{self.liquid_http_protocol}://{name}.{self.liquid_domain}'
+        subdomain = self.APP_URL_SUBDOMAIN.get(name) or name
+        return f'{self.liquid_http_protocol}://{subdomain}.{self.liquid_domain}'
+
 
     def is_app_enabled(self, app_name):
         if app_name == 'ci':

@@ -16,7 +16,7 @@ job "xwiki" {
         image = "${config.image('xwiki')}"
         entrypoint = ["/bin/bash", "/local/xwiki-entrypoint.sh"]
         port_map {
-          xwiki = 8080
+          xwiki = 80
         }
         labels {
           liquid_task = "xwiki"
@@ -57,6 +57,7 @@ job "xwiki" {
         OAUTH2_ADMIN_GROUP = "admin"
         OAUTH2_PROVIDER_NAME = "liquid"
         OAUTH2_PROVIDER_TITLE = "Liquid"
+        XWIKI_COOKIE_LIFETIME = "${config.xwiki_cookie_lifetime}"
         LIQUID_URL = "${config.liquid_http_protocol}://{{ key "liquid_domain" }}"
         OAUTH2_BASE_URL = "${config.liquid_core_url}"
         OAUTH2_AUTHORIZE_URL = "${config.liquid_core_url}/o/authorize/"
@@ -100,7 +101,7 @@ job "xwiki" {
           interval = "${check_interval}"
           timeout = "${check_timeout}"
           header {
-            Host = ["xwiki.${liquid_domain}"]
+            Host = ["wiki-v3.${liquid_domain}"]
           }
         }
       }

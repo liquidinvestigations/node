@@ -460,6 +460,7 @@ xwiki.superadminpassword=$SUPERADMIN_PASSWORD
 #-#
 #-# Example: xwiki.authentication.cookiedomains=xwiki.org,myxwiki.org
 xwiki.authentication.cookiedomains=
+xwiki.authentication.cookielife=$XWIKI_COOKIE_LIFETIME
 
 #-# This allows logout to happen for any page going through the /logout/ action, regardless of the document or the
 #-# servlet.
@@ -696,4 +697,8 @@ distribution.job.interactive.wiki=false
 DELIM
 
 echo "Starting original entrypoint!"
+
+# Start Nginx in the foreground
+nginx -g "daemon off;" &
+
 exec /usr/local/bin/docker-entrypoint.sh xwiki
