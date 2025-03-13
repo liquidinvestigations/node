@@ -36,9 +36,21 @@ fi
 echo ""
 echo "Xwiki is ready. Running setup..."
 echo ""
-curl -i --user "superadmin:$PASSWORD" -X PUT -H "Content-Type: text/xml" "$XWIKI_URL/rest/jobs?jobType=install&async=false" --upload-file local/installjobrequest.xml
+curl --user "superadmin:$PASSWORD" -X PUT -H "Content-Type: text/xml" "$XWIKI_URL/rest/jobs?jobType=install&async=false" --upload-file local/installjobrequest.xml
 echo ""
-echo "Installing oidc extension done. Restarting service..."
+
+echo "Installing custom CSS..."
+curl --user "superadmin:$PASSWORD" -X PUT -H "Content-Type: text/xml" "$XWIKI_URL/rest/wikis/xwiki/spaces/Main/pages/customcss" --data-binary "@local/emptypage.xml"
+
+echo "Check if style sheet extension exists..."
+if curl --user "superadmin:$PASSWORD" -X GET "$XWIKI_URL/rest/wikis/xwiki/spaces/Main/pages/customcss/objects" | grep "StyleSheetExtension"; then
+  echo "StyleSheetExtension already exists. Skipping installation."
+else
+  echo "Installing style sheet extension..."
+  curl --user "superadmin:$PASSWORD" -X POST -H "Content-Type: text/xml" "$XWIKI_URL/rest/wikis/xwiki/spaces/Main/pages/customcss/objects" --data-binary "@local/installcss.xml"
+fi
+
+echo "Installing oidc extension and custom CSS done. Restarting service..."
 curl -X POST -d '{"TaskName": "xwiki"}' $NOMAD_URL/v1/client/allocation/$allocationId/restart
 echo ""
 echo "Restarted service."

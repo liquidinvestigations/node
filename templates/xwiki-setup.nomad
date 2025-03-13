@@ -92,6 +92,56 @@ EOF
         destination = "local/installjobrequest.xml"
       }
 
+      template {
+        data = <<EOF
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<object xmlns="http://www.xwiki.org">
+    <className>XWiki.StyleSheetExtension</className>
+    <property name="name">
+        <value>Custom Stylesheet</value>
+    </property>
+    <property name="code">
+        <value><![CDATA[
+.menu-horizontal-toggle {
+  position: absolute;
+  top: 0;
+  left: 150px;
+  #menu-horizontal-Menu-home-WebHome {
+    background-color: #3e79bc;
+    box-shadow: none;
+  }
+}
+                        ]]>
+                </value>
+    </property>
+    <property name="use">
+        <value>always</value>
+    </property>
+    <property name="parse">
+        <value>0</value>
+    </property>
+    <property name="cache">
+        <value>default</value>
+    </property>
+    <property name="contentType">
+        <value>CSS</value>
+    </property>
+</object>
+        EOF
+        destination = "local/installcss.xml"
+      }
+
+      template {
+        data = <<EOF
+<page xmlns="http://www.xwiki.org">
+        <title>customcss</title>
+        <syntax>xwiki/2.0</syntax>
+        <hidden>true</hidden>
+</page>
+        EOF
+        destination = "local/emptypage.xml"
+      }
+
       resources {
         cpu    = 200
         memory = 128
