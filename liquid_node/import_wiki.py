@@ -68,6 +68,11 @@ def get_base_url():
 def get_xwiki_page_url(space, page_name):
     """Construct XWiki REST API URL for a page."""
     xwiki_url = f'{get_base_url()}:{config.port_xwiki}/rest/wikis/xwiki/spaces'
+    # If it is a file in the root directory there is no space so we create one
+    # WebHome is the spaces main page
+    if space is None:
+        space = page_name
+        page_name = "WebHome"
     return f"{xwiki_url}/{space}/pages/{page_name}"
 
 
@@ -113,9 +118,11 @@ def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
     for dirpath, _, filenames in os.walk(root_dir):
         # Convert directory path to XWiki space format
         rel_path = os.path.relpath(dirpath, root_dir)
-        space = rel_path.replace(os.sep, ".") if rel_path != "." else "Main"
+        space = rel_path.replace(os.sep, ".") if rel_path != "." else None
 
-        parent_space = ".".join(space.split(".")[:-1]) if "." in space else None
+        parent_space = None
+        if space is not None:
+            parent_space = ".".join(space.split(".")[:-1]) if "." in space else None
 
         for filename in filenames:
             if filename.endswith(file_extension):
