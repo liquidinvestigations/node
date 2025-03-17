@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 XWIKI_USER = "superadmin"
 WIKIJS_EXPORT_DIR_HOST = "/tmp/wikijs_backup"  # Root directory of your HTML wiki
 WIKIJS_EXPORT_DIR_CONTAINER = "/tmp/backup"  # Root directory of your HTML wiki
+DOKUWIKI_ROOT = "/opt/node/volumes/dokuwiki/data/dokuwiki/data/pages"
 
 
 @click.group()
@@ -37,9 +38,17 @@ def get_xwiki_password():
 
 
 def convert_html_to_xwiki(html_file):
-    """Convert an HTML file to XWiki syntax using Pandoc."""
     output = subprocess.run(
         ["pandoc", "-f", "html", "-t", "xwiki", html_file],
+        capture_output=True,
+        text=True
+    )
+    return output.stdout
+
+
+def convert_dokuwiki_to_xwiki(dokuwiki_file):
+    output = subprocess.run(
+        ["pandoc", "-f", "dokuwiki", "-t", "xwiki", dokuwiki_file],
         capture_output=True,
         text=True
     )
@@ -88,8 +97,19 @@ def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password, parent_page
         log.warning(f"Response code: {response.status_code}")
 
 
-def process_directory(root_dir, xwiki_password):
+def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
     """Recursively process all HTML files and maintain directory structure."""
+    match source_wiki:
+        case "wikijs":
+            file_extension = ".html"
+            convert_function = convert_html_to_xwiki
+        case "dokuwiki":
+            file_extension = ".txt"
+            convert_function = convert_dokuwiki_to_xwiki
+        case _:
+            log.error(f"Unsupported source wiki: {source_wiki}")
+            return
+
     for dirpath, _, filenames in os.walk(root_dir):
         # Convert directory path to XWiki space format
         rel_path = os.path.relpath(dirpath, root_dir)
@@ -98,13 +118,13 @@ def process_directory(root_dir, xwiki_password):
         parent_space = ".".join(space.split(".")[:-1]) if "." in space else None
 
         for filename in filenames:
-            if filename.endswith(".html"):
-                html_path = os.path.join(dirpath, filename)
+            if filename.endswith(file_extension):
+                source_path = os.path.join(dirpath, filename)
                 page_name = os.path.splitext(filename)[0]
 
-                log.info(f"Processing: {html_path} -> {space}.{page_name}")
+                log.info(f"Processing: {source_path} -> {space}.{page_name}")
 
-                xwiki_content = convert_html_to_xwiki(html_path)
+                xwiki_content = convert_function(source_path)
                 upload_to_xwiki(space, page_name, xwiki_content, xwiki_password, parent_space)
 
 
@@ -142,7 +162,7 @@ def check_output_dir_exists(dir):
 
 
 @import_wiki_commands.command()
-def import_xwiki():
+def import_xwiki_from_wikijs():
     if check_output_dir_exists(WIKIJS_EXPORT_DIR_HOST):
         log.error(f"Directory {WIKIJS_EXPORT_DIR_HOST} exists already. Please remove it and try again.")
         exit(1)
@@ -167,6 +187,15 @@ def import_xwiki():
     copy_data_from_container(container_id, WIKIJS_EXPORT_DIR_CONTAINER, WIKIJS_EXPORT_DIR_HOST)
     xwiki_password = get_xwiki_password()
     if xwiki_password:
-        process_directory(WIKIJS_EXPORT_DIR_HOST, xwiki_password)
+        process_directory(WIKIJS_EXPORT_DIR_HOST, xwiki_password, source_wiki="wikijs")
+    else:
+        log.warning("Failed to retrieve XWiki password.")
+
+
+@import_wiki_commands.command()
+def import_xwiki_from_dokuwiki():
+    xwiki_password = get_xwiki_password()
+    if xwiki_password:
+        process_directory(DOKUWIKI_ROOT, xwiki_password, source_wiki="dokuwiki")
     else:
         log.warning("Failed to retrieve XWiki password.")

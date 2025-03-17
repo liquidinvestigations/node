@@ -36,7 +36,8 @@ fi
 echo ""
 echo "Xwiki is ready. Running setup..."
 echo ""
-curl --user "superadmin:$PASSWORD" -X PUT -H "Content-Type: text/xml" "$XWIKI_URL/rest/jobs?jobType=install&async=false" --upload-file local/installjobrequest.xml
+echo "Installing OIDC extension..."
+curl --user "superadmin:$PASSWORD" -X PUT -H "Content-Type: text/xml" "$XWIKI_URL/rest/jobs?jobType=install&async=false" --upload-file local/install-oidc.xml
 echo ""
 
 echo "Installing custom CSS..."

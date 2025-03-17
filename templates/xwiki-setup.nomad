@@ -89,8 +89,9 @@ EOF
   </property>
 </jobRequest>
 EOF
-        destination = "local/installjobrequest.xml"
+        destination = "local/install-oidc.xml"
       }
+
 
       template {
         data = <<EOF
