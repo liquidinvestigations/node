@@ -104,16 +104,15 @@ def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password, parent_page
 
 def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
     """Recursively process all HTML files and maintain directory structure."""
-    match source_wiki:
-        case "wikijs":
-            file_extension = ".html"
-            convert_function = convert_html_to_xwiki
-        case "dokuwiki":
-            file_extension = ".txt"
-            convert_function = convert_dokuwiki_to_xwiki
-        case _:
-            log.error(f"Unsupported source wiki: {source_wiki}")
-            return
+    if source_wiki is not ("wikijs" or "dokuwiki"):
+        log.error(f"Unsupported source wiki: {source_wiki}")
+        return
+    if source_wiki == "wikijs":
+        file_extension = ".html"
+        convert_function = convert_html_to_xwiki
+    if source_wiki == "dokuwiki":
+        file_extension = ".txt"
+        convert_function = convert_dokuwiki_to_xwiki
 
     for dirpath, _, filenames in os.walk(root_dir):
         # Convert directory path to XWiki space format
