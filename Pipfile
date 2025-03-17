@@ -8,3 +8,6 @@ colorlog = "*"
 flake8 = "*"
 Jinja2 = "*"
 click = "*"
+requests = "*"
+
+[dev-packages]
