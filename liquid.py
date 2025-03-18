@@ -21,11 +21,13 @@ from liquid_node.configuration import config
 from liquid_node.commands import liquid_commands
 from liquid_node.backup import backup_commands
 from liquid_node.import_wiki import import_wiki_commands
+from liquid_node.sync_users_xwiki import sync_users_xwiki_commands
 
 
 log = logging.getLogger(__name__)
 
-cli = click.CommandCollection(sources=[liquid_commands, backup_commands, import_wiki_commands])
+cli = click.CommandCollection(sources=[liquid_commands, backup_commands, import_wiki_commands,
+                                       sync_users_xwiki_commands])
 
 if __name__ == '__main__':
     level = logging.DEBUG if config.liquid_debug else logging.INFO
