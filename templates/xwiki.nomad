@@ -51,10 +51,9 @@ job "xwiki" {
         {{- end -}}
         @{{env "attr.unique.network.ip-address" }}:${config.port_xwiki_pg}/xwiki"
         XWIKI_INIT_CHECK_TABLE = "xwikidoc"
-        OAUTH2_GROUPS_CLAIM = "roles"
+        OAUTH2_GROUPS_CLAIM = "xwiki_groups"
         OAUTH2_PROFILE_FIELDS = "name"
         OAUTH2_NAME_FIELD = "name"
-        OAUTH2_ADMIN_GROUP = "admin"
         OAUTH2_PROVIDER_NAME = "liquid"
         OAUTH2_PROVIDER_TITLE = "Liquid"
         XWIKI_COOKIE_LIFETIME = "${config.xwiki_cookie_lifetime}"

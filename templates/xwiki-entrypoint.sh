@@ -678,12 +678,12 @@ oidc.endpoint.userinfo.method=GET
 oidc.user.nameFormater={% raw %}\${oidc.user.id._clean._lowerCase}{% endraw %}
 oidc.user.subjectFormater={% raw %}\${oidc.user.id}{% endraw %}
 oidc.groups.claim=$OAUTH2_GROUPS_CLAIM
-oidc.groups.mapping=XWikiAdminGroup=admin
+#oidc.groups.mapping=XWikiAdminGroup=admin
 # oidc.groups.mapping=MyXWikiGroup2=my-oidc-group2
 # oidc.groups.mapping=MyXWikiGroup2=my-oidc-group3
 # oidc.groups.allowed=
 # oidc.groups.forbidden=
-oidc.userinfoclaims=xwiki_user_accessibility,xwiki_user_company,xwiki_user_displayHiddenDocuments,xwiki_user_editor,xwiki_user_usertype
+oidc.userinfoclaims=xwiki_user_accessibility,xwiki_user_company,xwiki_user_displayHiddenDocuments,xwiki_user_editor,xwiki_user_usertype, xwiki_groups
 # oidc.userinforefreshrate=600000
 oidc.clientid=$OAUTH2_CLIENT_ID
 oidc.secret=$OAUTH2_CLIENT_SECRET
