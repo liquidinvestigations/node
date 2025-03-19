@@ -67,16 +67,18 @@ def get_base_url():
 
 def get_xwiki_page_url(space, page_name):
     """Construct XWiki REST API URL for a page."""
-    xwiki_url = f'{get_base_url()}:{config.port_xwiki}/rest/wikis/xwiki/spaces'
+    xwiki_url = f'{get_base_url()}:{config.port_xwiki}/rest/wikis/xwiki'
     # If it is a file in the root directory there is no space so we create one
     # WebHome is the spaces main page
-    if space is None:
-        space = page_name
-        page_name = "WebHome"
-    return f"{xwiki_url}/{space}/pages/{page_name}"
+    spaces_url_part = ""
+    if space:
+        spaces = space.split(".")
+        spaces = [f"/spaces/{s}" for s in spaces]
+        spaces_url_part = "".join(spaces)
+    return f"{xwiki_url}{spaces_url_part}/spaces/{page_name}/pages/WebHome"
 
 
-def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password, parent_page=None):
+def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password):
     """Upload the converted XWiki content to XWiki via REST API."""
     url = get_xwiki_page_url(space, page_name)
     headers = {"Content-Type": "application/xml"}
@@ -87,7 +89,7 @@ def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password, parent_page
         <title>{page_name}</title>
         <syntax>xwiki/2.0</syntax>
         <content><![CDATA[{sanitized_content}]]></content>
-        {'<parent>' + parent_page + '</parent>' if parent_page else ''}
+        {'<parent>' + space + '.WebHome</parent>' if space else ''}
 </page>
     """
 
@@ -104,7 +106,7 @@ def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password, parent_page
 
 def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
     """Recursively process all HTML files and maintain directory structure."""
-    if source_wiki is not ("wikijs" or "dokuwiki"):
+    if source_wiki not in ("wikijs", "dokuwiki"):
         log.error(f"Unsupported source wiki: {source_wiki}")
         return
     if source_wiki == "wikijs":
@@ -119,10 +121,6 @@ def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
         rel_path = os.path.relpath(dirpath, root_dir)
         space = rel_path.replace(os.sep, ".") if rel_path != "." else None
 
-        parent_space = None
-        if space is not None:
-            parent_space = ".".join(space.split(".")[:-1]) if "." in space else None
-
         for filename in filenames:
             if filename.endswith(file_extension):
                 source_path = os.path.join(dirpath, filename)
@@ -131,7 +129,7 @@ def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
                 log.info(f"Processing: {source_path} -> {space}.{page_name}")
 
                 xwiki_content = convert_function(source_path)
-                upload_to_xwiki(space, page_name, xwiki_content, xwiki_password, parent_space)
+                upload_to_xwiki(space, page_name, xwiki_content, xwiki_password)
 
 
 def get_container_id(container_name):
