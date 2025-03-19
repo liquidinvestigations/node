@@ -39,7 +39,8 @@ def get_xwiki_password():
 
 def convert_html_to_xwiki(html_file):
     output = subprocess.run(
-        ["pandoc", "-f", "html", "-t", "xwiki", html_file],
+        ["pandoc", "-f", "html", "-t", "xwiki", html_file,
+         "--lua-filter=./scripts/pandoc_xwiki_link_filter.lua"],
         capture_output=True,
         text=True
     )
@@ -48,7 +49,8 @@ def convert_html_to_xwiki(html_file):
 
 def convert_dokuwiki_to_xwiki(dokuwiki_file):
     output = subprocess.run(
-        ["pandoc", "-f", "dokuwiki", "-t", "xwiki", dokuwiki_file],
+        ["pandoc", "-f", "dokuwiki", "-t", "xwiki", dokuwiki_file,
+         "--lua-filter=./scripts/pandoc_xwiki_link_filter.lua"],
         capture_output=True,
         text=True
     )
