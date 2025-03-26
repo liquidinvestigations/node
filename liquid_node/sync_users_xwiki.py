@@ -61,6 +61,7 @@ def create_xwiki_page(username, xwiki_password):
 
     upload_to_xwiki(url, xwiki_password, xml_payload, requests.put, username)
 
+
 def create_user_object(username, xwiki_password):
     """Create a new user object in the XWiki page."""
     url = f"{build_page_url(username)}/objects"
