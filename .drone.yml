@@ -59,6 +59,7 @@ steps:
       - set -x
       - set -e
       - cd /app-test/code
+      - pipenv install
       - export TEST_ADMIN_PASSWORD=$${TEST_ADMIN_PASSWORD}
       - ./ci/run-integration-tests.sh 1
 
