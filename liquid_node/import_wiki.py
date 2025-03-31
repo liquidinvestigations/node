@@ -167,8 +167,8 @@ def check_output_dir_exists(dir):
     return os.path.exists(dir)
 
 
-@import_wiki_commands.command()
-def import_xwiki_from_wikijs():
+def get_wikijs_files():
+    """Get the files from the WikiJS container."""
     if check_output_dir_exists(WIKIJS_EXPORT_DIR_HOST):
         log.error(f"Directory {WIKIJS_EXPORT_DIR_HOST} exists already. Please remove it and try again.")
         exit(1)
@@ -191,17 +191,30 @@ def import_xwiki_from_wikijs():
         exit(0)
     container_id = get_container_id("wiki.js")
     copy_data_from_container(container_id, WIKIJS_EXPORT_DIR_CONTAINER, WIKIJS_EXPORT_DIR_HOST)
+
+
+@import_wiki_commands.command()
+@click.option('--wikijs-files-path',
+              default=None,
+              help=f'Path to WikiJS pages directory. By default the files are copied from the container to a temporary location.')
+def import_xwiki_from_wikijs(wikijs_files_path):
+    if wikijs_files_path is None:
+        wikijs_files_path = WIKIJS_EXPORT_DIR_HOST
+        get_wikijs_files()
     xwiki_password = get_xwiki_password()
     if xwiki_password:
-        process_directory(WIKIJS_EXPORT_DIR_HOST, xwiki_password, source_wiki="wikijs")
+        process_directory(wikijs_files_path, xwiki_password, source_wiki="wikijs")
     else:
         log.warning("Failed to retrieve XWiki password.")
 
 
 @import_wiki_commands.command()
-def import_xwiki_from_dokuwiki():
+@click.option('--dokuwiki-path',
+              default=DOKUWIKI_ROOT,
+              help=f'Path to DokuWiki pages directory. Default: {DOKUWIKI_ROOT}')
+def import_xwiki_from_dokuwiki(dokuwiki_path):
     xwiki_password = get_xwiki_password()
     if xwiki_password:
-        process_directory(DOKUWIKI_ROOT, xwiki_password, source_wiki="dokuwiki")
+        process_directory(dokuwiki_path, xwiki_password, source_wiki="dokuwiki")
     else:
         log.warning("Failed to retrieve XWiki password.")
