@@ -1,10 +1,11 @@
 # Liquid Investigations Change Log
 
-## v0.32.2 (2025-04-24)
+## v0.32.3 (2025-04-24)
 
 ### Bug Fixes
 
 - Fix problem with XWIKI import script where some pages would halt the processing.
+- Increase XWIKI upload limit; upload limit is now 1Gb.
 
 ## v0.30.3 (2024-07-16)
 
