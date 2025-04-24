@@ -141,7 +141,7 @@ def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
                 try:
                     xwiki_content = convert_function(source_path)
                 except Exception as e:
-                    log.warning(f"Conversion FAILED: {source_path} -> {space}.{page_name}")
+                    log.warning(f"Conversion FAILED: {source_path} -> {space}.{page_name}: {str(e)}")
                     failures.append(f"Conversion FAILED {source_path} -> {space}.{page_name}")
                     continue
                 success = upload_to_xwiki(space, page_name, xwiki_content, xwiki_password)
@@ -221,7 +221,8 @@ def get_wikijs_files():
 @import_wiki_commands.command()
 @click.option('--wikijs-files-path',
               default=None,
-              help=f'Path to WikiJS pages directory. By default the files are copied from the container to a temporary location.')
+              help='''Path to WikiJS pages directory.
+              By default the files are copied from the container to a temporary location.''')
 def import_xwiki_from_wikijs(wikijs_files_path):
     if wikijs_files_path is None:
         wikijs_files_path = WIKIJS_EXPORT_DIR_HOST
