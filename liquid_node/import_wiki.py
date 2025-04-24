@@ -39,20 +39,24 @@ def get_xwiki_password():
 
 def convert_html_to_xwiki(html_file):
     output = subprocess.run(
-        ["pandoc", "-f", "html", "-t", "xwiki", html_file,
+        ["pandoc", "--verbose", "-f", "html", "-t", "xwiki", html_file,
          "--lua-filter=./scripts/pandoc_xwiki_link_filter.lua"],
         capture_output=True,
-        text=True
+        text=True,
+        check=True,
+        timeout=30,
     )
     return output.stdout
 
 
 def convert_dokuwiki_to_xwiki(dokuwiki_file):
     output = subprocess.run(
-        ["pandoc", "-f", "dokuwiki", "-t", "xwiki", dokuwiki_file,
+        ["pandoc", "--verbose", "-f", "dokuwiki", "-t", "xwiki", dokuwiki_file,
          "--lua-filter=./scripts/pandoc_xwiki_link_filter.lua"],
         capture_output=True,
-        text=True
+        text=True,
+        check=True,
+        timeout=30,
     )
     return output.stdout
 
@@ -81,7 +85,8 @@ def get_xwiki_page_url(space, page_name):
 
 
 def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password):
-    """Upload the converted XWiki content to XWiki via REST API."""
+    """Upload the converted XWiki content to XWiki via REST API.
+    Returns `True` on success and `False` on failure."""
     url = get_xwiki_page_url(space, page_name)
     headers = {"Content-Type": "application/xml"}
     sanitized_content = sanitize_cdata(xwiki_content)
@@ -101,9 +106,11 @@ def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password):
 
     if response.status_code in [200, 201, 202, 204]:
         log.info(f"Uploaded: {space}.{page_name}")
+        return True
     else:
         log.warning(f"Failed to upload {space}.{page_name}: {response.text}")
         log.warning(f"Response code: {response.status_code}")
+        return False
 
 
 def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
@@ -117,6 +124,8 @@ def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
     if source_wiki == "dokuwiki":
         file_extension = ".txt"
         convert_function = convert_dokuwiki_to_xwiki
+    failures = []
+    success_count = 0
 
     for dirpath, _, filenames in os.walk(root_dir):
         # Convert directory path to XWiki space format
@@ -129,9 +138,25 @@ def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
                 page_name = os.path.splitext(filename)[0]
 
                 log.info(f"Processing: {source_path} -> {space}.{page_name}")
-
-                xwiki_content = convert_function(source_path)
-                upload_to_xwiki(space, page_name, xwiki_content, xwiki_password)
+                try:
+                    xwiki_content = convert_function(source_path)
+                except Exception as e:
+                    log.warning(f"Conversion FAILED: {source_path} -> {space}.{page_name}")
+                    failures.append(f"Conversion FAILED {source_path} -> {space}.{page_name}")
+                    continue
+                success = upload_to_xwiki(space, page_name, xwiki_content, xwiki_password)
+                if not success:
+                    log.warning(f"Upload FAILED: {source_path} -> {space}.{page_name}")
+                    failures.append(f"Upload FAILED: {source_path} -> {space}.{page_name}")
+                    continue
+                success_count += 1
+    log.info("===")
+    log.info(f"=== Successfully uploaded {success_count} pages.")
+    log.info("===")
+    if len(failures) > 0:
+        log.warning(f'Processing encountered {len(failures)} ERRORS:')
+        for fail in failures:
+            log.warning(f'- {fail}')
 
 
 def get_container_id(container_name):
