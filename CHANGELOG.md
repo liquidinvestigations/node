@@ -1,5 +1,11 @@
 # Liquid Investigations Change Log
 
+## v0.32.2 (2025-04-24)
+
+### Bug Fixes
+
+- Fix problem with XWIKI import script where some pages would halt the processing.
+
 ## v0.30.3 (2024-07-16)
 
 ### Bug Fixes
