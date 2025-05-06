@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 chown -R www-data:www-data /var/www/html
 chmod -R 775 /var/www/html
 
@@ -18,6 +17,9 @@ $CONFIG = array (
                     getenv('LIQUID_BASE_IP'),
                     getenv('COLLABORA_HOST'),
                     getenv('LIQUID_HOST'),
+],
+  'trusted_proxies' => [
+                    getenv('LIQUID_BASE_IP'),
 ],
   'dbname' => getenv('MYSQL_DATABASE'),
   'dbpassword' => getenv('MYSQL_PASSWORD'),
@@ -287,6 +289,8 @@ OAUTH_SETTINGS=$(cat << DELIM
 ]}'
 DELIM
 )
+
+run as "php occ config:system:set overwrite.cli.url --value $NEXTCLOUD_IP"
 
 run_as "php occ config:system:set allow_local_remote_servers --value 1"
 

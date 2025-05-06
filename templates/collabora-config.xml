@@ -90,7 +90,7 @@
              coolwsd command line, so if you want to change it for your testing, do it in
              Makefile.am, not here.
         -->
-        <level type="string" desc="Can be 0-8 (with the lowest numbers being the least verbose), or none (turns off logging), fatal, critical, error, warning, notice, information, debug, trace" default="warning">warning</level>
+        <level type="string" desc="Can be 0-8 (with the lowest numbers being the least verbose), or none (turns off logging), fatal, critical, error, warning, notice, information, debug, trace" default="warning">debug</level>
         <level_startup type="string" desc="As for level - but for the initial startup phase which is most problematic, logging reverts to level configured above when startup is complete" default="trace">trace</level_startup>
         <most_verbose_level_settable_from_client type="string" desc="A loggingleveloverride message from the client can not set a more verbose log level than this" default="notice">notice</most_verbose_level_settable_from_client>
         <least_verbose_level_settable_from_client type="string" desc="A loggingleveloverride message from a client can not set a less verbose log level than this" default="fatal">fatal</least_verbose_level_settable_from_client>
@@ -243,7 +243,7 @@
             <alias_groups desc="default mode is 'first' it allows only the first host when groups are not defined. set mode to 'groups' and define group to allow multiple host and its aliases" mode="groups">
 			<group>
 				<host desc="hostname to allow or deny." allow="true">${config.liquid_http_protocol}://nextcloud28.${config.liquid_domain}</host>
-				<alias desc="regex pattern of aliasname">${config.liquid_http_protocol}://{{env "attr.unique.network.ip-address" }}:${config.port_collabora}</alias>
+				<alias desc="regex pattern of aliasname">http://{{env "attr.unique.network.ip-address" }}:${config.port_collabora}</alias>
 			</group>
             <!-- If you need to use multiple wopi hosts, please change the mode to "groups" and
                     add the hosts below.  If one host is accessible under multiple ip addresses
