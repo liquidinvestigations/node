@@ -6,12 +6,13 @@ import click
 import logging
 from .configuration import config
 
+
 log = logging.getLogger(__name__)
 
 # Configuration
 XWIKI_USER = "superadmin"
-WIKIJS_EXPORT_DIR_HOST = "/tmp/wikijs_backup"  # Root directory of your HTML wiki
-WIKIJS_EXPORT_DIR_CONTAINER = "/tmp/backup"  # Root directory of your HTML wiki
+WIKIJS_EXPORT_DIR_HOST = "/tmp/wikijs_backup"   # Root directory of your HTML wiki
+WIKIJS_EXPORT_DIR_CONTAINER = "/tmp/backup"     # Root directory inside container
 DOKUWIKI_ROOT = "/opt/node/volumes/dokuwiki/data/dokuwiki/data/pages"
 
 
@@ -30,8 +31,8 @@ def get_xwiki_password():
             check=True
         )
         sanitized_output = result.stdout.replace("'", '"')
-        secret_data = json.loads(sanitized_output)  # Parse JSON output
-        return secret_data.get("secret_key")  # Extract the password
+        secret_data = json.loads(sanitized_output)
+        return secret_data.get("secret_key")
     except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError) as e:
         log.warning(f"Error retrieving password: {e}")
         return None
@@ -86,7 +87,7 @@ def get_xwiki_page_url(space, page_name):
 
 def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password):
     """Upload the converted XWiki content to XWiki via REST API.
-    Returns `True` on success and `False` on failure."""
+    Returns True on success and False on failure."""
     url = get_xwiki_page_url(space, page_name)
     headers = {"Content-Type": "application/xml"}
     sanitized_content = sanitize_cdata(xwiki_content)
@@ -114,46 +115,62 @@ def upload_to_xwiki(space, page_name, xwiki_content, xwiki_password):
 
 
 def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
-    """Recursively process all HTML files and maintain directory structure."""
+    """
+    Recursively process all HTML or txt files and maintain directory structure.
+    This version keeps the WikiJS/DokuWiki hierarchy intact by including
+    the full relative path (converted to dot-notation) in the XWiki space/page.
+    """
     if source_wiki not in ("wikijs", "dokuwiki"):
         log.error(f"Unsupported source wiki: {source_wiki}")
         return
-    if source_wiki == "wikijs":
-        file_extension = ".html"
-        convert_function = convert_html_to_xwiki
-    if source_wiki == "dokuwiki":
-        file_extension = ".txt"
-        convert_function = convert_dokuwiki_to_xwiki
+
+    file_extension = ".html" if source_wiki == "wikijs" else ".txt"
+    convert_function = convert_html_to_xwiki if source_wiki == "wikijs" else convert_dokuwiki_to_xwiki
+
     failures = []
     success_count = 0
 
     for dirpath, _, filenames in os.walk(root_dir):
-        # Convert directory path to XWiki space format
-        rel_path = os.path.relpath(dirpath, root_dir)
-        space = rel_path.replace(os.sep, ".") if rel_path != "." else None
-
         for filename in filenames:
-            if filename.endswith(file_extension):
-                source_path = os.path.join(dirpath, filename)
-                page_name = os.path.splitext(filename)[0]
+            if not filename.endswith(file_extension):
+                continue
 
-                log.info(f"Processing: {source_path} -> {space}.{page_name}")
-                try:
-                    xwiki_content = convert_function(source_path)
-                except Exception as e:
-                    log.warning(f"Conversion FAILED: {source_path} -> {space}.{page_name}: {str(e)}")
-                    failures.append(f"Conversion FAILED {source_path} -> {space}.{page_name}")
-                    continue
-                success = upload_to_xwiki(space, page_name, xwiki_content, xwiki_password)
-                if not success:
-                    log.warning(f"Upload FAILED: {source_path} -> {space}.{page_name}")
-                    failures.append(f"Upload FAILED: {source_path} -> {space}.{page_name}")
-                    continue
-                success_count += 1
+            source_path = os.path.join(dirpath, filename)
+
+            # FULL RELATIVE PATH used for space + page name
+            rel_path = os.path.relpath(source_path, root_dir)
+            rel_no_ext = os.path.splitext(rel_path)[0]
+            dotted_path = rel_no_ext.replace(os.sep, ".")
+
+            # split into space (everything except last) and page name (last)
+            if "." in dotted_path:
+                space = ".".join(dotted_path.split(".")[:-1])
+                page_name = dotted_path.split(".")[-1]
+            else:
+                space = None
+                page_name = dotted_path
+
+            log.info(f"Processing: {source_path} -> {space}.{page_name}")
+
+            try:
+                xwiki_content = convert_function(source_path)
+            except Exception as e:
+                log.warning(f"Conversion FAILED: {source_path} -> {space}.{page_name}: {str(e)}")
+                failures.append(f"Conversion FAILED {source_path} -> {space}.{page_name}")
+                continue
+
+            success = upload_to_xwiki(space, page_name, xwiki_content, xwiki_password)
+            if not success:
+                log.warning(f"Upload FAILED: {source_path} -> {space}.{page_name}")
+                failures.append(f"Upload FAILED: {source_path} -> {space}.{page_name}")
+                continue
+
+            success_count += 1
+
     log.info("===")
     log.info(f"=== Successfully uploaded {success_count} pages.")
     log.info("===")
-    if len(failures) > 0:
+    if failures:
         log.warning(f'Processing encountered {len(failures)} ERRORS:')
         for fail in failures:
             log.warning(f'- {fail}')
@@ -161,8 +178,7 @@ def process_directory(root_dir, xwiki_password, source_wiki="wikijs"):
 
 def get_container_id(container_name):
     get_id_command = f"docker ps | grep {container_name} | awk '{{print $1}}'"
-    id = subprocess.check_output(["/bin/bash", "-c", get_id_command], text=True).strip()
-    return id
+    return subprocess.check_output(["/bin/bash", "-c", get_id_command], text=True).strip()
 
 
 def copy_data_from_container(container_id, container_path, host_path):
@@ -198,7 +214,7 @@ def get_wikijs_files():
         log.error(f"Directory {WIKIJS_EXPORT_DIR_HOST} exists already. Please remove it and try again.")
         exit(1)
     create_backup_directory_in_container(WIKIJS_EXPORT_DIR_CONTAINER)
-    print(f"""
+    print("""
 1. Go to your wiki.js admin interface
 
 2. Under 'Modules > Storage > Local File System':
@@ -221,8 +237,8 @@ def get_wikijs_files():
 @import_wiki_commands.command()
 @click.option('--wikijs-files-path',
               default=None,
-              help='''Path to WikiJS pages directory.
-              By default the files are copied from the container to a temporary location.''')
+              help='Path to WikiJS pages directory. '
+                   'By default the files are copied from the container to a temporary location.')
 def import_xwiki_from_wikijs(wikijs_files_path):
     if wikijs_files_path is None:
         wikijs_files_path = WIKIJS_EXPORT_DIR_HOST
