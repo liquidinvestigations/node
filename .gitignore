@@ -12,4 +12,5 @@ __pycache__
 /versions.ini
 /plot-search-time.png
 /.logs/
+/.logs
 /mass-invite-users.csv
